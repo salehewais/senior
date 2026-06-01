@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RDBMS - دليل المذاكرة الشامل</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Tajawal:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Cairo:wght@300;400;600;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="roadmap.css">
+<script src="roadmap.js" defer></script>
+</head>
+<body class="page-rdbms">
+
+<div id="reading-progress"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-badge">📚 دليل المذاكرة الشامل</div>
+  <h1>Relational Database Management System</h1>
+  <p>كل حاجة محتاج تعرفها عن RDBMS — من الأساسيات للـ Advanced</p>
+  <div class="header-stats">
+    <div class="stat"><div class="stat-num">18</div><div class="stat-label">توبك</div></div>
+    <div class="stat"><div class="stat-num">100+</div><div class="stat-label">مفهوم</div></div>
+    <div class="stat"><div class="stat-num">30+</div><div class="stat-label">كود مثال</div></div>
+    <div class="stat"><div class="stat-num">15+</div><div class="stat-label">مرجع</div></div>
+  </div>
+</header>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc" style="margin: 40px auto; max-width: 1200px;">
+  <h2>📋 فهرس المحتوى</h2>
+  <div class="toc-grid">
+    <a href="#s1"><span class="toc-num">01</span> المفاهيم الأساسية</a>
+    <a href="#s2"><span class="toc-num">02</span> SQL Language</a>
+    <a href="#s3"><span class="toc-num">03</span> Joins</a>
+    <a href="#s4"><span class="toc-num">04</span> Normalization</a>
+    <a href="#s5"><span class="toc-num">05</span> Indexes</a>
+    <a href="#s6"><span class="toc-num">06</span> Transactions & ACID</a>
+    <a href="#s7"><span class="toc-num">07</span> Stored Procedures & Functions</a>
+    <a href="#s8"><span class="toc-num">08</span> Query Optimization</a>
+    <a href="#s9"><span class="toc-num">09</span> Relationships</a>
+    <a href="#s10"><span class="toc-num">10</span> Subqueries & Advanced SQL</a>
+    <a href="#s11"><span class="toc-num">11</span> Aggregate Functions</a>
+    <a href="#s12"><span class="toc-num">12</span> Database Design</a>
+    <a href="#s13"><span class="toc-num">13</span> Concurrency Control</a>
+    <a href="#s14"><span class="toc-num">14</span> Backup & Recovery</a>
+    <a href="#s15"><span class="toc-num">15</span> Security</a>
+    <a href="#s16"><span class="toc-num">16</span> Scalability & Performance</a>
+    <a href="#s17"><span class="toc-num">17</span> NoSQL vs RDBMS</a>
+    <a href="#s18"><span class="toc-num">18</span> ORM</a>
+    <a href="#refs"><span class="toc-num">📚</span> المراجع</a>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ===== SECTION 1 ===== -->
+<section class="section" id="s1">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <div>
+      <h2>المفاهيم الأساسية — Core Concepts</h2>
+      <div class="section-desc">اللبنة الأساسية اللي بيتبني عليها كل حاجة</div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card" style="--card-accent: #3b82f6;">
+      <div class="card-title">🗄️ Table, Row, Column</div>
+      <ul>
+        <li><strong>Table:</strong> جدول لتخزين بيانات من نفس النوع</li>
+        <li><strong>Row (Record/Tuple):</strong> صف = سجل واحد من البيانات</li>
+        <li><strong>Column (Attribute):</strong> عمود = خاصية أو حقل</li>
+        <li><strong>Schema:</strong> الهيكل العام لقاعدة البيانات</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #10b981;">
+      <div class="card-title">🔑 Primary Key & Foreign Key</div>
+      <ul>
+        <li><strong>Primary Key:</strong> معرف فريد لكل row — لا يتكرر، مش null</li>
+        <li><strong>Foreign Key:</strong> بيشاور على PK في جدول تاني لربط الجداول</li>
+        <li><strong>Composite Key:</strong> مفتاح مكوّن من أكتر من عمود</li>
+        <li><strong>Surrogate Key:</strong> ID اصطناعي (مش بيانات حقيقية)</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #8b5cf6;">
+      <div class="card-title">📋 Data Types الشائعة</div>
+      <ul>
+        <li><strong>INT / BIGINT:</strong> أعداد صحيحة</li>
+        <li><strong>VARCHAR(n):</strong> نص بطول متغير</li>
+        <li><strong>TEXT:</strong> نص طويل</li>
+        <li><strong>DATE / DATETIME / TIMESTAMP:</strong> تواريخ وأوقات</li>
+        <li><strong>BOOLEAN:</strong> true/false</li>
+        <li><strong>DECIMAL(p,s):</strong> أعداد عشرية دقيقة</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #f59e0b;">
+      <div class="card-title">⚙️ Constraints</div>
+      <ul>
+        <li><strong>NOT NULL:</strong> الحقل لازم يكون فيه قيمة</li>
+        <li><strong>UNIQUE:</strong> القيمة لا تتكرر في العمود</li>
+        <li><strong>CHECK:</strong> شرط على البيانات (مثلاً age > 0)</li>
+        <li><strong>DEFAULT:</strong> قيمة افتراضية لو مفيش قيمة</li>
+        <li><strong>PRIMARY KEY:</strong> NOT NULL + UNIQUE</li>
+        <li><strong>FOREIGN KEY:</strong> تكامل المراجع</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="code-block" style="margin-top: 16px;">
+    <div class="code-header">SQL — إنشاء جدول مع Constraints</div>
+    <pre><span class="kw">CREATE TABLE</span> <span class="tb">students</span> (
+    id         <span class="kw">INT</span>           <span class="kw">PRIMARY KEY AUTO_INCREMENT</span>,
+    name       <span class="kw">VARCHAR</span>(<span class="num">100</span>)  <span class="kw">NOT NULL</span>,
+    email      <span class="kw">VARCHAR</span>(<span class="num">150</span>)  <span class="kw">UNIQUE NOT NULL</span>,
+    age        <span class="kw">INT</span>           <span class="kw">CHECK</span> (age <span class="op">></span> <span class="num">0</span> <span class="kw">AND</span> age <span class="op"><</span> <span class="num">120</span>),
+    gpa        <span class="kw">DECIMAL</span>(<span class="num">3</span>,<span class="num">2</span>) <span class="kw">DEFAULT</span> <span class="num">0.00</span>,
+    dept_id    <span class="kw">INT</span>,
+    created_at <span class="kw">TIMESTAMP</span>    <span class="kw">DEFAULT CURRENT_TIMESTAMP</span>,
+    <span class="kw">FOREIGN KEY</span> (dept_id) <span class="kw">REFERENCES</span> <span class="tb">departments</span>(id)
+);</pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 2 ===== -->
+<section class="section" id="s2">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <div>
+      <h2>SQL Language</h2>
+      <div class="section-desc">DDL · DML · DCL · TCL</div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card" style="--card-accent: #3b82f6;">
+      <div class="card-title">🏗️ DDL — Data Definition Language</div>
+      <ul>
+        <li><strong>CREATE:</strong> إنشاء جدول/قاعدة بيانات/view</li>
+        <li><strong>ALTER:</strong> تعديل هيكل جدول موجود</li>
+        <li><strong>DROP:</strong> حذف الجدول كله مع بياناته</li>
+        <li><strong>TRUNCATE:</strong> مسح كل البيانات وبس (أسرع من DELETE)</li>
+        <li><strong>RENAME:</strong> إعادة تسمية جدول</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #10b981;">
+      <div class="card-title">✏️ DML — Data Manipulation Language</div>
+      <ul>
+        <li><strong>SELECT:</strong> جلب بيانات</li>
+        <li><strong>INSERT:</strong> إضافة بيانات</li>
+        <li><strong>UPDATE:</strong> تحديث بيانات موجودة</li>
+        <li><strong>DELETE:</strong> حذف صفوف محددة</li>
+        <li><strong>MERGE:</strong> دمج INSERT + UPDATE (Upsert)</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #f59e0b;">
+      <div class="card-title">🔐 DCL — Data Control Language</div>
+      <ul>
+        <li><strong>GRANT:</strong> إعطاء صلاحيات لمستخدم</li>
+        <li><strong>REVOKE:</strong> سحب الصلاحيات</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #8b5cf6;">
+      <div class="card-title">🔄 TCL — Transaction Control Language</div>
+      <ul>
+        <li><strong>COMMIT:</strong> تأكيد التغييرات وحفظها</li>
+        <li><strong>ROLLBACK:</strong> التراجع عن التغييرات</li>
+        <li><strong>SAVEPOINT:</strong> نقطة وسطية للتراجع ليها</li>
+        <li><strong>SET TRANSACTION:</strong> تحديد خصائص الـ transaction</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="code-block" style="margin-top: 16px;">
+    <div class="code-header">SQL — أمثلة عملية</div>
+    <pre><span class="cm">-- DDL</span>
+<span class="kw">ALTER TABLE</span> <span class="tb">students</span> <span class="kw">ADD COLUMN</span> phone <span class="kw">VARCHAR</span>(<span class="num">20</span>);
+<span class="kw">ALTER TABLE</span> <span class="tb">students</span> <span class="kw">DROP COLUMN</span> phone;
+
+<span class="cm">-- DML</span>
+<span class="kw">INSERT INTO</span> <span class="tb">students</span> (name, email, age) 
+<span class="kw">VALUES</span> (<span class="str">'أحمد'</span>, <span class="str">'ahmed@email.com'</span>, <span class="num">22</span>);
+
+<span class="kw">UPDATE</span> <span class="tb">students</span> <span class="kw">SET</span> gpa <span class="op">=</span> <span class="num">3.8</span> <span class="kw">WHERE</span> id <span class="op">=</span> <span class="num">1</span>;
+
+<span class="kw">DELETE FROM</span> <span class="tb">students</span> <span class="kw">WHERE</span> age <span class="op"><</span> <span class="num">18</span>;
+
+<span class="cm">-- DCL</span>
+<span class="kw">GRANT</span> <span class="kw">SELECT</span>, <span class="kw">INSERT</span> <span class="kw">ON</span> <span class="tb">students</span> <span class="kw">TO</span> <span class="str">'user1'</span>;
+<span class="kw">REVOKE</span> <span class="kw">INSERT</span> <span class="kw">ON</span> <span class="tb">students</span> <span class="kw">FROM</span> <span class="str">'user1'</span>;</pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 3 ===== -->
+<section class="section" id="s3">
+  <div class="section-header">
+    <div class="section-num">03</div>
+    <div>
+      <h2>Joins — ربط الجداول</h2>
+      <div class="section-desc">أهم حاجة في الـ SQL وبتتسأل فيها كتير في الـ Interviews</div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+    <div class="join-card">
+      <div class="join-diagram">
+        <div class="circle c-left" style="background: rgba(139,92,246,0.6);"></div>
+        <div class="circle c-right" style="background: rgba(139,92,246,0.6);"></div>
+      </div>
+      <div class="join-info">
+        <div class="join-name">INNER JOIN</div>
+        <div class="join-desc">بيجيب الصفوف اللي ليها تطابق في الجدولين — التقاطع فقط</div>
+      </div>
+    </div>
+    <div class="join-card">
+      <div class="join-diagram">
+        <div class="circle c-left" style="background: rgba(59,130,246,0.7);"></div>
+        <div class="circle c-right" style="background: rgba(6,182,212,0.3);"></div>
+      </div>
+      <div class="join-info">
+        <div class="join-name">LEFT JOIN (LEFT OUTER)</div>
+        <div class="join-desc">كل الجدول الأيسر + التطابقات من الأيمن. اللي ملوش تطابق بيجيلو NULL</div>
+      </div>
+    </div>
+    <div class="join-card">
+      <div class="join-diagram">
+        <div class="circle c-left" style="background: rgba(59,130,246,0.3);"></div>
+        <div class="circle c-right" style="background: rgba(6,182,212,0.7);"></div>
+      </div>
+      <div class="join-info">
+        <div class="join-name">RIGHT JOIN (RIGHT OUTER)</div>
+        <div class="join-desc">عكس LEFT JOIN — كل الجدول الأيمن + التطابقات من الأيسر</div>
+      </div>
+    </div>
+    <div class="join-card">
+      <div class="join-diagram">
+        <div class="circle c-left full"></div>
+        <div class="circle c-right full"></div>
+      </div>
+      <div class="join-info">
+        <div class="join-name">FULL OUTER JOIN</div>
+        <div class="join-desc">كل الصفوف من الجدولين. اللي ملوش تطابق بيجيلو NULL في العمود التاني</div>
+      </div>
+    </div>
+    <div class="join-card">
+      <div class="join-diagram" style="display:flex; align-items:center; justify-content:center;">
+        <span style="font-size: 1.5rem;">✕</span>
+      </div>
+      <div class="join-info">
+        <div class="join-name">CROSS JOIN</div>
+        <div class="join-desc">الـ Cartesian Product — كل صف من الأول مع كل صف من التاني (n × m صف)</div>
+      </div>
+    </div>
+    <div class="join-card">
+      <div class="join-diagram" style="display:flex; align-items:center; justify-content:center;">
+        <span style="font-size: 1.5rem;">🔁</span>
+      </div>
+      <div class="join-info">
+        <div class="join-name">SELF JOIN</div>
+        <div class="join-desc">الجدول بيعمل JOIN مع نفسه — مفيد في الهياكل الشجرية (employee → manager)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block" style="margin-top: 16px;">
+    <div class="code-header">SQL — أمثلة على Joins</div>
+    <pre><span class="cm">-- INNER JOIN: الطلاب اللي ليهم قسم</span>
+<span class="kw">SELECT</span> s.name, d.dept_name
+<span class="kw">FROM</span> <span class="tb">students</span> s
+<span class="kw">INNER JOIN</span> <span class="tb">departments</span> d <span class="kw">ON</span> s.dept_id <span class="op">=</span> d.id;
+
+<span class="cm">-- LEFT JOIN: كل الطلاب (حتى اللي مفيهمش قسم)</span>
+<span class="kw">SELECT</span> s.name, d.dept_name
+<span class="kw">FROM</span> <span class="tb">students</span> s
+<span class="kw">LEFT JOIN</span> <span class="tb">departments</span> d <span class="kw">ON</span> s.dept_id <span class="op">=</span> d.id;
+
+<span class="cm">-- SELF JOIN: الموظف ومديره</span>
+<span class="kw">SELECT</span> e.name <span class="kw">AS</span> employee, m.name <span class="kw">AS</span> manager
+<span class="kw">FROM</span> <span class="tb">employees</span> e
+<span class="kw">LEFT JOIN</span> <span class="tb">employees</span> m <span class="kw">ON</span> e.manager_id <span class="op">=</span> m.id;</pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 4 ===== -->
+<section class="section" id="s4">
+  <div class="section-header">
+    <div class="section-num">04</div>
+    <div>
+      <h2>Normalization — التسوية</h2>
+      <div class="section-desc">إزاي تنظم جداولك عشان تتجنب التكرار والمشاكل</div>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-icon">💡</div>
+    <div class="callout-text">
+      <div class="callout-title">ليه Normalization؟</div>
+      لتجنب: Data Redundancy (تكرار البيانات) · Update Anomaly · Insert Anomaly · Delete Anomaly
+    </div>
+  </div>
+
+  <div class="nf-timeline">
+    <div class="nf-item">
+      <div class="nf-label">1NF — First Normal Form</div>
+      <div class="nf-rule">القاعدة: كل خلية فيها قيمة واحدة فقط (Atomic) + لا تكرار في الصفوف</div>
+      <div class="nf-desc">✗ غلط: عمود "phones" فيه "01001, 01002" | ✓ صح: صف لكل رقم</div>
+    </div>
+    <div class="nf-item">
+      <div class="nf-label">2NF — Second Normal Form</div>
+      <div class="nf-rule">القاعدة: 1NF + كل عمود non-key يعتمد على الـ Primary Key كلها (مش جزء منها)</div>
+      <div class="nf-desc">بيطبق بس لو في Composite Key. أي Partial Dependency لازم يتحل بجدول منفصل</div>
+    </div>
+    <div class="nf-item">
+      <div class="nf-label">3NF — Third Normal Form</div>
+      <div class="nf-rule">القاعدة: 2NF + لا Transitive Dependency (A→B→C مش مقبول)</div>
+      <div class="nf-desc">مثال: student → dept_id → dept_name — لازم dept_name يكون في جدول departments</div>
+    </div>
+    <div class="nf-item">
+      <div class="nf-label">BCNF — Boyce-Codd Normal Form</div>
+      <div class="nf-rule">القاعدة: إصدار أقوى من 3NF — كل Determinant لازم يكون Candidate Key</div>
+      <div class="nf-desc">بيحل حالات نادرة ما بيحلهاش 3NF في حالة أكتر من Candidate Key</div>
+    </div>
+    <div class="nf-item">
+      <div class="nf-label">4NF & 5NF</div>
+      <div class="nf-rule">للحالات المتقدمة: تتعامل مع Multi-valued Dependencies و Join Dependencies</div>
+      <div class="nf-desc">نادر الاستخدام في العملي — أكتر نظري</div>
+    </div>
+  </div>
+
+  <div class="callout warn" style="margin-top: 16px;">
+    <div class="callout-icon">⚠️</div>
+    <div class="callout-text">
+      <div class="callout-title">Denormalization</div>
+      أحياناً بنتراجع عن الـ Normalization عمداً لتحسين الـ Performance في حالات الـ Read-heavy مثل Data Warehouses — بنضيف بيانات مكررة عشان نتجنب كتير من الـ Joins.
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 5 ===== -->
+<section class="section" id="s5">
+  <div class="section-header">
+    <div class="section-num">05</div>
+    <div>
+      <h2>Indexes — الفهارس</h2>
+      <div class="section-desc">بيسرعوا الـ queries بشكل ضخم لو اتعملوا صح</div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card" style="--card-accent: #3b82f6;">
+      <div class="card-title">📌 Clustered Index</div>
+      <ul>
+        <li>ترتيب البيانات الفعلي في الـ disk بيكون بترتيبه</li>
+        <li>واحد بس لكل جدول (عادةً الـ PK)</li>
+        <li>أسرع للـ range queries</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #10b981;">
+      <div class="card-title">📌 Non-Clustered Index</div>
+      <ul>
+        <li>هيكل منفصل بيشاور على البيانات الأصلية</li>
+        <li>ممكن يكون عندك أكتر من واحد</li>
+        <li>مفيد للـ columns اللي بتبحث بيها كتير</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #8b5cf6;">
+      <div class="card-title">📌 Composite Index</div>
+      <ul>
+        <li>Index على أكتر من عمود مع بعض</li>
+        <li>ترتيب الأعمدة مهم جداً (Leftmost Prefix Rule)</li>
+        <li>مثال: (last_name, first_name)</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #f59e0b;">
+      <div class="card-title">📌 Unique Index & Full-Text</div>
+      <ul>
+        <li><strong>Unique:</strong> يمنع تكرار القيم في العمود</li>
+        <li><strong>Full-Text:</strong> للبحث النصي الذكي (MATCH AGAINST)</li>
+        <li><strong>Partial Index:</strong> Index على جزء من البيانات بشرط</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout warn" style="margin-top: 16px;">
+    <div class="callout-icon">⚠️</div>
+    <div class="callout-text">
+      <div class="callout-title">Indexes مش دايماً كويسة!</div>
+      الـ Index بيبطأ الـ INSERT/UPDATE/DELETE لأنه بيحتاج يتحدث. استخدمه بس على الأعمدة اللي بتبحث بيها أو بتعمل عليها JOIN كتير.
+    </div>
+  </div>
+
+  <div class="code-block" style="margin-top: 16px;">
+    <div class="code-header">SQL — إنشاء Index</div>
+    <pre><span class="cm">-- Non-Clustered Index بسيط</span>
+<span class="kw">CREATE INDEX</span> idx_student_email <span class="kw">ON</span> <span class="tb">students</span>(email);
+
+<span class="cm">-- Composite Index</span>
+<span class="kw">CREATE INDEX</span> idx_name <span class="kw">ON</span> <span class="tb">students</span>(last_name, first_name);
+
+<span class="cm">-- Unique Index</span>
+<span class="kw">CREATE UNIQUE INDEX</span> idx_unique_email <span class="kw">ON</span> <span class="tb">students</span>(email);
+
+<span class="cm">-- شوف الـ Index بيتستخدم ولا لأ</span>
+<span class="kw">EXPLAIN SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> <span class="tb">students</span> <span class="kw">WHERE</span> email <span class="op">=</span> <span class="str">'ahmed@email.com'</span>;</pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 6 ===== -->
+<section class="section" id="s6">
+  <div class="section-header">
+    <div class="section-num">06</div>
+    <div>
+      <h2>Transactions & ACID</h2>
+      <div class="section-desc">ضمان سلامة البيانات حتى لو في أعطال</div>
+    </div>
+  </div>
+
+  <div class="acid-grid">
+    <div class="acid-card" style="border-color: rgba(59,130,246,0.4);">
+      <div class="acid-letter" style="color: var(--accent1);">A</div>
+      <div class="acid-name">Atomicity</div>
+      <div class="acid-desc">الـ Transaction كلها تنجح أو كلها تفشل — مفيش نص عملية</div>
+    </div>
+    <div class="acid-card" style="border-color: rgba(16,185,129,0.4);">
+      <div class="acid-letter" style="color: var(--accent4);">C</div>
+      <div class="acid-name">Consistency</div>
+      <div class="acid-desc">البيانات دايماً في حالة صحيحة قبل وبعد الـ Transaction</div>
+    </div>
+    <div class="acid-card" style="border-color: rgba(139,92,246,0.4);">
+      <div class="acid-letter" style="color: var(--accent3);">I</div>
+      <div class="acid-name">Isolation</div>
+      <div class="acid-desc">كل Transaction معزولة عن التانية — مش بيشوفوا بعض وهم شغالين</div>
+    </div>
+    <div class="acid-card" style="border-color: rgba(245,158,11,0.4);">
+      <div class="acid-letter" style="color: var(--accent5);">D</div>
+      <div class="acid-name">Durability</div>
+      <div class="acid-desc">بعد الـ COMMIT البيانات اتحفظت — حتى لو في crash</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 24px;">
+    <h3 style="color: var(--accent2); margin-bottom: 16px; font-size: 1.1rem;">🔒 Isolation Levels</h3>
+    <div class="table-wrap">
+      <table>
+        <tr>
+          <th>Isolation Level</th>
+          <th>Dirty Read</th>
+          <th>Non-Repeatable Read</th>
+          <th>Phantom Read</th>
+          <th>أداء</th>
+        </tr>
+        <tr>
+          <td><span class="badge badge-red">Read Uncommitted</span></td>
+          <td>✅ ممكن</td><td>✅ ممكن</td><td>✅ ممكن</td>
+          <td><span class="badge badge-green">أسرع</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-yellow">Read Committed</span></td>
+          <td>❌ ممنوع</td><td>✅ ممكن</td><td>✅ ممكن</td>
+          <td><span class="badge badge-yellow">متوسط</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">Repeatable Read</span></td>
+          <td>❌ ممنوع</td><td>❌ ممنوع</td><td>✅ ممكن</td>
+          <td><span class="badge badge-yellow">متوسط</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-purple">Serializable</span></td>
+          <td>❌ ممنوع</td><td>❌ ممنوع</td><td>❌ ممنوع</td>
+          <td><span class="badge badge-red">أبطأ</span></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="code-block" style="margin-top: 16px;">
+    <div class="code-header">SQL — Transaction Example</div>
+    <pre><span class="kw">START TRANSACTION</span>;
+
+<span class="cm">-- تحويل فلوس من حساب لحساب</span>
+<span class="kw">UPDATE</span> <span class="tb">accounts</span> <span class="kw">SET</span> balance <span class="op">=</span> balance <span class="op">-</span> <span class="num">1000</span> <span class="kw">WHERE</span> id <span class="op">=</span> <span class="num">1</span>;
+<span class="kw">UPDATE</span> <span class="tb">accounts</span> <span class="kw">SET</span> balance <span class="op">=</span> balance <span class="op">+</span> <span class="num">1000</span> <span class="kw">WHERE</span> id <span class="op">=</span> <span class="num">2</span>;
+
+<span class="cm">-- لو كل حاجة تمام</span>
+<span class="kw">COMMIT</span>;
+
+<span class="cm">-- لو في مشكلة</span>
+<span class="cm">-- ROLLBACK;</span>
+
+<span class="cm">-- SAVEPOINT</span>
+<span class="kw">SAVEPOINT</span> after_first_update;
+<span class="kw">ROLLBACK TO</span> after_first_update;</pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 7 ===== -->
+<section class="section" id="s7">
+  <div class="section-header">
+    <div class="section-num">07</div>
+    <div>
+      <h2>Stored Procedures, Functions, Views & Triggers</h2>
+      <div class="section-desc">منطق البيزنس جوه قاعدة البيانات</div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card" style="--card-accent: #3b82f6;">
+      <div class="card-title">⚙️ Stored Procedure</div>
+      <ul>
+        <li>كود SQL محفوظ ومُسمى — بتناديه بـ CALL</li>
+        <li>ممكن يرجع قيم (OUT parameters)</li>
+        <li>بيتنفذ على السيرفر مباشرةً</li>
+        <li>ممكن فيه Control Flow (IF, LOOP, WHILE)</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #10b981;">
+      <div class="card-title">🔢 User-Defined Functions (UDFs)</div>
+      <ul>
+        <li>زي Procedure لكن بترجع قيمة واحدة دايماً</li>
+        <li>ممكن تستخدمها جوه SELECT</li>
+        <li>مش بتعمل تعديل على البيانات (Scalar Function)</li>
+        <li>Table-Valued Functions بترجع جدول</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #8b5cf6;">
+      <div class="card-title">👁️ Views</div>
+      <ul>
+        <li>Query محفوظة تشتغل كأنها جدول افتراضي</li>
+        <li>بتبسط الـ complex queries</li>
+        <li>بتخفي بيانات حساسة</li>
+        <li>لا بتحفظ بيانات (إلا Materialized View)</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #f59e0b;">
+      <div class="card-title">⚡ Triggers</div>
+      <ul>
+        <li>كود بيتنفذ أوتوماتيك عند INSERT/UPDATE/DELETE</li>
+        <li>BEFORE / AFTER trigger</li>
+        <li>مفيد للـ Audit logs والـ Validation</li>
+        <li>لكن بيصعّد الـ Debugging</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="code-block" style="margin-top: 16px;">
+    <div class="code-header">SQL — أمثلة</div>
+    <pre><span class="cm">-- View</span>
+<span class="kw">CREATE VIEW</span> <span class="tb">top_students</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> name, gpa <span class="kw">FROM</span> <span class="tb">students</span> <span class="kw">WHERE</span> gpa <span class="op">></span> <span class="num">3.5</span>;
+
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> <span class="tb">top_students</span>; <span class="cm">-- بتستخدمها كجدول عادي</span>
+
+<span class="cm">-- Stored Procedure</span>
+<span class="kw">CREATE PROCEDURE</span> <span class="fn">GetStudentsByDept</span>(IN dept_id <span class="kw">INT</span>)
+<span class="kw">BEGIN</span>
+    <span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> <span class="tb">students</span> <span class="kw">WHERE</span> dept_id <span class="op">=</span> dept_id;
+<span class="kw">END</span>;
+
+<span class="kw">CALL</span> <span class="fn">GetStudentsByDept</span>(<span class="num">3</span>);
+
+<span class="cm">-- Trigger: Audit log عند الحذف</span>
+<span class="kw">CREATE TRIGGER</span> <span class="fn">before_student_delete</span>
+<span class="kw">BEFORE DELETE ON</span> <span class="tb">students</span>
+<span class="kw">FOR EACH ROW</span>
+<span class="kw">BEGIN</span>
+    <span class="kw">INSERT INTO</span> <span class="tb">audit_log</span>(action, student_id, deleted_at)
+    <span class="kw">VALUES</span> (<span class="str">'DELETE'</span>, OLD.id, <span class="fn">NOW</span>());
+<span class="kw">END</span>;</pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 8 ===== -->
+<section class="section" id="s8">
+  <div class="section-header">
+    <div class="section-num">08</div>
+    <div>
+      <h2>Query Optimization</h2>
+      <div class="section-desc">اعمل الـ query أسرع بدون تغيير النتيجة</div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card" style="--card-accent: #3b82f6;">
+      <div class="card-title">🔍 Execution Plan</div>
+      <ul>
+        <li>استخدم EXPLAIN / EXPLAIN ANALYZE قبل أي query</li>
+        <li>شوف الـ cost وعدد الصفوف المتوقعة</li>
+        <li>دور على Full Table Scans وشيلها</li>
+        <li>في PostgreSQL: EXPLAIN (ANALYZE, BUFFERS)</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #10b981;">
+      <div class="card-title">🚀 أهم Tips للـ Optimization</div>
+      <ul>
+        <li>استخدم Indexes على الأعمدة اللي في WHERE / JOIN</li>
+        <li>اجتنب SELECT * — حدد الأعمدة اللي محتاجها</li>
+        <li>اجتنب Functions على الأعمدة في WHERE (بتعطل الـ Index)</li>
+        <li>استخدم EXISTS بدل IN لو الـ subquery كبيرة</li>
+        <li>LIMIT الـ results لو مش محتاج كلها</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #f59e0b;">
+      <div class="card-title">⚠️ أسباب بطء الـ Query</div>
+      <ul>
+        <li>Full Table Scan (مفيش Index)</li>
+        <li>N+1 Query Problem</li>
+        <li>Missing JOIN Conditions</li>
+        <li>Implicit Type Conversion</li>
+        <li>Non-SARGable WHERE clause</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="code-block" style="margin-top: 16px;">
+    <div class="code-header">SQL — Optimization Examples</div>
+    <pre><span class="cm">-- ❌ بطيء: Function على العمود بتعطل الـ Index</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> <span class="tb">students</span> <span class="kw">WHERE</span> <span class="fn">YEAR</span>(created_at) <span class="op">=</span> <span class="num">2024</span>;
+
+<span class="cm">-- ✅ سريع: Range condition بيستخدم الـ Index</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> <span class="tb">students</span> 
+<span class="kw">WHERE</span> created_at <span class="kw">BETWEEN</span> <span class="str">'2024-01-01'</span> <span class="kw">AND</span> <span class="str">'2024-12-31'</span>;
+
+<span class="cm">-- ❌ بطيء: IN مع subquery كبيرة</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> <span class="tb">students</span> <span class="kw">WHERE</span> id <span class="kw">IN</span> (<span class="kw">SELECT</span> student_id <span class="kw">FROM</span> <span class="tb">enrollments</span>);
+
+<span class="cm">-- ✅ سريع: EXISTS</span>
+<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> <span class="tb">students</span> s
+<span class="kw">WHERE EXISTS</span> (<span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">FROM</span> <span class="tb">enrollments</span> e <span class="kw">WHERE</span> e.student_id <span class="op">=</span> s.id);</pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 9 ===== -->
+<section class="section" id="s9">
+  <div class="section-header">
+    <div class="section-num">09</div>
+    <div>
+      <h2>Relationships — أنواع العلاقات</h2>
+      <div class="section-desc">إزاي الجداول بتتكلم مع بعض</div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card" style="--card-accent: #3b82f6;">
+      <div class="card-title">1️⃣ One-to-One (1:1)</div>
+      <ul>
+        <li>كل صف في جدول A ليه صف واحد بالظبط في B</li>
+        <li>مثال: User ↔ UserProfile</li>
+        <li>التطبيق: FK في أي جدول مع UNIQUE constraint</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #10b981;">
+      <div class="card-title">1️⃣➕ One-to-Many (1:N)</div>
+      <ul>
+        <li>الأكثر شيوعاً — صف واحد في A ليه أكتر من صف في B</li>
+        <li>مثال: Department (1) ↔ Students (N)</li>
+        <li>التطبيق: FK في الجدول "الكتير"</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #8b5cf6;">
+      <div class="card-title">➕➕ Many-to-Many (M:N)</div>
+      <ul>
+        <li>صف في A ممكن يتصل بأكتر من صف في B والعكس</li>
+        <li>مثال: Students ↔ Courses</li>
+        <li>التطبيق: Junction Table (Enrollments) فيها FKs من الجدولين</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #f59e0b;">
+      <div class="card-title">🔁 Self-Referencing</div>
+      <ul>
+        <li>الجدول بيشاور على نفسه</li>
+        <li>مثال: Employee → Manager (نفس جدول employees)</li>
+        <li>مفيد للهياكل الشجرية والـ Hierarchies</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 10 ===== -->
+<section class="section" id="s10">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div>
+      <h2>Subqueries & Advanced SQL</h2>
+      <div class="section-desc">CTEs · Window Functions · Correlated Subqueries</div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">SQL — Subqueries</div>
+    <pre><span class="cm">-- Subquery في WHERE</span>
+<span class="kw">SELECT</span> name <span class="kw">FROM</span> <span class="tb">students</span>
+<span class="kw">WHERE</span> gpa <span class="op">></span> (<span class="kw">SELECT</span> <span class="fn">AVG</span>(gpa) <span class="kw">FROM</span> <span class="tb">students</span>);
+
+<span class="cm">-- Correlated Subquery (بتتنفذ لكل صف)</span>
+<span class="kw">SELECT</span> name, gpa
+<span class="kw">FROM</span> <span class="tb">students</span> s1
+<span class="kw">WHERE</span> gpa <span class="op">></span> (<span class="kw">SELECT</span> <span class="fn">AVG</span>(gpa) <span class="kw">FROM</span> <span class="tb">students</span> s2 
+               <span class="kw">WHERE</span> s2.dept_id <span class="op">=</span> s1.dept_id);
+
+<span class="cm">-- CTE (Common Table Expression)</span>
+<span class="kw">WITH</span> dept_avg <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> dept_id, <span class="fn">AVG</span>(gpa) <span class="kw">AS</span> avg_gpa
+    <span class="kw">FROM</span> <span class="tb">students</span>
+    <span class="kw">GROUP BY</span> dept_id
+)
+<span class="kw">SELECT</span> s.name, s.gpa, d.avg_gpa
+<span class="kw">FROM</span> <span class="tb">students</span> s
+<span class="kw">JOIN</span> dept_avg d <span class="kw">ON</span> s.dept_id <span class="op">=</span> d.dept_id;</pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">SQL — Window Functions</div>
+    <pre><span class="cm">-- ROW_NUMBER: ترقيم الصفوف في كل قسم</span>
+<span class="kw">SELECT</span> name, dept_id, gpa,
+    <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> dept_id <span class="kw">ORDER BY</span> gpa <span class="kw">DESC</span>) <span class="kw">AS</span> rank_in_dept
+<span class="kw">FROM</span> <span class="tb">students</span>;
+
+<span class="cm">-- RANK vs DENSE_RANK</span>
+<span class="cm">-- RANK: 1,2,2,4  |  DENSE_RANK: 1,2,2,3</span>
+<span class="fn">RANK</span>() <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> gpa <span class="kw">DESC</span>)
+<span class="fn">DENSE_RANK</span>() <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> gpa <span class="kw">DESC</span>)
+
+<span class="cm">-- LAG / LEAD: القيمة قبل / بعد</span>
+<span class="kw">SELECT</span> name, gpa,
+    <span class="fn">LAG</span>(gpa) <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> id) <span class="kw">AS</span> prev_gpa,
+    <span class="fn">LEAD</span>(gpa) <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> id) <span class="kw">AS</span> next_gpa
+<span class="kw">FROM</span> <span class="tb">students</span>;</pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 11 ===== -->
+<section class="section" id="s11">
+  <div class="section-header">
+    <div class="section-num">11</div>
+    <div>
+      <h2>Aggregate Functions & Grouping</h2>
+      <div class="section-desc">تلخيص وتجميع البيانات</div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">SQL — Aggregation</div>
+    <pre><span class="cm">-- الـ Aggregate Functions الأساسية</span>
+<span class="kw">SELECT</span>
+    <span class="fn">COUNT</span>(<span class="op">*</span>)         <span class="kw">AS</span> total_students,
+    <span class="fn">COUNT</span>(DISTINCT dept_id) <span class="kw">AS</span> num_depts,
+    <span class="fn">AVG</span>(gpa)          <span class="kw">AS</span> avg_gpa,
+    <span class="fn">MAX</span>(gpa)          <span class="kw">AS</span> highest_gpa,
+    <span class="fn">MIN</span>(gpa)          <span class="kw">AS</span> lowest_gpa,
+    <span class="fn">SUM</span>(gpa)          <span class="kw">AS</span> sum_gpa
+<span class="kw">FROM</span> <span class="tb">students</span>;
+
+<span class="cm">-- GROUP BY + HAVING</span>
+<span class="kw">SELECT</span> dept_id, <span class="fn">AVG</span>(gpa) <span class="kw">AS</span> avg_gpa, <span class="fn">COUNT</span>(<span class="op">*</span>) <span class="kw">AS</span> num_students
+<span class="kw">FROM</span> <span class="tb">students</span>
+<span class="kw">GROUP BY</span> dept_id
+<span class="kw">HAVING</span> <span class="fn">AVG</span>(gpa) <span class="op">></span> <span class="num">3.0</span>   <span class="cm">-- HAVING بيفلتر بعد GROUP BY</span>
+<span class="kw">ORDER BY</span> avg_gpa <span class="kw">DESC</span>;
+
+<span class="cm">-- ROLLUP: بيضيف Total rows</span>
+<span class="kw">SELECT</span> dept_id, <span class="fn">COUNT</span>(<span class="op">*</span>)
+<span class="kw">FROM</span> <span class="tb">students</span>
+<span class="kw">GROUP BY</span> dept_id <span class="kw">WITH ROLLUP</span>;</pre>
+  </div>
+
+  <div class="callout info" style="margin-top: 12px;">
+    <div class="callout-icon">💡</div>
+    <div class="callout-text">
+      <div class="callout-title">WHERE vs HAVING</div>
+      <strong>WHERE</strong> بيفلتر الصفوف <em>قبل</em> الـ Grouping — <strong>HAVING</strong> بيفلتر <em>بعد</em> الـ Grouping. مينفعش تستخدم Aggregate Function في WHERE.
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 12 ===== -->
+<section class="section" id="s12">
+  <div class="section-header">
+    <div class="section-num">12</div>
+    <div>
+      <h2>Database Design — ER Diagram</h2>
+      <div class="section-desc">التصميم الصح قبل ما تكتب سطر SQL</div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card" style="--card-accent: #3b82f6;">
+      <div class="card-title">🔷 Entities & Attributes</div>
+      <ul>
+        <li><strong>Entity:</strong> شيء بنحفظ بياناته (مثل: Student, Course)</li>
+        <li><strong>Attribute:</strong> خاصية للـ Entity (name, age, gpa)</li>
+        <li><strong>Key Attribute:</strong> بيميز الـ Entity (underlined في الـ ER)</li>
+        <li><strong>Derived Attribute:</strong> بيتحسب من attribute تاني (العمر من تاريخ الميلاد)</li>
+        <li><strong>Multi-valued Attribute:</strong> ممكن يكون فيه أكتر من قيمة (phone numbers)</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #10b981;">
+      <div class="card-title">🔗 Relationships & Cardinality</div>
+      <ul>
+        <li><strong>Cardinality:</strong> عدد الـ instances في العلاقة (1:1, 1:N, M:N)</li>
+        <li><strong>Participation:</strong> Total (لازم يشارك) أو Partial (اختياري)</li>
+        <li><strong>Weak Entity:</strong> Entity مش ليها PK خاص بيها — بتعتمد على entity تانية</li>
+        <li><strong>ISA Relationship:</strong> للـ Inheritance (Employee → Manager, Technician)</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #8b5cf6;">
+      <div class="card-title">🗂️ تحويل ER → Tables</div>
+      <ul>
+        <li>كل Entity بتبقى Table</li>
+        <li>1:N — FK في الجانب الـ N</li>
+        <li>M:N — Junction Table جديدة</li>
+        <li>1:1 — FK في أي جدول (الأقل وصول)</li>
+        <li>Multi-valued Attribute — جدول منفصل</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 13 ===== -->
+<section class="section" id="s13">
+  <div class="section-header">
+    <div class="section-num">13</div>
+    <div>
+      <h2>Concurrency Control</h2>
+      <div class="section-desc">إزاي تتعامل مع أكتر من user في نفس الوقت</div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card" style="--card-accent: #3b82f6;">
+      <div class="card-title">🔒 Locking</div>
+      <ul>
+        <li><strong>Shared Lock (S):</strong> للقراءة — أكتر من واحد يقدر يقرأ في نفس الوقت</li>
+        <li><strong>Exclusive Lock (X):</strong> للكتابة — واحد بس والباقيين بيستنوا</li>
+        <li><strong>Row-Level Lock:</strong> أدق وأقل blocking</li>
+        <li><strong>Table-Level Lock:</strong> أبسط لكن أكتر blocking</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #ef4444;">
+      <div class="card-title">💀 Deadlocks</div>
+      <ul>
+        <li>A بتستنى B ، وB بتستنى A → طوق مغلق</li>
+        <li>الـ DB بيكتشفها أوتوماتيك ويعمل ROLLBACK لواحدة</li>
+        <li>الحل: ترتيب ثابت للـ locks</li>
+        <li>Timeout يتحكم في وقت الانتظار</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #10b981;">
+      <div class="card-title">⚖️ Optimistic vs Pessimistic</div>
+      <ul>
+        <li><strong>Pessimistic:</strong> لوك من الأول — مناسب لو التعارضات كتيرة</li>
+        <li><strong>Optimistic:</strong> مفيش لوك — بيتأكد عند الـ Commit — مناسب لو التعارضات نادرة</li>
+        <li><strong>MVCC:</strong> كل transaction بتشوف snapshot من البيانات — بيقلل الـ locking</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 14 ===== -->
+<section class="section" id="s14">
+  <div class="section-header">
+    <div class="section-num">14</div>
+    <div>
+      <h2>Backup & Recovery</h2>
+      <div class="section-desc">حماية البيانات من الضياع</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <tr>
+        <th>نوع الـ Backup</th>
+        <th>إيه اللي بيعمله</th>
+        <th>المساحة</th>
+        <th>وقت الاستعادة</th>
+      </tr>
+      <tr>
+        <td><span class="badge badge-blue">Full Backup</span></td>
+        <td>نسخة كاملة من كل حاجة</td>
+        <td>كبيرة</td>
+        <td>أسرع</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-yellow">Incremental Backup</span></td>
+        <td>بس التغييرات من آخر backup (أي نوع)</td>
+        <td>صغيرة جداً</td>
+        <td>أبطأ (محتاج كل الـ incrementals)</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-purple">Differential Backup</span></td>
+        <td>التغييرات من آخر Full Backup</td>
+        <td>متوسطة</td>
+        <td>متوسط (Full + آخر Differential)</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="cards-grid" style="margin-top: 16px;">
+    <div class="card" style="--card-accent: #10b981;">
+      <div class="card-title">🕒 Point-in-Time Recovery</div>
+      <ul>
+        <li>تقدر ترجع لأي لحظة في التاريخ</li>
+        <li>بيعتمد على Transaction Logs</li>
+        <li>مهم جداً في Production</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #3b82f6;">
+      <div class="card-title">📋 Transaction Logs (WAL)</div>
+      <ul>
+        <li>Write-Ahead Log: بيتسجل التغيير قبل ما يتعمل</li>
+        <li>بيضمن الـ Durability في الـ ACID</li>
+        <li>مصدر الـ Point-in-Time Recovery</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 15 ===== -->
+<section class="section" id="s15">
+  <div class="section-header">
+    <div class="section-num">15</div>
+    <div>
+      <h2>Security</h2>
+      <div class="section-desc">حماية قاعدة البيانات من الهجمات والتسريب</div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card" style="--card-accent: #3b82f6;">
+      <div class="card-title">👤 Authentication vs Authorization</div>
+      <ul>
+        <li><strong>Authentication:</strong> إثبات هويتك (مين أنت؟)</li>
+        <li><strong>Authorization:</strong> إيه اللي مسموحك تعمله</li>
+        <li>Roles: مجموعة صلاحيات متجمعة مع بعض</li>
+        <li>Principle of Least Privilege: مديله بس اللي محتاجه</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #ef4444;">
+      <div class="card-title">💉 SQL Injection</div>
+      <ul>
+        <li>المهاجم بيضيف SQL code جوه الـ Input</li>
+        <li>مثال: <code style="font-family: 'Fira Code'; font-size: 0.8rem; color: #ef4444;">'; DROP TABLE users; --</code></li>
+        <li>✅ الحماية: Prepared Statements / Parameterized Queries</li>
+        <li>✅ اعمل Input Validation دايماً</li>
+        <li>✅ ORM بيحميك بشكل تلقائي غالباً</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #10b981;">
+      <div class="card-title">🔐 Encryption</div>
+      <ul>
+        <li><strong>At Rest:</strong> البيانات المخزنة على الـ disk مشفرة</li>
+        <li><strong>In Transit:</strong> TLS/SSL للبيانات اللي بتتنقل</li>
+        <li><strong>Column-level:</strong> تشفير أعمدة حساسة بس (passwords, credit cards)</li>
+        <li>استخدم bcrypt/Argon2 للـ passwords مش MD5</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 16 ===== -->
+<section class="section" id="s16">
+  <div class="section-header">
+    <div class="section-num">16</div>
+    <div>
+      <h2>Scalability & Performance</h2>
+      <div class="section-desc">لما البيانات تكبر والـ traffic يزيد</div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card" style="--card-accent: #3b82f6;">
+      <div class="card-title">📦 Partitioning</div>
+      <ul>
+        <li><strong>Horizontal (Row):</strong> تقسيم الصفوف على partitions (مثلاً بالسنة)</li>
+        <li><strong>Vertical (Column):</strong> تقسيم الأعمدة — الأعمدة الكتير المستخدمة في جدول منفصل</li>
+        <li>بيحسن الـ query performance على جداول ضخمة</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #8b5cf6;">
+      <div class="card-title">🌐 Sharding</div>
+      <ul>
+        <li>Horizontal partitioning على مستوى سيرفرات مختلفة</li>
+        <li>كل Shard = قاعدة بيانات مستقلة</li>
+        <li>بيحل مشكلة الـ Scale لكن بيزود الـ complexity</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #10b981;">
+      <div class="card-title">🔄 Replication</div>
+      <ul>
+        <li><strong>Master-Slave:</strong> Master للكتابة، Slaves للقراءة</li>
+        <li><strong>Master-Master:</strong> الاثنين بيقدروا يكتبوا — أصعب تزامناً</li>
+        <li>بيزود الـ availability والـ read performance</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #f59e0b;">
+      <div class="card-title">🚀 Connection Pooling & Caching</div>
+      <ul>
+        <li><strong>Connection Pool:</strong> بيحافظ على connections جاهزة بدل ما تفتح وتقفل كل مرة</li>
+        <li><strong>Query Cache:</strong> نتيجة الـ Query المتكررة بتتحفظ</li>
+        <li><strong>Redis Layer:</strong> بتخزن الـ hot data في memory — أسرع بكتير</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 17 ===== -->
+<section class="section" id="s17">
+  <div class="section-header">
+    <div class="section-num">17</div>
+    <div>
+      <h2>NoSQL vs RDBMS</h2>
+      <div class="section-desc">متى تستخدم إيه</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <tr>
+        <th>المقارنة</th>
+        <th>RDBMS</th>
+        <th>NoSQL</th>
+      </tr>
+      <tr><td>الهيكل</td><td>جداول ثابتة (Schema)</td><td>مرن (JSON, Key-Value, Graph)</td></tr>
+      <tr><td>ACID</td><td>✅ كامل</td><td>❌ / جزئي (BASE)</td></tr>
+      <tr><td>الـ Scale</td><td>Vertical (أقوى سيرفر)</td><td>Horizontal (سيرفرات أكتر)</td></tr>
+      <tr><td>الـ Joins</td><td>✅ سهل ومدعوم</td><td>❌ صعب / مش مدعوم</td></tr>
+      <tr><td>الكميات الكبيرة</td><td>أصعب</td><td>✅ مصمم ليها</td></tr>
+      <tr><td>أمثلة</td><td>MySQL, PostgreSQL, Oracle</td><td>MongoDB, Redis, Cassandra, Neo4j</td></tr>
+      <tr><td>متى تستخدمه</td><td>البيانات المترابطة، المعاملات المالية</td><td>Real-time، Big Data، unstructured data</td></tr>
+    </table>
+  </div>
+
+  <div class="callout info" style="margin-top: 16px;">
+    <div class="callout-icon">📐</div>
+    <div class="callout-text">
+      <div class="callout-title">CAP Theorem</div>
+      أي distributed system مقدرش يضمن الـ 3 مع بعض: <strong>Consistency</strong> + <strong>Availability</strong> + <strong>Partition Tolerance</strong>. RDBMS بيختار C+A، وكتير من NoSQL بيختار A+P.
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== SECTION 18 ===== -->
+<section class="section" id="s18">
+  <div class="section-header">
+    <div class="section-num">18</div>
+    <div>
+      <h2>ORM — Object-Relational Mapping</h2>
+      <div class="section-desc">بتتكلم مع الـ DB بكود مش بـ SQL</div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card" style="--card-accent: #3b82f6;">
+      <div class="card-title">❓ إيه هو ORM؟</div>
+      <ul>
+        <li>Layer بتحوّل الـ Objects في الكود لـ SQL وبالعكس</li>
+        <li>بتشتغل مع الـ DB بلغة البرمجة العادية</li>
+        <li>مش محتاج تكتب SQL بإيدك (غالباً)</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #10b981;">
+      <div class="card-title">📦 أمثلة ORMs</div>
+      <ul>
+        <li><strong>Hibernate:</strong> Java</li>
+        <li><strong>SQLAlchemy:</strong> Python</li>
+        <li><strong>Entity Framework:</strong> .NET / C#</li>
+        <li><strong>Sequelize / Prisma:</strong> Node.js</li>
+        <li><strong>ActiveRecord:</strong> Ruby on Rails</li>
+        <li><strong>Django ORM:</strong> Python/Django</li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent: #f59e0b;">
+      <div class="card-title">⚖️ Pros vs Cons</div>
+      <ul>
+        <li>✅ أسرع في الـ Development</li>
+        <li>✅ Database Agnostic</li>
+        <li>✅ حماية من SQL Injection</li>
+        <li>❌ ممكن يولد queries غير كفؤة</li>
+        <li>❌ N+1 Query Problem شائعة</li>
+        <li>❌ بيحتاج فهم الـ SQL الأساسي</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== CHECKLIST ===== -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num" style="background: linear-gradient(135deg, #10b981, #3b82f6);">✓</div>
+    <div>
+      <h2>Checklist المذاكرة</h2>
+      <div class="section-desc">اتأكد إنك فاهم كل حاجة</div>
+    </div>
+  </div>
+  <div class="checklist">
+    <label class="check-item"><input type="checkbox"> فاهم الفرق بين Primary Key و Foreign Key</label>
+    <label class="check-item"><input type="checkbox"> عارف الـ 4 أنواع SQL (DDL, DML, DCL, TCL)</label>
+    <label class="check-item"><input type="checkbox"> قادر تكتب كل أنواع الـ Joins وتعرف الفرق بينهم</label>
+    <label class="check-item"><input type="checkbox"> فاهم الـ 3 Normal Forms الأساسية (1NF, 2NF, 3NF)</label>
+    <label class="check-item"><input type="checkbox"> عارف الفرق بين Clustered و Non-Clustered Index</label>
+    <label class="check-item"><input type="checkbox"> حافظ الـ ACID وتعرف تشرح كل حرف</label>
+    <label class="check-item"><input type="checkbox"> فاهم الـ 4 Isolation Levels ومتى تستخدم كل واحد</label>
+    <label class="check-item"><input type="checkbox"> عارف تكتب CTE و Window Functions</label>
+    <label class="check-item"><input type="checkbox"> فاهم الفرق بين WHERE و HAVING</label>
+    <label class="check-item"><input type="checkbox"> عارف إيه الـ SQL Injection وإزاي تحمي منه</label>
+    <label class="check-item"><input type="checkbox"> فاهم الفرق بين RDBMS و NoSQL ومتى تستخدم كل واحد</label>
+    <label class="check-item"><input type="checkbox"> عارف إيه الـ N+1 Problem وإزاي تحلها</label>
+    <label class="check-item"><input type="checkbox"> فاهم Sharding vs Replication</label>
+    <label class="check-item"><input type="checkbox"> عارف تقرأ EXPLAIN plan وتفهم الـ query بيعمل إيه</label>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ===== REFERENCES ===== -->
+<section class="section" id="refs">
+  <div class="section-header">
+    <div class="section-num" style="background: linear-gradient(135deg, #10b981, #06b6d4);">📚</div>
+    <div>
+      <h2>المراجع والمصادر</h2>
+      <div class="section-desc">أفضل المصادر للمذاكرة والتعمق</div>
+    </div>
+  </div>
+
+  <div class="ref-grid">
+    <div class="ref-card">
+      <div class="ref-icon">📗</div>
+      <div>
+        <div class="ref-title">PostgreSQL Documentation</div>
+        <div class="ref-sub">المرجع الرسمي الأشمل — بيغطي كل SQL standards مع examples</div>
+        <div class="ref-link"><a href="https://www.postgresql.org/docs/" target="_blank">→ postgresql.org/docs</a></div>
+      </div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-icon">🟠</div>
+      <div>
+        <div class="ref-title">MySQL Reference Manual</div>
+        <div class="ref-sub">الـ Documentation الرسمية لـ MySQL مع شرح كل Function</div>
+        <div class="ref-link"><a href="https://dev.mysql.com/doc/" target="_blank">→ dev.mysql.com/doc</a></div>
+      </div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-icon">🎓</div>
+      <div>
+        <div class="ref-title">W3Schools SQL Tutorial</div>
+        <div class="ref-sub">أفضل موقع للمبتدئين — شرح بسيط مع Try It Editor</div>
+        <div class="ref-link"><a href="https://www.w3schools.com/sql/" target="_blank">→ w3schools.com/sql</a></div>
+      </div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-icon">🏋️</div>
+      <div>
+        <div class="ref-title">SQLZoo — Interactive Practice</div>
+        <div class="ref-sub">تمارين تفاعلية بالترتيب من السهل للصعب — ممتاز للتطبيق</div>
+        <div class="ref-link"><a href="https://sqlzoo.net/" target="_blank">→ sqlzoo.net</a></div>
+      </div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-icon">🎯</div>
+      <div>
+        <div class="ref-title">LeetCode — Database Problems</div>
+        <div class="ref-sub">مسائل SQL للـ Interviews — ابدأ بالـ Easy وارفع</div>
+        <div class="ref-link"><a href="https://leetcode.com/problemset/database/" target="_blank">→ leetcode.com/problemset/database</a></div>
+      </div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-icon">📘</div>
+      <div>
+        <div class="ref-title">Use The Index, Luke!</div>
+        <div class="ref-sub">الكتاب المجاني الأفضل عن Indexes وتحسين الـ Performance</div>
+        <div class="ref-link"><a href="https://use-the-index-luke.com/" target="_blank">→ use-the-index-luke.com</a></div>
+      </div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-icon">🎬</div>
+      <div>
+        <div class="ref-title">CMU Database Group (YouTube)</div>
+        <div class="ref-sub">محاضرات Database Systems من Carnegie Mellon — مستوى أكاديمي عالي</div>
+        <div class="ref-link"><a href="https://www.youtube.com/@CMUDatabaseGroup" target="_blank">→ youtube.com/@CMUDatabaseGroup</a></div>
+      </div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-icon">🌐</div>
+      <div>
+        <div class="ref-title">DB-Engines Ranking</div>
+        <div class="ref-sub">مقارنة بين أشهر قواعد البيانات وترتيبها حسب الشيوع</div>
+        <div class="ref-link"><a href="https://db-engines.com/en/ranking" target="_blank">→ db-engines.com/en/ranking</a></div>
+      </div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-icon">📖</div>
+      <div>
+        <div class="ref-title">Designing Data-Intensive Applications</div>
+        <div class="ref-sub">كتاب Martin Kleppmann — الأفضل للـ System Design وقواعد البيانات المتقدمة</div>
+        <div class="ref-sub" style="color: var(--accent5); margin-top: 4px;">بكره تحتاجه لو شغال على Production systems</div>
+      </div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-icon">🔥</div>
+      <div>
+        <div class="ref-title">Mode Analytics SQL Tutorial</div>
+        <div class="ref-sub">Tutorial شامل مع تمارين على real datasets — ممتاز للـ Data Analysis</div>
+        <div class="ref-link"><a href="https://mode.com/sql-tutorial/" target="_blank">→ mode.com/sql-tutorial</a></div>
+      </div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-icon">⚡</div>
+      <div>
+        <div class="ref-title">Explain.dalibo.com</div>
+        <div class="ref-sub">Visualizer للـ PostgreSQL EXPLAIN plans — بيبين الـ Query Plan بشكل بياني</div>
+        <div class="ref-link"><a href="https://explain.dalibo.com/" target="_blank">→ explain.dalibo.com</a></div>
+      </div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-icon">🛝</div>
+      <div>
+        <div class="ref-title">SQL Fiddle / DB Fiddle</div>
+        <div class="ref-sub">بتجرب SQL online من غير ما تنصب حاجة</div>
+        <div class="ref-link"><a href="https://www.db-fiddle.com/" target="_blank">→ db-fiddle.com</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- end container -->
+
+<footer>
+  <p>تم إعداده بـ ❤️ · دليل مذاكرة <span>RDBMS</span> الشامل · 18 توبك · 100+ مفهوم</p>
+  <p style="margin-top: 8px; font-size: 0.78rem;">استخدم الـ Checklist ✓ فوق عشان تتأكد إنك غطيت كل حاجة</p>
+</footer>
+
+</body>
+</html>

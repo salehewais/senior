@@ -1,0 +1,3932 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Design — الدليل الشامل</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Tajawal:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Cairo:wght@300;400;600;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="roadmap.css">
+<script src="roadmap.js" defer></script>
+</head>
+<body class="page-guide">
+
+<div class="progress-bar" id="progress"></div>
+
+<button class="nav-toggle" id="navToggle" type="button" aria-label="فتح القائمة" onclick="toggleNav()">☰</button>
+<div class="nav-backdrop" id="navBackdrop" onclick="closeNav()"></div>
+
+<nav class="side-nav" id="sidenav">
+  <div class="nav-logo">System Design</div>
+  <div class="nav-section">المقدمة</div>
+  <a href="#intro" class="nav-link"><span class="nav-dot"></span>ما هو تصميم الأنظمة؟</a>
+  <a href="#requirements" class="nav-link"><span class="nav-dot"></span>المتطلبات</a>
+  <a href="#interview-framework" class="nav-link"><span class="nav-dot"></span>إطار المقابلة</a>
+  <a href="#estimation" class="nav-link"><span class="nav-dot"></span>Back-of-envelope</a>
+  <a href="#terminology" class="nav-link"><span class="nav-dot"></span>SLA / SLO / SLI</a>
+  <div class="nav-section">الموثوقية</div>
+  <a href="#cap-pacelc" class="nav-link"><span class="nav-dot"></span>CAP & PACELC</a>
+  <a href="#acid-base" class="nav-link"><span class="nav-dot"></span>ACID vs BASE</a>
+  <a href="#consistency" class="nav-link"><span class="nav-dot"></span>نماذج الاتساق</a>
+  <a href="#idempotency" class="nav-link"><span class="nav-dot"></span>Idempotency</a>
+  <div class="nav-section">الشبكات</div>
+  <a href="#networking" class="nav-link"><span class="nav-dot"></span>DNS & TCP/HTTP</a>
+  <a href="#api-styles" class="nav-link"><span class="nav-dot"></span>REST / gRPC / GraphQL</a>
+  <a href="#load-balancing" class="nav-link"><span class="nav-dot"></span>Load Balancing</a>
+  <a href="#gateway-cdn" class="nav-link"><span class="nav-dot"></span>Gateway & CDN</a>
+  <div class="nav-section">المعمارية</div>
+  <a href="#architecture" class="nav-link"><span class="nav-dot"></span>Monolith → Microservices</a>
+  <a href="#cqrs-saga" class="nav-link"><span class="nav-dot"></span>CQRS & Saga</a>
+  <a href="#scaling-patterns" class="nav-link"><span class="nav-dot"></span>Scaling & State</a>
+  <a href="#microservices" class="nav-link"><span class="nav-dot"></span>Microservices</a>
+  <div class="nav-section">التخزين</div>
+  <a href="#databases" class="nav-link"><span class="nav-dot"></span>SQL vs NoSQL</a>
+  <a href="#replication-sharding" class="nav-link"><span class="nav-dot"></span>Replication & Sharding</a>
+  <a href="#db-types" class="nav-link"><span class="nav-dot"></span>أنواع قواعد البيانات</a>
+  <a href="#oltp-olap" class="nav-link"><span class="nav-dot"></span>OLTP / OLAP / CDC</a>
+  <div class="nav-section">Cache & Messaging</div>
+  <a href="#caching" class="nav-link"><span class="nav-dot"></span>Caching Patterns</a>
+  <a href="#messaging" class="nav-link"><span class="nav-dot"></span>Queues & Kafka</a>
+  <a href="#delivery-semantics" class="nav-link"><span class="nav-dot"></span>Delivery Semantics</a>
+  <div class="nav-section">الأمان</div>
+  <a href="#security" class="nav-link"><span class="nav-dot"></span>Auth & Encryption</a>
+  <a href="#oauth-rbac" class="nav-link"><span class="nav-dot"></span>OAuth & RBAC</a>
+  <div class="nav-section">الخوارزميات</div>
+  <a href="#algorithms" class="nav-link"><span class="nav-dot"></span>Hashing & Filters</a>
+  <a href="#consensus" class="nav-link"><span class="nav-dot"></span>Consensus & CRDTs</a>
+  <a href="#rate-limit-algo" class="nav-link"><span class="nav-dot"></span>Rate Limiting</a>
+  <div class="nav-section">العمليات</div>
+  <a href="#resilience" class="nav-link"><span class="nav-dot"></span>Retry & Circuit Breaker</a>
+  <a href="#observability" class="nav-link"><span class="nav-dot"></span>Observability</a>
+  <a href="#deployment" class="nav-link"><span class="nav-dot"></span>Deploy & DR</a>
+  <a href="#data-processing" class="nav-link"><span class="nav-dot"></span>Data Processing</a>
+  <a href="#cloud-infra" class="nav-link"><span class="nav-dot"></span>Cloud & Infra</a>
+  <a href="#system-patterns" class="nav-link"><span class="nav-dot"></span>System Patterns</a>
+  <a href="#trade-offs" class="nav-link"><span class="nav-dot"></span>Trade-offs</a>
+  <div class="nav-section">مسائل كلاسيكية</div>
+  <a href="#classic-designs-overview" class="nav-link"><span class="nav-dot"></span>نظرة عامة</a>
+  <a href="#design-url-shortener" class="nav-link"><span class="nav-dot"></span>URL Shortener</a>
+  <a href="#design-paste" class="nav-link"><span class="nav-dot"></span>Paste Store</a>
+  <a href="#design-rate-limiter" class="nav-link"><span class="nav-dot"></span>Rate Limiter</a>
+  <a href="#design-kv-store" class="nav-link"><span class="nav-dot"></span>Key-Value Store</a>
+  <a href="#design-snowflake" class="nav-link"><span class="nav-dot"></span>Snowflake IDs</a>
+  <a href="#design-crawler" class="nav-link"><span class="nav-dot"></span>Web Crawler</a>
+  <a href="#design-news-feed" class="nav-link"><span class="nav-dot"></span>News Feed</a>
+  <a href="#design-chat" class="nav-link"><span class="nav-dot"></span>Chat</a>
+  <a href="#design-video" class="nav-link"><span class="nav-dot"></span>Video Streaming</a>
+  <a href="#design-instagram" class="nav-link"><span class="nav-dot"></span>Photo Sharing</a>
+  <a href="#design-dropbox" class="nav-link"><span class="nav-dot"></span>Cloud Storage</a>
+  <a href="#design-uber" class="nav-link"><span class="nav-dot"></span>Ride Sharing</a>
+  <a href="#design-yelp" class="nav-link"><span class="nav-dot"></span>Proximity Search</a>
+  <a href="#design-ticketmaster" class="nav-link"><span class="nav-dot"></span>Ticket Booking</a>
+  <a href="#design-search" class="nav-link"><span class="nav-dot"></span>Autocomplete</a>
+  <a href="#design-search-engine" class="nav-link"><span class="nav-dot"></span>Search Engine</a>
+  <a href="#design-notification" class="nav-link"><span class="nav-dot"></span>Notifications</a>
+  <a href="#design-payment" class="nav-link"><span class="nav-dot"></span>Payment</a>
+  <a href="#design-ecommerce" class="nav-link"><span class="nav-dot"></span>E-commerce</a>
+  <a href="#design-metrics" class="nav-link"><span class="nav-dot"></span>Metrics Pipeline</a>
+  <a href="#design-webhook" class="nav-link"><span class="nav-dot"></span>Webhooks</a>
+  <a href="#design-recommendation" class="nav-link"><span class="nav-dot"></span>Recommendations</a>
+  <a href="#design-email" class="nav-link"><span class="nav-dot"></span>Email Service</a>
+  <a href="#design-hotel" class="nav-link"><span class="nav-dot"></span>Hotel Booking</a>
+  <a href="#design-collab-editor" class="nav-link"><span class="nav-dot"></span>Collab Editor</a>
+  <a href="#design-leaderboard" class="nav-link"><span class="nav-dot"></span>Leaderboard</a>
+  <div class="nav-section">الختام</div>
+  <a href="#advanced" class="nav-link"><span class="nav-dot"></span>مواضيع متقدمة</a>
+  <a href="#sd-antipatterns" class="nav-link"><span class="nav-dot"></span>Anti-Patterns</a>
+  <a href="#checklist" class="nav-link"><span class="nav-dot"></span>Checklist المقابلة</a>
+  <a href="#roadmap" class="nav-link"><span class="nav-dot"></span>خارطة التعلم</a>
+</nav>
+
+<div class="main-wrapper">
+
+<div class="hero">
+  <div class="hero-badge">Complete Reference</div>
+  <h1>System Design</h1>
+  <p>الدليل الشامل لتصميم الأنظمة الموزعة — من الأساسيات إلى 25 مسألة مقابلة كلاسيكية</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">12</div><div class="lbl">أجزاء رئيسية</div></div>
+    <div class="hero-stat"><div class="num">45+</div><div class="lbl">أقسام</div></div>
+    <div class="hero-stat"><div class="num">25</div><div class="lbl">مسائل كلاسيكية</div></div>
+    <div class="hero-stat"><div class="num">8</div><div class="lbl">أنماط معمارية</div></div>
+    <div class="hero-stat"><div class="num">16</div><div class="lbl">محاور تعلم</div></div>
+  </div>
+</div>
+
+
+<section class="section" id="intro">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">🏗️</div>
+    <div>
+      <div class="section-title c-purple">ما هو تصميم الأنظمة؟</div>
+      <div class="section-subtitle">System Design — Introduction</div>
+    </div>
+  </div>
+  <p class="lead">تصميم الأنظمة (System Design) هو فن بناء أنظمة برمجية <strong>قابلة للتوسع، موثوقة، وآمنة</strong> — ليس مجرد رسم صناديق، بل فهم trade-offs بين الأداء والتكلفة والاتساق.</p>
+  <div class="analogy"><span class="analogy-icon">🏙️</span><span>تخيل مدينة: OOD يصمّم شقة واحدة (classes)، Software Architecture يخطّط حيّاً (modules)، و System Design يخطّط المدينة كلها — طرق، كهرباء، مياه، أمن، ونمو سكاني.</span></div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>المستوى</th><th>التركيز</th><th>مثال</th></tr></thead>
+      <tbody>
+        <tr><td>OOD</td><td>Classes، relationships، patterns</td><td>تصميم Order و Payment classes</td></tr>
+        <tr><td>Software Architecture</td><td>Modules، layers، boundaries</td><td>Monolith vs microservices split</td></tr>
+        <tr><td>System Design</td><td>Distributed components، scale، failure</td><td>URL shortener at 100K QPS</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="info-box note">
+    <div class="info-box-icon">💡</div>
+    <div><strong>في المقابلة:</strong> System Design يختبر قدرتك على التفكير بصوت عالٍ، طرح أسئلة clarifying، وتبرير قراراتك — مش الحل المثالي الوحيد.</div>
+  </div>
+  <div class="pattern-group" style="margin-top:32px;">
+    <div class="pattern-group-title">متى تُستخدم كل مستوى</div>
+    <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">OOD في System Design</div>
+      <p>عند deep dive في service واحد — class design لـ OrderService مثلاً.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Architecture</div>
+      <p>تقسيم bounded contexts — User Service، Payment Service.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">System Design</div>
+      <p>كيف تتواصل الخدمات؟ أين الـ cache؟ كيف الـ sharding؟</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Infrastructure</div>
+      <p>K8s، regions، monitoring — غالباً out of scope إلا إذا سُئلت.</p>
+    </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="requirements">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">📋</div>
+    <div>
+      <div class="section-title c-teal">المتطلبات</div>
+      <div class="section-subtitle">Functional vs Non-Functional Requirements</div>
+    </div>
+  </div>
+  <p class="lead">أول خطوة: فصل المتطلبات الوظيفية (ماذا يفعل النظام) عن غير الوظيفية (كيف يؤدي).</p>
+  <div class="grid-3">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">⚡ Latency</div>
+      <p>زمن الاستجابة — p50/p95/p99. مثال: search &lt; 200ms</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">📈 Throughput</div>
+      <p>عدد العمليات/ثانية (QPS/TPS)</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🟢 Availability</div>
+      <p>نسبة uptime — 99.9% = 8.7h downtime/year</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">💾 Durability</div>
+      <p>البيانات لا تضيع بعد الكتابة</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">🔄 Consistency</div>
+      <p>كل القراءات ترى آخر كتابة؟</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">📐 Scalability</div>
+      <p>Horizontal vs vertical growth</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔧 Maintainability</div>
+      <p>سهولة التعديل والنشر</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔒 Security</div>
+      <p>Auth، encryption، compliance</p>
+    </div>
+    <div class="card">
+      <div class="card-title">💰 Cost</div>
+      <p>Trade-off دائم — كل redundancy لها ثمن</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">🛡️ Reliability</div>
+      <p>النظام يعمل صح حتى مع أخطاء — retries، replication، graceful degradation.</p>
+    </div>
+    <div class="card bg-pink">
+      <div class="card-title c-pink">🏃 Performance</div>
+      <p>Latency + throughput معاً — optimize bottlenecks (DB، network، CPU).</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> القفز للحل قبل توضيح scale assumptions (DAU، read/write ratio، data size).</div>
+  </div>
+  <div class="analogy"><span class="analogy-icon">🏎️</span><span>Latency = سرعة السيارة. Throughput = عدد السيارات على الطريق. Availability = هل الطريق مفتوح؟ Scalability = هل يمكن توسيع الطريق لـ 10× traffic؟</span></div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>NFR</th><th>Typical Target</th><th>Design Impact</th></tr></thead>
+      <tbody>
+        <tr><td>Latency p99</td><td>&lt; 200ms API</td><td>Cache, CDN, DB indexes, async</td></tr>
+        <tr><td>Availability</td><td>99.9%+</td><td>Replication, failover, health checks</td></tr>
+        <tr><td>Durability</td><td>Zero data loss</td><td>Sync replication, backups, WAL</td></tr>
+        <tr><td>Consistency</td><td>Strong vs eventual</td><td>CAP trade-off, read replicas lag</td></tr>
+        <tr><td>Scalability</td><td>10× growth</td><td>Horizontal scale, sharding, stateless</td></tr>
+        
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="interview-framework">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-amber">إطار عمل المقابلة</div>
+      <div class="section-subtitle">Interview Framework</div>
+    </div>
+  </div>
+  <p class="lead">اتبع هذا التسلسل في 45–60 دقيقة — المقابل يقيّم عملية تفكيرك.</p>
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">Clarify Requirements</div>
+      <p>اسأل عن users، features، scale، constraints. Functional + NFRs.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">Back-of-Envelope</div>
+      <p>QPS، storage، bandwidth. Orders of magnitude كافية.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">High-Level Design (HLD)</div>
+      <p>Client → LB → Services → DB/Cache/Queue. ارسم diagram.</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">Deep Dives</div>
+      <p>اختر 2–3 bottlenecks: DB، cache، fan-out، consistency.</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">Bottlenecks & Scale</div>
+      <p>Sharding، replication، async، CDN.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">Trade-offs</div>
+      <p>لماذا X وليس Y؟ اذكر alternatives رفضتها.</p>
+    </div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>عبارة ذهبية:</strong> «سأفترض X بناءً على Y، وإذا كان الافتراض خاطئاً يمكننا تعديل التصميم.»</div>
+  </div>
+</section>
+
+<section class="section" id="estimation">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">🧮</div>
+    <div>
+      <div class="section-title c-coral">Back-of-the-Envelope</div>
+      <div class="section-subtitle">Estimation</div>
+    </div>
+  </div>
+  <p class="lead">التقديرات السريعة تثبت أنك تفهم scale — استخدم أرقاماً مدورة.</p>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Capacity Estimation</div>
+      <p>Storage، bandwidth، memory — how much infra needed?</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Load Estimation</div>
+      <p>QPS/TPS from DAU × actions/day. Peak = 2–5× average.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Formulas</div></div>
+<pre># QPS from DAU
+DAU = 100M, actions/user/day = 10
+Total/day = 1B → QPS ≈ 1B / 86400 ≈ 12K (peak ~3x → 36K)
+
+# Storage
+100M records × 500 bytes = 50GB raw (+ indexes ~2x)
+
+# Bandwidth
+10K QPS × 10KB response = 100MB/s ≈ 800 Mbps
+
+# Retention
+1GB/day × 365 days × 5 years = ~1.8TB</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">📊 DAU/MAU</div>
+      <p>MAU ≈ 3–5× DAU for social apps. Peak QPS ≈ 2–5× average.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">🔢 Powers of 2</div>
+      <p>2^10≈1K, 2^20≈1M, 2^30≈1B — للحساب الذهني</p>
+    </div>
+  </div>
+  <div class="analogy"><span class="analogy-icon">🧮</span><span>التقدير مش دقة رياضية — الهدف orders of magnitude. لو قلت 10K QPS والصح 15K، ده acceptable. لو قلت 10 والصح 10K، ده red flag.</span></div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Interview Example — Twitter-like</div></div>
+<pre>Assumptions: 300M MAU, 100M DAU, 2 tweets/user/day
+Writes: 200M/day → ~2.3K QPS (peak ~7K)
+Reads: 10× writes → ~70K QPS peak
+Storage: 200M × 300 bytes × 365 × 5yr ≈ 100TB+ (with media much more)
+Bandwidth: 70K × 2KB ≈ 140MB/s read-heavy</pre>
+  </div>
+</section>
+
+<section class="section" id="terminology">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">📖</div>
+    <div>
+      <div class="section-title c-blue">SLA / SLO / SLI</div>
+      <div class="section-subtitle">Terminology</div>
+    </div>
+  </div>
+  <p class="lead">مصطلحات الموثوقية والتعافي — ضرورية في production وsystem design.</p>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Term</th><th>Meaning</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td>SLI</td><td>Indicator measured</td><td>Request latency p99</td></tr>
+        <tr><td>SLO</td><td>Target for SLI</td><td>99% requests &lt; 300ms</td></tr>
+        <tr><td>SLA</td><td>Contract with consequences</td><td>99.9% uptime or credit</td></tr>
+        <tr><td>RPO</td><td>Recovery Point Objective — max data loss</td><td>5 min of logs</td></tr>
+        <tr><td>RTO</td><td>Recovery Time Objective — max downtime</td><td>1 hour</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">99.9%</div>
+      <p>Three nines — 8.76 hrs/year downtime</p>
+    </div>
+    <div class="card">
+      <div class="card-title">99.99%</div>
+      <p>Four nines — 52 min/year</p>
+    </div>
+    <div class="card">
+      <div class="card-title">99.999%</div>
+      <p>Five nines — 5 min/year (very hard)</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="cap-pacelc">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">⚖️</div>
+    <div>
+      <div class="section-title c-purple">CAP & PACELC</div>
+      <div class="section-subtitle">Distributed Trade-offs</div>
+    </div>
+  </div>
+  <p class="lead">نظرية CAP: في partition، تختار بين Consistency و Availability. PACELC يوسّع: Else — Latency vs Consistency.</p>
+  <div class="grid-2">
+    <div class="card bg-coral">
+      <div class="card-title c-coral">CP</div>
+      <p>Consistent + Partition tolerant — ZooKeeper, etcd. تفضّل correctness.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">AP</div>
+      <p>Available + Partition tolerant — Cassandra, Dynamo. eventual consistency.</p>
+    </div>
+  </div>
+  <div class="info-box note">
+    <div class="info-box-icon">💡</div>
+    <div>CAP يصف worst-case partition — معظم الوقت تحاول balance وليس binary choice.</div>
+  </div>
+</section>
+
+<section class="section" id="acid-base">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">🗃️</div>
+    <div>
+      <div class="section-title c-teal">ACID vs BASE</div>
+      <div class="section-subtitle">Transaction Models</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Property</th><th>ACID</th><th>BASE</th></tr></thead>
+      <tbody>
+        <tr><td>Philosophy</td><td>Strong guarantees</td><td>Basically Available, Soft state, Eventual</td></tr>
+        <tr><td>Consistency</td><td>Immediate</td><td>Eventual</td></tr>
+        <tr><td>Use case</td><td>Banking, inventory</td><td>Social feeds, analytics</td></tr>
+        <tr><td>Example</td><td>PostgreSQL transactions</td><td>Cassandra, DynamoDB</td></tr>
+        
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="consistency">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">🔄</div>
+    <div>
+      <div class="section-title c-amber">نماذج الاتساق</div>
+      <div class="section-subtitle">Consistency Models</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Strong</div>
+      <p>Linearizable — reads see latest write. Costly in distributed.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Eventual</div>
+      <p>Replicas converge over time. High availability.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Causal</div>
+      <p>Preserves cause-effect order. Middle ground.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Read-your-writes</div>
+      <p>User always sees own updates. Session stickiness.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Monotonic reads</div>
+      <p>No going backwards in time on reads.</p>
+    </div>
+  </div>
+  <div class="analogy"><span class="analogy-icon">📰</span><span>Strong consistency = صحيفة واحدة للكل. Eventual = كل فرع يطبع نسخته ويتزامن لاحقاً — أسرع لكن قد ترى خبراً قديماً لثوانٍ.</span></div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>Latency triangle:</strong> Consistency + Availability + Low Latency — pick two under load.</div>
+  </div>
+</section>
+
+<section class="section" id="idempotency">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">🔁</div>
+    <div>
+      <div class="section-title c-coral">Idempotency & Deduplication</div>
+      <div class="section-subtitle">Reliable Operations</div>
+    </div>
+  </div>
+  <p class="lead">نفس الطلب مرتين = نفس النتيجة. ضروري مع retries وat-least-once delivery.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Pattern</div></div>
+<pre>POST /pay
+Header: Idempotency-Key: uuid-v4
+
+Server:
+  if key exists in store → return cached response
+  else → process + store result with TTL</pre>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div>استخدم idempotency keys في payments، webhooks، وأي POST mutating.</div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Ordering — Total</div>
+      <p>Global order across all events — single leader or total order broadcast.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Ordering — Partial</div>
+      <p>Order within partition/key only — Kafka partition model.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Deduplication</div>
+      <p>Store processed message IDs (inbox) with TTL — at-least-once safe.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Exactly-once illusion</div>
+      <p>Idempotent consumer + dedup = effectively once for business logic.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="networking">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🌐</div>
+    <div>
+      <div class="section-title c-blue">DNS & TCP/HTTP</div>
+      <div class="section-subtitle">Networking Layer</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">DNS</div>
+      <p>Resolution hierarchy: browser cache → OS → resolver → root → TLD → authoritative. TTL controls cache.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">TCP vs UDP</div>
+      <p>TCP: reliable, ordered, connection-oriented. UDP: fast, loss tolerant (video, DNS).</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Connection Pool</div>
+      <p>Reuse TCP connections — avoid handshake overhead per request.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">HTTP/2 & HTTP/3</div>
+      <p>Multiplexing, header compression. HTTP/3/QUIC over UDP — faster on lossy networks.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Client
+  │ DNS lookup → A/AAAA record
+  ▼
+Load Balancer (L7)
+  │ keep-alive pool
+  ▼
+API Servers (HTTP/2)</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-blue">
+      <div class="card-title c-blue">HTTP / HTTPS</div>
+      <p>HTTPS = HTTP + TLS. Encrypt in transit — certificates، TLS 1.3 preferred.</p>
+    </div>
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Long Polling</div>
+      <p>Client holds request until server has data — simpler than WebSocket، higher latency overhead.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Forward Proxy</div>
+      <p>Client-side proxy (corporate VPN) — hides client identity from server.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">NAT</div>
+      <p>Network Address Translation — private IPs → public IP. Enables many devices behind one IP.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Rate Limiting vs Throttling</div>
+      <p>Rate limit = hard cap (429). Throttle = slow down gradually — smoother UX under load.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="api-styles">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">🔌</div>
+    <div>
+      <div class="section-title c-teal">REST / gRPC / GraphQL</div>
+      <div class="section-subtitle">API Styles</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Style</th><th>Pros</th><th>Cons</th><th>When</th></tr></thead>
+      <tbody>
+        <tr><td>REST</td><td>Simple, cacheable, universal</td><td>Over/under-fetching</td><td>Public APIs, CRUD</td></tr>
+        <tr><td>SOAP</td><td>Strict XML contracts, WS-* standards</td><td>Verbose, heavy</td><td>Legacy enterprise, banking</td></tr>
+        <tr><td>gRPC</td><td>Binary, streaming, strong contracts</td><td>Browser support limited</td><td>Internal microservices</td></tr>
+        <tr><td>GraphQL</td><td>Client-driven queries</td><td>Complexity, caching harder</td><td>Mobile apps, varied clients</td></tr>
+        
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">WebSockets</div>
+      <p>Full-duplex persistent — chat, gaming, live updates.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">SSE</div>
+      <p>Server push one-way over HTTP — simpler than WS for feeds.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="load-balancing">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">⚖️</div>
+    <div>
+      <div class="section-title c-amber">Load Balancing</div>
+      <div class="section-subtitle">L4 vs L7</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Layer</th><th>Routes by</th><th>Algorithms</th></tr></thead>
+      <tbody>
+        <tr><td>L4</td><td>IP + port</td><td>Round-robin, least connections</td></tr>
+        <tr><td>L7</td><td>HTTP path, headers, cookies</td><td>Consistent hash, sticky sessions</td></tr>
+        
+      </tbody>
+    </table>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div>Consistent hashing minimizes remapping when nodes added/removed — critical for caches.</div>
+  </div>
+</section>
+
+<section class="section" id="gateway-cdn">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">🚪</div>
+    <div>
+      <div class="section-title c-coral">Gateway & CDN</div>
+      <div class="section-subtitle">Edge & Routing</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">API Gateway</div>
+      <p>Auth, rate limit, routing, SSL termination — single entry point.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Reverse Proxy</div>
+      <p>nginx/Envoy — load balance, cache static, compress.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">CDN</div>
+      <p>Edge cache for static/dynamic. Cache key = URL + headers. Reduces latency globally.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Service Mesh</div>
+      <p>Sidecar proxies (Istio/Envoy) — mTLS, observability, traffic policy between services.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="architecture">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">🏛️</div>
+    <div>
+      <div class="section-title c-purple">Monolith → Microservices</div>
+      <div class="section-subtitle">Architecture Patterns</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Style</th><th>Pros</th><th>Cons</th></tr></thead>
+      <tbody>
+        <tr><td>Monolith</td><td>Simple deploy, debug, transactions</td><td>Scale as one unit, coupling</td></tr>
+        <tr><td>Modular Monolith</td><td>Clear boundaries, single deploy</td><td>Discipline required</td></tr>
+        <tr><td>Microservices</td><td>Independent scale/deploy</td><td>Distributed complexity, ops overhead</td></tr>
+        <tr><td>SOA</td><td>Enterprise integration, ESB</td><td>Heavy, often outdated pattern</td></tr>
+        <tr><td>Serverless/FaaS</td><td>No server mgmt, pay per use</td><td>Cold start, vendor lock-in, limits</td></tr>
+        
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Event-Driven</div>
+      <p>Pub/sub decouples producers/consumers. Kafka, SNS/SQS.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Strangler Fig</div>
+      <p>Gradually replace monolith by routing traffic to new services.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Layered (N-tier)</div>
+      <p>Presentation → Business → Data — classic 3-tier web app.</p>
+    </div>
+    <div class="card bg-pink">
+      <div class="card-title c-pink">Clean / Hexagonal</div>
+      <p>Ports & adapters — domain isolated from infra. Testable.</p>
+    </div>
+  </div>
+  <div class="info-box note">
+    <div class="info-box-icon">💡</div>
+    <div>ابدأ monolith/modular — microservices عندما team scale أو independent deploy يفرض ذلك.</div>
+  </div>
+</section>
+
+<section class="section" id="cqrs-saga">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">📨</div>
+    <div>
+      <div class="section-title c-teal">CQRS & Saga</div>
+      <div class="section-subtitle">Data & Distributed Transactions</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">CQRS</div>
+      <p>Separate read/write models. Optimize each side. Adds complexity.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Event Sourcing</div>
+      <p>Store events not state. Full audit trail. Replay capability.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Saga — Choreography</div>
+      <p>Services react to events. Decentralized, harder to trace.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Saga — Orchestration</div>
+      <p>Central coordinator drives steps. Clearer, single point.</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div>CQRS + Event Sourcing powerful but overkill for simple CRUD — justify with read/write scale mismatch.</div>
+  </div>
+</section>
+
+<section class="section" id="scaling-patterns">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">📈</div>
+    <div>
+      <div class="section-title c-amber">Scaling & State</div>
+      <div class="section-subtitle">Horizontal vs Vertical</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Vertical Scaling</div>
+      <p>Bigger machine — simple but ceiling.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Horizontal Scaling</div>
+      <p>More nodes + load balancer — preferred at scale.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Stateless Services</div>
+      <p>Any instance handles any request — scale easily.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Stateful</div>
+      <p>Session/sticky or externalize state to Redis.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Multi-tenancy — Shared DB</div>
+      <p>Cheapest, noisy neighbor risk.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Schema per tenant</div>
+      <p>Isolation middle ground.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">DB per tenant</div>
+      <p>Max isolation, ops cost.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Auto Scaling</div>
+      <p>Scale instances by CPU/QPS/lag metrics — HPA in Kubernetes، ASG in AWS.</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">Partitioning</div>
+      <p>Split data/work across nodes — range، hash، or directory-based sharding.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="microservices">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">🔧</div>
+    <div>
+      <div class="section-title c-teal">Microservices</div>
+      <div class="section-subtitle">Service Discovery · Communication · Patterns</div>
+    </div>
+  </div>
+  <p class="lead">Microservices = خدمات صغيرة مستقلة، لكل واحدة DB خاص — التحدي في التنسيق والـ observability.</p>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Service Discovery</div>
+      <p>Consul، etcd، Kubernetes DNS — services find each other dynamically without hardcoded IPs.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Inter-Service Communication</div>
+      <p>Sync: REST/gRPC. Async: Kafka/events. Prefer async for decoupling.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Data per Service</div>
+      <p>كل service يملك data store — no shared DB. Integration via APIs/events only.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Circuit Breaker</div>
+      <p>Stop calling failing service — fail fast، prevent cascade. (Hystrix/Resilience4j pattern)</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Retry & Timeout</div>
+      <p>Exponential backoff + jitter. Timeout at every hop — total &lt; user SLA.</p>
+    </div>
+    <div class="card bg-pink">
+      <div class="card-title c-pink">Microservices Anti-Patterns</div>
+      <p>Distributed monolith، shared DB، chatty sync calls، no tracing — debug nightmare.</p>
+    </div>
+  </div>
+  <div class="info-box note">
+    <div class="info-box-icon">💡</div>
+    <div><strong>Sidecar pattern:</strong> Envoy/Istio proxy بجانب كل pod — mTLS، retries، metrics بدون تغيير app code.</div>
+  </div>
+</section>
+
+<section class="section" id="databases">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">🗄️</div>
+    <div>
+      <div class="section-title c-purple">SQL vs NoSQL</div>
+      <div class="section-subtitle">Storage Fundamentals</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Factor</th><th>SQL</th><th>NoSQL</th></tr></thead>
+      <tbody>
+        <tr><td>Schema</td><td>Fixed, enforced</td><td>Flexible, schema-on-read</td></tr>
+        <tr><td>Scale</td><td>Vertical + read replicas</td><td>Horizontal sharding native</td></tr>
+        <tr><td>Transactions</td><td>ACID strong</td><td>Often eventual, per-item</td></tr>
+        <tr><td>Joins</td><td>Native</td><td>Denormalize or app-side</td></tr>
+        <tr><td>Examples</td><td>PostgreSQL, MySQL</td><td>MongoDB, Cassandra, Redis</td></tr>
+        
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Indexing — B-Tree</div>
+      <p>Range queries, default in most SQL.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Hash Index</div>
+      <p>Equality only — O(1) lookup.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Composite Index</div>
+      <p>Multi-column — order matters.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Covering Index</div>
+      <p>Index includes all query columns — no table lookup.</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div>Indexes speed reads but slow writes and consume storage — index what you query.</div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Normalization</div>
+      <p>Reduce redundancy — 3NF typical. Joins at read time.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Denormalization</div>
+      <p>Duplicate data for read performance — feeds, analytics.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Backup — Full</div>
+      <p>Complete snapshot — slow, simple restore.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Backup — Incremental</div>
+      <p>Changes since last backup — faster, chain restore.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">PITR</div>
+      <p>Point-in-time recovery via WAL replay — RPO in minutes.</p>
+    </div>
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Schema Design</div>
+      <p>Model entities، relationships، access patterns first — then pick SQL vs NoSQL.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Data Modeling</div>
+      <p>Design for queries you'll run — denormalize for read-heavy، normalize for write consistency.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Hot Partitions</div>
+      <p>Shard key skew — one partition gets all traffic. Fix: random suffix، re-shard، salting.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Data Migration</div>
+      <p>Dual-write → backfill → verify → cutover. Zero-downtime needs careful planning.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="replication-sharding">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">🔀</div>
+    <div>
+      <div class="section-title c-teal">Replication & Sharding</div>
+      <div class="section-subtitle">Distribution</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Leader-Follower</div>
+      <p>Writes to leader, reads from replicas. Async = lag.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Multi-Leader</div>
+      <p>Writes anywhere — conflict resolution needed.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Leaderless</div>
+      <p>Quorum reads/writes — Dynamo style.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Range Sharding</div>
+      <p>By key range — hot partitions risk.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Hash Sharding</div>
+      <p>Even distribution — range scans harder.</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">Consistent Hashing</div>
+      <p>Minimal key movement on node add/remove. Virtual nodes.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>        ┌─────────┐
+Clients →│  Router  │
+        └────┬────┘
+    ┌────────┼────────┐
+    ▼        ▼        ▼
+ Shard A  Shard B  Shard C
+ (hash ring partitions)</pre>
+  </div>
+</section>
+
+<section class="section" id="db-types">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">📚</div>
+    <div>
+      <div class="section-title c-amber">أنواع قواعد البيانات</div>
+      <div class="section-subtitle">Database Types</div>
+    </div>
+  </div>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">Relational</div>
+      <p>PostgreSQL/MySQL — transactions, complex queries</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Document</div>
+      <p>MongoDB — flexible JSON docs</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Key-Value</div>
+      <p>Redis/Dynamo — cache, sessions</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Wide-Column</div>
+      <p>Cassandra/HBase — time-series, write-heavy</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Graph</div>
+      <p>Neo4j — social, fraud, recommendations</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Time-Series</div>
+      <p>Influx/Timescale — metrics, IoT</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Search</div>
+      <p>Elasticsearch — full-text, logs</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Object Storage</div>
+      <p>S3 — blobs, backups, static assets</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="oltp-olap">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">📊</div>
+    <div>
+      <div class="section-title c-blue">OLTP / OLAP / CDC</div>
+      <div class="section-subtitle">Analytics Pipeline</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">OLTP</div>
+      <p>Row-oriented, short transactions — app DB.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">OLAP</div>
+      <p>Column-oriented, aggregations — warehouse.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Data Lake</div>
+      <p>Raw data at scale — S3 + Spark.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Lakehouse</div>
+      <p>Delta/Iceberg — ACID on lake.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">CDC</div>
+      <p>Capture DB changes → stream to warehouse/search.</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">ETL vs ELT</div>
+      <p>ETL: transform before load. ELT: load raw then transform in warehouse (modern).</p>
+    </div>
+    <div class="card bg-pink">
+      <div class="card-title c-pink">2PC/3PC</div>
+      <p>Distributed transactions — slow, rarely used at scale. Prefer Saga.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">CDC Flow</div></div>
+<pre>PostgreSQL WAL → Debezium → Kafka → Consumers
+  ├── Elasticsearch (search index)
+  ├── Data Warehouse (analytics)
+  └── Cache invalidation service</pre>
+  </div>
+</section>
+
+<section class="section" id="caching">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">⚡</div>
+    <div>
+      <div class="section-title c-teal">Caching Patterns</div>
+      <div class="section-subtitle">Cache Strategies</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Pattern</th><th>Flow</th><th>Pros/Cons</th></tr></thead>
+      <tbody>
+        <tr><td>Cache-Aside</td><td>App reads cache, on miss reads DB, writes cache</td><td>Simple; stale risk</td></tr>
+        <tr><td>Read-Through</td><td>Cache loads from DB on miss</td><td>Centralized logic</td></tr>
+        <tr><td>Write-Through</td><td>Write cache + DB sync</td><td>Consistent but slower writes</td></tr>
+        <tr><td>Write-Back</td><td>Write cache, async flush DB</td><td>Fast writes; data loss risk</td></tr>
+        <tr><td>Write-Around</td><td>Write DB directly, bypass cache</td><td>Good for write-heavy, cold reads</td></tr>
+        
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Cache Hit / Miss</div>
+      <p>Hit = data in cache (fast). Miss = fetch from DB then populate cache. Hit rate = key metric.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Cache vs DB</div>
+      <p>Cache = speed layer in-memory. DB = source of truth on disk. Never treat cache as primary store.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Eviction — LRU</div>
+      <p>Least Recently Used — evict oldest accessed. Default in many systems.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Eviction — LFU / FIFO</div>
+      <p>LFU = least frequent. FIFO = first in first out. Pick based on access pattern.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Redis vs Memcached</div>
+      <p>Redis: rich types, persistence, pub/sub. Memcached: simple KV, multithreaded, pure cache.</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">Cache Invalidation</div>
+      <p>أصعب جزء 😄 — TTL، event-driven invalidation، or version keys. Stale data vs complexity.</p>
+    </div>
+    <div class="card bg-purple">
+      <div class="card-title c-purple">TTL</div>
+      <p>Time-to-live — balance freshness vs hit rate.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Cache Stampede</div>
+      <p>Many requests on expiry — lock/mutex or probabilistic early refresh.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Local vs Distributed</div>
+      <p>In-process fast but inconsistent. Redis shared across nodes.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Hot Keys</div>
+      <p>Replicate hot key across nodes. Local cache layer.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Cache Penetration</div>
+      <p>Query for non-existent keys — Bloom filter or cache null with short TTL.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">CDN as Cache</div>
+      <p>Edge POPs serve static and cacheable API responses globally.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Read:  Client → CDN? → App → Redis → DB
+Write: Client → App → DB → Invalidate/Update cache
+       (write-through or cache-aside invalidation)</pre>
+  </div>
+</section>
+
+<section class="section" id="messaging">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">📬</div>
+    <div>
+      <div class="section-title c-purple">Queues & Kafka</div>
+      <div class="section-subtitle">Messaging & Async Processing</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Queue vs Log</div>
+      <p>Queue: message consumed once. Log: retained, replayable (Kafka).</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Kafka</div>
+      <p>Partitions, consumer groups, retention. High throughput ordered per partition.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">RabbitMQ</div>
+      <p>Traditional broker — exchanges, routing keys, ACK.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">AWS SQS</div>
+      <p>Managed queue — standard (at-least-once) vs FIFO (ordering + dedup).</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">Pub/Sub</div>
+      <p>Publishers → topic → many subscribers. Decouples event producers from consumers.</p>
+    </div>
+    <div class="card bg-pink">
+      <div class="card-title c-pink">Event-Driven Architecture</div>
+      <p>Services react to domain events — async، scalable، eventual consistency.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Backpressure</div>
+      <p>Slow consumer → queue grows → apply limits, drop, or scale.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Producer → Topic (partitions 0..N)
+              ↓
+         Consumer Group
+    (each partition → one consumer in group)</pre>
+  </div>
+</section>
+
+<section class="section" id="delivery-semantics">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">📨</div>
+    <div>
+      <div class="section-title c-amber">Delivery Semantics</div>
+      <div class="section-subtitle">At-Most / At-Least / Exactly-Once</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Semantic</th><th>Meaning</th><th>How</th></tr></thead>
+      <tbody>
+        <tr><td>At-most-once</td><td>May lose messages</td><td>Fire and forget</td></tr>
+        <tr><td>At-least-once</td><td>May duplicate</td><td>Retry + idempotency</td></tr>
+        <tr><td>Exactly-once</td><td>Ideal, hard in practice</td><td>Transactional outbox + idempotent consumers</td></tr>
+        
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Dead Letter Queue</div>
+      <p>Failed messages after N retries — manual inspection.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Outbox Pattern</div>
+      <p>Write business row + outbox event in same DB transaction.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Inbox Pattern</div>
+      <p>Dedupe incoming events by message ID.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="security">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">🔒</div>
+    <div>
+      <div class="section-title c-coral">Auth & Encryption</div>
+      <div class="section-subtitle">Security Fundamentals</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Authentication vs Authorization</div>
+      <p>AuthN = who are you. AuthZ = what can you do.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Sessions vs JWT</div>
+      <p>Session: server state in Redis. JWT: stateless signed claims — harder to revoke without blocklist.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">TLS in Transit</div>
+      <p>HTTPS everywhere — cert pinning for mobile.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Encryption at Rest</div>
+      <p>AES-256 — KMS manages keys.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Password Hashing</div>
+      <p>bcrypt/argon2 + unique salt — never plain text.</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">mTLS</div>
+      <p>Mutual TLS for service-to-service.</p>
+    </div>
+    <div class="card bg-pink">
+      <div class="card-title c-pink">SSO — Single Sign-On</div>
+      <p>Login once → access many apps. SAML/OIDC federation — Okta، Auth0، Azure AD.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="oauth-rbac">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🛡️</div>
+    <div>
+      <div class="section-title c-blue">OAuth & RBAC</div>
+      <div class="section-subtitle">Access Control</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">OAuth 2.0 / OIDC</div>
+      <p>Authorization code flow for web. Client credentials for M2M.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">RBAC</div>
+      <p>Role-based — admin, editor, viewer.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">ABAC</div>
+      <p>Attribute-based — fine-grained policies.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Rate Limiting</div>
+      <p>Protect APIs — token bucket, sliding window.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">WAF / DDoS</div>
+      <p>Edge protection — Cloudflare, AWS Shield.</p>
+    </div>
+    <div class="card bg-pink">
+      <div class="card-title c-pink">Secrets Management</div>
+      <p>Vault/KMS — never hardcode credentials.</p>
+    </div>
+  </div>
+  <div class="info-box note">
+    <div class="info-box-icon">💡</div>
+    <div>GDPR/PCI-DSS: data minimization, encryption, audit logs — mention in payment/PII designs.</div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Audit Logs</div>
+      <p>Immutable log of who did what — compliance and forensics.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">GDPR (high level)</div>
+      <p>Right to delete, data portability, consent — design erasure jobs.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">PCI-DSS (high level)</div>
+      <p>Card data never on your servers — use tokenization/PSP.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Zero Trust</div>
+      <p>Verify every request — no implicit trust inside network.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="algorithms">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">🧠</div>
+    <div>
+      <div class="section-title c-purple">Hashing & Filters</div>
+      <div class="section-subtitle">Common Algorithms</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Consistent Hashing</div>
+      <p>Distribute keys on ring — minimal remapping.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Bloom Filter</div>
+      <p>Probabilistic set membership — no false negatives.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">HyperLogLog</div>
+      <p>Approximate unique count — tiny memory.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Count-Min Sketch</div>
+      <p>Approximate frequency counts.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Geohashing / Quadtree</div>
+      <p>Spatial indexing for maps, Uber, Yelp.</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">Merkle Trees</div>
+      <p>Verify data sync integrity — Git, Cassandra repair.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="consensus">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">🗳️</div>
+    <div>
+      <div class="section-title c-teal">Consensus & CRDTs</div>
+      <div class="section-subtitle">Distributed Coordination</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Paxos / Raft</div>
+      <p>Leader election + log replication. Raft easier to teach.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Split Brain</div>
+      <p>Two leaders — use quorum + fencing tokens.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Vector Clocks</div>
+      <p>Track causality across replicas.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">CRDTs</div>
+      <p>Conflict-free replicated data types — merge without coordination.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Snowflake IDs</div>
+      <p>Time-ordered 64-bit IDs — timestamp | machine | sequence.</p>
+    </div>
+    <div class="card bg-pink">
+      <div class="card-title c-pink">Pagination</div>
+      <p>Offset slow at depth — cursor/keyset pagination preferred.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Distributed Locks</div>
+      <p>Redis Redlock، ZooKeeper — coordinate exclusive access. Always set TTL to avoid deadlock.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Clock Synchronization</div>
+      <p>NTP/PTP sync across nodes — critical for ordering، TTL، Snowflake IDs. Clock skew causes bugs.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="rate-limit-algo">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">🚦</div>
+    <div>
+      <div class="section-title c-amber">Rate Limiting Algorithms</div>
+      <div class="section-subtitle">Token & Sliding Window</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Algorithm</th><th>Behavior</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>Token Bucket</td><td>Burst allowed, refill rate</td><td>API rate limits with bursts</td></tr>
+        <tr><td>Leaky Bucket</td><td>Smooth output rate</td><td>Traffic shaping</td></tr>
+        <tr><td>Sliding Window</td><td>Precise count in window</td><td>Strict per-minute limits</td></tr>
+        <tr><td>Fixed Window</td><td>Simple counter per window</td><td>Easy but boundary spikes</td></tr>
+        
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="resilience">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">🛡️</div>
+    <div>
+      <div class="section-title c-coral">Retry & Circuit Breaker</div>
+      <div class="section-subtitle">Resilience Patterns</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Exponential Backoff + Jitter</div>
+      <p>Avoid thundering herd on recovery.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Circuit Breaker</div>
+      <p>Open after failures — fail fast, half-open probe.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Bulkhead</div>
+      <p>Isolate resource pools.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Timeout Cascade</div>
+      <p>Set timeouts at every hop — total &lt; user SLA.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Graceful Degradation</div>
+      <p>Feature flags — disable non-critical paths.</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">Health Checks</div>
+      <p>Liveness vs readiness — K8s probes.</p>
+    </div>
+    <div class="card bg-pink">
+      <div class="card-title c-pink">Single Point of Failure</div>
+      <p>Identify SPOFs — eliminate via replication، redundancy، failover.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Failover</div>
+      <p>Automatic switch to standby — DNS، LB health checks، leader election.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Heartbeats</div>
+      <p>Periodic signals between nodes — detect failures quickly.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="observability">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">📡</div>
+    <div>
+      <div class="section-title c-blue">Observability</div>
+      <div class="section-subtitle">Logs, Metrics, Traces</div>
+    </div>
+  </div>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">Structured Logging</div>
+      <p>JSON logs with trace_id, service, level.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Metrics</div>
+      <p>Counters, gauges, histograms — Prometheus/Grafana.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Distributed Tracing</div>
+      <p>OpenTelemetry — span per service hop.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Alerting</div>
+      <p>SLO-based alerts — avoid alert fatigue.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">On-Call</div>
+      <p>Runbooks, escalation, postmortems.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Load Testing</div>
+      <p>Stress/soak tests — find breaking point before users do.</p>
+    </div>
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Prometheus</div>
+      <p>Pull-based metrics — scrape targets، PromQL queries، time-series storage.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Grafana</div>
+      <p>Dashboards + alerts on Prometheus/Influx — visualize SLIs/SLOs.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">ELK Stack</div>
+      <p>Elasticsearch + Logstash + Kibana — centralize logs، search، visualize.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Monitoring</div>
+      <p>Real-time health dashboards — CPU، memory، error rate، queue depth.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="deployment">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">🚀</div>
+    <div>
+      <div class="section-title c-teal">Deploy & DR</div>
+      <div class="section-subtitle">Operations</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Blue-Green</div>
+      <p>Two envs — instant switch, double resources.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Canary</div>
+      <p>Gradual rollout — 1% → 10% → 100%.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Rolling</div>
+      <p>Replace instances incrementally.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Containers vs VMs</div>
+      <p>K8s orchestration — pods, services, ingress.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Multi-Region</div>
+      <p>Active-active: lower latency. Active-passive: simpler DR.</p>
+    </div>
+    <div class="card bg-pink">
+      <div class="card-title c-pink">Chaos Engineering</div>
+      <p>Inject failures — validate resilience.</p>
+    </div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div>CI/CD: automated tests → build → deploy pipeline reduces human error at scale.</div>
+  </div>
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">Capacity Planning</div>
+      <p>Measure baseline QPS/latency → headroom 2–3× → auto-scale rules.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">Disaster Recovery</div>
+      <p>RPO/RTO define backup frequency and failover runbooks.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">Multi-Region Failover</div>
+      <p>DNS/route failover to passive region — data replication lag = RPO.</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">Chaos Experiments</div>
+      <p>Kill random pods — validate circuit breakers and retries.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="classic-designs-overview">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">📚</div>
+    <div>
+      <div class="section-title c-purple">مسائل المقابلة الكلاسيكية</div>
+      <div class="section-subtitle">25 Classic System Designs</div>
+    </div>
+  </div>
+  <p class="lead">كل مسألة أدناه تتبع قالباً موحّداً: 7 خطوات من المتطلبات إلى pitfalls. تدرّب على 3–5 مسائل بعمق ثم skim الباقي.</p>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Interview Question</th><th>Section in Guide</th></tr></thead>
+      <tbody>
+        <tr><td>URL Shortener</td><td>#design-url-shortener</td></tr>
+        <tr><td>WhatsApp / Chat</td><td>#design-chat</td></tr>
+        <tr><td>Twitter / News Feed</td><td>#design-news-feed</td></tr>
+        <tr><td>Instagram</td><td>#design-instagram</td></tr>
+        <tr><td>YouTube / Netflix</td><td>#design-video</td></tr>
+        <tr><td>Uber</td><td>#design-uber</td></tr>
+        <tr><td>Payment System</td><td>#design-payment</td></tr>
+        <tr><td>Notification System</td><td>#design-notification</td></tr>
+        <tr><td>Search Engine</td><td>#design-search-engine</td></tr>
+        <tr><td>Google Drive / Dropbox</td><td>#design-dropbox</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-3">
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Read-Heavy</div>
+      <p>URL Shortener, News Feed, Autocomplete — cache + CDN critical.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Write-Heavy</div>
+      <p>Metrics, Crawler, Leaderboard — queues + batching.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Real-Time</div>
+      <p>Chat, Uber, Collab Editor — WebSocket + geo/CRDT.</p>
+    </div>
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Strong Consistency</div>
+      <p>Payment, Ticket Booking, Inventory — locks + idempotency.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Blob Storage</div>
+      <p>Video, Dropbox, Paste — object store + metadata DB.</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">Infrastructure</div>
+      <p>Rate Limiter, KV Store, Snowflake, Webhooks.</p>
+    </div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div>في 45 دقيقة: 5 دق clarifying، 5 دق estimation، 15 دق HLD، 15 دق deep dives، 5 دق wrap-up.</div>
+  </div>
+</section>
+
+
+<section class="section" id="design-url-shortener">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">1. URL Shortener</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>اختصار روابط طويلة إلى short codes فريدة مع redirect وanalytics.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>100M URLs، 10:1 read/write، 100 chars avg → ~500GB/5yr. QPS: 100K reads، 10K writes.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>POST /v1/urls {long_url} → {short_code} GET /{code} → 302 redirect GET /v1/urls/{code}/stats</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>urls(id PK, long_url, short_code UNIQUE, user_id, created_at, expires_at) clicks(url_id, ts, ip_hash, referrer)</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Shard by short_code hash. Cache hot URLs. Async analytics via Kafka. Read replicas.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Collision handling، expired links، abuse/spam، predictable codes.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Client → LB → API → Cache(Redis) → DB
+     ↘ CDN for static
+Key-gen: base62 counter or hash+retry</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>POST /v1/urls {long_url} → {short_code}<br>GET /{code} → 302 redirect<br>GET /v1/urls/{code}/stats</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>urls(id PK, long_url, short_code UNIQUE, user_id, created_at, expires_at)<br>clicks(url_id, ts, ip_hash, referrer)</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Collision handling.</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> أبدأ بالـ hash + DB unique constraint، وبعدين اذكر counter service لو احتجت IDs قصيرة.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-paste">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">2. Paste / Text Store</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>تخزين نصوص كبيرة مؤقتة مع روابط قصيرة.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>10M pastes/day، avg 10KB → 100GB/day. Retention 30 days.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>POST /paste {content} → {id} GET /paste/{id} → content</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>pastes(id, content_blob|S3_key, created_at, expires_at, view_count)</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Blob in object storage، metadata in SQL. TTL cleanup job.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Large file limits، encryption for private pastes، XSS if rendered as HTML.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Client → API → Object Storage (S3) + metadata DB
+CDN for popular pastes</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>POST /paste {content} → {id}<br>GET /paste/{id} → content</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>pastes(id, content_blob|S3_key, created_at, expires_at, view_count)</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Large file limits.</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> فصل المحتوى الكبير عن metadata — ده pattern شائع.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-rate-limiter">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">3. Rate Limiter</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>تحديد معدل الطلبات per user/IP/API key.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>1M users، 1000 req/min limit. Distributed across nodes.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>Middleware check before handler Headers: X-RateLimit-Remaining</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>Redis: INCR key with TTL key = user_id + window</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Redis cluster. Sliding window counter. Token bucket per tier.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Clock skew، burst vs sustained، distributed sync، hot keys on shared IPs.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Request → API → Rate Limiter (Redis sliding window)
+→ Allow / 429 Too Many Requests</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>Middleware check before handler<br>Headers: X-RateLimit-Remaining</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>Redis: INCR key with TTL<br>key = user_id + window</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Clock skew.</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> قارن Token Bucket vs Sliding Window وقل متى تستخدم كل واحد.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-kv-store">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">4. Key-Value Store</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Distributed KV with get/put/delete and TTL.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>1B keys، 100 bytes avg → 100GB. 1M QPS reads.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>GET /kv/{key} PUT /kv/{key} {value} DELETE /kv/{key}</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>In-memory hash + optional persistence Partition by consistent hash ring</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Add nodes with vnodes. Quorum reads/writes. Anti-entropy repair.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Split brain، hot keys، durability vs speed trade-off.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Client → Coordinator → N storage nodes (replicas)
+Consistent hashing + replication factor 3</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>GET /kv/{key}<br>PUT /kv/{key} {value}<br>DELETE /kv/{key}</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>In-memory hash + optional persistence<br>Partition by consistent hash ring</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Split brain.</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> ابدأ بـ single Redis ثم distributed ring.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-snowflake">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">5. Unique ID Generator</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Globally unique, sortable, 64-bit IDs at scale.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>10K IDs/sec per machine. Roughly time-ordered.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>Internal service: generateId() → uint64 No external API usually</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>64 bits: timestamp | datacenter | machine | sequence</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Snowflake layout. Clock sync (NTP). Fallback if sequence overflow.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Clock rollback، coordination-free vs DB sequence bottleneck.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>App → ID Service (in-process or sidecar)
+Batch allocate sequences per ms</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>Internal service: generateId() → uint64<br>No external API usually</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>64 bits: timestamp | datacenter | machine | sequence</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Clock rollback.</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> اشرح bit layout على السبورة — interviewers love it.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-crawler">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">6. Web Crawler</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Discover and fetch web pages, respect robots.txt.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>1B pages، 10KB avg. Politeness delay 1s/domain.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>Scheduler assigns URLs Fetcher → Parser → Link extractor → Frontier queue</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>url_frontier(status, url, priority) content(url, html, fetched_at)</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Distributed frontier. Bloom filter for dedup. Per-domain rate limit.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Duplicate detection، trap pages، dynamic JS content، politeness.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Seed URLs → Frontier (priority queue) → Fetcher pool → Parser → Store + new URLs</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>Scheduler assigns URLs<br>Fetcher → Parser → Link extractor → Frontier queue</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>url_frontier(status, url, priority)<br>content(url, html, fetched_at)</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Duplicate detection.</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Frontier + dedup + politeness = core trinity.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-news-feed">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">7. News Feed (Twitter-style)</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Personalized timeline for followed users' posts.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>300M DAU، 500 friends avg (active ~200). Fan-out on write vs read.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>GET /feed?cursor= POST /posts {content}</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>posts(id, user_id, content, created_at) feed_cache(user_id, post_ids[])</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Hybrid fan-out. Rank by ML score. Cache hot users. Shard by user_id.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Celebrity problem (millions followers)، stale feed، ranking latency.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Write path: Post → Fan-out to followers' feeds (Redis lists)
+Read: merge cached feed + pull for celebrities</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>GET /feed?cursor=<br>POST /posts {content}</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>posts(id, user_id, content, created_at)<br>feed_cache(user_id, post_ids[])</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Celebrity problem (millions followers).</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Hybrid fan-out is the standard answer — explain when pull vs push.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-chat">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">8. Chat / WhatsApp</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>1:1 and group messaging with delivery receipts.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>50M DAU، 50 msgs/day avg. Real-time delivery.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>WebSocket connect send/receive message events GET /history?cursor=</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>messages(id, conv_id, sender, body, ts, status) conversations(id, participants[])</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Shard conversations. Message queue for fan-out. Sequence per conversation.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Ordering across devices، offline sync، group membership at scale.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Client ↔ WebSocket Gateway ↔ Chat Service ↔ Message Store
+Presence via Redis. Push for offline.</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>WebSocket connect<br>send/receive message events<br>GET /history?cursor=</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>messages(id, conv_id, sender, body, ts, status)<br>conversations(id, participants[])</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Ordering across devices.</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> WebSocket + message queue + sequence numbers — classic trio.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-video">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">9. Video Streaming (YouTube / Netflix)</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Upload, transcode, CDN delivery like YouTube.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>500M users، 1M uploads/day. 720p ~500MB/hour stream.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>POST /upload (multipart) GET /watch/{id} Adaptive bitrate manifest</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>videos(id, status, renditions[]) S3 raw + transcoded segments</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Async pipeline. Multiple bitrates. Edge caching. Popular content replication.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Transcode cost، copyright， cold start latency، live vs VOD.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Upload → Object Store → Transcode workers → CDN
+Client: DASH/HLS adaptive streaming</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>POST /upload (multipart)<br>GET /watch/{id}<br>Adaptive bitrate manifest</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>videos(id, status, renditions[])<br>S3 raw + transcoded segments</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Transcode cost.</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Separate upload path from playback path early in discussion.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-instagram">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">10. Photo Sharing</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Upload photos, feed, likes, follow graph.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>Similar to news feed + blob storage. Image CDN critical.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>POST /photos GET /feed POST /photos/{id}/like</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>photos, follows, likes tables Object storage for images (thumbnails + full)</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Graph DB optional for follows. Cache feed. Rank by engagement.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Hot influencers، image processing pipeline، storage cost.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Upload → S3 → async thumbnail → feed fan-out
+CDN serves images</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>POST /photos<br>GET /feed<br>POST /photos/{id}/like</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>photos, follows, likes tables<br>Object storage for images (thumbnails + full)</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Hot influencers.</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Treat images as blobs — metadata in DB.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-dropbox">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">11. Cloud Storage (Dropbox / Google Drive)</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Sync files across devices with conflict handling.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>100M users， 10GB avg. Block-level dedup.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>PUT /files/{path} (block refs) GET /sync?since_revision WebSocket notify</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>files(user_id, path, blocks[], revision) blocks(hash, size) — content-addressed</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Chunk files (4MB blocks). Dedup by hash. Metadata sharded by user.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Conflict resolution (last-write-wins vs merge)، large file resume، security.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Client sync agent → API → Metadata DB + Block Store (S3)
+Notify on change via long poll/WebSocket</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>PUT /files/{path} (block refs)<br>GET /sync?since_revision<br>WebSocket notify</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>files(user_id, path, blocks[], revision)<br>blocks(hash, size) — content-addressed</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Conflict resolution (last-write-wins vs merge).</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Block-level storage + content hash dedup — key insight.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-uber">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">12. Ride Sharing</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Match riders and drivers in real-time by location.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>1M rides/day. Location updates every 3s.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>POST /ride/request {pickup, dropoff} GET /drivers/nearby WebSocket trip status</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>drivers(id, lat, lng, status) rides(id, rider, driver, status, route)</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Geohash grid + Redis GEO. Surge pricing queue. Trip state machine.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Stale driver locations， matching fairness， payment integration.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Rider → Match Service → Geospatial index (Quadtree/Geohash)
+→ Dispatch → Trip tracking</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>POST /ride/request {pickup, dropoff}<br>GET /drivers/nearby<br>WebSocket trip status</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>drivers(id, lat, lng, status)<br>rides(id, rider, driver, status, route)</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Stale driver locations， matching fairness， payment integration..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Geospatial index is the heart — explain Geohash or Quadtree.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-yelp">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">13. Proximity Search</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Find businesses near lat/lng with filters.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>100M POIs. Queries: 10K QPS.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>GET /search?lat=&lng=&radius=&category=</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>businesses(id, name, lat, lng, category, rating) Geohash index</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Precompute geohash. Secondary index on category. Cache popular areas.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Boundary effects at geohash edges， ranking relevance vs distance.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Query → Geohash prefix lookup → Filter/rank → Return</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>GET /search?lat=&lng=&radius=&category=</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>businesses(id, name, lat, lng, category, rating)<br>Geohash index</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Boundary effects at geohash edges， ranking relevance vs distance..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Mention searching neighboring geohash cells.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-ticketmaster">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">14. Ticket Booking</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Sell limited inventory with concurrency safety.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>10K seats， high contention on release.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>POST /book {event_id, seats[]} Hold then confirm payment</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>seats(event_id, seat_id, status: available|held|sold) holds expire_at</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Pessimistic locking or optimistic with version. Queue for flash sales.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Double booking， hold timeout， bot abuse.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Request → Lock seats (DB row lock or Redis SETNX) → Payment → Confirm</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>POST /book {event_id, seats[]}<br>Hold then confirm payment</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>seats(event_id, seat_id, status: available|held|sold)<br>holds expire_at</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Double booking， hold timeout， bot abuse..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Transactional locking — compare DB lock vs distributed lock.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-search">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">15. Search Autocomplete</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Typeahead suggestions as user types.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>10B queries/month. Latency &lt; 100ms.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>GET /suggest?q=prefix&limit=10</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>Trie or prefix index in memory Popular queries ranked by frequency</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Shard trie by prefix. Precompute top queries. CDN edge for static top lists.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Freshness vs precomputation， fuzzy match， personalization cost.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Query → Prefix service (Trie shard) → Top-K by weight → Cache</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>GET /suggest?q=prefix&limit=10</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>Trie or prefix index in memory<br>Popular queries ranked by frequency</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Freshness vs precomputation， fuzzy match， personalization cost..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Trie + top-K heap — simple and effective.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-search-engine">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🔍</div>
+    <div>
+      <div class="section-title c-blue">Search Engine (Google-style)</div>
+      <div class="section-subtitle">Classic Interview Design — Crawl · Index · Rank</div>
+    </div>
+  </div>
+  <p class="lead">محرك بحث كامل — مختلف عن Autocomplete. Crawl → Index → Query → Rank → Serve.</p>
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">Requirements</div>
+      <p>Billions of pages indexed. Sub-second query. Relevance ranking. Freshness for news.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">Estimation</div>
+      <p>100B pages × 10KB avg → petabytes. 5B queries/day → ~60K QPS peak.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">API</div>
+      <p>GET /search?q=query&page=1 → ranked results with snippets.</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">Data Model</div>
+      <p>Inverted index: term → [doc_id, tf, positions]. PageRank scores in separate store.</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">HLD</div>
+      <p>Crawler → Parser → Index builder (Elasticsearch/HBase) → Query service → Ranker → Cache.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">Scaling</div>
+      <p>Shard index by term prefix. Distributed crawler frontier. CDN for popular queries.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">Pitfalls</div>
+      <p>Index freshness lag، spam/SEO gaming، long-tail query latency.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Web → Crawler → Index (inverted) → Query Parser
+                                      ↓
+                              Ranker (PageRank + ML)
+                                      ↓
+                              Results + Snippets</pre>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>فرق عن Autocomplete:</strong> Search engine = full index + ranking. Autocomplete = prefix trie + top queries.</div>
+  </div>
+</section>
+
+<section class="section" id="design-notification">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">16. Notification System</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Push, email, SMS with preferences.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>1B notifications/day. Multi-channel.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>POST /notify {user, template, channel} User prefs: opt-in/out</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>templates, user_preferences, delivery_log Queue per channel worker pool</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Template engine. Rate limit per user. Idempotent delivery keys.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Provider failures， duplicate sends， quiet hours.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Event → Notification Service → Router → Channel queues (push/email/SMS)
+Retry + DLQ</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>POST /notify {user, template, channel}<br>User prefs: opt-in/out</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>templates, user_preferences, delivery_log<br>Queue per channel worker pool</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Provider failures， duplicate sends， quiet hours..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Separate queues per channel — different SLAs.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-payment">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">17. Payment System</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Wallet, transfers, idempotent payments.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>Strict ACID. Exactly-once money movement (logical).</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>POST /pay {from, to, amount, idempotency_key} GET /balance</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>accounts(id, balance) transactions(id, idempotency_key UNIQUE, status)</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Double-entry bookkeeping. Idempotency keys. Reconciliation jobs.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Split brain on balance， duplicate charges， PCI scope.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>API → Ledger Service (DB transaction) → Audit log
+Saga for external PSP</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>POST /pay {from, to, amount, idempotency_key}<br>GET /balance</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>accounts(id, balance)<br>transactions(id, idempotency_key UNIQUE, status)</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Split brain on balance， duplicate charges， PCI scope..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Idempotency key + ledger — non-negotiable for payments.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-ecommerce">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">18. E-commerce / Inventory</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Catalog, cart, checkout, inventory.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>Flash sales， inventory consistency.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>POST /cart/items POST /checkout GET /products/{id}</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>products, inventory(stock, reserved), orders, order_items</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Reserve inventory with TTL. Event sourcing for stock. Search via Elasticsearch.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Overselling， cart abandonment， search freshness.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Browse → Cart (Redis) → Checkout → Inventory reserve → Payment → Fulfill</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>POST /cart/items<br>POST /checkout<br>GET /products/{id}</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>products, inventory(stock, reserved), orders, order_items</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Overselling， cart abandonment， search freshness..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Inventory reservation pattern before payment.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-metrics">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">19. Metrics & Logging Pipeline</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Ingest logs/metrics at scale.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>1TB logs/day. Query last 7 days.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>Agents → Kafka → Stream processors → TSDB + Object store</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>Hot: Influx/Prometheus. Cold: S3 + Athena.</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Sampling at edge. Partition by service. Retention tiers.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Cardinality explosion， cost of full fidelity.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>App → Fluent Bit → Kafka → Flink → Storage tiers</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>Agents → Kafka → Stream processors → TSDB + Object store</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>Hot: Influx/Prometheus. Cold: S3 + Athena.</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Cardinality explosion， cost of full fidelity..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Hot/warm/cold tiers — always mention retention.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-webhook">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">20. Webhook Delivery</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Reliable outbound HTTP callbacks to customers.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>At-least-once delivery with retries.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>POST internal /events → fan-out to subscriber URLs</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>subscriptions(url, secret, events[]) delivery_attempts(id, status, next_retry)</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Per-subscriber queue. Circuit breaker on failing endpoints.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Customer downtime causing backlog， signature verification.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Event → Outbox → Worker pool → HTTP POST + HMAC signature
+Exponential backoff + DLQ</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>POST internal /events → fan-out to subscriber URLs</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>subscriptions(url, secret, events[])<br>delivery_attempts(id, status, next_retry)</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Customer downtime causing backlog， signature verification..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Outbox pattern + signed payloads.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-recommendation">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">21. Recommendation System</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Personalized content suggestions.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>Offline batch + online ranking.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>GET /feed/recommended</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>user_features, item_features, interaction matrix</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Candidate generation (collaborative + content) → ML ranker → Business rules</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Cold start， filter bubble， latency budget for ranker.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Batch: Spark train embeddings → Online: retrieve candidates → rank → filter</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>GET /feed/recommended</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>user_features, item_features, interaction matrix</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Cold start， filter bubble， latency budget for ranker..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Two-stage: retrieval then ranking — industry standard.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-email">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">22. Distributed Email Service</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Send/receive email at scale.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>SMTP in/out， spam filter， storage.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>SMTP gateway → Queue → Storage + Index for IMAP</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>mailboxes, messages(blob), indexes for search</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Blob storage for bodies. Sharded mailboxes. DKIM/SPF.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Deliverability， spam false positives.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Inbound SMTP → Spam → Store blob → Index metadata
+Outbound queue → SMTP relay</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>SMTP gateway → Queue → Storage + Index for IMAP</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>mailboxes, messages(blob), indexes for search</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Deliverability， spam false positives..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Separate metadata index from message blobs.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-hotel">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">23. Hotel Booking Availability</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Search availability across date ranges.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>Date-range queries on inventory.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>GET /hotels?city=&checkin=&checkout=</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>rooms(hotel_id, type, date, available_count)</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Pre-aggregate availability. Optimistic booking.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Overbooking policies， concurrent holds.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Bitmap or daily inventory rows. Cache popular cities.</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>GET /hotels?city=&checkin=&checkout=</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>rooms(hotel_id, type, date, available_count)</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Overbooking policies， concurrent holds..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Daily inventory table vs interval tree trade-off.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-collab-editor">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">24. Collaborative Editor</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Real-time co-editing like Google Docs lite.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>OT or CRDT for conflict-free merges.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>WebSocket sync operations GET /doc/{id}/snapshot</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>operations(doc_id, seq, user, op_json) snapshots periodic</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>CRDT for simpler merge. Presence cursors. Version vectors.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Offline edits， large documents， undo history.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Client → WS → Op Server → Broadcast to peers
+Periodic snapshot to S3</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>WebSocket sync operations<br>GET /doc/{id}/snapshot</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>operations(doc_id, seq, user, op_json)<br>snapshots periodic</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Offline edits， large documents， undo history..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> CRDT vs OT — pick one and explain why.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="design-leaderboard">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-blue">25. Leaderboard / Gaming Scores</div>
+      <div class="section-subtitle">Classic Interview Design — 7-Step Walkthrough</div>
+    </div>
+  </div>
+  <p class="lead">مسألة مقابلة كلاسيكية — اتبع الخطوات السبعة: متطلبات → تقديرات → API → schema → diagram → scaling → pitfalls.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">1 — Clarify Requirements</div>
+      <p>Top-N scores updated frequently.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">2 — Back-of-Envelope</div>
+      <p>1M score updates/sec. Top 100 global.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">3 — API Design</div>
+      <p>POST /score {user, game, points} GET /leaderboard/top?n=100</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">4 — Data Model</div>
+      <p>Redis Sorted Set: key=game_id, member=user, score=points</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">5 — High-Level Diagram</div>
+      <p>انظر المخطط أدناه — ناقش كل component وسبب وجوده.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">6 — Scaling & Deep Dives</div>
+      <p>Sharding by game. Local leaderboards + global merge. Approximate top-K (Count-Min) optional.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">7 — Pitfalls & Trade-offs</div>
+      <p>Hot games on single shard， tie-breaking， cheat detection.</p>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Architecture</div></div>
+<pre>Write → ZADD Redis → Async persist to DB
+Read → ZREVRANGE top N</pre>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🔌 API Endpoints</div>
+      <p>POST /score {user, game, points}<br>GET /leaderboard/top?n=100</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🗄️ Schema Details</div>
+      <p>Redis Sorted Set: key=game_id, member=user, score=points</p>
+    </div>
+  </div>
+  <div class="info-box warn">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>خطأ شائع:</strong> Hot games on single shard， tie-breaking， cheat detection..</div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> Redis ZSET is the textbook answer for leaderboards.</div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title">🔑 Key Components</div>
+      <p>LB, cache, queue, DB — حدد أيها في diagram.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Bottleneck</div>
+      <p>ابحث عن single point of failure أو hot partition.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Alternative</div>
+      <p>اذكر design بديل واحد ولماذا لم تختره.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="data-processing">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">⚙️</div>
+    <div>
+      <div class="section-title c-purple">Data Processing</div>
+      <div class="section-subtitle">Batch · Stream · ETL</div>
+    </div>
+  </div>
+  <p class="lead">تعامل مع الداتا الثقيلة — batch للتحليل، stream للوقت الفعلي.</p>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Batch Processing</div>
+      <p>Process large datasets periodically — nightly jobs، reports، ML training.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Stream Processing</div>
+      <p>Real-time event processing — fraud detection، live dashboards.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">ETL / ELT</div>
+      <p>Extract → Transform → Load. ELT: load raw then transform in warehouse.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">MapReduce</div>
+      <p>Map → Shuffle → Reduce — Hadoop foundation for massive batch jobs.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Apache Spark</div>
+      <p>In-memory batch + streaming — unified API، faster than MapReduce.</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">Apache Flink</div>
+      <p>Stream-first — low latency، event-time processing، stateful operators.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="cloud-infra">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">☁️</div>
+    <div>
+      <div class="section-title c-blue">Cloud & Infrastructure</div>
+      <div class="section-subtitle">IaaS · PaaS · Containers · IaC</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Model</th><th>You Manage</th><th>Provider Manages</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td>IaaS</td><td>OS, apps, data</td><td>Hardware, network</td><td>EC2, GCE</td></tr>
+        <tr><td>PaaS</td><td>App code</td><td>Runtime, OS, scaling</td><td>Heroku, App Engine</td></tr>
+        <tr><td>SaaS</td><td>Configuration</td><td>Everything</td><td>Gmail, Salesforce</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">AWS / GCP / Azure</div>
+      <p>Compute، storage، managed DB، queues — pick managed services to reduce ops burden.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Docker</div>
+      <p>Containerize app + deps — consistent env from dev to prod.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Kubernetes</div>
+      <p>Orchestrate containers — pods، services، ingress، HPA، self-healing.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">CI / CD</div>
+      <p>Automated build → test → deploy pipeline.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Terraform (IaC)</div>
+      <p>Versioned، repeatable infrastructure — plan/apply with state management.</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">VMs vs Containers</div>
+      <p>VM = full OS isolation. Container = shared kernel، lighter footprint.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="system-patterns">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">🧩</div>
+    <div>
+      <div class="section-title c-amber">System Design Patterns</div>
+      <div class="section-subtitle">Architecture-Level Patterns</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">CQRS</div>
+      <p>Separate read/write models.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Event Sourcing</div>
+      <p>Store events not state — audit + replay.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Bulkhead</div>
+      <p>Isolate resource pools per feature/tenant.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Sidecar</div>
+      <p>Proxy container alongside app — mesh، logging.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Strangler Fig</div>
+      <p>Incremental monolith migration.</p>
+    </div>
+    <div class="card bg-pink">
+      <div class="card-title c-pink">Observer</div>
+      <p>Pub/sub — decoupled event notification at system level.</p>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">Factory</div>
+      <p>Service factory picks handler by type/config.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Singleton</div>
+      <p>Single active coordinator via leader election.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="trade-offs">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">⚖️</div>
+    <div>
+      <div class="section-title c-coral">Trade-offs</div>
+      <div class="section-subtitle">تفكير مهندس — أهم جزء في الانترفيو</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Trade-off</th><th>Option A</th><th>Option B</th><th>When A</th></tr></thead>
+      <tbody>
+        <tr><td>Consistency vs Availability</td><td>Strong</td><td>Eventual</td><td>Payments, inventory</td></tr>
+        <tr><td>Latency vs Accuracy</td><td>Fast approximate</td><td>Slow precise</td><td>Feeds vs billing</td></tr>
+        <tr><td>Cost vs Performance</td><td>Cheaper</td><td>More replicas</td><td>Startup vs scale</td></tr>
+        <tr><td>Simplicity vs Flexibility</td><td>Monolith</td><td>Microservices</td><td>Small team</td></tr>
+        <tr><td>SQL vs NoSQL</td><td>Relational</td><td>Document/KV</td><td>Transactions vs scale</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">💬</div>
+    <div><strong>في المقابلة:</strong> «اختارنا X لأن priority عندنا Y، على حساب Z.»</div>
+  </div>
+</section>
+
+<section class="section" id="advanced">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">🔬</div>
+    <div>
+      <div class="section-title c-purple">مواضيع متقدمة</div>
+      <div class="section-subtitle">Advanced Topics</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Federated Databases</div>
+      <p>Query across heterogeneous DBs — data mesh concepts.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Data Ownership</div>
+      <p>Each service owns its data — no shared DB anti-pattern.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">A/B Testing Infra</div>
+      <p>Feature flags + experiment assignment + metrics.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Cost Optimization</div>
+      <p>Right-size instances, spot/preemptible, cache aggressively, tiered storage.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="sd-antipatterns">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">⚠️</div>
+    <div>
+      <div class="section-title c-coral">Anti-Patterns</div>
+      <div class="section-subtitle">What to Avoid</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-coral">
+      <div class="card-title c-coral">Distributed Monolith</div>
+      <p>Microservices coupled synchronously — worst of both worlds.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">Chatty Services</div>
+      <p>Many RPC hops per request — batch or aggregate.</p>
+    </div>
+    <div class="card bg-purple">
+      <div class="card-title c-purple">Cache as DB</div>
+      <p>Redis without persistence plan — data loss on restart.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">Premature Sharding</div>
+      <p>Shard before you need — start with vertical + read replicas.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="checklist">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">✅</div>
+    <div>
+      <div class="section-title c-teal">Checklist قبل المقابلة</div>
+      <div class="section-subtitle">Pre-Interview Checklist</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">Requirements</div>
+      <p>Functional + NFRs + scale assumptions documented?</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">Estimation</div>
+      <p>QPS, storage, bandwidth calculated?</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">HLD Diagram</div>
+      <p>Client, LB, services, data stores drawn?</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">Bottlenecks</div>
+      <p>Identified 2–3 and proposed mitigations?</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">Trade-offs</div>
+      <p>Alternatives considered and rejected with reasons?</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">Failure Modes</div>
+      <p>Single points of failure, retry, idempotency?</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">Security</div>
+      <p>Auth, encryption, rate limits mentioned?</p>
+    </div>
+    <div class="step" data-n="8">
+      <div class="step-title">Monitoring</div>
+      <p>Logs, metrics, alerts for key paths?</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="roadmap">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">🗺️</div>
+    <div>
+      <div class="section-title c-amber">خارطة التعلم</div>
+      <div class="section-subtitle">12-Week Roadmap</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">Week 1–2</div>
+      <p>Foundations: CAP, consistency, estimation, interview framework.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">Week 3–4</div>
+      <p>Networking, APIs, load balancing, caching basics.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">Week 5–6</div>
+      <p>Databases: SQL/NoSQL, replication, sharding, indexing.</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">Week 7–8</div>
+      <p>Messaging, security, common algorithms.</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">Week 9–10</div>
+      <p>Resilience, observability, deployment patterns.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">Week 11</div>
+      <p>Classic designs 1–12: URL shortener through Dropbox.</p>
+    </div>
+    <div class="step" data-n="7">
+      <div class="step-title">Week 12</div>
+      <p>Classic designs 13–25 + mock interviews + review checklist.</p>
+    </div>
+  </div>
+  <div class="info-box note">
+    <div class="info-box-icon">💡</div>
+    <div>Practice drawing diagrams on whiteboard/paper — speed matters in timed interviews.</div>
+  </div>
+</section>
+
+
+<footer>
+  <p>🎓 System Design Complete Guide · مرجع تعلّم — <span>System Design</span></p>
+  <p style="margin-top:8px;">تصميم الأنظمة مهارة تُبنى بالممارسة — ارسم، قدّر، وناقش trade-offs.</p>
+</footer>
+
+</div>
+
+</body>
+</html>

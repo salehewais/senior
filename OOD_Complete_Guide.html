@@ -1,0 +1,2289 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OOD — الدليل الشامل</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Tajawal:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Cairo:wght@300;400;600;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="roadmap.css">
+<script src="roadmap.js" defer></script>
+</head>
+<body class="page-guide">
+
+<div class="progress-bar" id="progress"></div>
+
+<button class="nav-toggle" id="navToggle" type="button" aria-label="فتح القائمة" onclick="toggleNav()">☰</button>
+<div class="nav-backdrop" id="navBackdrop" onclick="closeNav()"></div>
+
+<!-- ───── SIDE NAV ───── -->
+<nav class="side-nav" id="sidenav">
+  <div class="nav-logo">OOD Guide</div>
+
+  <div class="nav-section">المقدمة</div>
+  <a href="#intro"      class="nav-link"><span class="nav-dot"></span>ما هو OOD؟</a>
+  <a href="#oop-vs-ood" class="nav-link"><span class="nav-dot"></span>OOP vs OOD</a>
+
+  <div class="nav-section">الأساسيات</div>
+  <a href="#pillars"    class="nav-link"><span class="nav-dot"></span>4 Pillars</a>
+  <a href="#classes"    class="nav-link"><span class="nav-dot"></span>Classes & Objects</a>
+  <a href="#relations"  class="nav-link"><span class="nav-dot"></span>Relationships</a>
+
+  <div class="nav-section">المبادئ</div>
+  <a href="#solid"      class="nav-link"><span class="nav-dot"></span>SOLID</a>
+  <a href="#dry-kiss"   class="nav-link"><span class="nav-dot"></span>DRY / KISS / YAGNI</a>
+
+  <div class="nav-section">الأنماط</div>
+  <a href="#patterns"   class="nav-link"><span class="nav-dot"></span>Design Patterns</a>
+  <a href="#creational" class="nav-link"><span class="nav-dot"></span>Creational</a>
+  <a href="#structural" class="nav-link"><span class="nav-dot"></span>Structural</a>
+  <a href="#behavioral" class="nav-link"><span class="nav-dot"></span>Behavioral</a>
+
+  <div class="nav-section">التصميم</div>
+  <a href="#uml"        class="nav-link"><span class="nav-dot"></span>UML & Class Diagrams</a>
+  <a href="#abstract"   class="nav-link"><span class="nav-dot"></span>Abstract vs Interface</a>
+  <a href="#process"    class="nav-link"><span class="nav-dot"></span>OOD Process</a>
+  <a href="#antipatterns" class="nav-link"><span class="nav-dot"></span>Anti-Patterns</a>
+</nav>
+
+<!-- ───── MAIN ───── -->
+<div class="main-wrapper">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">Complete Reference</div>
+  <h1>Object-Oriented Design</h1>
+  <p>الدليل الشامل لكل توبكس الـ OOD — من الأساسيات لـ Design Patterns والـ SOLID Principles</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">4</div><div class="lbl">Core Pillars</div></div>
+    <div class="hero-stat"><div class="num">5</div><div class="lbl">SOLID Principles</div></div>
+    <div class="hero-stat"><div class="num">25</div><div class="lbl">Design Patterns</div></div>
+    <div class="hero-stat"><div class="num">5</div><div class="lbl">Relationships</div></div>
+    <div class="hero-stat"><div class="num">6</div><div class="lbl">Anti-Patterns</div></div>
+  </div>
+</div>
+
+<!-- ─── 1. INTRO ─── -->
+<section class="section" id="intro">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">🧩</div>
+    <div>
+      <div class="section-title c-purple">ما هو OOD؟</div>
+      <div class="section-subtitle">Object-Oriented Design</div>
+    </div>
+  </div>
+  <p class="lead">
+    OOD هو منهجية تصميم البرمجيات اللي بتبني النظام على أساس <strong>كائنات (Objects)</strong> بدل ما تبنيه على functions أو procedures. كل object بيمثل حاجة من العالم الحقيقي وعنده بيانات (data) وسلوك (behavior).
+  </p>
+  <div class="grid-2">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">🎯 الهدف من OOD</div>
+      <p>تحويل المتطلبات (requirements) إلى نموذج تصميم واضح بيحدد الكلاسات وعلاقاتها قبل ما تكتب أي كود.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">🔑 المفهوم الأساسي</div>
+      <p>كل شيء في النظام هو object — سواء كان user أو order أو payment — وكل object مسؤول عن نفسه.</p>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">📐 الفايدة</div>
+      <p>كود أسهل في الفهم، الصيانة، والتوسيع. بتقدر تعدّل جزء من النظام من غير ما تكسر الباقي.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🌍 التطبيق</div>
+      <p>مستخدم في Java, C++, C#, Python, Ruby, Swift وكل اللغات الحديثة تقريباً.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 2. OOP vs OOD ─── -->
+<section class="section" id="oop-vs-ood">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">⚖️</div>
+    <div>
+      <div class="section-title c-teal">OOP vs OOD</div>
+      <div class="section-subtitle">الفرق بين البرمجة والتصميم</div>
+    </div>
+  </div>
+  <p class="lead">كتير ناس بيخلطوا بين الاتنين — OOP هو طريقة الكتابة، OOD هو طريقة التفكير قبل الكتابة.</p>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead>
+        <tr><th>المحور</th><th>OOP</th><th>OOD</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>التعريف</td><td>Object-Oriented Programming</td><td>Object-Oriented Design</td></tr>
+        <tr><td>الهدف</td><td>كتابة الكود باستخدام objects</td><td>تصميم بنية النظام قبل الكتابة</td></tr>
+        <tr><td>المرحلة</td><td>Implementation</td><td>Analysis & Design</td></tr>
+        <tr><td>الأدوات</td><td>Classes, methods, inheritance</td><td>UML, Design patterns, SOLID</td></tr>
+        <tr><td>السؤال</td><td>"إزاي نكتب الكود؟"</td><td>"إيه اللي هنبنيه وإزاي هيتشكّل؟"</td></tr>
+        <tr><td>المخرجات</td><td>Source code</td><td>Class diagrams, Architecture docs</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="info-box note">
+    <div class="info-box-icon">💡</div>
+    <div><strong>الملخص:</strong> OOD بيجي الأول — بتصمم النظام على ورق أو UML. وبعدين تنفّذه باستخدام OOP في الكود.</div>
+  </div>
+</section>
+
+<!-- ─── 3. 4 PILLARS ─── -->
+<section class="section" id="pillars">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">🏛️</div>
+    <div>
+      <div class="section-title c-purple">الـ 4 Pillars بتاعة OOP</div>
+      <div class="section-subtitle">Encapsulation · Inheritance · Polymorphism · Abstraction</div>
+    </div>
+  </div>
+  <p class="lead">الأربعة أعمدة دول هم الأساس اللي بيقوم عليه كل تصميم OOD. من غيرهم مفيش OOD.</p>
+
+  <div class="pillar-tabs">
+    <button class="pillar-tab active" onclick="switchPillar(0)">Encapsulation</button>
+    <button class="pillar-tab" onclick="switchPillar(1)">Inheritance</button>
+    <button class="pillar-tab" onclick="switchPillar(2)">Polymorphism</button>
+    <button class="pillar-tab" onclick="switchPillar(3)">Abstraction</button>
+  </div>
+
+  <!-- Pillar 0: Encapsulation -->
+  <div class="pillar-panel active" id="pillar-0">
+    <div class="info-box note"><div class="info-box-icon">🔒</div><div><strong>التغليف:</strong> إخبّي التفاصيل الداخلية وعرّض بس اللي المستخدم محتاجه. فصل بين الـ implementation والـ interface.</div></div>
+    <div class="analogy"><span class="analogy-icon">📱</span><span>تخيل التليفون — بتضغط زرار واحد وبتعمل مكالمة. مش محتاج تعرف إزاي الـ antenna شغّالة أو إزاي بتوصّل بالبرج. الـ complexity مخبّية جوا.</span></div>
+    <div class="grid-2">
+      <div class="card bg-purple"><div class="card-title c-purple">الـ Access Modifiers</div>
+        <p><strong class="c-coral">private</strong> — من جوا الكلاس بس<br><strong class="c-amber">protected</strong> — الكلاس والـ subclasses<br><strong class="c-teal">public</strong> — من أي مكان</p>
+      </div>
+      <div class="card"><div class="card-title">الـ Getters & Setters</div>
+        <p>بتتحكم في إزاي الـ data تتقرأ أو تتعدّل. ممكن تضيف validation جوا الـ setter بدل ما تسمح بالتعديل المباشر.</p>
+      </div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">class</span> <span class="cl">BankAccount</span> {
+  <span class="kw">private</span> balance: <span class="kw">number</span> = <span class="num">0</span>;     <span class="cm">// ❌ لا يُقرأ من برّا مباشرة</span>
+  <span class="kw">private</span> pin: <span class="kw">string</span>;
+
+  <span class="kw">constructor</span>(pin: <span class="kw">string</span>) {
+    <span class="kw">this</span>.pin = pin;
+  }
+
+  <span class="kw">public</span> <span class="fn">deposit</span>(amount: <span class="kw">number</span>): <span class="kw">void</span> {
+    <span class="kw">if</span> (amount &lt;= <span class="num">0</span>) <span class="kw">throw new</span> <span class="cl">Error</span>(<span class="str">"Amount must be positive"</span>);
+    <span class="kw">this</span>.balance += amount;           <span class="cm">// ✅ التحقق قبل التعديل</span>
+  }
+
+  <span class="kw">public</span> <span class="fn">getBalance</span>(): <span class="kw">number</span> {
+    <span class="kw">return</span> <span class="kw">this</span>.balance;              <span class="cm">// ✅ قراءة آمنة بدون تعديل</span>
+  }
+
+  <span class="kw">public</span> <span class="fn">withdraw</span>(amount: <span class="kw">number</span>, pin: <span class="kw">string</span>): <span class="kw">void</span> {
+    <span class="kw">if</span> (pin !== <span class="kw">this</span>.pin) <span class="kw">throw new</span> <span class="cl">Error</span>(<span class="str">"Wrong PIN"</span>);
+    <span class="kw">if</span> (amount &gt; <span class="kw">this</span>.balance) <span class="kw">throw new</span> <span class="cl">Error</span>(<span class="str">"Insufficient funds"</span>);
+    <span class="kw">this</span>.balance -= amount;
+  }
+}
+
+<span class="cm">// الاستخدام</span>
+<span class="kw">const</span> acc = <span class="kw">new</span> <span class="cl">BankAccount</span>(<span class="str">"1234"</span>);
+acc.<span class="fn">deposit</span>(<span class="num">500</span>);
+console.log(acc.<span class="fn">getBalance</span>());  <span class="cm">// 500</span>
+<span class="cm">// acc.balance = 9999; ❌ Error! private field</span></pre>
+    </div>
+    <div class="info-box tip"><div class="info-box-icon">✅</div><div><strong>الفايدة الأساسية:</strong> لو غيّرت الـ implementation من جوا مش هتأثر على أي حاجة بتستخدم الكلاس — طالما الـ public interface مش اتغيّر.</div></div>
+  </div>
+
+  <!-- Pillar 1: Inheritance -->
+  <div class="pillar-panel" id="pillar-1">
+    <div class="info-box note"><div class="info-box-icon">🧬</div><div><strong>الوراثة:</strong> الكلاس الابن (child) بياخد خصائص وسلوك الكلاس الأب (parent) تلقائياً. بتعيد استخدام الكود وبتبني عليه.</div></div>
+    <div class="analogy"><span class="analogy-icon">🐾</span><span>الكلب والقطة كلهم حيوانات — عندهم اسم وعمر وبياكلوا وبيناموا. بدل ما تكتب نفس الكود مرتين، كلاس Animal بيكون الأب وكل حيوان بيورث منه.</span></div>
+    <div class="grid-3">
+      <div class="card"><div class="card-title">Single Inheritance</div><p>كلاس واحد بيورث من parent واحد فقط (Java, C#)</p></div>
+      <div class="card"><div class="card-title">Multiple Inheritance</div><p>كلاس بيورث من أكتر من parent (C++, Python)</p></div>
+      <div class="card"><div class="card-title">Multilevel</div><p>A ← B ← C — سلسلة وراثة متعددة المستويات</p></div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">class</span> <span class="cl">Animal</span> {                               <span class="cm">// Parent class</span>
+  <span class="kw">constructor</span>(<span class="kw">public</span> name: <span class="kw">string</span>) {}
+
+  <span class="fn">eat</span>(): <span class="kw">void</span>  { console.log(<span class="str">`${this.name} is eating`</span>); }
+  <span class="fn">sleep</span>(): <span class="kw">void</span> { console.log(<span class="str">`${this.name} is sleeping`</span>); }
+  <span class="fn">move</span>(): <span class="kw">void</span>  { console.log(<span class="str">`${this.name} is moving`</span>); }
+}
+
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {                  <span class="cm">// Child class — يرث من Animal</span>
+  <span class="kw">constructor</span>(name: <span class="kw">string</span>, <span class="kw">public</span> breed: <span class="kw">string</span>) {
+    <span class="kw">super</span>(name);                             <span class="cm">// استدعاء constructor الأب</span>
+  }
+
+  <span class="fn">bark</span>(): <span class="kw">void</span>  { console.log(<span class="str">"Woof!"</span>); }  <span class="cm">// سلوك خاص بـ Dog</span>
+  <span class="fn">fetch</span>(): <span class="kw">void</span> { console.log(<span class="str">"Fetching..."</span>); }
+
+  <span class="fn">move</span>(): <span class="kw">void</span> {                             <span class="cm">// Override لسلوك الأب</span>
+    console.log(<span class="str">`${this.name} runs on 4 legs`</span>);
+  }
+}
+
+<span class="kw">class</span> <span class="cl">Cat</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+  <span class="fn">purr</span>(): <span class="kw">void</span>   { console.log(<span class="str">"Purr..."</span>); }
+  <span class="fn">climb</span>(): <span class="kw">void</span>  { console.log(<span class="str">"Climbing..."</span>); }
+}
+
+<span class="kw">const</span> dog = <span class="kw">new</span> <span class="cl">Dog</span>(<span class="str">"Rex"</span>, <span class="str">"Labrador"</span>);
+dog.<span class="fn">eat</span>();     <span class="cm">// ✅ موروثة من Animal</span>
+dog.<span class="fn">bark</span>();    <span class="cm">// ✅ خاصة بـ Dog</span>
+dog.<span class="fn">move</span>();    <span class="cm">// ✅ overridden — "Rex runs on 4 legs"</span>
+
+console.log(dog <span class="kw">instanceof</span> <span class="cl">Animal</span>); <span class="cm">// true — Dog IS an Animal</span></pre>
+    </div>
+    <div class="info-box warn"><div class="info-box-icon">⚠️</div><div><strong>Favor Composition over Inheritance:</strong> الوراثة العميقة بتعمل coupling قوي. لو الـ hierarchy وصلت لأكتر من 3 مستويات، فكّر في استخدام Composition بدلها.</div></div>
+  </div>
+
+  <!-- Pillar 2: Polymorphism -->
+  <div class="pillar-panel" id="pillar-2">
+    <div class="info-box note"><div class="info-box-icon">🎭</div><div><strong>تعدد الأشكال:</strong> نفس الـ interface بيتصرف بشكل مختلف حسب الـ object. بتكتب كود عام بيشتغل مع أنواع مختلفة.</div></div>
+    <div class="analogy"><span class="analogy-icon">🗣️</span><span>لما بتقول "اتكلم!" للكلب بيعوي، للقطة بتموأ، للببغاء بيتكلم. نفس الأمر، نتيجة مختلفة حسب الكائن — ده هو Polymorphism.</span></div>
+    <div class="grid-2">
+      <div class="card bg-purple">
+        <div class="card-title c-purple">Runtime Polymorphism</div>
+        <p>القرار بيتاخد وقت تشغيل البرنامج. بيحصل عن طريق <strong>Method Overriding</strong>. الأكثر شيوعاً في OOD.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Compile-time Polymorphism</div>
+        <p>القرار بيتاخد وقت الـ compilation. بيحصل عن طريق <strong>Method Overloading</strong> — نفس الاسم، parameters مختلفة.</p>
+      </div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="cm">// ─── Runtime Polymorphism (Method Overriding) ───</span>
+<span class="kw">abstract class</span> <span class="cl">Shape</span> {
+  <span class="kw">abstract</span> <span class="fn">area</span>(): <span class="kw">number</span>;
+  <span class="fn">describe</span>(): <span class="kw">void</span> {
+    console.log(<span class="str">`Area = ${this.area().toFixed(2)}`</span>);  <span class="cm">// نفس الكود لكل shape</span>
+  }
+}
+
+<span class="kw">class</span> <span class="cl">Circle</span> <span class="kw">extends</span> <span class="cl">Shape</span> {
+  <span class="fn">area</span>() { <span class="kw">return</span> Math.PI * <span class="kw">this</span>.radius ** <span class="num">2</span>; }
+  <span class="kw">constructor</span>(<span class="kw">private</span> radius: <span class="kw">number</span>) { <span class="kw">super</span>(); }
+}
+
+<span class="kw">class</span> <span class="cl">Rectangle</span> <span class="kw">extends</span> <span class="cl">Shape</span> {
+  <span class="fn">area</span>() { <span class="kw">return</span> <span class="kw">this</span>.w * <span class="kw">this</span>.h; }
+  <span class="kw">constructor</span>(<span class="kw">private</span> w: <span class="kw">number</span>, <span class="kw">private</span> h: <span class="kw">number</span>) { <span class="kw">super</span>(); }
+}
+
+<span class="kw">class</span> <span class="cl">Triangle</span> <span class="kw">extends</span> <span class="cl">Shape</span> {
+  <span class="fn">area</span>() { <span class="kw">return</span> <span class="num">0.5</span> * <span class="kw">this</span>.base * <span class="kw">this</span>.height; }
+  <span class="kw">constructor</span>(<span class="kw">private</span> base: <span class="kw">number</span>, <span class="kw">private</span> height: <span class="kw">number</span>) { <span class="kw">super</span>(); }
+}
+
+<span class="cm">// ✅ نفس الكود بيتعامل مع كل الأنواع</span>
+<span class="kw">const</span> shapes: <span class="cl">Shape</span>[] = [
+  <span class="kw">new</span> <span class="cl">Circle</span>(<span class="num">5</span>),
+  <span class="kw">new</span> <span class="cl">Rectangle</span>(<span class="num">4</span>, <span class="num">6</span>),
+  <span class="kw">new</span> <span class="cl">Triangle</span>(<span class="num">3</span>, <span class="num">8</span>),
+];
+shapes.<span class="fn">forEach</span>(s => s.<span class="fn">describe</span>());
+<span class="cm">// Area = 78.54</span>
+<span class="cm">// Area = 24.00</span>
+<span class="cm">// Area = 12.00</span>
+
+<span class="cm">// ─── Compile-time Polymorphism (Overloading) ───</span>
+<span class="kw">class</span> <span class="cl">Calculator</span> {
+  <span class="fn">add</span>(a: <span class="kw">number</span>, b: <span class="kw">number</span>): <span class="kw">number</span>;
+  <span class="fn">add</span>(a: <span class="kw">string</span>, b: <span class="kw">string</span>): <span class="kw">string</span>;
+  <span class="fn">add</span>(a: <span class="kw">any</span>, b: <span class="kw">any</span>) { <span class="kw">return</span> a + b; }   <span class="cm">// نفس الاسم، سلوك مختلف</span>
+}</pre>
+    </div>
+    <div class="info-box tip"><div class="info-box-icon">✅</div><div><strong>الفايدة العملية:</strong> مش محتاج تكتب <code>if (animal instanceof Dog) ... else if (animal instanceof Cat) ...</code> — بيتعامل مع كل الأنواع بنفس الكود.</div></div>
+  </div>
+
+  <!-- Pillar 3: Abstraction -->
+  <div class="pillar-panel" id="pillar-3">
+    <div class="info-box note"><div class="info-box-icon">🎨</div><div><strong>التجريد:</strong> بتحدد الـ "إيه" من غير ما تقول الـ "إزاي". بتعمل واجهة (interface) أو abstract class تحدد الشكل العام.</div></div>
+    <div class="analogy"><span class="analogy-icon">🚗</span><span>لما بتوصّل سيارة بتعرف إن فيه دركسيون وبنزين وكبح — مش محتاج تعرف إزاي المحرك بيشتغل جوا. بتتعامل مع الـ interface مش الـ implementation.</span></div>
+    <div class="grid-2">
+      <div class="card bg-purple">
+        <div class="card-title c-purple">Abstract Class</div>
+        <p>كلاس مش ممكن تعمل منه object مباشرة. بيحدد blueprint للـ subclasses. ممكن يكون فيها implemented methods وأيضاً abstract methods.</p>
+      </div>
+      <div class="card bg-teal">
+        <div class="card-title c-teal">Interface</div>
+        <p>عقد (contract) بيحدد الـ methods اللي لازم أي كلاس ينفذها. مفيش implementation خالص. كلاس واحد ممكن ينفذ أكتر من interface.</p>
+      </div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="cm">// ─── Abstract Class ───</span>
+<span class="kw">abstract class</span> <span class="cl">DatabaseConnection</span> {
+  <span class="kw">protected</span> isConnected = <span class="kw">false</span>;
+
+  <span class="kw">abstract</span> <span class="fn">connect</span>(): <span class="kw">void</span>;          <span class="cm">// لازم كل ابن ينفذها</span>
+  <span class="kw">abstract</span> <span class="fn">disconnect</span>(): <span class="kw">void</span>;       <span class="cm">// لازم كل ابن ينفذها</span>
+  <span class="kw">abstract</span> <span class="fn">query</span>(sql: <span class="kw">string</span>): <span class="kw">any[]</span>; <span class="cm">// لازم كل ابن ينفذها</span>
+
+  <span class="fn">executeQuery</span>(sql: <span class="kw">string</span>) {          <span class="cm">// ✅ implementation مشتركة</span>
+    <span class="kw">if</span> (!<span class="kw">this</span>.isConnected) <span class="kw">this</span>.<span class="fn">connect</span>();
+    <span class="kw">return this</span>.<span class="fn">query</span>(sql);
+  }
+}
+
+<span class="kw">class</span> <span class="cl">MySQLConnection</span> <span class="kw">extends</span> <span class="cl">DatabaseConnection</span> {
+  <span class="fn">connect</span>()    { console.log(<span class="str">"MySQL connected"</span>); <span class="kw">this</span>.isConnected = <span class="kw">true</span>; }
+  <span class="fn">disconnect</span>() { console.log(<span class="str">"MySQL disconnected"</span>); }
+  <span class="fn">query</span>(sql: <span class="kw">string</span>) { <span class="cm">/* MySQL-specific implementation */</span> <span class="kw">return</span> []; }
+}
+
+<span class="kw">class</span> <span class="cl">PostgreSQLConnection</span> <span class="kw">extends</span> <span class="cl">DatabaseConnection</span> {
+  <span class="fn">connect</span>()    { console.log(<span class="str">"PostgreSQL connected"</span>); <span class="kw">this</span>.isConnected = <span class="kw">true</span>; }
+  <span class="fn">disconnect</span>() { console.log(<span class="str">"PostgreSQL disconnected"</span>); }
+  <span class="fn">query</span>(sql: <span class="kw">string</span>) { <span class="cm">/* PostgreSQL-specific */</span> <span class="kw">return</span> []; }
+}
+
+<span class="cm">// ─── Interface ───</span>
+<span class="kw">interface</span> <span class="cl">Serializable</span> {
+  <span class="fn">serialize</span>(): <span class="kw">string</span>;
+  <span class="fn">deserialize</span>(data: <span class="kw">string</span>): <span class="kw">void</span>;
+}
+
+<span class="kw">interface</span> <span class="cl">Printable</span> {
+  <span class="fn">print</span>(): <span class="kw">void</span>;
+}
+
+<span class="kw">class</span> <span class="cl">User</span> <span class="kw">implements</span> <span class="cl">Serializable</span>, <span class="cl">Printable</span> {  <span class="cm">// ✅ أكتر من interface</span>
+  <span class="fn">serialize</span>() { <span class="kw">return</span> JSON.<span class="fn">stringify</span>(<span class="kw">this</span>); }
+  <span class="fn">deserialize</span>(data: <span class="kw">string</span>) { Object.<span class="fn">assign</span>(<span class="kw">this</span>, JSON.<span class="fn">parse</span>(data)); }
+  <span class="fn">print</span>() { console.log(<span class="kw">this</span>); }
+}</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 4. CLASSES & OBJECTS ─── -->
+<section class="section" id="classes">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">📦</div>
+    <div>
+      <div class="section-title c-teal">Classes & Objects</div>
+      <div class="section-subtitle">اللبنة الأساسية في OOD</div>
+    </div>
+  </div>
+  <p class="lead">الـ Class هو blueprint أو template. الـ Object هو instance حقيقي منه. زي الفرق بين خرائط البيت (class) والبيت نفسه (object).</p>
+
+  <div class="grid-2">
+    <div class="card bg-teal"><div class="card-title c-teal">Class</div><p>تعريف — بيحدد الـ attributes والـ methods. موجود بس في الكود، مش في الـ memory.</p></div>
+    <div class="card bg-amber"><div class="card-title c-amber">Object</div><p>instance حقيقي من الـ class. بياخد مساحة في الـ memory ومالو state خاصة بيه.</p></div>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript — Class Anatomy</div></div>
+<pre><span class="kw">class</span> <span class="cl">Car</span> {
+  <span class="cm">// ─── Properties (Fields) ───</span>
+  <span class="kw">static</span> totalCars: <span class="kw">number</span> = <span class="num">0</span>;         <span class="cm">// static — مشترك بين كل الـ instances</span>
+  <span class="kw">public</span>  brand: <span class="kw">string</span>;
+  <span class="kw">private</span> speed: <span class="kw">number</span> = <span class="num">0</span>;
+  <span class="kw">protected</span> year: <span class="kw">number</span>;
+  <span class="kw">readonly</span> vin: <span class="kw">string</span>;                  <span class="cm">// لا يتغير بعد الإنشاء</span>
+
+  <span class="cm">// ─── Constructor ───</span>
+  <span class="kw">constructor</span>(brand: <span class="kw">string</span>, year: <span class="kw">number</span>) {
+    <span class="kw">this</span>.brand = brand;
+    <span class="kw">this</span>.year  = year;
+    <span class="kw">this</span>.vin   = <span class="fn">generateVIN</span>();
+    <span class="cl">Car</span>.totalCars++;
+  }
+
+  <span class="cm">// ─── Methods ───</span>
+  <span class="fn">accelerate</span>(amount: <span class="kw">number</span>): <span class="kw">void</span> {
+    <span class="kw">this</span>.speed = Math.<span class="fn">min</span>(<span class="kw">this</span>.speed + amount, <span class="num">200</span>);
+  }
+
+  <span class="fn">brake</span>(): <span class="kw">void</span> {
+    <span class="kw">this</span>.speed = Math.<span class="fn">max</span>(<span class="kw">this</span>.speed - <span class="num">10</span>, <span class="num">0</span>);
+  }
+
+  <span class="cm">// ─── Getter / Setter ───</span>
+  <span class="kw">get</span> <span class="fn">currentSpeed</span>() { <span class="kw">return</span> <span class="kw">this</span>.speed; }
+  <span class="kw">get</span> <span class="fn">isMoving</span>()     { <span class="kw">return</span> <span class="kw">this</span>.speed &gt; <span class="num">0</span>; }
+
+  <span class="cm">// ─── Static Method ───</span>
+  <span class="kw">static</span> <span class="fn">getTotalCars</span>() { <span class="kw">return</span> <span class="cl">Car</span>.totalCars; }
+
+  <span class="cm">// ─── toString ───</span>
+  <span class="fn">toString</span>() { <span class="kw">return</span> <span class="str">`${this.brand} (${this.year}) — ${this.speed}km/h`</span>; }
+}
+
+<span class="cm">// إنشاء objects</span>
+<span class="kw">const</span> car1 = <span class="kw">new</span> <span class="cl">Car</span>(<span class="str">"Toyota"</span>, <span class="num">2023</span>);
+<span class="kw">const</span> car2 = <span class="kw">new</span> <span class="cl">Car</span>(<span class="str">"BMW"</span>, <span class="num">2024</span>);
+
+car1.<span class="fn">accelerate</span>(<span class="num">80</span>);
+console.log(car1.<span class="fn">toString</span>());     <span class="cm">// Toyota (2023) — 80km/h</span>
+console.log(<span class="cl">Car</span>.<span class="fn">getTotalCars</span>());  <span class="cm">// 2</span></pre>
+  </div>
+</section>
+
+<!-- ─── 5. RELATIONSHIPS ─── -->
+<section class="section" id="relations">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">🔗</div>
+    <div>
+      <div class="section-title c-coral">Relationships بين Classes</div>
+      <div class="section-subtitle">Association · Aggregation · Composition · Inheritance · Realization</div>
+    </div>
+  </div>
+  <p class="lead">العلاقات هي الروابط بين الـ classes. تحديد نوع العلاقة الصح هو من أهم قرارات التصميم.</p>
+
+  <div class="rel-grid">
+    <div class="rel-item">
+      <div class="rel-left">
+        <div class="rel-type c-teal">Association</div>
+        <div class="rel-symbol">A → B</div>
+        <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);margin-top:8px;">Weak link</span>
+      </div>
+      <div class="rel-right">
+        <p>A يعرف B — علاقة عامة. مش فيه ownership. الـ objects ممكن تعيش مستقلة. ممكن تكون one-to-one أو one-to-many أو many-to-many.</p>
+        <div class="rel-example"><span class="tag">Teacher</span> → <span class="tag">Student</span> — المدرس بيعرف الطلاب لكن لو المدرس راح الطلاب مش بيتأثروا.</div>
+      </div>
+    </div>
+
+    <div class="rel-item">
+      <div class="rel-left">
+        <div class="rel-type c-amber">Aggregation</div>
+        <div class="rel-symbol">A ◇─ B</div>
+        <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);margin-top:8px;">Has-a (weak)</span>
+      </div>
+      <div class="rel-right">
+        <p>A يحتوي B — لكن B ممكن يعيش من غير A. الـ ownership موجودة لكن مش حصرية. "part-of" relationship بدون lifecycle dependency.</p>
+        <div class="rel-example"><span class="tag">Department</span> ◇─ <span class="tag">Professor</span> — لو القسم اتحذف الأستاذ بيفضل موجود.</div>
+      </div>
+    </div>
+
+    <div class="rel-item">
+      <div class="rel-left">
+        <div class="rel-type c-coral">Composition</div>
+        <div class="rel-symbol">A ◆─ B</div>
+        <span class="badge" style="background:rgba(240,106,80,.12);color:var(--coral2);margin-top:8px;">Has-a (strong)</span>
+      </div>
+      <div class="rel-right">
+        <p>A يحتوي B — ولو A مات B مات معاه. الـ ownership حصرية والـ lifecycle مشترك. أقوى نوع من الـ containment.</p>
+        <div class="rel-example"><span class="tag">House</span> ◆─ <span class="tag">Room</span> — لو البيت اتهدم الأوض مش موجودة. أو <span class="tag">Order</span> ◆─ <span class="tag">OrderItem</span>.</div>
+      </div>
+    </div>
+
+    <div class="rel-item">
+      <div class="rel-left">
+        <div class="rel-type c-purple">Inheritance</div>
+        <div class="rel-symbol">A ◁── B</div>
+        <span class="badge" style="background:rgba(124,106,247,.12);color:var(--purple2);margin-top:8px;">Is-a</span>
+      </div>
+      <div class="rel-right">
+        <p>B هو نوع من A — الـ subclass بيرث كل خصائص وسلوك الـ parent. أقوى نوع coupling. الابن هو الأب ولكن بزيادة.</p>
+        <div class="rel-example"><span class="tag">Car</span> is-a <span class="tag">Vehicle</span> — <span class="tag">Manager</span> is-a <span class="tag">Employee</span> — <span class="tag">AdminUser</span> is-a <span class="tag">User</span>.</div>
+      </div>
+    </div>
+
+    <div class="rel-item">
+      <div class="rel-left">
+        <div class="rel-type c-blue">Realization</div>
+        <div class="rel-symbol">A ◁ - - B</div>
+        <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);margin-top:8px;">Implements</span>
+      </div>
+      <div class="rel-right">
+        <p>B بينفذ الـ interface A. A بيحدد الـ contract وB بيحقق هذا الـ contract. بتستخدمها للـ interface implementation.</p>
+        <div class="rel-example"><span class="tag">Dog</span> implements <span class="tag">IAnimal</span> — <span class="tag">EmailService</span> implements <span class="tag">INotifiable</span>.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript — كل العلاقات في مثال واحد</div></div>
+<pre><span class="cm">// Association — Driver يعرف Car</span>
+<span class="kw">class</span> <span class="cl">Driver</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> car: <span class="cl">Car</span>) {}        <span class="cm">// reference بس</span>
+  <span class="fn">drive</span>() { <span class="kw">this</span>.car.<span class="fn">accelerate</span>(<span class="num">60</span>); }
+}
+
+<span class="cm">// Aggregation — Team يحتوي Players (لو Team اتحذف Players فاضلين)</span>
+<span class="kw">class</span> <span class="cl">Team</span> {
+  <span class="kw">private</span> players: <span class="cl">Player</span>[] = [];
+  <span class="fn">addPlayer</span>(p: <span class="cl">Player</span>) { <span class="kw">this</span>.players.<span class="fn">push</span>(p); }
+  <span class="fn">removePlayer</span>(p: <span class="cl">Player</span>) { <span class="cm">/* يمشي من الـ team بس لسه موجود */</span> }
+}
+
+<span class="cm">// Composition — Order يحتوي OrderItems (Order مات = items ماتت)</span>
+<span class="kw">class</span> <span class="cl">Order</span> {
+  <span class="kw">private</span> items: <span class="cl">OrderItem</span>[] = [];
+  <span class="fn">addItem</span>(productId: <span class="kw">string</span>, qty: <span class="kw">number</span>) {
+    <span class="kw">this</span>.items.<span class="fn">push</span>(<span class="kw">new</span> <span class="cl">OrderItem</span>(productId, qty));  <span class="cm">// Order بيخلق الـ items</span>
+  }
+}
+
+<span class="cm">// Inheritance — Manager is-a Employee</span>
+<span class="kw">class</span> <span class="cl">Employee</span> { <span class="fn">work</span>() { console.log(<span class="str">"Working..."</span>); } }
+<span class="kw">class</span> <span class="cl">Manager</span> <span class="kw">extends</span> <span class="cl">Employee</span> {
+  <span class="fn">manage</span>() { console.log(<span class="str">"Managing team..."</span>); }
+}
+
+<span class="cm">// Realization — EmailService implements INotifiable</span>
+<span class="kw">interface</span> <span class="cl">INotifiable</span> {
+  <span class="fn">notify</span>(msg: <span class="kw">string</span>): <span class="kw">void</span>;
+}
+<span class="kw">class</span> <span class="cl">EmailService</span> <span class="kw">implements</span> <span class="cl">INotifiable</span> {
+  <span class="fn">notify</span>(msg: <span class="kw">string</span>) { console.log(<span class="str">`Email sent: ${msg}`</span>); }
+}</pre>
+  </div>
+</section>
+
+<!-- ─── 6. SOLID ─── -->
+<section class="section" id="solid">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">⚖️</div>
+    <div>
+      <div class="section-title c-amber">SOLID Principles</div>
+      <div class="section-subtitle">الـ 5 مبادئ الأساسية للتصميم الجيد</div>
+    </div>
+  </div>
+  <p class="lead">SOLID هو اختصار لـ 5 مبادئ وضعها Robert C. Martin. أي كود بيطبّق الـ SOLID بيكون أسهل في الفهم والصيانة والتوسيع.</p>
+
+  <div class="solid-grid">
+
+    <div class="solid-item">
+      <div class="solid-letter bg-purple" style="background:rgba(124,106,247,.15);color:var(--purple2);">S</div>
+      <div class="solid-body">
+        <div class="solid-name">Single Responsibility Principle — SRP</div>
+        <div class="solid-desc">كل كلاس المفروض يكون ليه <strong>سبب واحد بس للتغيير</strong>. يعني كل كلاس بيعمل حاجة واحدة بس وبيعملها كويس.</div>
+        <div class="solid-rule">لو وصفت وظيفة الكلاس واحتجت تستخدم "و" — ده علامة إنه بيعمل أكتر من حاجة وبيخرق الـ SRP.</div>
+        <div class="code-wrap" style="margin-top:12px;">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Bad vs Good</div></div>
+<pre><span class="cm">// ❌ BAD — UserManager بيعمل كل حاجة</span>
+<span class="kw">class</span> <span class="cl">UserManager</span> {
+  <span class="fn">createUser</span>()    { <span class="cm">/* DB logic */</span> }
+  <span class="fn">sendEmail</span>()     { <span class="cm">/* Email logic */</span> }
+  <span class="fn">generateReport</span>(){ <span class="cm">/* Report logic */</span> }
+  <span class="fn">validateInput</span>() { <span class="cm">/* Validation */</span> }
+}
+
+<span class="cm">// ✅ GOOD — كل كلاس مسؤول عن حاجة واحدة</span>
+<span class="kw">class</span> <span class="cl">UserRepository</span>  { <span class="fn">create</span>() {} <span class="fn">find</span>() {} }
+<span class="kw">class</span> <span class="cl">EmailService</span>     { <span class="fn">send</span>() {} }
+<span class="kw">class</span> <span class="cl">ReportGenerator</span>  { <span class="fn">generate</span>() {} }
+<span class="kw">class</span> <span class="cl">UserValidator</span>    { <span class="fn">validate</span>() {} }</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="solid-item">
+      <div class="solid-letter" style="background:rgba(45,212,160,.15);color:var(--teal2);">O</div>
+      <div class="solid-body">
+        <div class="solid-name">Open/Closed Principle — OCP</div>
+        <div class="solid-desc">الكلاس لازم يكون <strong>مفتوح للـ extension</strong> (ممكن تضيف features) و<strong>مغلق للـ modification</strong> (مش محتاج تغيير الكود الموجود).</div>
+        <div class="solid-rule">لو كل ما أضفت feature جديدة احتجت تعدّل كلاسات موجودة — ده بيخرق الـ OCP وبيرفع خطر الـ bugs.</div>
+        <div class="code-wrap" style="margin-top:12px;">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Bad vs Good</div></div>
+<pre><span class="cm">// ❌ BAD — كل payment type جديد بيعدّل calculateFee</span>
+<span class="kw">class</span> <span class="cl">PaymentProcessor</span> {
+  <span class="fn">calculateFee</span>(type: <span class="kw">string</span>) {
+    <span class="kw">if</span> (type === <span class="str">"credit"</span>) <span class="kw">return</span> <span class="num">0.03</span>;
+    <span class="kw">if</span> (type === <span class="str">"debit"</span>)  <span class="kw">return</span> <span class="num">0.01</span>;
+    <span class="cm">// كل payment جديد = تعديل في الكود = خطر</span>
+  }
+}
+
+<span class="cm">// ✅ GOOD — كل payment type هو extension مستقل</span>
+<span class="kw">interface</span> <span class="cl">PaymentMethod</span> { <span class="fn">calculateFee</span>(): <span class="kw">number</span>; }
+
+<span class="kw">class</span> <span class="cl">CreditCard</span> <span class="kw">implements</span> <span class="cl">PaymentMethod</span> { <span class="fn">calculateFee</span>() { <span class="kw">return</span> <span class="num">0.03</span>; } }
+<span class="kw">class</span> <span class="cl">DebitCard</span>  <span class="kw">implements</span> <span class="cl">PaymentMethod</span> { <span class="fn">calculateFee</span>() { <span class="kw">return</span> <span class="num">0.01</span>; } }
+<span class="kw">class</span> <span class="cl">Crypto</span>     <span class="kw">implements</span> <span class="cl">PaymentMethod</span> { <span class="fn">calculateFee</span>() { <span class="kw">return</span> <span class="num">0.005</span>; } }
+<span class="cm">// ✅ أضفنا Crypto من غير ما نعدّل أي كود موجود!</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="solid-item">
+      <div class="solid-letter" style="background:rgba(240,106,80,.15);color:var(--coral2);">L</div>
+      <div class="solid-body">
+        <div class="solid-name">Liskov Substitution Principle — LSP</div>
+        <div class="solid-desc">الـ subclass لازم يقدر <strong>يحل محل الـ parent class</strong> من غير ما يكسر النظام. ما ينفعش الابن يلغي أو يتجاهل سلوك الأب.</div>
+        <div class="solid-rule">لو عندك if (obj instanceof Subclass) في الكود — ده علامة خطر إن الـ LSP اتخرق.</div>
+        <div class="code-wrap" style="margin-top:12px;">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Bad vs Good</div></div>
+<pre><span class="cm">// ❌ BAD — Square بيخرق سلوك Rectangle (LSP violation)</span>
+<span class="kw">class</span> <span class="cl">Rectangle</span> {
+  <span class="fn">setWidth</span>(w: <span class="kw">number</span>)  { <span class="kw">this</span>.width = w; }
+  <span class="fn">setHeight</span>(h: <span class="kw">number</span>) { <span class="kw">this</span>.height = h; }
+}
+<span class="kw">class</span> <span class="cl">Square</span> <span class="kw">extends</span> <span class="cl">Rectangle</span> {
+  <span class="fn">setWidth</span>(w: <span class="kw">number</span>)  { <span class="kw">this</span>.width = <span class="kw">this</span>.height = w; } <span class="cm">// 💥 كسر السلوك!</span>
+  <span class="fn">setHeight</span>(h: <span class="kw">number</span>) { <span class="kw">this</span>.width = <span class="kw">this</span>.height = h; } <span class="cm">// 💥</span>
+}
+
+<span class="cm">// ✅ GOOD — Shape مستقل لكل شكل</span>
+<span class="kw">abstract class</span> <span class="cl">Shape</span> { <span class="kw">abstract</span> <span class="fn">area</span>(): <span class="kw">number</span>; }
+<span class="kw">class</span> <span class="cl">Rectangle2</span> <span class="kw">extends</span> <span class="cl">Shape</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> w: <span class="kw">number</span>, <span class="kw">private</span> h: <span class="kw">number</span>) { <span class="kw">super</span>(); }
+  <span class="fn">area</span>() { <span class="kw">return</span> <span class="kw">this</span>.w * <span class="kw">this</span>.h; }
+}
+<span class="kw">class</span> <span class="cl">Square2</span> <span class="kw">extends</span> <span class="cl">Shape</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> side: <span class="kw">number</span>) { <span class="kw">super</span>(); }
+  <span class="fn">area</span>() { <span class="kw">return</span> <span class="kw">this</span>.side ** <span class="num">2</span>; }
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="solid-item">
+      <div class="solid-letter" style="background:rgba(74,158,255,.15);color:var(--blue2);">I</div>
+      <div class="solid-body">
+        <div class="solid-name">Interface Segregation Principle — ISP</div>
+        <div class="solid-desc">الكلاس <strong>ما لازمش يتبع interface</strong> فيها methods مش محتاجها. أحسن تعمل interfaces صغيرة ومتخصصة بدل interface كبيرة.</div>
+        <div class="solid-rule">لو كلاس بينفذ interface وبيخلّي methods فاضية أو بيرمي exceptions — ده بيخرق الـ ISP.</div>
+        <div class="code-wrap" style="margin-top:12px;">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Bad vs Good</div></div>
+<pre><span class="cm">// ❌ BAD — Interface كبيرة جداً</span>
+<span class="kw">interface</span> <span class="cl">IWorker</span> {
+  <span class="fn">work</span>(): <span class="kw">void</span>;
+  <span class="fn">eat</span>(): <span class="kw">void</span>;
+  <span class="fn">sleep</span>(): <span class="kw">void</span>;
+}
+<span class="kw">class</span> <span class="cl">Robot</span> <span class="kw">implements</span> <span class="cl">IWorker</span> {
+  <span class="fn">work</span>() { console.log(<span class="str">"Working"</span>); }
+  <span class="fn">eat</span>()  { <span class="kw">throw new</span> <span class="cl">Error</span>(<span class="str">"Robot doesn't eat!"</span>); }  <span class="cm">// 💥 ISP violated</span>
+  <span class="fn">sleep</span>(){ <span class="kw">throw new</span> <span class="cl">Error</span>(<span class="str">"Robot doesn't sleep!"</span>); } <span class="cm">// 💥</span>
+}
+
+<span class="cm">// ✅ GOOD — interfaces صغيرة ومتخصصة</span>
+<span class="kw">interface</span> <span class="cl">IWorkable</span>  { <span class="fn">work</span>():  <span class="kw">void</span>; }
+<span class="kw">interface</span> <span class="cl">IFeedable</span>  { <span class="fn">eat</span>():   <span class="kw">void</span>; }
+<span class="kw">interface</span> <span class="cl">ISleepable</span> { <span class="fn">sleep</span>(): <span class="kw">void</span>; }
+
+<span class="kw">class</span> <span class="cl">HumanWorker</span> <span class="kw">implements</span> <span class="cl">IWorkable</span>, <span class="cl">IFeedable</span>, <span class="cl">ISleepable</span> {
+  <span class="fn">work</span>() {} <span class="fn">eat</span>() {} <span class="fn">sleep</span>() {}   <span class="cm">// ✅ كل الـ methods منطقية</span>
+}
+<span class="kw">class</span> <span class="cl">RobotWorker</span> <span class="kw">implements</span> <span class="cl">IWorkable</span> {
+  <span class="fn">work</span>() {}                          <span class="cm">// ✅ بس اللي محتاجه</span>
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="solid-item">
+      <div class="solid-letter" style="background:rgba(94,199,106,.15);color:var(--green2);">D</div>
+      <div class="solid-body">
+        <div class="solid-name">Dependency Inversion Principle — DIP</div>
+        <div class="solid-desc">الـ modules العالية (high-level) ما لازمش تعتمد على الـ modules الدنيا (low-level) مباشرة. <strong>الاتنين لازم يعتمدوا على abstractions.</strong></div>
+        <div class="solid-rule">اعتمد على interfaces وabstract classes، مش على concrete implementations. ده بيسهّل الـ testing والـ swap.</div>
+        <div class="code-wrap" style="margin-top:12px;">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Bad vs Good</div></div>
+<pre><span class="cm">// ❌ BAD — UserService مربوط بـ MySQLDB مباشرة</span>
+<span class="kw">class</span> <span class="cl">MySQLDB</span>    { <span class="fn">save</span>(data: <span class="kw">any</span>) {} }
+<span class="kw">class</span> <span class="cl">UserService</span> {
+  <span class="kw">private</span> db = <span class="kw">new</span> <span class="cl">MySQLDB</span>();         <span class="cm">// 💥 tight coupling!</span>
+  <span class="fn">createUser</span>(data: <span class="kw">any</span>) { <span class="kw">this</span>.db.<span class="fn">save</span>(data); }
+}
+
+<span class="cm">// ✅ GOOD — UserService تعتمد على interface</span>
+<span class="kw">interface</span> <span class="cl">IDatabase</span> { <span class="fn">save</span>(data: <span class="kw">any</span>): <span class="kw">void</span>; }
+
+<span class="kw">class</span> <span class="cl">MySQLDB2</span>    <span class="kw">implements</span> <span class="cl">IDatabase</span> { <span class="fn">save</span>(d: <span class="kw">any</span>) { <span class="cm">/* MySQL */</span>  } }
+<span class="kw">class</span> <span class="cl">MongoDB</span>      <span class="kw">implements</span> <span class="cl">IDatabase</span> { <span class="fn">save</span>(d: <span class="kw">any</span>) { <span class="cm">/* MongoDB */</span> } }
+<span class="kw">class</span> <span class="cl">InMemoryDB</span>   <span class="kw">implements</span> <span class="cl">IDatabase</span> { <span class="fn">save</span>(d: <span class="kw">any</span>) { <span class="cm">/* Testing */</span>  } }
+
+<span class="kw">class</span> <span class="cl">UserService2</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> db: <span class="cl">IDatabase</span>) {}  <span class="cm">// ✅ Dependency Injection</span>
+  <span class="fn">createUser</span>(data: <span class="kw">any</span>) { <span class="kw">this</span>.db.<span class="fn">save</span>(data); }
+}
+
+<span class="cm">// ✅ في production نستخدم MySQL، في tests نستخدم InMemory</span>
+<span class="kw">const</span> service = <span class="kw">new</span> <span class="cl">UserService2</span>(<span class="kw">new</span> <span class="cl">MySQLDB2</span>());
+<span class="kw">const</span> testSvc  = <span class="kw">new</span> <span class="cl">UserService2</span>(<span class="kw">new</span> <span class="cl">InMemoryDB</span>());</pre>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── 7. DRY / KISS / YAGNI ─── -->
+<section class="section" id="dry-kiss">
+  <div class="section-header">
+    <div class="section-icon bg-green" style="font-size:22px;">✂️</div>
+    <div>
+      <div class="section-title c-teal">Other Design Principles</div>
+      <div class="section-subtitle">DRY · KISS · YAGNI · Cohesion · Coupling · SoC · Composition · Interfaces · Boy Scout</div>
+    </div>
+  </div>
+  <p class="lead">غير الـ SOLID، في مبادئ تانية مهمة بتشكّل طريقة تفكير المصمم الجيد.</p>
+  <div class="grid-2">
+    <div class="card bg-teal">
+      <div class="card-title c-teal">🔁 DRY — Don't Repeat Yourself</div>
+      <p>كل معلومة أو logic لازم يكون في مكان واحد بس في النظام. لو نفس الكود موجود في أكتر من مكان — ده violation.</p>
+      <div class="info-box tip" style="margin-top:10px;"><div class="info-box-icon">💡</div><div>الحل: Extract الكود المتكرر في function أو class مشترك.</div></div>
+    </div>
+    <div class="card bg-purple">
+      <div class="card-title c-purple">💋 KISS — Keep It Simple, Stupid</div>
+      <p>الحل الأبسط دايماً أفضل. مقاومة إغراء over-engineering. الـ complexity الزيادة بتقتل الـ maintainability.</p>
+      <div class="info-box note" style="margin-top:10px;"><div class="info-box-icon">💡</div><div>لو الكود صعب تشرحه لزميلك — ده علامة إنه معقد أوي.</div></div>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🚫 YAGNI — You Aren't Gonna Need It</div>
+      <p>ما تبنيش حاجة إلا لما تحتاجها فعلاً. لا تضيف features "على المستقبل" من غير requirement حقيقي.</p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">⚙️ CoC — Convention over Configuration</div>
+      <p>اتبع الـ conventions المتعارف عليها بدل ما تعمل configuration لكل حاجة. بيقلل الـ decisions المطلوبة.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">📦 LoD — Law of Demeter</div>
+      <p>"Talk only to your immediate friends." الكلاس ما يتكلمش إلا مع الـ objects اللي بيعرفها مباشرة. يقلل الـ coupling.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">🧩 Low Coupling · High Cohesion</div>
+      <p><strong>Low Coupling:</strong> الـ classes تعتمد على بعض بأقل قدر ممكن — تغيير كلاس واحد ما يكسرش الباقي. <strong>High Cohesion:</strong> كل class أو module بيجمع logic مرتبط ببعض في مكان واحد وبيعمل شغلة واحدة كويس.</p>
+      <div class="info-box tip" style="margin-top:10px;"><div class="info-box-icon">💡</div><div>الهدف: modules مستقلة وواضحة — سهل تختبرها وتعدّلها من غير ripple effects.</div></div>
+    </div>
+    <div class="card bg-purple">
+      <div class="card-title c-purple">🔓 SoC — Separation of Concerns</div>
+      <p>كل جزء من النظام مسؤول عن <strong>concern</strong> واحدة بس: UI، business logic، data access، logging. مثال: الـ UI ما يتكلمش مع الـ Database مباشرة — في layer بينهم.</p>
+      <div class="info-box note" style="margin-top:10px;"><div class="info-box-icon">💡</div><div>SoC غالباً بيتحقق بـ layers أو modules (MVC، Clean Architecture).</div></div>
+    </div>
+    <div class="card bg-amber">
+      <div class="card-title c-amber">🧱 Composition over Inheritance</div>
+      <p>فضّل تركيب الـ behavior من objects/components بدل الوراثة العميقة. الـ inheritance بيقفل التصميم وبيعمل coupling قوي بين parent و child.</p>
+      <div class="info-box tip" style="margin-top:10px;"><div class="info-box-icon">💡</div><div>استخدم <code>has-a</code> (composition) بدل <code>is-a</code> (inheritance) لما السلوك قابل للتبديل.</div></div>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🔌 Program to an Interface</div>
+      <p><strong>Program to an Interface, Not an Implementation</strong> — اعتمد على الـ abstractions (interfaces / abstract types) مش الـ concrete classes. بيخلي الكود flexible وقابل للـ testing والـ swapping.</p>
+      <div class="info-box note" style="margin-top:10px;"><div class="info-box-icon">💡</div><div>مثال: <code>IPaymentGateway</code> بدل <code>StripePayment</code> في الـ constructor — DI بيبني على المبدأ ده.</div></div>
+    </div>
+    <div class="card bg-green">
+      <div class="card-title c-teal">🏕️ The Boy Scout Rule</div>
+      <p>"Leave the campground cleaner than you found it." كل ما تلمس ملف أو module — سيبه أحسن شوية: rename، extract method، fix warning، تحسين تسمية.</p>
+      <div class="info-box tip" style="margin-top:10px;"><div class="info-box-icon">💡</div><div>مش refactor ضخم — تحسينات صغيرة مستمرة بتمنع تراكم الـ technical debt.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 8. DESIGN PATTERNS INTRO ─── -->
+<section class="section" id="patterns">
+  <div class="section-header">
+    <div class="section-icon bg-pink" style="font-size:22px;">🎨</div>
+    <div>
+      <div class="section-title c-pink">Design Patterns</div>
+      <div class="section-subtitle">حلول جاهزة لمشاكل تصميم متكررة</div>
+    </div>
+  </div>
+  <p class="lead">الـ Design Patterns هي حلول جاهزة ومختبرة لمشاكل تصميم بتتكرر كتير. مش كود تنسخه — ده template للتفكير.</p>
+  <div class="grid-3">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">🏗️ Creational</div>
+      <p>بتتحكم في إزاي الـ objects بتتنشأ. بتفصل الـ creation logic عن الـ business logic. <strong>6 patterns.</strong></p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">🏛️ Structural</div>
+      <p>بتتعامل مع تركيب الـ classes والـ objects مع بعض. بتكوّن هياكل أكبر من أجزاء بسيطة. <strong>7 patterns.</strong></p>
+    </div>
+    <div class="card bg-coral">
+      <div class="card-title c-coral">🔄 Behavioral</div>
+      <p>بتتعامل مع التواصل والتفاعل بين الـ objects. بتوزع المسؤوليات. <strong>12 patterns.</strong></p>
+    </div>
+  </div>
+  <div class="info-box warn" style="margin-top:16px;">
+    <div class="info-box-icon">⚠️</div>
+    <div><strong>مهم:</strong> الـ Design Patterns مش لازم تطبقها في كل مكان. استخدمها لما تحتاجها فعلاً. Over-engineering بالـ patterns من أكبر الأخطاء.</div>
+  </div>
+</section>
+
+<!-- ─── 9. CREATIONAL PATTERNS ─── -->
+<section class="section" id="creational">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">🏗️</div>
+    <div>
+      <div class="section-title c-purple">Creational Patterns</div>
+      <div class="section-subtitle">إزاي تنشئ الـ Objects</div>
+    </div>
+  </div>
+
+  <div class="pattern-group">
+    <div class="pattern-group-title">6 Creational Patterns</div>
+
+    <!-- Singleton -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Singleton</span>
+        <span class="tag">Instance control</span>
+      </div>
+      <div class="pattern-desc">يضمن إن الكلاس بيكون ليه <strong>instance واحدة بس</strong> في النظام كله، وبيوفر نقطة وصول global ليها.</div>
+      <div class="pattern-when"><strong>امتى تستخدمه:</strong> Database connection pool، Logger، Configuration manager، Cache.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">class</span> <span class="cl">Database</span> {
+  <span class="kw">private static</span> instance: <span class="cl">Database</span>;
+  <span class="kw">private</span> connection: <span class="kw">string</span>;
+
+  <span class="kw">private constructor</span>() {           <span class="cm">// private — مش ممكن new Database()</span>
+    <span class="kw">this</span>.connection = <span class="str">"Connected to DB"</span>;
+    console.log(<span class="str">"DB connection established"</span>);
+  }
+
+  <span class="kw">public static</span> <span class="fn">getInstance</span>(): <span class="cl">Database</span> {
+    <span class="kw">if</span> (!<span class="cl">Database</span>.instance) {
+      <span class="cl">Database</span>.instance = <span class="kw">new</span> <span class="cl">Database</span>(); <span class="cm">// بيتنشأ مرة واحدة بس</span>
+    }
+    <span class="kw">return</span> <span class="cl">Database</span>.instance;
+  }
+
+  <span class="fn">query</span>(sql: <span class="kw">string</span>) { <span class="kw">return</span> <span class="str">`Result of: ${sql}`</span>; }
+}
+
+<span class="kw">const</span> db1 = <span class="cl">Database</span>.<span class="fn">getInstance</span>();
+<span class="kw">const</span> db2 = <span class="cl">Database</span>.<span class="fn">getInstance</span>();
+console.log(db1 === db2);  <span class="cm">// true — نفس الـ instance</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Factory Method -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Factory Method</span>
+        <span class="tag">Object creation</span>
+      </div>
+      <div class="pattern-desc">بيعرّف interface لإنشاء object لكن بيخلي الـ subclasses هي اللي تقرر أيه الـ class اللي هيتنشأ. بيفصل الـ creation عن الـ usage.</div>
+      <div class="pattern-when"><strong>امتى تستخدمه:</strong> لما مش عارف مسبقاً أيه الـ class اللي محتاج تنشئه، أو لما تحب الـ subclasses تتحكم في الـ creation.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">Notification</span> {
+  <span class="fn">send</span>(msg: <span class="kw">string</span>): <span class="kw">void</span>;
+}
+
+<span class="kw">class</span> <span class="cl">EmailNotification</span>   <span class="kw">implements</span> <span class="cl">Notification</span> {
+  <span class="fn">send</span>(msg: <span class="kw">string</span>) { console.log(<span class="str">`Email: ${msg}`</span>); }
+}
+<span class="kw">class</span> <span class="cl">SMSNotification</span>     <span class="kw">implements</span> <span class="cl">Notification</span> {
+  <span class="fn">send</span>(msg: <span class="kw">string</span>) { console.log(<span class="str">`SMS: ${msg}`</span>); }
+}
+<span class="kw">class</span> <span class="cl">PushNotification</span>    <span class="kw">implements</span> <span class="cl">Notification</span> {
+  <span class="fn">send</span>(msg: <span class="kw">string</span>) { console.log(<span class="str">`Push: ${msg}`</span>); }
+}
+
+<span class="cm">// Factory — بيقرر أيه الـ object المناسب</span>
+<span class="kw">class</span> <span class="cl">NotificationFactory</span> {
+  <span class="kw">static</span> <span class="fn">create</span>(type: <span class="str">"email"</span> | <span class="str">"sms"</span> | <span class="str">"push"</span>): <span class="cl">Notification</span> {
+    <span class="kw">switch</span> (type) {
+      <span class="kw">case</span> <span class="str">"email"</span>: <span class="kw">return new</span> <span class="cl">EmailNotification</span>();
+      <span class="kw">case</span> <span class="str">"sms"</span>:   <span class="kw">return new</span> <span class="cl">SMSNotification</span>();
+      <span class="kw">case</span> <span class="str">"push"</span>:  <span class="kw">return new</span> <span class="cl">PushNotification</span>();
+    }
+  }
+}
+
+<span class="kw">const</span> notif = <span class="cl">NotificationFactory</span>.<span class="fn">create</span>(<span class="str">"email"</span>);
+notif.<span class="fn">send</span>(<span class="str">"Your order is ready!"</span>);</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Abstract Factory -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Abstract Factory</span>
+        <span class="tag">Family of objects</span>
+      </div>
+      <div class="pattern-desc">بينشئ <strong>عائلات من الـ objects</strong> المترابطة من غير ما تحدد الـ concrete classes. تأكيد إن الـ objects اللي بتنشئها متوافقة مع بعض.</div>
+      <div class="pattern-when"><strong>امتى تستخدمه:</strong> UI themes (Dark/Light)، Cross-platform apps، Database families (SQL/NoSQL).</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">Button</span> { <span class="fn">render</span>(): <span class="kw">string</span>; }
+<span class="kw">interface</span> <span class="cl">Input</span>  { <span class="fn">render</span>(): <span class="kw">string</span>; }
+
+<span class="kw">class</span> <span class="cl">DarkButton</span> <span class="kw">implements</span> <span class="cl">Button</span> { <span class="fn">render</span>() { <span class="kw">return</span> <span class="str">"[Dark Button]"</span>; } }
+<span class="kw">class</span> <span class="cl">LightButton</span> <span class="kw">implements</span> <span class="cl">Button</span> { <span class="fn">render</span>() { <span class="kw">return</span> <span class="str">"[Light Button]"</span>; } }
+<span class="kw">class</span> <span class="cl">DarkInput</span>  <span class="kw">implements</span> <span class="cl">Input</span>  { <span class="fn">render</span>() { <span class="kw">return</span> <span class="str">"[Dark Input]"</span>; } }
+<span class="kw">class</span> <span class="cl">LightInput</span> <span class="kw">implements</span> <span class="cl">Input</span>  { <span class="fn">render</span>() { <span class="kw">return</span> <span class="str">"[Light Input]"</span>; } }
+
+<span class="kw">interface</span> <span class="cl">UIFactory</span> {
+  <span class="fn">createButton</span>(): <span class="cl">Button</span>;
+  <span class="fn">createInput</span>():  <span class="cl">Input</span>;
+}
+
+<span class="kw">class</span> <span class="cl">DarkThemeFactory</span>  <span class="kw">implements</span> <span class="cl">UIFactory</span> {
+  <span class="fn">createButton</span>() { <span class="kw">return new</span> <span class="cl">DarkButton</span>(); }
+  <span class="fn">createInput</span>()  { <span class="kw">return new</span> <span class="cl">DarkInput</span>(); }
+}
+<span class="kw">class</span> <span class="cl">LightThemeFactory</span> <span class="kw">implements</span> <span class="cl">UIFactory</span> {
+  <span class="fn">createButton</span>() { <span class="kw">return new</span> <span class="cl">LightButton</span>(); }
+  <span class="fn">createInput</span>()  { <span class="kw">return new</span> <span class="cl">LightInput</span>(); }
+}
+
+<span class="kw">function</span> <span class="fn">buildUI</span>(factory: <span class="cl">UIFactory</span>) {
+  <span class="kw">const</span> btn = factory.<span class="fn">createButton</span>();
+  <span class="kw">const</span> inp = factory.<span class="fn">createInput</span>();
+  console.log(btn.<span class="fn">render</span>(), inp.<span class="fn">render</span>()); <span class="cm">// متوافقين دايماً</span>
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Builder -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Builder</span>
+        <span class="tag">Complex construction</span>
+      </div>
+      <div class="pattern-desc">بيفصل بناء الـ object المعقد عن تمثيله. بيخليك تبني نفس الـ object بطرق مختلفة. مناسب جداً للـ objects اللي فيها parameters كتير.</div>
+      <div class="pattern-when"><strong>امتى تستخدمه:</strong> Query builders، Email builders، HTTP request builders، Configuration objects.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">class</span> <span class="cl">QueryBuilder</span> {
+  <span class="kw">private</span> table  = <span class="str">""</span>;
+  <span class="kw">private</span> fields: <span class="kw">string</span>[] = [<span class="str">"*"</span>];
+  <span class="kw">private</span> conditions: <span class="kw">string</span>[] = [];
+  <span class="kw">private</span> limitVal = <span class="num">0</span>;
+  <span class="kw">private</span> orderBy = <span class="str">""</span>;
+
+  <span class="fn">from</span>(table: <span class="kw">string</span>) {
+    <span class="kw">this</span>.table = table;
+    <span class="kw">return this</span>;                        <span class="cm">// Method chaining ✅</span>
+  }
+  <span class="fn">select</span>(...fields: <span class="kw">string</span>[]) {
+    <span class="kw">this</span>.fields = fields;
+    <span class="kw">return this</span>;
+  }
+  <span class="fn">where</span>(condition: <span class="kw">string</span>) {
+    <span class="kw">this</span>.conditions.<span class="fn">push</span>(condition);
+    <span class="kw">return this</span>;
+  }
+  <span class="fn">limit</span>(n: <span class="kw">number</span>) { <span class="kw">this</span>.limitVal = n; <span class="kw">return this</span>; }
+  <span class="fn">order</span>(field: <span class="kw">string</span>) { <span class="kw">this</span>.orderBy = field; <span class="kw">return this</span>; }
+
+  <span class="fn">build</span>(): <span class="kw">string</span> {
+    <span class="kw">let</span> q = <span class="str">`SELECT ${this.fields.join(", ")} FROM ${this.table}`</span>;
+    <span class="kw">if</span> (<span class="kw">this</span>.conditions.length) q += <span class="str">` WHERE ${this.conditions.join(" AND ")}`</span>;
+    <span class="kw">if</span> (<span class="kw">this</span>.orderBy) q += <span class="str">` ORDER BY ${this.orderBy}`</span>;
+    <span class="kw">if</span> (<span class="kw">this</span>.limitVal) q += <span class="str">` LIMIT ${this.limitVal}`</span>;
+    <span class="kw">return</span> q;
+  }
+}
+
+<span class="kw">const</span> query = <span class="kw">new</span> <span class="cl">QueryBuilder</span>()
+  .<span class="fn">from</span>(<span class="str">"users"</span>)
+  .<span class="fn">select</span>(<span class="str">"id"</span>, <span class="str">"name"</span>, <span class="str">"email"</span>)
+  .<span class="fn">where</span>(<span class="str">"age > 18"</span>)
+  .<span class="fn">where</span>(<span class="str">"active = true"</span>)
+  .<span class="fn">order</span>(<span class="str">"name"</span>)
+  .<span class="fn">limit</span>(<span class="num">10</span>)
+  .<span class="fn">build</span>();
+<span class="cm">// SELECT id, name, email FROM users WHERE age > 18 AND active = true ORDER BY name LIMIT 10</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prototype -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(232,121,160,.12);color:var(--pink2);">Prototype</span>
+        <span class="tag">Object cloning</span>
+      </div>
+      <div class="pattern-desc">بينشئ objects جديدة عن طريق نسخ (clone) object موجود بدل ما يبنيه من الصفر. مفيد لما الـ creation process غالية أو معقدة.</div>
+      <div class="pattern-when"><strong>امتى تستخدمه:</strong> نسخ objects معقدة، Game entities، Document templates.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">Cloneable</span>&lt;T&gt; { <span class="fn">clone</span>(): T; }
+
+<span class="kw">class</span> <span class="cl">GameCharacter</span> <span class="kw">implements</span> <span class="cl">Cloneable</span>&lt;<span class="cl">GameCharacter</span>&gt; {
+  <span class="kw">constructor</span>(
+    <span class="kw">public</span> name: <span class="kw">string</span>,
+    <span class="kw">public</span> health: <span class="kw">number</span>,
+    <span class="kw">public</span> skills: <span class="kw">string</span>[]
+  ) {}
+
+  <span class="fn">clone</span>(): <span class="cl">GameCharacter</span> {
+    <span class="kw">return new</span> <span class="cl">GameCharacter</span>(
+      <span class="kw">this</span>.name,
+      <span class="kw">this</span>.health,
+      [...<span class="kw">this</span>.skills]  <span class="cm">// Deep copy للـ array</span>
+    );
+  }
+}
+
+<span class="kw">const</span> warrior = <span class="kw">new</span> <span class="cl">GameCharacter</span>(<span class="str">"Warrior"</span>, <span class="num">100</span>, [<span class="str">"Slash"</span>, <span class="str">"Block"</span>]);
+<span class="kw">const</span> warrior2 = warrior.<span class="fn">clone</span>();
+warrior2.name = <span class="str">"Warrior Clone"</span>;
+warrior2.skills.<span class="fn">push</span>(<span class="str">"Fire"</span>);
+
+console.log(warrior.skills);  <span class="cm">// ["Slash", "Block"] — مش اتأثر</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Object Pool -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(94,199,106,.12);color:var(--green2);">Object Pool</span>
+        <span class="tag">Resource management</span>
+      </div>
+      <div class="pattern-desc">بيحافظ على مجموعة من الـ objects المنشأة مسبقاً بدل ما تنشئ وتحذف طول الوقت. بيحسن الـ performance لما الـ creation غالية.</div>
+      <div class="pattern-when"><strong>امتى تستخدمه:</strong> Database connection pools، Thread pools، Object recycling في games.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="cm">// اتصال DB — غالي في الإنشاء</span>
+<span class="kw">class</span> <span class="cl">DbConnection</span> {
+  <span class="kw">constructor</span>(<span class="kw">public</span> id: <span class="kw">number</span>) {
+    console.log(<span class="str">`Connection #${id} opened`</span>);
+  }
+  <span class="fn">query</span>(sql: <span class="kw">string</span>) { <span class="kw">return</span> <span class="str">`[${this.id}] ${sql}`</span>; }
+  <span class="fn">close</span>() { console.log(<span class="str">`Connection #${this.id} closed`</span>); }
+}
+
+<span class="kw">class</span> <span class="cl">ConnectionPool</span> {
+  <span class="kw">private</span> available: <span class="cl">DbConnection</span>[] = [];
+  <span class="kw">private</span> inUse = <span class="kw">new</span> <span class="cl">Set</span>&lt;<span class="cl">DbConnection</span>&gt;();
+  <span class="kw">private</span> nextId = <span class="num">1</span>;
+
+  <span class="kw">constructor</span>(<span class="kw">private</span> maxSize: <span class="kw">number</span>) {}
+
+  <span class="fn">acquire</span>(): <span class="cl">DbConnection</span> {
+    <span class="kw">const</span> conn = <span class="kw">this</span>.available.<span class="fn">pop</span>()
+      ?? <span class="kw">new</span> <span class="cl">DbConnection</span>(<span class="kw">this</span>.nextId++);
+    <span class="kw">this</span>.inUse.<span class="fn">add</span>(conn);
+    <span class="kw">return</span> conn;
+  }
+
+  <span class="fn">release</span>(conn: <span class="cl">DbConnection</span>) {
+    <span class="kw">if</span> (!<span class="kw">this</span>.inUse.<span class="fn">has</span>(conn)) <span class="kw">return</span>;
+    <span class="kw">this</span>.inUse.<span class="fn">delete</span>(conn);
+    <span class="kw">if</span> (<span class="kw">this</span>.available.length &lt; <span class="kw">this</span>.maxSize) {
+      <span class="kw">this</span>.available.<span class="fn">push</span>(conn);
+    } <span class="kw">else</span> conn.<span class="fn">close</span>();
+  }
+}
+
+<span class="kw">const</span> pool = <span class="kw">new</span> <span class="cl">ConnectionPool</span>(<span class="num">3</span>);
+<span class="kw">const</span> c1 = pool.<span class="fn">acquire</span>();
+c1.<span class="fn">query</span>(<span class="str">"SELECT * FROM users"</span>);
+pool.<span class="fn">release</span>(c1);</pre>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── 10. STRUCTURAL PATTERNS ─── -->
+<section class="section" id="structural">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">🏛️</div>
+    <div>
+      <div class="section-title c-teal">Structural Patterns</div>
+      <div class="section-subtitle">إزاي تركّب الـ Classes والـ Objects</div>
+    </div>
+  </div>
+
+  <div class="pattern-group">
+    <div class="pattern-group-title">7 Structural Patterns</div>
+
+    <!-- Adapter -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Adapter</span>
+        <span class="tag">Interface conversion</span>
+      </div>
+      <div class="pattern-desc">بيحوّل الـ interface بتاع كلاس لـ interface تاني. بيخلي classes تشتغل مع بعض حتى لو interfaces بتوعهم مختلفة.</div>
+      <div class="pattern-when"><strong>امتى تستخدمه:</strong> Integration مع legacy code أو third-party libraries. زي محوّل الكهرباء بالظبط.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="cm">// Legacy payment system (مش ممكن تغيّره)</span>
+<span class="kw">class</span> <span class="cl">OldPaymentSystem</span> {
+  <span class="fn">makePayment</span>(amount: <span class="kw">number</span>, currency: <span class="kw">string</span>) {
+    console.log(<span class="str">`Old system: paying ${amount} ${currency}`</span>);
+  }
+}
+
+<span class="cm">// الـ interface الجديد اللي عايز تستخدمه</span>
+<span class="kw">interface</span> <span class="cl">IPaymentGateway</span> {
+  <span class="fn">processPayment</span>(data: { amount: <span class="kw">number</span>; currency: <span class="kw">string</span> }): <span class="kw">void</span>;
+}
+
+<span class="cm">// Adapter بيحوّل الـ old interface للـ new interface</span>
+<span class="kw">class</span> <span class="cl">PaymentAdapter</span> <span class="kw">implements</span> <span class="cl">IPaymentGateway</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> oldSystem: <span class="cl">OldPaymentSystem</span>) {}
+
+  <span class="fn">processPayment</span>(data: { amount: <span class="kw">number</span>; currency: <span class="kw">string</span> }) {
+    <span class="kw">this</span>.oldSystem.<span class="fn">makePayment</span>(data.amount, data.currency);  <span class="cm">// تحويل</span>
+  }
+}
+
+<span class="kw">const</span> adapter = <span class="kw">new</span> <span class="cl">PaymentAdapter</span>(<span class="kw">new</span> <span class="cl">OldPaymentSystem</span>());
+adapter.<span class="fn">processPayment</span>({ amount: <span class="num">100</span>, currency: <span class="str">"USD"</span> });</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decorator -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Decorator</span>
+        <span class="tag">Dynamic extension</span>
+      </div>
+      <div class="pattern-desc">بيضيف سلوك جديد لـ object موجود ديناميكياً من غير ما يعدّل الـ class. بديل أكثر مرونة من الـ inheritance.</div>
+      <div class="pattern-when"><strong>امتى تستخدمه:</strong> Middleware في HTTP، Logging، Caching، UI components decoration.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">Coffee</span> {
+  <span class="fn">cost</span>(): <span class="kw">number</span>;
+  <span class="fn">description</span>(): <span class="kw">string</span>;
+}
+
+<span class="kw">class</span> <span class="cl">SimpleCoffee</span> <span class="kw">implements</span> <span class="cl">Coffee</span> {
+  <span class="fn">cost</span>() { <span class="kw">return</span> <span class="num">10</span>; }
+  <span class="fn">description</span>() { <span class="kw">return</span> <span class="str">"Simple coffee"</span>; }
+}
+
+<span class="kw">abstract class</span> <span class="cl">CoffeeDecorator</span> <span class="kw">implements</span> <span class="cl">Coffee</span> {
+  <span class="kw">constructor</span>(<span class="kw">protected</span> coffee: <span class="cl">Coffee</span>) {}
+  <span class="kw">abstract</span> <span class="fn">cost</span>(): <span class="kw">number</span>;
+  <span class="kw">abstract</span> <span class="fn">description</span>(): <span class="kw">string</span>;
+}
+
+<span class="kw">class</span> <span class="cl">MilkDecorator</span> <span class="kw">extends</span> <span class="cl">CoffeeDecorator</span> {
+  <span class="fn">cost</span>() { <span class="kw">return</span> <span class="kw">this</span>.coffee.<span class="fn">cost</span>() + <span class="num">3</span>; }
+  <span class="fn">description</span>() { <span class="kw">return</span> <span class="kw">this</span>.coffee.<span class="fn">description</span>() + <span class="str">" + Milk"</span>; }
+}
+<span class="kw">class</span> <span class="cl">SugarDecorator</span> <span class="kw">extends</span> <span class="cl">CoffeeDecorator</span> {
+  <span class="fn">cost</span>() { <span class="kw">return</span> <span class="kw">this</span>.coffee.<span class="fn">cost</span>() + <span class="num">2</span>; }
+  <span class="fn">description</span>() { <span class="kw">return</span> <span class="kw">this</span>.coffee.<span class="fn">description</span>() + <span class="str">" + Sugar"</span>; }
+}
+
+<span class="kw">let</span> coffee: <span class="cl">Coffee</span> = <span class="kw">new</span> <span class="cl">SimpleCoffee</span>();                 <span class="cm">// 10 — Simple coffee</span>
+coffee = <span class="kw">new</span> <span class="cl">MilkDecorator</span>(coffee);                       <span class="cm">// 13 — + Milk</span>
+coffee = <span class="kw">new</span> <span class="cl">SugarDecorator</span>(coffee);                      <span class="cm">// 15 — + Milk + Sugar</span>
+console.log(`${coffee.<span class="fn">description</span>()} = ${coffee.<span class="fn">cost</span>()}`);</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Facade -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Facade</span>
+        <span class="tag">Simplified interface</span>
+      </div>
+      <div class="pattern-desc">بيوفر interface بسيط لـ subsystem معقد. بيخبّي التعقيد ورا واجهة واحدة سهلة.</div>
+      <div class="pattern-when"><strong>امتى تستخدمه:</strong> API wrapper، Home automation system، Complex library simplification.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="cm">// Subsystems معقدة</span>
+<span class="kw">class</span> <span class="cl">VideoDecoder</span>  { <span class="fn">decode</span>(url: <span class="kw">string</span>) { console.log(<span class="str">"Decoding video..."</span>); } }
+<span class="kw">class</span> <span class="cl">AudioDecoder</span>  { <span class="fn">decode</span>(url: <span class="kw">string</span>) { console.log(<span class="str">"Decoding audio..."</span>); } }
+<span class="kw">class</span> <span class="cl">BufferManager</span> { <span class="fn">init</span>() { console.log(<span class="str">"Initializing buffer..."</span>); } }
+<span class="kw">class</span> <span class="cl">DisplayEngine</span> { <span class="fn">render</span>() { console.log(<span class="str">"Rendering frames..."</span>); } }
+
+<span class="cm">// Facade — بيخبّي كل التعقيد ده</span>
+<span class="kw">class</span> <span class="cl">VideoPlayerFacade</span> {
+  <span class="kw">private</span> video   = <span class="kw">new</span> <span class="cl">VideoDecoder</span>();
+  <span class="kw">private</span> audio   = <span class="kw">new</span> <span class="cl">AudioDecoder</span>();
+  <span class="kw">private</span> buffer  = <span class="kw">new</span> <span class="cl">BufferManager</span>();
+  <span class="kw">private</span> display = <span class="kw">new</span> <span class="cl">DisplayEngine</span>();
+
+  <span class="fn">play</span>(url: <span class="kw">string</span>) {            <span class="cm">// واجهة بسيطة</span>
+    <span class="kw">this</span>.buffer.<span class="fn">init</span>();
+    <span class="kw">this</span>.video.<span class="fn">decode</span>(url);
+    <span class="kw">this</span>.audio.<span class="fn">decode</span>(url);
+    <span class="kw">this</span>.display.<span class="fn">render</span>();
+  }
+}
+
+<span class="cm">// ✅ المستخدم بيتعامل مع سطر واحد بس</span>
+<span class="kw">const</span> player = <span class="kw">new</span> <span class="cl">VideoPlayerFacade</span>();
+player.<span class="fn">play</span>(<span class="str">"movie.mp4"</span>);</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Proxy -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Proxy</span>
+        <span class="tag">Access control</span>
+      </div>
+      <div class="pattern-desc">بيوفر placeholder بيتحكم في الوصول لـ object تاني. ممكن يكون للـ lazy loading، الـ caching، أو الـ access control.</div>
+      <div class="pattern-when"><strong>امتى:</strong> Virtual proxy للـ lazy loading، Protection proxy للـ security، Cache proxy للـ performance.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">Image</span> {
+  <span class="fn">display</span>(): <span class="kw">void</span>;
+  <span class="fn">getUrl</span>(): <span class="kw">string</span>;
+}
+
+<span class="kw">class</span> <span class="cl">HighResImage</span> <span class="kw">implements</span> <span class="cl">Image</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> url: <span class="kw">string</span>) {
+    console.log(<span class="str">`Loading heavy image: ${url}`</span>);
+  }
+  <span class="fn">display</span>() { console.log(<span class="str">`Showing ${this.url}`</span>); }
+  <span class="fn">getUrl</span>() { <span class="kw">return</span> <span class="kw">this</span>.url; }
+}
+
+<span class="kw">class</span> <span class="cl">ImageProxy</span> <span class="kw">implements</span> <span class="cl">Image</span> {
+  <span class="kw">private</span> real?: <span class="cl">HighResImage</span>;
+  <span class="kw">private static</span> cache = <span class="kw">new</span> <span class="cl">Map</span>&lt;<span class="kw">string</span>, <span class="cl">HighResImage</span>&gt;();
+
+  <span class="kw">constructor</span>(<span class="kw">private</span> url: <span class="kw">string</span>) {}
+
+  <span class="kw">private</span> <span class="fn">load</span>() {
+    <span class="kw">if</span> (!<span class="kw">this</span>.real) {
+      <span class="kw">this</span>.real = <span class="cl">ImageProxy</span>.cache.<span class="fn">get</span>(<span class="kw">this</span>.url)
+        ?? <span class="kw">new</span> <span class="cl">HighResImage</span>(<span class="kw">this</span>.url);
+      <span class="cl">ImageProxy</span>.cache.<span class="fn">set</span>(<span class="kw">this</span>.url, <span class="kw">this</span>.real);
+    }
+  }
+
+  <span class="fn">display</span>() { <span class="kw">this</span>.<span class="fn">load</span>(); <span class="kw">this</span>.real!.<span class="fn">display</span>(); }
+  <span class="fn">getUrl</span>() { <span class="kw">return</span> <span class="kw">this</span>.url; }
+}
+
+<span class="kw">const</span> img = <span class="kw">new</span> <span class="cl">ImageProxy</span>(<span class="str">"photo.jpg"</span>);  <span class="cm">// مش بيحمّل لسه</span>
+img.<span class="fn">display</span>();  <span class="cm">// أول عرض — lazy load + cache</span></pre>
+        </div>
+      </div>
+    </div>
+    <!-- Composite -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(232,121,160,.12);color:var(--pink2);">Composite</span>
+        <span class="tag">Tree structure</span>
+      </div>
+      <div class="pattern-desc">بيخليك تتعامل مع objects فردية ومجموعات منهم (tree) بنفس الطريقة. مناسب للـ hierarchical structures.</div>
+      <div class="pattern-when"><strong>امتى:</strong> File system (files & folders)، UI components، Organization hierarchy، Menu systems.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">FileSystemNode</span> {
+  <span class="fn">getName</span>(): <span class="kw">string</span>;
+  <span class="fn">getSize</span>(): <span class="kw">number</span>;
+  <span class="fn">print</span>(indent?: <span class="kw">string</span>): <span class="kw">void</span>;
+}
+
+<span class="kw">class</span> <span class="cl">File</span> <span class="kw">implements</span> <span class="cl">FileSystemNode</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> name: <span class="kw">string</span>, <span class="kw">private</span> size: <span class="kw">number</span>) {}
+  <span class="fn">getName</span>() { <span class="kw">return</span> <span class="kw">this</span>.name; }
+  <span class="fn">getSize</span>() { <span class="kw">return</span> <span class="kw">this</span>.size; }
+  <span class="fn">print</span>(indent = <span class="str">""</span>) { console.log(`${indent}📄 ${this.name} (${this.size}KB)`); }
+}
+
+<span class="kw">class</span> <span class="cl">Folder</span> <span class="kw">implements</span> <span class="cl">FileSystemNode</span> {
+  <span class="kw">private</span> children: <span class="cl">FileSystemNode</span>[] = [];
+  <span class="kw">constructor</span>(<span class="kw">private</span> name: <span class="kw">string</span>) {}
+  <span class="fn">add</span>(node: <span class="cl">FileSystemNode</span>) { <span class="kw">this</span>.children.<span class="fn">push</span>(node); }
+  <span class="fn">getName</span>() { <span class="kw">return</span> <span class="kw">this</span>.name; }
+  <span class="fn">getSize</span>() { <span class="kw">return</span> <span class="kw">this</span>.children.<span class="fn">reduce</span>((s, c) => s + c.<span class="fn">getSize</span>(), <span class="num">0</span>); }
+  <span class="fn">print</span>(indent = <span class="str">""</span>) {
+    console.log(`${indent}📁 ${this.name}/`);
+    <span class="kw">this</span>.children.<span class="fn">forEach</span>(c => c.<span class="fn">print</span>(indent + <span class="str">"  "</span>));
+  }
+}
+
+<span class="kw">const</span> root = <span class="kw">new</span> <span class="cl">Folder</span>(<span class="str">"src"</span>);
+root.<span class="fn">add</span>(<span class="kw">new</span> <span class="cl">File</span>(<span class="str">"index.ts"</span>, <span class="num">4</span>));
+<span class="kw">const</span> utils = <span class="kw">new</span> <span class="cl">Folder</span>(<span class="str">"utils"</span>);
+utils.<span class="fn">add</span>(<span class="kw">new</span> <span class="cl">File</span>(<span class="str">"helpers.ts"</span>, <span class="num">2</span>));
+root.<span class="fn">add</span>(utils);
+console.log(root.<span class="fn">getSize</span>());  <span class="cm">// 6 — نفس الـ interface للملف والمجلد</span></pre>
+        </div>
+      </div>
+    </div>
+    <!-- Bridge -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(94,199,106,.12);color:var(--green2);">Bridge</span>
+        <span class="tag">Abstraction separation</span>
+      </div>
+      <div class="pattern-desc">بيفصل الـ abstraction عن الـ implementation عشان يقدروا يتغيروا مستقلين. بيتجنب الـ class explosion.</div>
+      <div class="pattern-when"><strong>امتى:</strong> لو عندك أكتر من dimension للـ variation. مثلاً: نوع الـ device × نوع الـ OS.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">Device</span> {
+  <span class="fn">turnOn</span>(): <span class="kw">void</span>;
+  <span class="fn">turnOff</span>(): <span class="kw">void</span>;
+}
+
+<span class="kw">class</span> <span class="cl">TV</span> <span class="kw">implements</span> <span class="cl">Device</span> {
+  <span class="fn">turnOn</span>()  { console.log(<span class="str">"TV on"</span>); }
+  <span class="fn">turnOff</span>() { console.log(<span class="str">"TV off"</span>); }
+}
+<span class="kw">class</span> <span class="cl">Radio</span> <span class="kw">implements</span> <span class="cl">Device</span> {
+  <span class="fn">turnOn</span>()  { console.log(<span class="str">"Radio on"</span>); }
+  <span class="fn">turnOff</span>() { console.log(<span class="str">"Radio off"</span>); }
+}
+
+<span class="kw">abstract class</span> <span class="cl">RemoteControl</span> {
+  <span class="kw">constructor</span>(<span class="kw">protected</span> device: <span class="cl">Device</span>) {}
+  <span class="fn">togglePower</span>() {
+    console.log(<span class="str">"Remote toggling..."</span>);
+    <span class="kw">this</span>.device.<span class="fn">turnOn</span>();
+  }
+}
+
+<span class="kw">class</span> <span class="cl">BasicRemote</span> <span class="kw">extends</span> <span class="cl">RemoteControl</span> {}
+<span class="kw">class</span> <span class="cl">AdvancedRemote</span> <span class="kw">extends</span> <span class="cl">RemoteControl</span> {
+  <span class="fn">mute</span>() { console.log(<span class="str">"Muted"</span>); }
+}
+
+<span class="kw">new</span> <span class="cl">BasicRemote</span>(<span class="kw">new</span> <span class="cl">TV</span>()).<span class="fn">togglePower</span>();
+<span class="kw">new</span> <span class="cl">AdvancedRemote</span>(<span class="kw">new</span> <span class="cl">Radio</span>()).<span class="fn">togglePower</span>();</pre>
+        </div>
+      </div>
+    </div>
+    <!-- Flyweight -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Flyweight</span>
+        <span class="tag">Memory optimization</span>
+      </div>
+      <div class="pattern-desc">بيشارك parts مشتركة بين objects كتيرة بدل ما كل object يعمل نسخته الخاصة. بيوفر في الـ memory.</div>
+      <div class="pattern-when"><strong>امتى:</strong> لو عندك ملايين objects وكلها بتشارك نفس الـ state. مثلاً: characters في text editor، particles في game.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">class</span> <span class="cl">GlyphStyle</span> {  <span class="cm">// intrinsic — مشترك</span>
+  <span class="kw">constructor</span>(
+    <span class="kw">public</span> font: <span class="kw">string</span>,
+    <span class="kw">public</span> size: <span class="kw">number</span>,
+    <span class="kw">public</span> color: <span class="kw">string</span>
+  ) {}
+}
+
+<span class="kw">class</span> <span class="cl">GlyphFactory</span> {
+  <span class="kw">private static</span> pool = <span class="kw">new</span> <span class="cl">Map</span>&lt;<span class="kw">string</span>, <span class="cl">GlyphStyle</span>&gt;();
+  <span class="kw">static</span> <span class="fn">get</span>(font: <span class="kw">string</span>, size: <span class="kw">number</span>, color: <span class="kw">string</span>) {
+    <span class="kw">const</span> key = `${font}-${size}-${color}`;
+    <span class="kw">if</span> (!<span class="kw">this</span>.pool.<span class="fn">has</span>(key)) <span class="kw">this</span>.pool.<span class="fn">set</span>(key, <span class="kw">new</span> <span class="cl">GlyphStyle</span>(font, size, color));
+    <span class="kw">return</span> <span class="kw">this</span>.pool.<span class="fn">get</span>(key)!;
+  }
+}
+
+<span class="kw">class</span> <span class="cl">Character</span> {  <span class="cm">// extrinsic — موضع مختلف لكل حرف</span>
+  <span class="kw">constructor</span>(<span class="kw">public</span> char: <span class="kw">string</span>, <span class="kw">public</span> x: <span class="kw">number</span>, <span class="kw">private</span> style: <span class="cl">GlyphStyle</span>) {}
+  <span class="fn">render</span>() { console.log(<span class="str">`'${this.char}' at ${this.x} — ${this.style.font}`</span>); }
+}
+
+<span class="kw">const</span> bodyStyle = <span class="cl">GlyphFactory</span>.<span class="fn">get</span>(<span class="str">"Arial"</span>, <span class="num">14</span>, <span class="str">"#000"</span>);
+<span class="kw">const</span> text = <span class="str">"Hello"</span>.<span class="fn">split</span>(<span class="str">""</span>).<span class="fn">map</span>((c, i) => <span class="kw">new</span> <span class="cl">Character</span>(c, i * <span class="num">8</span>, bodyStyle));
+text.<span class="fn">forEach</span>(c => c.<span class="fn">render</span>());  <span class="cm">// style واحد مشترك لكل الحروف</span></pre>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── 11. BEHAVIORAL PATTERNS ─── -->
+<section class="section" id="behavioral">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">🔄</div>
+    <div>
+      <div class="section-title c-coral">Behavioral Patterns</div>
+      <div class="section-subtitle">إزاي الـ Objects بتتكلم مع بعض</div>
+    </div>
+  </div>
+
+  <div class="pattern-group">
+    <div class="pattern-group-title">12 Behavioral Patterns</div>
+
+    <!-- Observer -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(240,106,80,.12);color:var(--coral2);">Observer</span>
+        <span class="tag">Event system</span>
+      </div>
+      <div class="pattern-desc">بيعرّف علاقة one-to-many — لما object واحد (Subject) بيتغير، كل الـ objects اللي مشتركين فيه (Observers) بيتبلّغوا تلقائياً.</div>
+      <div class="pattern-when"><strong>امتى:</strong> Event systems، Stock price updates، UI data binding، Notifications.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">Observer</span> { <span class="fn">update</span>(data: <span class="kw">any</span>): <span class="kw">void</span>; }
+
+<span class="kw">class</span> <span class="cl">EventEmitter</span> {
+  <span class="kw">private</span> observers: <span class="cl">Map</span>&lt;<span class="kw">string</span>, <span class="cl">Observer</span>[]&gt; = <span class="kw">new</span> <span class="cl">Map</span>();
+
+  <span class="fn">subscribe</span>(event: <span class="kw">string</span>, observer: <span class="cl">Observer</span>) {
+    <span class="kw">if</span> (!<span class="kw">this</span>.observers.<span class="fn">has</span>(event)) <span class="kw">this</span>.observers.<span class="fn">set</span>(event, []);
+    <span class="kw">this</span>.observers.<span class="fn">get</span>(event)!.<span class="fn">push</span>(observer);
+  }
+
+  <span class="fn">unsubscribe</span>(event: <span class="kw">string</span>, observer: <span class="cl">Observer</span>) {
+    <span class="kw">const</span> obs = <span class="kw">this</span>.observers.<span class="fn">get</span>(event) ?? [];
+    <span class="kw">this</span>.observers.<span class="fn">set</span>(event, obs.<span class="fn">filter</span>(o => o !== observer));
+  }
+
+  <span class="fn">emit</span>(event: <span class="kw">string</span>, data: <span class="kw">any</span>) {
+    (<span class="kw">this</span>.observers.<span class="fn">get</span>(event) ?? []).<span class="fn">forEach</span>(o => o.<span class="fn">update</span>(data));
+  }
+}
+
+<span class="kw">class</span> <span class="cl">Logger</span> <span class="kw">implements</span> <span class="cl">Observer</span> {
+  <span class="fn">update</span>(data: <span class="kw">any</span>) { console.log(<span class="str">"[LOG]"</span>, data); }
+}
+<span class="kw">class</span> <span class="cl">EmailAlert</span> <span class="kw">implements</span> <span class="cl">Observer</span> {
+  <span class="fn">update</span>(data: <span class="kw">any</span>) { console.log(<span class="str">"[EMAIL]"</span>, data); }
+}
+
+<span class="kw">const</span> emitter = <span class="kw">new</span> <span class="cl">EventEmitter</span>();
+emitter.<span class="fn">subscribe</span>(<span class="str">"order.created"</span>, <span class="kw">new</span> <span class="cl">Logger</span>());
+emitter.<span class="fn">subscribe</span>(<span class="str">"order.created"</span>, <span class="kw">new</span> <span class="cl">EmailAlert</span>());
+emitter.<span class="fn">emit</span>(<span class="str">"order.created"</span>, { id: <span class="num">42</span>, total: <span class="num">150</span> });
+<span class="cm">// [LOG] {id: 42, total: 150}</span>
+<span class="cm">// [EMAIL] {id: 42, total: 150}</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Strategy -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Strategy</span>
+        <span class="tag">Interchangeable algorithms</span>
+      </div>
+      <div class="pattern-desc">بيعرّف عائلة من الـ algorithms، بيغلّف كل واحد منهم، وبيخليهم interchangeable. بيتغير الـ algorithm من غير تغيير الـ context.</div>
+      <div class="pattern-when"><strong>امتى:</strong> Sorting algorithms، Payment methods، Compression algorithms، Route finding.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">SortStrategy</span> {
+  <span class="fn">sort</span>(data: <span class="kw">number</span>[]): <span class="kw">number</span>[];
+}
+
+<span class="kw">class</span> <span class="cl">BubbleSort</span> <span class="kw">implements</span> <span class="cl">SortStrategy</span> {
+  <span class="fn">sort</span>(data: <span class="kw">number</span>[]) {
+    <span class="kw">const</span> arr = [...data];
+    <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i &lt; arr.length; i++)
+      <span class="kw">for</span> (<span class="kw">let</span> j = <span class="num">0</span>; j &lt; arr.length - i - <span class="num">1</span>; j++)
+        <span class="kw">if</span> (arr[j] &gt; arr[j+<span class="num">1</span>]) [arr[j], arr[j+<span class="num">1</span>]] = [arr[j+<span class="num">1</span>], arr[j]];
+    <span class="kw">return</span> arr;
+  }
+}
+
+<span class="kw">class</span> <span class="cl">QuickSort</span> <span class="kw">implements</span> <span class="cl">SortStrategy</span> {
+  <span class="fn">sort</span>(data: <span class="kw">number</span>[]) { <span class="kw">return</span> [...data].<span class="fn">sort</span>((a, b) => a - b); }
+}
+
+<span class="kw">class</span> <span class="cl">Sorter</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> strategy: <span class="cl">SortStrategy</span>) {}
+
+  <span class="fn">setStrategy</span>(s: <span class="cl">SortStrategy</span>) { <span class="kw">this</span>.strategy = s; } <span class="cm">// تغيير runtime</span>
+  <span class="fn">sort</span>(data: <span class="kw">number</span>[]) { <span class="kw">return this</span>.strategy.<span class="fn">sort</span>(data); }
+}
+
+<span class="kw">const</span> sorter = <span class="kw">new</span> <span class="cl">Sorter</span>(<span class="kw">new</span> <span class="cl">QuickSort</span>());
+console.log(sorter.<span class="fn">sort</span>([<span class="num">5</span>,<span class="num">2</span>,<span class="num">8</span>,<span class="num">1</span>]));    <span class="cm">// [1, 2, 5, 8]</span>
+
+sorter.<span class="fn">setStrategy</span>(<span class="kw">new</span> <span class="cl">BubbleSort</span>());   <span class="cm">// تغيير الـ algorithm وقت التشغيل</span>
+console.log(sorter.<span class="fn">sort</span>([<span class="num">5</span>,<span class="num">2</span>,<span class="num">8</span>,<span class="num">1</span>]));    <span class="cm">// [1, 2, 5, 8]</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Command -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Command</span>
+        <span class="tag">Action encapsulation</span>
+      </div>
+      <div class="pattern-desc">بيحوّل الـ request لـ object مستقل. بيخليك تخزنه، تقدر تعمله undo، تعمله queue، أو تعيد تنفيذه.</div>
+      <div class="pattern-when"><strong>امتى:</strong> Undo/Redo functionality، Transaction queues، Macro recording، Task schedulers.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">Command</span> { <span class="fn">execute</span>(): <span class="kw">void</span>; <span class="fn">undo</span>(): <span class="kw">void</span>; }
+
+<span class="kw">class</span> <span class="cl">TextEditor</span> {
+  <span class="kw">private</span> content = <span class="str">""</span>;
+  <span class="fn">add</span>(text: <span class="kw">string</span>)    { <span class="kw">this</span>.content += text; }
+  <span class="fn">remove</span>(n: <span class="kw">number</span>)   { <span class="kw">this</span>.content = <span class="kw">this</span>.content.<span class="fn">slice</span>(<span class="num">0</span>, -n); }
+  <span class="fn">getText</span>()            { <span class="kw">return</span> <span class="kw">this</span>.content; }
+}
+
+<span class="kw">class</span> <span class="cl">AddTextCommand</span> <span class="kw">implements</span> <span class="cl">Command</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> editor: <span class="cl">TextEditor</span>, <span class="kw">private</span> text: <span class="kw">string</span>) {}
+  <span class="fn">execute</span>() { <span class="kw">this</span>.editor.<span class="fn">add</span>(<span class="kw">this</span>.text); }
+  <span class="fn">undo</span>()    { <span class="kw">this</span>.editor.<span class="fn">remove</span>(<span class="kw">this</span>.text.length); }
+}
+
+<span class="kw">class</span> <span class="cl">CommandHistory</span> {
+  <span class="kw">private</span> history: <span class="cl">Command</span>[] = [];
+
+  <span class="fn">execute</span>(cmd: <span class="cl">Command</span>) { cmd.<span class="fn">execute</span>(); <span class="kw">this</span>.history.<span class="fn">push</span>(cmd); }
+  <span class="fn">undo</span>() {
+    <span class="kw">const</span> cmd = <span class="kw">this</span>.history.<span class="fn">pop</span>();
+    <span class="kw">if</span> (cmd) cmd.<span class="fn">undo</span>();
+  }
+}
+
+<span class="kw">const</span> editor  = <span class="kw">new</span> <span class="cl">TextEditor</span>();
+<span class="kw">const</span> history = <span class="kw">new</span> <span class="cl">CommandHistory</span>();
+
+history.<span class="fn">execute</span>(<span class="kw">new</span> <span class="cl">AddTextCommand</span>(editor, <span class="str">"Hello"</span>));
+history.<span class="fn">execute</span>(<span class="kw">new</span> <span class="cl">AddTextCommand</span>(editor, <span class="str">" World"</span>));
+console.log(editor.<span class="fn">getText</span>()); <span class="cm">// "Hello World"</span>
+history.<span class="fn">undo</span>();
+console.log(editor.<span class="fn">getText</span>()); <span class="cm">// "Hello"</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Memento -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Memento</span>
+        <span class="tag">State snapshot</span>
+      </div>
+      <div class="pattern-desc">بيحفظ الحالة الداخلية لـ object من غير ما يكشف تفاصيل الـ implementation. بيستخدم في Undo/Redo.</div>
+      <div class="pattern-when"><strong>امتى:</strong> Text editor undo، Game save points، Form drafts.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">class</span> <span class="cl">EditorMemento</span> {
+  <span class="kw">constructor</span>(<span class="kw">readonly</span> content: <span class="kw">string</span>, <span class="kw">readonly</span> cursor: <span class="kw">number</span>) {}
+}
+
+<span class="kw">class</span> <span class="cl">TextEditor</span> {
+  <span class="kw">private</span> content = <span class="str">""</span>;
+  <span class="kw">private</span> cursor = <span class="num">0</span>;
+
+  <span class="fn">insertText</span>(text: <span class="kw">string</span>) {
+    <span class="kw">this</span>.content = <span class="kw">this</span>.content.<span class="fn">slice</span>(<span class="num">0</span>, <span class="kw">this</span>.cursor) + text + <span class="kw">this</span>.content.<span class="fn">slice</span>(<span class="kw">this</span>.cursor);
+    <span class="kw">this</span>.cursor += text.length;
+  }
+
+  <span class="fn">save</span>(): <span class="cl">EditorMemento</span> {
+    <span class="kw">return new</span> <span class="cl">EditorMemento</span>(<span class="kw">this</span>.content, <span class="kw">this</span>.cursor);
+  }
+
+  <span class="fn">restore</span>(m: <span class="cl">EditorMemento</span>) {
+    <span class="kw">this</span>.content = m.content;
+    <span class="kw">this</span>.cursor = m.cursor;
+  }
+
+  <span class="fn">getContent</span>() { <span class="kw">return</span> <span class="kw">this</span>.content; }
+}
+
+<span class="kw">class</span> <span class="cl">History</span> {
+  <span class="kw">private</span> stack: <span class="cl">EditorMemento</span>[] = [];
+  <span class="fn">push</span>(m: <span class="cl">EditorMemento</span>) { <span class="kw">this</span>.stack.<span class="fn">push</span>(m); }
+  <span class="fn">pop</span>(): <span class="cl">EditorMemento</span> | <span class="kw">undefined</span> { <span class="kw">return</span> <span class="kw">this</span>.stack.<span class="fn">pop</span>(); }
+}
+
+<span class="kw">const</span> editor = <span class="kw">new</span> <span class="cl">TextEditor</span>();
+<span class="kw">const</span> history = <span class="kw">new</span> <span class="cl">History</span>();
+editor.<span class="fn">insertText</span>(<span class="str">"Hello"</span>);
+history.<span class="fn">push</span>(editor.<span class="fn">save</span>());
+editor.<span class="fn">insertText</span>(<span class="str">" World"</span>);
+console.log(editor.<span class="fn">getContent</span>());  <span class="cm">// Hello World</span>
+editor.<span class="fn">restore</span>(history.<span class="fn">pop</span>()!);
+console.log(editor.<span class="fn">getContent</span>());  <span class="cm">// Hello</span></pre>
+        </div>
+      </div>
+    </div>
+    <!-- Interpreter -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Interpreter</span>
+        <span class="tag">Grammar evaluation</span>
+      </div>
+      <div class="pattern-desc">بيعرّف تمثيل لـ grammar ولغة وبيقدّم interpreter يقيّم الجمل. مناسب للـ DSLs البسيطة.</div>
+      <div class="pattern-when"><strong>امتى:</strong> Expression evaluators، SQL parsers بسيطة، Rule engines.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">Expression</span> {
+  <span class="fn">evaluate</span>(): <span class="kw">number</span>;
+}
+
+<span class="kw">class</span> <span class="cl">NumberExpr</span> <span class="kw">implements</span> <span class="cl">Expression</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> value: <span class="kw">number</span>) {}
+  <span class="fn">evaluate</span>() { <span class="kw">return</span> <span class="kw">this</span>.value; }
+}
+
+<span class="kw">class</span> <span class="cl">AddExpr</span> <span class="kw">implements</span> <span class="cl">Expression</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> left: <span class="cl">Expression</span>, <span class="kw">private</span> right: <span class="cl">Expression</span>) {}
+  <span class="fn">evaluate</span>() { <span class="kw">return</span> <span class="kw">this</span>.left.<span class="fn">evaluate</span>() + <span class="kw">this</span>.right.<span class="fn">evaluate</span>(); }
+}
+
+<span class="kw">class</span> <span class="cl">SubtractExpr</span> <span class="kw">implements</span> <span class="cl">Expression</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> left: <span class="cl">Expression</span>, <span class="kw">private</span> right: <span class="cl">Expression</span>) {}
+  <span class="fn">evaluate</span>() { <span class="kw">return</span> <span class="kw">this</span>.left.<span class="fn">evaluate</span>() - <span class="kw">this</span>.right.<span class="fn">evaluate</span>(); }
+}
+
+<span class="cm">// (10 + 5) - 3</span>
+<span class="kw">const</span> expr = <span class="kw">new</span> <span class="cl">SubtractExpr</span>(
+  <span class="kw">new</span> <span class="cl">AddExpr</span>(<span class="kw">new</span> <span class="cl">NumberExpr</span>(<span class="num">10</span>), <span class="kw">new</span> <span class="cl">NumberExpr</span>(<span class="num">5</span>)),
+  <span class="kw">new</span> <span class="cl">NumberExpr</span>(<span class="num">3</span>)
+);
+console.log(expr.<span class="fn">evaluate</span>());  <span class="cm">// 12</span></pre>
+        </div>
+      </div>
+    </div>
+    <!-- Iterator -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Iterator</span>
+        <span class="tag">Sequential access</span>
+      </div>
+      <div class="pattern-desc">بيوفر طريقة للمرور على عناصر collection من غير ما تعرف الـ internal structure. for-of في JS/TS بنى عليه.</div>
+      <div class="pattern-when"><strong>امتى:</strong> Custom collections، Tree traversal، Paginated APIs.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">class</span> <span class="cl">BookCollection</span> <span class="kw">implements</span> Iterable&lt;<span class="kw">string</span>&gt; {
+  <span class="kw">private</span> books: <span class="kw">string</span>[] = [];
+
+  <span class="fn">add</span>(title: <span class="kw">string</span>) { <span class="kw">this</span>.books.<span class="fn">push</span>(title); }
+
+  *[<span class="fn">Symbol</span>.iterator]() {
+    <span class="kw">for</span> (<span class="kw">const</span> book <span class="kw">of</span> <span class="kw">this</span>.books) {
+      <span class="kw">yield</span> book;
+    }
+  }
+}
+
+<span class="kw">const</span> library = <span class="kw">new</span> <span class="cl">BookCollection</span>();
+library.<span class="fn">add</span>(<span class="str">"Clean Code"</span>);
+library.<span class="fn">add</span>(<span class="str">"Design Patterns"</span>);
+
+<span class="kw">for</span> (<span class="kw">const</span> title <span class="kw">of</span> library) {
+  console.log(title);  <span class="cm">// Iterator pattern — for...of</span>
+}</pre>
+        </div>
+      </div>
+    </div>
+    <!-- Template Method -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Template Method</span>
+        <span class="tag">Algorithm skeleton</span>
+      </div>
+      <div class="pattern-desc">بيحدد skeleton الـ algorithm في الـ parent class وبيسيب بعض الـ steps للـ subclasses تعبّيها.</div>
+      <div class="pattern-when"><strong>امتى:</strong> Data export pipelines، Build scripts، Report generators.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">abstract class</span> <span class="cl">DataExporter</span> {
+  <span class="fn">export</span>(data: <span class="kw">object</span>[]) {  <span class="cm">// skeleton ثابت</span>
+    <span class="kw">const</span> validated = <span class="kw">this</span>.<span class="fn">validate</span>(data);
+    <span class="kw">const</span> formatted = <span class="kw">this</span>.<span class="fn">format</span>(validated);
+    <span class="kw">return this</span>.<span class="fn">write</span>(formatted);
+  }
+
+  <span class="kw">protected</span> <span class="fn">validate</span>(data: <span class="kw">object</span>[]) {
+    <span class="kw">return</span> data.<span class="fn">filter</span>(row => Object.keys(row).length &gt; <span class="num">0</span>);
+  }
+
+  <span class="kw">protected abstract</span> <span class="fn">format</span>(data: <span class="kw">object</span>[]): <span class="kw">string</span>;
+  <span class="kw">protected abstract</span> <span class="fn">write</span>(content: <span class="kw">string</span>): <span class="kw">string</span>;
+}
+
+<span class="kw">class</span> <span class="cl">CsvExporter</span> <span class="kw">extends</span> <span class="cl">DataExporter</span> {
+  <span class="fn">format</span>(data: <span class="kw">object</span>[]) {
+    <span class="kw">const</span> keys = Object.keys(data[<span class="num">0</span>] ?? {});
+    <span class="kw">return</span> [keys.<span class="fn">join</span>(<span class="str">","</span>), ...data.<span class="fn">map</span>(r => keys.<span class="fn">map</span>(k => (r <span class="kw">as any</span>)[k]).<span class="fn">join</span>(<span class="str">","</span>))].<span class="fn">join</span>(<span class="str">"\n"</span>);
+  }
+  <span class="fn">write</span>(c: <span class="kw">string</span>) { <span class="kw">return</span> <span class="str">`CSV:\n${c}`</span>; }
+}
+
+<span class="kw">class</span> <span class="cl">JsonExporter</span> <span class="kw">extends</span> <span class="cl">DataExporter</span> {
+  <span class="fn">format</span>(data: <span class="kw">object</span>[]) { <span class="kw">return</span> JSON.<span class="fn">stringify</span>(data, <span class="kw">null</span>, <span class="num">2</span>); }
+  <span class="fn">write</span>(c: <span class="kw">string</span>) { <span class="kw">return</span> <span class="str">`JSON:\n${c}`</span>; }
+}
+
+console.log(<span class="kw">new</span> <span class="cl">CsvExporter</span>().<span class="fn">export</span>([{ id: <span class="num">1</span>, name: <span class="str">"Ali"</span> }]));</pre>
+        </div>
+      </div>
+    </div>
+    <!-- State -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(94,199,106,.12);color:var(--green2);">State</span>
+        <span class="tag">State machine</span>
+      </div>
+      <div class="pattern-desc">بيخلي object يغيّر سلوكه لما الـ internal state بتاعه بيتغير. كأنك غيّرت الـ class بتاعه.</div>
+      <div class="pattern-when"><strong>امتى:</strong> Traffic lights، Order states، Media player (playing/paused/stopped).</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">OrderState</span> {
+  <span class="fn">ship</span>(order: <span class="cl">Order</span>): <span class="kw">void</span>;
+  <span class="fn">deliver</span>(order: <span class="cl">Order</span>): <span class="kw">void</span>;
+  <span class="fn">getName</span>(): <span class="kw">string</span>;
+}
+
+<span class="kw">class</span> <span class="cl">PendingState</span> <span class="kw">implements</span> <span class="cl">OrderState</span> {
+  <span class="fn">ship</span>(order: <span class="cl">Order</span>) { order.<span class="fn">setState</span>(<span class="kw">new</span> <span class="cl">ShippedState</span>()); }
+  <span class="fn">deliver</span>() { <span class="kw">throw new</span> <span class="cl">Error</span>(<span class="str">"Cannot deliver pending order"</span>); }
+  <span class="fn">getName</span>() { <span class="kw">return</span> <span class="str">"Pending"</span>; }
+}
+<span class="kw">class</span> <span class="cl">ShippedState</span> <span class="kw">implements</span> <span class="cl">OrderState</span> {
+  <span class="fn">ship</span>() { <span class="kw">throw new</span> <span class="cl">Error</span>(<span class="str">"Already shipped"</span>); }
+  <span class="fn">deliver</span>(order: <span class="cl">Order</span>) { order.<span class="fn">setState</span>(<span class="kw">new</span> <span class="cl">DeliveredState</span>()); }
+  <span class="fn">getName</span>() { <span class="kw">return</span> <span class="str">"Shipped"</span>; }
+}
+<span class="kw">class</span> <span class="cl">DeliveredState</span> <span class="kw">implements</span> <span class="cl">OrderState</span> {
+  <span class="fn">ship</span>() { <span class="kw">throw new</span> <span class="cl">Error</span>(<span class="str">"Already delivered"</span>); }
+  <span class="fn">deliver</span>() { <span class="kw">throw new</span> <span class="cl">Error</span>(<span class="str">"Already delivered"</span>); }
+  <span class="fn">getName</span>() { <span class="kw">return</span> <span class="str">"Delivered"</span>; }
+}
+
+<span class="kw">class</span> <span class="cl">Order</span> {
+  <span class="kw">private</span> state: <span class="cl">OrderState</span> = <span class="kw">new</span> <span class="cl">PendingState</span>();
+  <span class="fn">setState</span>(s: <span class="cl">OrderState</span>) { <span class="kw">this</span>.state = s; }
+  <span class="fn">ship</span>()    { <span class="kw">this</span>.state.<span class="fn">ship</span>(<span class="kw">this</span>); }
+  <span class="fn">deliver</span>() { <span class="kw">this</span>.state.<span class="fn">deliver</span>(<span class="kw">this</span>); }
+  <span class="fn">status</span>()  { <span class="kw">return</span> <span class="kw">this</span>.state.<span class="fn">getName</span>(); }
+}
+
+<span class="kw">const</span> order = <span class="kw">new</span> <span class="cl">Order</span>();
+order.<span class="fn">ship</span>();
+order.<span class="fn">deliver</span>();
+console.log(order.<span class="fn">status</span>());  <span class="cm">// Delivered</span></pre>
+        </div>
+      </div>
+    </div>
+    <!-- Mediator -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(232,121,160,.12);color:var(--pink2);">Mediator</span>
+        <span class="tag">Communication hub</span>
+      </div>
+      <div class="pattern-desc">بيقلل الـ coupling بين objects بأنه بيخليهم يتواصلوا من خلاله بدل ما يتواصلوا مع بعض مباشرة.</div>
+      <div class="pattern-when"><strong>امتى:</strong> Chat room، Air traffic control، UI form components.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">class</span> <span class="cl">ChatRoom</span> {
+  <span class="kw">private</span> users: <span class="cl">User</span>[] = [];
+
+  <span class="fn">join</span>(user: <span class="cl">User</span>) {
+    <span class="kw">this</span>.users.<span class="fn">push</span>(user);
+    user.<span class="fn">setRoom</span>(<span class="kw">this</span>);
+    <span class="kw">this</span>.<span class="fn">broadcast</span>(<span class="str">`${user.name} joined`</span>, user);
+  }
+
+  <span class="fn">sendMessage</span>(from: <span class="cl">User</span>, msg: <span class="kw">string</span>) {
+    <span class="kw">this</span>.<span class="fn">broadcast</span>(<span class="str">`${from.name}: ${msg}`</span>, from);
+  }
+
+  <span class="kw">private</span> <span class="fn">broadcast</span>(msg: <span class="kw">string</span>, sender: <span class="cl">User</span>) {
+    <span class="kw">this</span>.users.<span class="fn">filter</span>(u => u !== sender).<span class="fn">forEach</span>(u => u.<span class="fn">receive</span>(msg));
+  }
+}
+
+<span class="kw">class</span> <span class="cl">User</span> {
+  <span class="kw">private</span> room?: <span class="cl">ChatRoom</span>;
+  <span class="kw">constructor</span>(<span class="kw">public</span> name: <span class="kw">string</span>) {}
+  <span class="fn">setRoom</span>(room: <span class="cl">ChatRoom</span>) { <span class="kw">this</span>.room = room; }
+  <span class="fn">send</span>(msg: <span class="kw">string</span>) { <span class="kw">this</span>.room?.<span class="fn">sendMessage</span>(<span class="kw">this</span>, msg); }
+  <span class="fn">receive</span>(msg: <span class="kw">string</span>) { console.log(<span class="str">`[${this.name}] ${msg}`</span>); }
+}
+
+<span class="kw">const</span> room = <span class="kw">new</span> <span class="cl">ChatRoom</span>();
+<span class="kw">const</span> ali = <span class="kw">new</span> <span class="cl">User</span>(<span class="str">"Ali"</span>);
+<span class="kw">const</span> sara = <span class="kw">new</span> <span class="cl">User</span>(<span class="str">"Sara"</span>);
+room.<span class="fn">join</span>(ali);
+room.<span class="fn">join</span>(sara);
+ali.<span class="fn">send</span>(<span class="str">"Hello everyone!"</span>);</pre>
+        </div>
+      </div>
+    </div>
+    <!-- Chain of Responsibility -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(240,106,80,.12);color:var(--coral2);">Chain of Responsibility</span>
+        <span class="tag">Request pipeline</span>
+      </div>
+      <div class="pattern-desc">بيمرر الـ request على سلسلة من الـ handlers. كل handler بيقرر إما يعالجه أو يمرره للتالي.</div>
+      <div class="pattern-when"><strong>امتى:</strong> Middleware pipeline، Logging levels، Event handling.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">HttpRequest</span> {
+  path: <span class="kw">string</span>;
+  token?: <span class="kw">string</span>;
+  body?: <span class="kw">unknown</span>;
+}
+
+<span class="kw">abstract class</span> <span class="cl">Middleware</span> {
+  <span class="kw">private</span> next?: <span class="cl">Middleware</span>;
+  <span class="fn">setNext</span>(m: <span class="cl">Middleware</span>) { <span class="kw">this</span>.next = m; <span class="kw">return</span> m; }
+  <span class="fn">handle</span>(req: <span class="cl">HttpRequest</span>): <span class="kw">void</span> {
+    <span class="kw">if</span> (<span class="kw">this</span>.<span class="fn">process</span>(req) &amp;&amp; <span class="kw">this</span>.next) <span class="kw">this</span>.next.<span class="fn">handle</span>(req);
+  }
+  <span class="kw">protected abstract</span> <span class="fn">process</span>(req: <span class="cl">HttpRequest</span>): <span class="kw">boolean</span>;
+}
+
+<span class="kw">class</span> <span class="cl">AuthMiddleware</span> <span class="kw">extends</span> <span class="cl">Middleware</span> {
+  <span class="fn">process</span>(req: <span class="cl">HttpRequest</span>) {
+    <span class="kw">if</span> (!req.token) { console.log(<span class="str">"401 Unauthorized"</span>); <span class="kw">return false</span>; }
+    <span class="kw">return true</span>;
+  }
+}
+<span class="kw">class</span> <span class="cl">ValidationMiddleware</span> <span class="kw">extends</span> <span class="cl">Middleware</span> {
+  <span class="fn">process</span>(req: <span class="cl">HttpRequest</span>) {
+    <span class="kw">if</span> (!req.body) { console.log(<span class="str">"400 Bad Request"</span>); <span class="kw">return false</span>; }
+    <span class="kw">return true</span>;
+  }
+}
+<span class="kw">class</span> <span class="cl">HandlerMiddleware</span> <span class="kw">extends</span> <span class="cl">Middleware</span> {
+  <span class="fn">process</span>(req: <span class="cl">HttpRequest</span>) {
+    console.log(<span class="str">`200 OK — ${req.path}`</span>);
+    <span class="kw">return false</span>;  <span class="cm">// نهاية السلسلة</span>
+  }
+}
+
+<span class="kw">const</span> auth = <span class="kw">new</span> <span class="cl">AuthMiddleware</span>();
+<span class="kw">const</span> validation = <span class="kw">new</span> <span class="cl">ValidationMiddleware</span>();
+<span class="kw">const</span> handler = <span class="kw">new</span> <span class="cl">HandlerMiddleware</span>();
+auth.<span class="fn">setNext</span>(validation).<span class="fn">setNext</span>(handler);
+auth.<span class="fn">handle</span>({ path: <span class="str">"/api/orders"</span>, token: <span class="str">"abc"</span>, body: {} });</pre>
+        </div>
+      </div>
+    </div>
+    <!-- Visitor -->
+    <div class="pattern-card">
+      <div class="pattern-card-header">
+        <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Visitor</span>
+        <span class="tag">Operation separation</span>
+      </div>
+      <div class="pattern-desc">بيفصل العمليات عن الـ objects اللي بتشتغل عليها. بيخليك تضيف operations جديدة من غير تعديل الـ classes.</div>
+      <div class="pattern-when"><strong>امتى:</strong> AST processing، Document export، Compiler passes.</div>
+      <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+      <div class="collapsible">
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript</div></div>
+<pre><span class="kw">interface</span> <span class="cl">AstVisitor</span> {
+  <span class="fn">visitNumber</span>(n: <span class="cl">NumberNode</span>): <span class="kw">string</span>;
+  <span class="fn">visitBinary</span>(b: <span class="cl">BinaryNode</span>): <span class="kw">string</span>;
+}
+
+<span class="kw">interface</span> <span class="cl">AstNode</span> {
+  <span class="fn">accept</span>(v: <span class="cl">AstVisitor</span>): <span class="kw">string</span>;
+}
+
+<span class="kw">class</span> <span class="cl">NumberNode</span> <span class="kw">implements</span> <span class="cl">AstNode</span> {
+  <span class="kw">constructor</span>(<span class="kw">public</span> value: <span class="kw">number</span>) {}
+  <span class="fn">accept</span>(v: <span class="cl">AstVisitor</span>) { <span class="kw">return</span> v.<span class="fn">visitNumber</span>(<span class="kw">this</span>); }
+}
+
+<span class="kw">class</span> <span class="cl">BinaryNode</span> <span class="kw">implements</span> <span class="cl">AstNode</span> {
+  <span class="kw">constructor</span>(<span class="kw">public</span> op: <span class="kw">string</span>, <span class="kw">public</span> left: <span class="cl">AstNode</span>, <span class="kw">public</span> right: <span class="cl">AstNode</span>) {}
+  <span class="fn">accept</span>(v: <span class="cl">AstVisitor</span>) { <span class="kw">return</span> v.<span class="fn">visitBinary</span>(<span class="kw">this</span>); }
+}
+
+<span class="kw">class</span> <span class="cl">CodeFormatter</span> <span class="kw">implements</span> <span class="cl">AstVisitor</span> {
+  <span class="fn">visitNumber</span>(n: <span class="cl">NumberNode</span>) { <span class="kw">return</span> String(n.value); }
+  <span class="fn">visitBinary</span>(b: <span class="cl">BinaryNode</span>) {
+    <span class="kw">return</span> <span class="str">`(${b.left.accept(this)} ${b.op} ${b.right.accept(this)})`</span>;
+  }
+}
+
+<span class="kw">const</span> ast = <span class="kw">new</span> <span class="cl">BinaryNode</span>(<span class="str">"+"</span>, <span class="kw">new</span> <span class="cl">NumberNode</span>(<span class="num">2</span>), <span class="kw">new</span> <span class="cl">NumberNode</span>(<span class="num">3</span>));
+console.log(ast.<span class="fn">accept</span>(<span class="kw">new</span> <span class="cl">CodeFormatter</span>()));  <span class="cm">// (2 + 3)</span></pre>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── 12. UML ─── -->
+<section class="section" id="uml">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">📐</div>
+    <div>
+      <div class="section-title c-blue">UML & Class Diagrams</div>
+      <div class="section-subtitle">Unified Modeling Language</div>
+    </div>
+  </div>
+  <p class="lead">UML هي لغة رسومية لتصميم الأنظمة. الـ Class Diagram هو الأكثر استخداماً في OOD — بيوضح الـ classes وعلاقاتها.</p>
+
+  <h3 style="font-family:var(--eng);font-size:16px;font-weight:500;margin-bottom:16px;color:var(--text2);">مثال — Class Diagram لنظام متجر:</h3>
+  <div class="uml-demo">
+    <div class="uml-diagram-wrap">
+      <svg class="uml-arrows" viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <marker id="uml-arrow-teal" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8" fill="#6ee9c4"/>
+          </marker>
+          <marker id="uml-arrow-coral" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8" fill="#f7987f"/>
+          </marker>
+          <marker id="uml-arrow-purple" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8" fill="#a89cf8"/>
+          </marker>
+        </defs>
+        <!-- Association: User → Order (1 .. *) -->
+        <line x1="168" y1="78" x2="262" y2="78" stroke="#6ee9c4" stroke-width="2" marker-end="url(#uml-arrow-teal)"/>
+        <text x="188" y="68" class="uml-rel-label" fill="#6ee9c4">1</text>
+        <text x="238" y="68" class="uml-rel-label" fill="#6ee9c4">*</text>
+        <!-- Composition: Order ◆→ Product -->
+        <polygon points="418,78 408,73 418,68 428,73" fill="#f7987f"/>
+        <line x1="428" y1="78" x2="508" y2="78" stroke="#f7987f" stroke-width="2" marker-end="url(#uml-arrow-coral)"/>
+        <!-- Realization: Order ▷── IPayable (dashed) -->
+        <line x1="352" y1="148" x2="352" y2="182" stroke="#a89cf8" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#uml-arrow-purple)"/>
+        <polygon points="352,188 346,178 358,178" fill="none" stroke="#a89cf8" stroke-width="2"/>
+      </svg>
+      <div class="uml-classes-row">
+
+      <div class="uml-class" id="uml-user">
+        <div class="uml-class-name">User</div>
+        <div class="uml-section">
+          <div class="uml-field"><span class="priv">-</span> id: int</div>
+          <div class="uml-field"><span class="priv">-</span> email: string</div>
+          <div class="uml-field"><span class="priv">-</span> password: string</div>
+        </div>
+        <div class="uml-section">
+          <div class="uml-field"><span class="pub">+</span> login(): bool</div>
+          <div class="uml-field"><span class="pub">+</span> getOrders(): Order[]</div>
+          <div class="uml-field"><span class="pub">+</span> updateProfile(): void</div>
+        </div>
+      </div>
+
+      <div class="uml-class" id="uml-order">
+        <div class="uml-class-name">Order</div>
+        <div class="uml-section">
+          <div class="uml-field"><span class="priv">-</span> id: int</div>
+          <div class="uml-field"><span class="priv">-</span> status: string</div>
+          <div class="uml-field"><span class="priv">-</span> total: float</div>
+          <div class="uml-field"><span class="prot">#</span> createdAt: Date</div>
+        </div>
+        <div class="uml-section">
+          <div class="uml-field"><span class="pub">+</span> addItem(p: Product)</div>
+          <div class="uml-field"><span class="pub">+</span> calculateTotal(): float</div>
+          <div class="uml-field"><span class="pub">+</span> cancel(): void</div>
+        </div>
+      </div>
+
+      <div class="uml-class" id="uml-product">
+        <div class="uml-class-name">Product</div>
+        <div class="uml-section">
+          <div class="uml-field"><span class="priv">-</span> id: int</div>
+          <div class="uml-field"><span class="priv">-</span> name: string</div>
+          <div class="uml-field"><span class="priv">-</span> price: float</div>
+          <div class="uml-field"><span class="priv">-</span> stock: int</div>
+        </div>
+        <div class="uml-section">
+          <div class="uml-field"><span class="pub">+</span> isAvailable(): bool</div>
+          <div class="uml-field"><span class="pub">+</span> updateStock(n: int)</div>
+        </div>
+      </div>
+
+      <div class="uml-class" id="uml-ipayable" style="margin-top:48px;">
+        <div class="uml-class-name" style="color:var(--purple2);">&lt;&lt;interface&gt;&gt;<br>IPayable</div>
+        <div class="uml-section">
+          <div class="uml-field" style="font-style:italic;color:var(--text3);">+ pay(amount): void</div>
+          <div class="uml-field" style="font-style:italic;color:var(--text3);">+ refund(amount): void</div>
+        </div>
+      </div>
+
+      </div>
+    </div>
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:12px;color:var(--text3);display:flex;flex-wrap:wrap;gap:20px;">
+      <span><code style="color:var(--coral2);">-</code> private</span>
+      <span><code style="color:var(--teal2);">+</code> public</span>
+      <span><code style="color:var(--amber2);">#</code> protected</span>
+      <span><code style="color:var(--teal2);">→</code> Association (1..*)</span>
+      <span><code style="color:var(--coral2);">◆→</code> Composition</span>
+      <span><code style="color:var(--purple2);">▷╌╌</code> Realization</span>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card"><div class="card-title">UML Diagram Types</div>
+      <p><strong style="color:var(--teal2);">Structural:</strong> Class, Component, Object, Package, Deployment</p>
+      <p style="margin-top:6px;"><strong style="color:var(--amber2);">Behavioral:</strong> Use Case, Sequence, Activity, State, Communication</p>
+    </div>
+    <div class="card"><div class="card-title">Class Diagram Notations</div>
+      <p>الـ boxes بتمثل الـ classes. الـ lines والـ arrows بتمثل العلاقات. الـ multiplicity (1, *, 0..1) بتحدد عدد الـ instances.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 13. ABSTRACT vs INTERFACE ─── -->
+<section class="section" id="abstract">
+  <div class="section-header">
+    <div class="section-icon bg-pink" style="font-size:22px;">🔬</div>
+    <div>
+      <div class="section-title c-pink">Abstract Class vs Interface</div>
+      <div class="section-subtitle">امتى تستخدم إيه؟</div>
+    </div>
+  </div>
+  <p class="lead">من أكتر الأسئلة اللي بتتسأل في الـ interviews. الفرق مش بس technical — هو عن الـ design intent.</p>
+
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead>
+        <tr><th>المحور</th><th>Abstract Class</th><th>Interface</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>التعريف</td><td>كلاس مش ممكن تعمل منه instance مباشرة</td><td>عقد (contract) بدون أي implementation</td></tr>
+        <tr><td>الـ Methods</td><td>ممكن تكون abstract أو concrete</td><td>كلها abstract (في Java/C#)</td></tr>
+        <tr><td>الـ Fields</td><td>ممكن يكون فيها instance variables</td><td>بس static final constants</td></tr>
+        <tr><td>الـ Inheritance</td><td>واحدة بس (single)</td><td>ممكن تنفذ أكتر من واحد</td></tr>
+        <tr><td>الـ Constructor</td><td>ممكن يكون فيها constructor</td><td>مفيهاش constructor</td></tr>
+        <tr><td>الـ Access</td><td>public, protected, private</td><td>public بس</td></tr>
+        <tr><td>امتى تستخدمه</td><td>لما في "is-a" relationship وكود مشترك</td><td>لما في capabilities متعددة أو "can-do"</td></tr>
+        <tr><td>السؤال</td><td>"إيه هو؟" — Dog IS-A Animal</td><td>"بيقدر يعمل إيه؟" — Dog CAN swim</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">TypeScript — متى تستخدم إيه</div></div>
+<pre><span class="cm">// ─── Abstract Class: "هو نوع من..." + shared behavior ───</span>
+<span class="kw">abstract class</span> <span class="cl">Employee</span> {
+  <span class="kw">constructor</span>(<span class="kw">protected</span> name: <span class="kw">string</span>, <span class="kw">protected</span> salary: <span class="kw">number</span>) {}
+
+  <span class="fn">getDetails</span>() { <span class="kw">return</span> <span class="str">`${this.name} - $${this.salary}`</span>; }  <span class="cm">// shared</span>
+
+  <span class="kw">abstract</span> <span class="fn">calculateBonus</span>(): <span class="kw">number</span>;                          <span class="cm">// يختلف لكل نوع</span>
+  <span class="kw">abstract</span> <span class="fn">getRole</span>(): <span class="kw">string</span>;
+}
+
+<span class="kw">class</span> <span class="cl">Manager</span> <span class="kw">extends</span> <span class="cl">Employee</span> {
+  <span class="fn">calculateBonus</span>() { <span class="kw">return this</span>.salary * <span class="num">0.2</span>; }
+  <span class="fn">getRole</span>() { <span class="kw">return</span> <span class="str">"Manager"</span>; }
+}
+
+<span class="cm">// ─── Interface: "بيقدر يعمل..." — capabilities ───</span>
+<span class="kw">interface</span> <span class="cl">Exportable</span>  { <span class="fn">exportToPDF</span>(): <span class="kw">string</span>; }
+<span class="kw">interface</span> <span class="cl">Printable</span>   { <span class="fn">print</span>(): <span class="kw">void</span>; }
+<span class="kw">interface</span> <span class="cl">Archivable</span>  { <span class="fn">archive</span>(): <span class="kw">void</span>; }
+
+<span class="kw">class</span> <span class="cl">Invoice</span> <span class="kw">extends</span> <span class="cl">Document</span>
+  <span class="kw">implements</span> <span class="cl">Exportable</span>, <span class="cl">Printable</span>, <span class="cl">Archivable</span> {  <span class="cm">// ✅ متعدد</span>
+  <span class="fn">exportToPDF</span>() { <span class="kw">return</span> <span class="str">"invoice.pdf"</span>; }
+  <span class="fn">print</span>()        { console.log(<span class="str">"Printing invoice..."</span>); }
+  <span class="fn">archive</span>()      { console.log(<span class="str">"Archiving..."</span>); }
+}</pre>
+  </div>
+
+  <div class="info-box tip">
+    <div class="info-box-icon">✅</div>
+    <div><strong>القاعدة:</strong> استخدم Abstract Class لما عندك shared behavior ووراثة منطقية. استخدم Interface لما عايز تحدد capabilities أو تدعم multiple inheritance.</div>
+  </div>
+</section>
+
+<!-- ─── 14. OOD PROCESS ─── -->
+<section class="section" id="process">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">🔄</div>
+    <div>
+      <div class="section-title c-amber">OOD Process</div>
+      <div class="section-subtitle">خطوات التصميم من البداية للنهاية</div>
+    </div>
+  </div>
+  <p class="lead">إزاي بتعمل OOD لمشروع حقيقي؟ في 6 خطوات أساسية بتمشي فيهم.</p>
+
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">Requirements Analysis — فهم المتطلبات</div>
+      <p>قرا الـ requirements كويس. استخرج الـ nouns — دول هم الـ objects المحتملة. الـ verbs دي الـ methods. مثلاً: "المستخدم بيطلب منتج ويدفع" → User, Product, Order, Payment.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">Identify Objects & Classes — تحديد الـ Classes</div>
+      <p>حوّل الـ nouns لـ classes. حدد الـ attributes (data) والـ behaviors (methods) لكل class. مش لازم تكمّل كل حاجة دلوقتي — ابدأ بالأساسيات.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">Define Responsibilities — تحديد المسؤوليات</div>
+      <p>كل class مسؤول عن إيه بالظبط؟ طبّق SRP هنا. لو class بيعمل أكتر من حاجة — قسّمه. استخدم CRC cards (Class-Responsibility-Collaboration).</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">Model Relationships — رسم العلاقات</div>
+      <p>حدد العلاقات بين الـ classes: إيه الـ associations؟ إيه الـ aggregations؟ إيه الـ compositions؟ ارسم الـ UML class diagram.</p>
+    </div>
+    <div class="step" data-n="5">
+      <div class="step-title">Apply Design Patterns — تطبيق الـ Patterns</div>
+      <p>بعد ما حددت الـ classes والعلاقات، شوف فيه design pattern بيحل مشكلة موجودة. مش بتبحث عن patterns تحشرها — بتشوف لو المشكلة محتاجها.</p>
+    </div>
+    <div class="step" data-n="6">
+      <div class="step-title">Refine with SOLID — مراجعة وتحسين</div>
+      <p>راجع التصميم على ضوء الـ SOLID principles. طرح الأسئلة: كل class ليه مسؤولية واحدة؟ مش محتاج تعدّل كلاسات موجودة لإضافة features؟ الـ coupling مقبول؟</p>
+    </div>
+  </div>
+
+  <div class="code-wrap" style="margin-top:32px;">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">مثال تطبيقي — نظام مكتبة</div></div>
+<pre><span class="cm">// Step 1 — Requirements: "طالب بيستعير كتاب من المكتبة لفترة محددة"</span>
+
+<span class="cm">// Step 2 — Objects: Student, Book, Library, Loan</span>
+
+<span class="cm">// Step 3 — Responsibilities</span>
+<span class="kw">class</span> <span class="cl">Book</span> {                        <span class="cm">// مسؤولية: بيانات الكتاب</span>
+  <span class="kw">constructor</span>(
+    <span class="kw">public</span> id: <span class="kw">string</span>,
+    <span class="kw">public</span> title: <span class="kw">string</span>,
+    <span class="kw">private</span> available: <span class="kw">boolean</span> = <span class="kw">true</span>
+  ) {}
+  <span class="fn">isAvailable</span>() { <span class="kw">return this</span>.available; }
+  <span class="fn">checkout</span>()    { <span class="kw">this</span>.available = <span class="kw">false</span>; }
+  <span class="fn">return_</span>()     { <span class="kw">this</span>.available = <span class="kw">true</span>; }
+}
+
+<span class="kw">class</span> <span class="cl">Student</span> {                      <span class="cm">// مسؤولية: بيانات الطالب</span>
+  <span class="kw">private</span> loans: <span class="cl">Loan</span>[] = [];
+  <span class="kw">constructor</span>(<span class="kw">public</span> id: <span class="kw">string</span>, <span class="kw">public</span> name: <span class="kw">string</span>) {}
+  <span class="fn">addLoan</span>(loan: <span class="cl">Loan</span>) { <span class="kw">this</span>.loans.<span class="fn">push</span>(loan); }
+  <span class="fn">getActiveLoans</span>() { <span class="kw">return this</span>.loans.<span class="fn">filter</span>(l => !l.isReturned()); }
+}
+
+<span class="kw">class</span> <span class="cl">Loan</span> {                         <span class="cm">// مسؤولية: إدارة الاستعارة</span>
+  <span class="kw">private</span> returned = <span class="kw">false</span>;
+  <span class="kw">private</span> dueDate: <span class="cl">Date</span>;
+
+  <span class="kw">constructor</span>(<span class="kw">public</span> book: <span class="cl">Book</span>, <span class="kw">public</span> student: <span class="cl">Student</span>) {
+    <span class="kw">this</span>.dueDate = <span class="kw">new</span> <span class="cl">Date</span>(Date.now() + <span class="num">14</span> * <span class="num">24</span> * <span class="num">60</span> * <span class="num">60</span> * <span class="num">1000</span>); <span class="cm">// 14 days</span>
+  }
+  <span class="fn">return_</span>()    { <span class="kw">this</span>.returned = <span class="kw">true</span>; <span class="kw">this</span>.book.<span class="fn">return_</span>(); }
+  <span class="fn">isOverdue</span>()  { <span class="kw">return</span> !<span class="kw">this</span>.returned && <span class="kw">new</span> <span class="cl">Date</span>() > <span class="kw">this</span>.dueDate; }
+  <span class="fn">isReturned</span>() { <span class="kw">return this</span>.returned; }
+}
+
+<span class="kw">class</span> <span class="cl">Library</span> {                       <span class="cm">// مسؤولية: إدارة العمليات</span>
+  <span class="kw">private</span> books: <span class="cl">Book</span>[] = [];
+
+  <span class="fn">addBook</span>(book: <span class="cl">Book</span>)    { <span class="kw">this</span>.books.<span class="fn">push</span>(book); }
+
+  <span class="fn">borrowBook</span>(student: <span class="cl">Student</span>, bookId: <span class="kw">string</span>): <span class="cl">Loan</span> {
+    <span class="kw">const</span> book = <span class="kw">this</span>.books.<span class="fn">find</span>(b => b.id === bookId);
+    <span class="kw">if</span> (!book || !book.<span class="fn">isAvailable</span>()) <span class="kw">throw new</span> <span class="cl">Error</span>(<span class="str">"Book not available"</span>);
+    book.<span class="fn">checkout</span>();
+    <span class="kw">const</span> loan = <span class="kw">new</span> <span class="cl">Loan</span>(book, student);
+    student.<span class="fn">addLoan</span>(loan);
+    <span class="kw">return</span> loan;
+  }
+}</pre>
+  </div>
+</section>
+
+<!-- ─── 15. ANTI-PATTERNS ─── -->
+<section class="section" id="antipatterns">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">⚠️</div>
+    <div>
+      <div class="section-title c-coral">Anti-Patterns</div>
+      <div class="section-subtitle">الأخطاء الشائعة في OOD — اعرفها عشان تتجنبها</div>
+    </div>
+  </div>
+  <p class="lead">الـ Anti-patterns هي الـ patterns السيئة — حلول بتبدو منطقية لكن بتعمل مشاكل على المدى البعيد.</p>
+
+  <div class="grid-2">
+    <div class="card" style="border-right:3px solid var(--coral);">
+      <div class="card-title c-coral">🍝 Spaghetti Code</div>
+      <p>كود بلا structure أو organization. كل حاجة متشابكة مع بعض. مستحيل تفهمه أو تعدّله من غير ما تكسر حاجة تانية.</p>
+      <div class="info-box warn" style="margin-top:8px;"><div class="info-box-icon">✅</div><div>الحل: Refactor لـ classes وapply الـ SRP.</div></div>
+    </div>
+
+    <div class="card" style="border-right:3px solid var(--amber);">
+      <div class="card-title c-amber">🔫 God Object / God Class</div>
+      <p>كلاس واحد بيعرف كل حاجة ويعمل كل حاجة في النظام. بيخرق الـ SRP بشكل صارخ وبيكون single point of failure.</p>
+      <div class="info-box warn" style="margin-top:8px;"><div class="info-box-icon">✅</div><div>الحل: Split لـ classes أصغر ومتخصصة.</div></div>
+    </div>
+
+    <div class="card" style="border-right:3px solid var(--purple);">
+      <div class="card-title c-purple">⚙️ Over-Engineering</div>
+      <p>تعقيد زيادة عن اللازم. إضافة abstractions وpatterns من غير ما فيه حاجة تستدعي كده. بيصعّب الفهم والصيانة.</p>
+      <div class="info-box note" style="margin-top:8px;"><div class="info-box-icon">✅</div><div>الحل: YAGNI و KISS — ابني اللي محتاجه بس.</div></div>
+    </div>
+
+    <div class="card" style="border-right:3px solid var(--blue);">
+      <div class="card-title c-blue">🤫 Anemic Domain Model</div>
+      <p>Classes فيها data بس من غير behavior. كأنها data structures مش objects. كل الـ logic في service classes كبيرة.</p>
+      <div class="info-box note" style="margin-top:8px;"><div class="info-box-icon">✅</div><div>الحل: حط الـ behavior جوا الـ class اللي بيمثل الـ domain.</div></div>
+    </div>
+
+    <div class="card" style="border-right:3px solid var(--teal);">
+      <div class="card-title c-teal">🔗 Tight Coupling</div>
+      <p>Classes بتعتمد على بعض مباشرة. أي تغيير في class بيأثر على كل الـ classes التانية. بيصعّب الـ testing والـ reuse.</p>
+      <div class="info-box tip" style="margin-top:8px;"><div class="info-box-icon">✅</div><div>الحل: Dependency Injection والـ DIP.</div></div>
+    </div>
+
+    <div class="card" style="border-right:3px solid var(--pink);">
+      <div class="card-title c-pink">📋 Copy-Paste Programming</div>
+      <p>نسخ ولصق الكود بدل ما تعمل abstraction. بيخرق الـ DRY وبيصعّب التحديث — لو فيه bug لازم تصلحه في كل مكان.</p>
+      <div class="info-box warn" style="margin-top:8px;"><div class="info-box-icon">✅</div><div>الحل: Extract الكود المتكرر في method أو class مشترك.</div></div>
+    </div>
+  </div>
+
+  <div class="code-wrap" style="margin-top:20px;">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Anti-Pattern Example — God Class</div></div>
+<pre><span class="cm">// ❌ BAD — God Class</span>
+<span class="kw">class</span> <span class="cl">Application</span> {
+  <span class="fn">connectToDatabase</span>()  { <span class="cm">/* ... */</span> }
+  <span class="fn">authenticateUser</span>()   { <span class="cm">/* ... */</span> }
+  <span class="fn">processPayment</span>()     { <span class="cm">/* ... */</span> }
+  <span class="fn">sendEmail</span>()          { <span class="cm">/* ... */</span> }
+  <span class="fn">generateReport</span>()     { <span class="cm">/* ... */</span> }
+  <span class="fn">cacheData</span>()          { <span class="cm">/* ... */</span> }
+  <span class="fn">logActivity</span>()        { <span class="cm">/* ... */</span> }
+  <span class="fn">handleFileUpload</span>()   { <span class="cm">/* ... */</span> }
+  <span class="fn">validateInput</span>()      { <span class="cm">/* ... */</span> }
+  <span class="cm">// 50+ more methods...</span>
+}
+
+<span class="cm">// ✅ GOOD — كل class له مسؤولية واحدة</span>
+<span class="kw">class</span> <span class="cl">DatabaseService</span>  { <span class="fn">connect</span>()  {} }
+<span class="kw">class</span> <span class="cl">AuthService</span>       { <span class="fn">authenticate</span>() {} }
+<span class="kw">class</span> <span class="cl">PaymentService</span>    { <span class="fn">processPayment</span>() {} }
+<span class="kw">class</span> <span class="cl">EmailService</span>      { <span class="fn">send</span>() {} }
+<span class="kw">class</span> <span class="cl">ReportService</span>     { <span class="fn">generate</span>() {} }
+<span class="kw">class</span> <span class="cl">CacheService</span>      { <span class="fn">set</span>() {} <span class="fn">get</span>() {} }
+<span class="kw">class</span> <span class="cl">Logger</span>            { <span class="fn">log</span>() {} }
+<span class="kw">class</span> <span class="cl">FileUploadService</span> { <span class="fn">upload</span>() {} }
+<span class="kw">class</span> <span class="cl">Validator</span>         { <span class="fn">validate</span>() {} }</pre>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>🎓 OOD Complete Guide · Built with <span>TypeScript</span> examples · 25 patterns (23 GoF + Object Pool bonus)</p>
+  <p style="margin-top:8px;">الـ OOD مش حفظ patterns — ده طريقة تفكير. Practice وبتتحسن.</p>
+</footer>
+
+</div> <!-- end main-wrapper -->
+
+</body>
+</html>

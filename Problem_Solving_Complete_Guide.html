@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Problem Solving — الدليل الشامل</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Tajawal:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Cairo:wght@300;400;600;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="roadmap.css">
+<script src="roadmap.js" defer></script>
+</head>
+<body class="page-guide">
+
+<div class="progress-bar" id="progress"></div>
+
+<button class="nav-toggle" id="navToggle" type="button" aria-label="فتح القائمة" onclick="toggleNav()">☰</button>
+<div class="nav-backdrop" id="navBackdrop" onclick="closeNav()"></div>
+
+<nav class="side-nav" id="sidenav">
+
+  <div class="nav-logo">Problem Solving</div>
+  <div class="nav-section">المقدمة</div>
+  <a href="#intro" class="nav-link"><span class="nav-dot"></span>ما هو حل المسائل؟</a>
+  <a href="#complexity" class="nav-link"><span class="nav-dot"></span>تحليل التعقيد</a>
+  <a href="#fundamentals" class="nav-link"><span class="nav-dot"></span>الأساسيات</a>
+  <div class="nav-section">هياكل البيانات</div>
+  <a href="#ds-linear" class="nav-link"><span class="nav-dot"></span>Linear DS</a>
+  <a href="#ds-hash-trees" class="nav-link"><span class="nav-dot"></span>Hash & Trees</a>
+  <a href="#ds-graph-advanced" class="nav-link"><span class="nav-dot"></span>Graphs & Advanced</a>
+  <div class="nav-section">الأنماط</div>
+  <a href="#patterns" class="nav-link"><span class="nav-dot"></span>14 Core Patterns</a>
+  <a href="#traversal" class="nav-link"><span class="nav-dot"></span>Traversal & Search</a>
+  <a href="#dp" class="nav-link"><span class="nav-dot"></span>Dynamic Programming</a>
+  <a href="#greedy-dc" class="nav-link"><span class="nav-dot"></span>Greedy & D&C</a>
+  <a href="#bit-math" class="nav-link"><span class="nav-dot"></span>Bit & Math</a>
+  <a href="#graph-algo" class="nav-link"><span class="nav-dot"></span>Graph Algorithms</a>
+  <a href="#sorting" class="nav-link"><span class="nav-dot"></span>Sorting Reference</a>
+  <div class="nav-section">المقابلة</div>
+  <a href="#framework" class="nav-link"><span class="nav-dot"></span>إطار حل المسائل</a>
+  <a href="#mistakes" class="nav-link"><span class="nav-dot"></span>أخطاء شائعة</a>
+  <a href="#classic-problems" class="nav-link"><span class="nav-dot"></span>مسائل كلاسيكية</a>
+  <a href="#roadmap" class="nav-link"><span class="nav-dot"></span>خارطة 16 أسبوع</a>
+  <a href="#checklist" class="nav-link"><span class="nav-dot"></span>Checklist & Resources</a>
+
+</nav>
+
+<div class="main-wrapper">
+
+<div class="hero">
+  <div class="hero-badge">Complete Reference</div>
+  <h1>Problem Solving</h1>
+  <p>الدليل الشامل لحل المسائل البرمجية — DSA، patterns، DP، graphs، وإطار المقابلة</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">15+</div><div class="lbl">Patterns</div></div>
+    <div class="hero-stat"><div class="num">12+</div><div class="lbl">Data Structures</div></div>
+    <div class="hero-stat"><div class="num">13</div><div class="lbl">Classic Walkthroughs</div></div>
+    <div class="hero-stat"><div class="num">16</div><div class="lbl">Week Roadmap</div></div>
+    <div class="hero-stat"><div class="num">18</div><div class="lbl">Sections</div></div>
+  </div>
+</div>
+
+<section class="section" id="intro">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">🧩</div>
+    <div>
+      <div class="section-title c-purple">ما هو حل المسائل البرمجية؟</div>
+      <div class="section-subtitle">Problem Solving vs DSA</div>
+    </div>
+  </div>
+  <p class="lead">حل المسائل البرمجية (Problem Solving) هو <strong>مهارة تحويل مسألة غير واضحة إلى خوارزمية قابلة للتنفيذ</strong> — بينما DSA هي الأدوات (هياكل البيانات والخوارزميات) التي تستخدمها.</p>
+  <div class="analogy"><span class="analogy-icon">🔧</span><span>DSA = أدوات في صندوق العمل. Problem Solving = معرفة أي أداة تستخدم ومتى — ومش بس الحفظ، بل التفكير تحت ضغط الوقت.</span></div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>المفهوم</th><th>التركيز</th><th>مثال</th></tr></thead>
+      <tbody>
+        <tr><td>Problem Solving</td><td>Pattern recognition، decomposition، optimization</td><td>"إزاي ألاقي أطول substring بدون تكرار؟"</td></tr>
+        <tr><td>DSA</td><td>Implementation، complexity، correctness</td><td>Sliding window على string + hash set</td></tr>
+        <tr><td>Coding Interview</td><td>Communication + clean code + edge cases</td><td>Two Sum في 30 دقيقة مع شرح صوتي</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple"><div class="card-title c-purple">Easy / Medium / Hard</div><p>Easy = pattern واحد واضح. Medium = pattern + twist. Hard = دمج patterns أو optimization غير بديهي.</p></div>
+    <div class="card bg-teal"><div class="card-title c-teal">Live Coding vs Take-home</div><p>Live: speed + communication. Take-home: code quality + tests + design doc.</p></div>
+    <div class="card bg-amber"><div class="card-title c-amber">اختيار اللغة</div><p>Python (سرعة كتابة)، Java/C++ (typed، interviews)، JavaScript (frontend roles). المهم: إتقان لغة واحدة.</p></div>
+    <div class="card bg-blue"><div class="card-title c-blue">قراءة المسألة</div><p>اقرأ مرتين. حدد input/output، constraints (n ≤ 10⁵؟)، duplicates؟ negative numbers؟ sorted؟</p></div>
+  </div>
+  <div class="info-box note"><div class="info-box-icon">💡</div><div><strong>LeetCode / Codeforces / HackerRank:</strong> LeetCode للمقابلات، Codeforces للـ CP، HackerRank للـ screening. ابدأ بـ NeetCode 150 أو Blind 75 كخريطة مواضيع.</div></div>
+  <div class="pattern-group" style="margin-top:32px;"><div class="pattern-group-title">أنواع أسئلة المقابلات</div></div>
+  <div class="grid-3">
+    <div class="card bg-purple"><div class="card-title c-purple">Easy</div><p>Pattern واحد واضح — hash map، two pointers، stack. الهدف: speed + clean code.</p></div>
+    <div class="card bg-teal"><div class="card-title c-teal">Medium</div><p>Pattern + twist — sliding window with constraint، tree DFS with state. الأكثر شيوعاً.</p></div>
+    <div class="card bg-amber"><div class="card-title c-amber">Hard</div><p>DP optimization، graph algorithms، design (LRU). نادر في screening، شائع في onsite.</p></div>
+    <div class="card"><div class="card-title">Live Coding</div><p>45 min — clarify، approach، code، test. Think aloud mandatory.</p></div>
+    <div class="card"><div class="card-title">Take-home</div><p>Hours/days — production quality، tests، README. Shows real engineering.</p></div>
+    <div class="card bg-blue"><div class="card-title c-blue">Reading Constraints</div><p>n ≤ 10⁵ → O(n log n) max. n ≤ 500 → O(n³) maybe. n ≤ 20 → exponential OK.</p></div>
+  </div>
+  <div class="analogy"><span class="analogy-icon">🎯</span><span>المقابلة مش امتحان حفظ — هي simulation ليوم عمل: تفهم المشكلة، تناقش trade-offs، تكتب كود يشتغل، وتتعامل مع feedback.</span></div>
+</section><section class="section" id="complexity">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">📊</div>
+    <div>
+      <div class="section-title c-teal">تحليل التعقيد</div>
+      <div class="section-subtitle">Complexity Analysis</div>
+    </div>
+  </div>
+  <p class="lead">Big O يصف <strong>نمو</strong> وقت/ذاكرة مع زيادة n — مش الوقت الفعلي. <strong>Very important في كل مقابلة:</strong> always state time AND space complexity.</p>
+  <div class="grid-3">
+    <div class="card"><div class="card-title">Big O</div><p>Upper bound — worst case growth rate</p></div>
+    <div class="card"><div class="card-title">Big Ω</div><p>Lower bound — best case</p></div>
+    <div class="card"><div class="card-title">Big Θ</div><p>Tight bound — O and Ω match</p></div>
+  </div>
+  <div class="table-wrap">
+    <table class="compare-table complexity-table">
+      <thead><tr><th>Notation</th><th>Name</th><th>Examples</th><th>Interview OK?</th></tr></thead>
+      <tbody><tr><td>O(1)</td><td>Constant</td><td>Hash lookup, array index</td><td>✅</td></tr><tr><td>O(log n)</td><td>Logarithmic</td><td>Binary search, balanced BST</td><td>✅</td></tr><tr><td>O(n)</td><td>Linear</td><td>Single pass, BFS unweighted</td><td>✅</td></tr><tr><td>O(n log n)</td><td>Linearithmic</td><td>Merge sort, heap sort</td><td>✅</td></tr><tr><td>O(n²)</td><td>Quadratic</td><td>Nested loops, bubble sort</td><td>⚠️ n≤3000</td></tr><tr><td>O(n³)</td><td>Cubic</td><td>3Sum brute force</td><td>⚠️ n≤500</td></tr><tr><td>O(2ⁿ)</td><td>Exponential</td><td>Subsets brute, naive Fibonacci</td><td>❌ n≤20</td></tr><tr><td>O(n!)</td><td>Factorial</td><td>Permutations brute</td><td>❌ n≤10</td></tr></tbody>
+    </table>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-teal"><div class="card-title c-teal">Amortized O(1)</div><p>Dynamic array append: occasional O(n) resize، average O(1). Hash map insert: rehash occasionally.</p></div>
+    <div class="card bg-amber"><div class="card-title c-amber">Master Theorem (brief)</div><p>T(n)=aT(n/b)+f(n). Merge sort: a=2,b=2,f(n)=O(n) → O(n log n). Quick sort average: O(n log n).</p></div>
+  </div>
+  <div class="info-box tip"><div class="info-box-icon">✅</div><div><strong>Rule of thumb:</strong> n ≤ 10⁵ → O(n) or O(n log n). n ≤ 500 → O(n²) maybe. n ≤ 20 → backtracking/2ⁿ OK.</div></div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">two_sum</span>(nums, target):  <span class="cm"># O(n) time, O(n) space</span>
+    seen = {}
+    <span class="kw">for</span> i, x <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+        <span class="kw">if</span> target - x <span class="kw">in</span> seen:
+            <span class="kw">return</span> [seen[target - x], i]
+        seen[x] = i</pre>
+</div>
+</section><section class="section" id="fundamentals">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">⚙️</div>
+    <div>
+      <div class="section-title c-amber">الأساسيات</div>
+      <div class="section-subtitle">Fundamentals & Recursion</div>
+    </div>
+  </div>
+  <p class="lead">Loops، conditionals، و<strong>invariants</strong> (شرط يظل صحيحاً أثناء الحل) — أساس كل pattern. Recursion = function تستدعي نفسها مع base case.</p>
+  <div class="grid-2">
+    <div class="card"><div class="card-title">Loop Invariant</div><p>مثال sliding window: "كل عناصر النافذة تحقق الشرط X". تحقق قبل/أثناء/بعد الحلقة.</p></div>
+    <div class="card"><div class="card-title">Recursion Stack</div><p>كل استدعاء = frame على call stack. Stack overflow ≈ depth > 10⁴ (Python default ~1000).</p></div>
+    <div class="card bg-teal"><div class="card-title c-teal">Iterative vs Recursive</div><p>Recursive: أنظف للـ trees/backtracking. Iterative: أسرع، بدون stack overflow.</p></div>
+    <div class="card bg-purple"><div class="card-title c-purple">Memoization Intro</div><p>cache نتائج subproblems → bridge لـ DP. fib(n) من O(2ⁿ) إلى O(n).</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">fib</span>(n, memo={}):
+    <span class="kw">if</span> n <= <span class="num">1</span>: <span class="kw">return</span> n
+    <span class="kw">if</span> n <span class="kw">in</span> memo: <span class="kw">return</span> memo[n]
+    memo[n] = <span class="fn">fib</span>(n-<span class="num">1</span>, memo) + <span class="fn">fib</span>(n-<span class="num">2</span>, memo)
+    <span class="kw">return</span> memo[n]</pre>
+</div>
+  <div class="info-box warn"><div class="info-box-icon">⚠️</div><div>نسيان base case = infinite recursion. في DP: define state clearly قبل الكود.</div></div>
+</section><section class="section" id="ds-linear">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">📦</div>
+    <div>
+      <div class="section-title c-blue">هياكل البيانات — Linear</div>
+      <div class="section-subtitle">Arrays, Strings, LinkedList, Stack, Queue</div>
+    </div>
+  </div>
+  <p class="lead">الهياكل الخطية هي الأساس — معظم المسائل تبدأ من array أو string أو linked list.</p>
+  <div class="pattern-group"><div class="pattern-group-title">Arrays vs Lists</div></div>
+  <div class="grid-2">
+    <div class="card bg-blue"><div class="card-title c-blue">Array (Dynamic Array)</div><p>Contiguous memory — random access O(1). Append amortized O(1). Insert/delete middle O(n). Python <code>list</code>، Java <code>ArrayList</code>، C++ <code>vector</code>.</p></div>
+    <div class="card"><div class="card-title">Linked List</div><p>Nodes chained by pointers — insert/delete O(1) at known node، no random access O(n). Java <code>LinkedList</code>، Python: implement or use <code>deque</code> for similar ops.</p></div>
+  </div>
+  <div class="pattern-group"><div class="pattern-group-title">Arrays & Strings</div></div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title">1D Arrays</div><p>Random access O(1). Insert/delete middle O(n). Two pointers for pairs، prefix sum for ranges. In-place swap from both ends.</p></div>
+    <div class="card"><div class="card-title">2D Matrix</div><p>Row-major storage. Rotate 90°: transpose + reverse rows. Spiral traversal: boundary shrinking. Islands = grid DFS.</p></div>
+    <div class="card"><div class="card-title">Strings</div><p>Immutable في Python/Java — build with list + join (StringBuilder pattern). Anagram، palindrome، substring search.</p></div>
+    <div class="card bg-purple"><div class="card-title c-purple">Interview Tips</div><p>اسأل: Unicode؟ Case sensitive؟ Empty string؟ n ≤ 10⁵ → O(n) or O(n log n) only.</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># StringBuilder pattern — O(n) vs O(n²) with +=</span>
+<span class="cm"># ❌ BAD in Java loop: s += c  (creates new string each time)</span>
+<span class="cm"># ✅ GOOD: StringBuilder sb; sb.append(c)</span>
+<span class="cm"># Python equivalent:</span>
+<span class="kw">def</span> <span class="fn">build_string</span>(chars):
+    parts = []          <span class="cm"># list as buffer</span>
+    <span class="kw">for</span> c <span class="kw">in</span> chars:
+        parts.append(c)
+    <span class="kw">return</span> <span class="str">""</span>.join(parts)   <span class="cm"># single allocation</span>
+
+<span class="cm"># Common string ops</span>
+<span class="cm"># split, strip, replace, s[::-1] reverse, two-pointer palindrome</span></pre>
+</div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Check anagram — O(n) time</span>
+<span class="kw">from</span> collections <span class="kw">import</span> Counter
+<span class="kw">def</span> <span class="fn">is_anagram</span>(s, t):
+    <span class="kw">return</span> Counter(s) == Counter(t)
+
+<span class="cm"># Rotate matrix 90° clockwise</span>
+<span class="kw">def</span> <span class="fn">rotate</span>(matrix):
+    matrix.reverse()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(matrix)):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i+<span class="num">1</span>, <span class="fn">len</span>(matrix)):
+            matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]</pre>
+</div>
+  <div class="pattern-group"><div class="pattern-group-title">Linked Lists</div></div>
+  <div class="grid-2">
+    <div class="card bg-teal"><div class="card-title c-teal">Singly Linked List</div><p>Node: val + next. Head pointer. Insert/delete O(1) at head. Search O(n).</p></div>
+    <div class="card bg-purple"><div class="card-title c-purple">Doubly Linked List</div><p>Node: val + prev + next. Delete node in O(1) with pointer. LRU Cache uses this. Reverse both directions.</p></div>
+    <div class="card"><div class="card-title">Circular Linked List</div><p>Last node points to head. Useful for round-robin scheduling. Floyd cycle detection works on any variant.</p></div>
+    <div class="card bg-amber"><div class="card-title c-amber">Classic Operations</div><p>Floyd cycle detection، reverse list، merge two sorted، reverse k-group، reorder list.</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Doubly linked list node — delete in O(1)</span>
+<span class="kw">class</span> <span class="cl">DNode</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, val=<span class="num">0</span>):
+        self.val, self.prev, self.next = val, <span class="kw">None</span>, <span class="kw">None</span>
+<span class="kw">def</span> <span class="fn">delete_node</span>(node):
+    <span class="kw">if</span> node.prev: node.prev.next = node.next
+    <span class="kw">if</span> node.next: node.next.prev = node.prev</pre>
+</div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Merge two sorted lists</span>
+<span class="kw">def</span> <span class="fn">merge_two</span>(l1, l2):
+    dummy = curr = ListNode(<span class="num">0</span>)
+    <span class="kw">while</span> l1 <span class="kw">and</span> l2:
+        <span class="kw">if</span> l1.val <= l2.val: curr.next, l1 = l1, l1.next
+        <span class="kw">else</span>: curr.next, l2 = l2, l2.next
+        curr = curr.next
+    curr.next = l1 <span class="kw">or</span> l2
+    <span class="kw">return</span> dummy.next</pre>
+</div>
+  <div class="pattern-group"><div class="pattern-group-title">Stack & Queue</div></div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title">Stack (LIFO)</div><p>Valid parentheses، evaluate RPN، monotonic stack (next greater element)، DFS iterative، undo/redo.</p></div>
+    <div class="card"><div class="card-title">Queue / Deque (FIFO)</div><p>BFS shortest path، sliding window maximum (monotonic deque)، circular queue for bounded buffer.</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Valid parentheses — stack O(n)</span>
+<span class="kw">def</span> <span class="fn">is_valid</span>(s):
+    stack, pairs = [], {<span class="str">")"</span>: <span class="str">"("</span>, <span class="str">"]"</span>: <span class="str">"["</span>, <span class="str">"}"</span>: <span class="str">"{"</span>}
+    <span class="kw">for</span> c <span class="kw">in</span> s:
+        <span class="kw">if</span> c <span class="kw">in</span> pairs:
+            <span class="kw">if not</span> stack <span class="kw">or</span> stack.pop() != pairs[c]: <span class="kw">return</span> <span class="kw">False</span>
+        <span class="kw">else</span>: stack.append(c)
+    <span class="kw">return not</span> stack</pre>
+</div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Reverse linked list — O(n) time, O(1) space</span>
+<span class="kw">def</span> <span class="fn">reverse</span>(head):
+    prev, curr = <span class="kw">None</span>, head
+    <span class="kw">while</span> curr:
+        nxt = curr.next
+        curr.next = prev
+        prev, curr = curr, nxt
+    <span class="kw">return</span> prev</pre>
+</div>
+</section><section class="section" id="ds-hash-trees">
+  <div class="section-header">
+    <div class="section-icon bg-green" style="font-size:22px;">🌳</div>
+    <div>
+      <div class="section-title c-teal">Hashing & Trees</div>
+      <div class="section-subtitle">Hash Map, BST, Heap, Trie</div>
+    </div>
+  </div>
+  <p class="lead">Hash maps للـ O(1) lookup. Trees للـ hierarchical data. Heaps للـ top-K. Trie للـ prefixes.</p>
+  <div class="pattern-group"><div class="pattern-group-title">Hashing</div></div>
+  <div class="grid-2">
+    <div class="card bg-purple"><div class="card-title c-purple">Hash Map / Hash Set</div><p><strong>Map</strong> (dict): key→value — two sum، frequency. <strong>Set</strong>: unique elements — cycle detection in graph، dedup. Collision: chaining أو open addressing.</p></div>
+    <div class="card"><div class="card-title">Complexity</div><p>Average O(1) insert/lookup/delete. Worst O(n) if all keys collide. Space O(n).</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Group anagrams — hash by sorted key or char count</span>
+<span class="kw">from</span> collections <span class="kw">import</span> defaultdict
+<span class="kw">def</span> <span class="fn">group_anagrams</span>(strs):
+    groups = defaultdict(<span class="fn">list</span>)
+    <span class="kw">for</span> s <span class="kw">in</span> strs:
+        key = tuple(sorted(s))
+        groups[key].append(s)
+    <span class="kw">return</span> <span class="fn">list</span>(groups.values())</pre>
+</div>
+  <div class="pattern-group"><div class="pattern-group-title">Binary Trees</div></div>
+  <div class="grid-2">
+    <div class="card bg-teal"><div class="card-title c-teal">Complete Binary Tree</div><p>Every level filled except possibly last — filled left to right. Heaps are complete trees. Height = O(log n). Array storage: parent i → children 2i+1, 2i+2.</p></div>
+    <div class="card bg-purple"><div class="card-title c-purple">Balanced Binary Tree</div><p>Height difference left/right ≤ 1 (AVL) or roughly balanced (Red-Black). Guarantees O(log n) search/insert. Unbalanced skewed tree → O(n) worst case.</p></div>
+  </div>
+  <div class="grid-3">
+    <div class="card"><div class="card-title">Inorder</div><p>Left → Root → Right. BST inorder = sorted order.</p></div>
+    <div class="card"><div class="card-title">Preorder</div><p>Root → Left → Right. Serialize tree structure.</p></div>
+    <div class="card"><div class="card-title">Postorder</div><p>Left → Right → Root. Delete tree، evaluate expression.</p></div>
+    <div class="card bg-teal"><div class="card-title c-teal">Level Order</div><p>BFS with queue. Zigzag = reverse every other level.</p></div>
+    <div class="card"><div class="card-title">Height / Diameter</div><p>Height: 1+max(left,right). Diameter: max path through any node.</p></div>
+    <div class="card bg-amber"><div class="card-title c-amber">BST Operations</div><p>Search/insert O(h). Validate: min/max range per node. kth smallest: inorder.</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Validate BST — range (min, max) per node</span>
+<span class="kw">def</span> <span class="fn">is_valid_bst</span>(root, lo=<span class="fn">float</span>(<span class="str">'-inf'</span>), hi=<span class="fn">float</span>(<span class="str">'inf'</span>)):
+    <span class="kw">if not</span> root: <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">if not</span> (lo < root.val < hi): <span class="kw">return</span> <span class="kw">False</span>
+    <span class="kw">return</span> <span class="fn">is_valid_bst</span>(root.left, lo, root.val) <span class="kw">and</span> <span class="fn">is_valid_bst</span>(root.right, root.val, hi)</pre>
+</div>
+  <div class="pattern-group"><div class="pattern-group-title">Heap & Trie</div></div>
+  <div class="grid-2">
+    <div class="card bg-amber"><div class="card-title c-amber">Min-Heap</div><p>Parent ≤ children. Root = minimum. Python <code>heapq</code> is min-heap. top-K largest: maintain size-k min-heap.</p></div>
+    <div class="card bg-coral"><div class="card-title c-coral">Max-Heap</div><p>Parent ≥ children. Root = maximum. In Python: negate values or use <code>-x</code> trick with heapq. top-K smallest: size-k max-heap.</p></div>
+    <div class="card bg-blue"><div class="card-title c-blue">Trie</div><p>Prefix tree — each node = char. Autocomplete, word search II, longest common prefix. Space O(total chars).</p></div>
+    <div class="card"><div class="card-title">Heap vs BST</div><p>Heap: O(1) min/max, O(log n) insert. BST: O(log n) search ordered. Use heap for priority queue / top-K.</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Max-heap trick in Python — negate values</span>
+<span class="kw">import</span> heapq
+<span class="kw">def</span> <span class="fn">k_smallest</span>(nums, k):
+    h = [-x <span class="kw">for</span> x <span class="kw">in</span> nums[:k]]
+    heapq.heapify(h)
+    <span class="kw">for</span> x <span class="kw">in</span> nums[k:]:
+        <span class="kw">if</span> x < -h[0]: heapq.heapreplace(h, -x)
+    <span class="kw">return</span> [-x <span class="kw">for</span> x <span class="kw">in</span> h]</pre>
+</div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Level-order BFS</span>
+<span class="kw">from</span> collections <span class="kw">import</span> deque
+<span class="kw">def</span> <span class="fn">level_order</span>(root):
+    <span class="kw">if not</span> root: <span class="kw">return</span> []
+    q, res = deque([root]), []
+    <span class="kw">while</span> q:
+        level = []
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(q)):
+            node = q.popleft()
+            level.append(node.val)
+            <span class="kw">if</span> node.left: q.append(node.left)
+            <span class="kw">if</span> node.right: q.append(node.right)
+        res.append(level)
+    <span class="kw">return</span> res</pre>
+</div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Trie node — insert & search prefix</span>
+<span class="kw">class</span> <span class="cl">TrieNode</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.children = {}
+        self.end = <span class="kw">False</span>
+<span class="kw">class</span> <span class="cl">Trie</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self): self.root = <span class="cl">TrieNode</span>()
+    <span class="kw">def</span> <span class="fn">insert</span>(self, word):
+        node = self.root
+        <span class="kw">for</span> c <span class="kw">in</span> word:
+            node = node.children.setdefault(c, <span class="cl">TrieNode</span>())
+        node.end = <span class="kw">True</span></pre>
+</div>
+</section><section class="section" id="ds-graph-advanced">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">🕸️</div>
+    <div>
+      <div class="section-title c-coral">Graphs & Advanced DS</div>
+      <div class="section-subtitle">Representations, Union-Find, Segment Tree</div>
+    </div>
+  </div>
+  <p class="lead">Graphs = nodes + edges. Advanced structures للـ range queries وconnected components.</p>
+  <div class="grid-2">
+    <div class="card"><div class="card-title">Representations</div><p>Adjacency list: O(V+E) space, best for sparse. Matrix: O(V²), O(1) edge lookup.</p></div>
+    <div class="card"><div class="card-title">Directed vs Undirected</div><p><strong>Directed:</strong> one-way edges (Twitter follow، prerequisites). <strong>Undirected:</strong> two-way (friendship، roads). Weighted vs unweighted affects algorithm choice.</p></div>
+    <div class="card bg-teal"><div class="card-title c-teal">Union-Find (DSU)</div><p>Path compression + union by rank → nearly O(1) amortized. Connected components, Kruskal MST.</p></div>
+    <div class="card bg-purple"><div class="card-title c-purple">Segment Tree / BIT</div><p>Range sum/min queries + point updates in O(log n). Fenwick Tree (BIT) simpler for prefix sums.</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">class</span> <span class="cl">UnionFind</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, n):
+        self.parent = <span class="fn">list</span>(<span class="fn">range</span>(n))
+        self.rank = [<span class="num">0</span>] * n
+    <span class="kw">def</span> <span class="fn">find</span>(self, x):
+        <span class="kw">if</span> self.parent[x] != x:
+            self.parent[x] = self.<span class="fn">find</span>(self.parent[x])
+        <span class="kw">return</span> self.parent[x]
+    <span class="kw">def</span> <span class="fn">union</span>(self, a, b):
+        ra, rb = self.<span class="fn">find</span>(a), self.<span class="fn">find</span>(b)
+        <span class="kw">if</span> ra == rb: <span class="kw">return</span>
+        <span class="kw">if</span> self.rank[ra] < self.rank[rb]: ra, rb = rb, ra
+        self.parent[rb] = ra
+        <span class="kw">if</span> self.rank[ra] == self.rank[rb]: self.rank[ra] += <span class="num">1</span></pre>
+</div>
+</section><section class="section" id="patterns">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-purple">14 Core Patterns</div>
+      <div class="section-subtitle">Problem Solving Patterns</div>
+    </div>
+  </div>
+  <p class="lead">Pattern recognition = <strong>80% من حل المسائل في المقابلة</strong>. تعلّم متى تستخدم كل pattern قبل حفظ الحلول.</p>
+  <div class="info-box tip"><div class="info-box-icon">💡</div><div>اسأل نفسك: array مرتب؟ subarray contiguous؟ tree؟ graph؟ optimization؟ → pattern.</div></div>
+  <div class="pattern-group"><div class="pattern-group-title">14 Essential Patterns</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Two Pointers</span>
+    <span class="tag">Sorted array</span>
+  </div>
+  <div class="pattern-desc">مؤشران يتحركان من البداية/النهاية أو same direction على array مرتب.</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Two Sum II، 3Sum، Container With Most Water</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ نسيان sort، duplicate handling في 3Sum</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">two_sum_sorted</span>(nums, target):
+    l, r = <span class="num">0</span>, <span class="fn">len</span>(nums)-<span class="num">1</span>
+    <span class="kw">while</span> l < r:
+        s = nums[l] + nums[r]
+        <span class="kw">if</span> s == target: <span class="kw">return</span> [l+<span class="num">1</span>, r+<span class="num">1</span>]
+        <span class="kw">if</span> s < target: l += <span class="num">1</span>
+        <span class="kw">else</span>: r -= <span class="num">1</span></pre>
+</div>
+  </div>
+</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Sliding Window</span>
+    <span class="tag">Subarray/substring</span>
+  </div>
+  <div class="pattern-desc">نافذة متحركة fixed أو variable size على contiguous segment.</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Longest Substring Without Repeating، Min Window Substring</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ Off-by-one على window boundaries</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">longest_unique</span>(s):
+    seen, l, best = {}, <span class="num">0</span>, <span class="num">0</span>
+    <span class="kw">for</span> r, c <span class="kw">in</span> <span class="fn">enumerate</span>(s):
+        <span class="kw">if</span> c <span class="kw">in</span> seen <span class="kw">and</span> seen[c] >= l: l = seen[c]+<span class="num">1</span>
+        seen[c] = r
+        best = <span class="fn">max</span>(best, r-l+<span class="num">1</span>)
+    <span class="kw">return</span> best</pre>
+</div>
+  </div>
+</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Fast & Slow Pointers</span>
+    <span class="tag">Linked list</span>
+  </div>
+  <div class="pattern-desc">Slow moves 1 step، fast moves 2 — cycle detection، middle node.</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Linked List Cycle، Find Middle، Happy Number</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ نسيان reset pointers بعد detect cycle</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">has_cycle</span>(head):
+    slow = fast = head
+    <span class="kw">while</span> fast <span class="kw">and</span> fast.next:
+        slow, fast = slow.next, fast.next.next
+        <span class="kw">if</span> slow == fast: <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">return</span> <span class="kw">False</span></pre>
+</div>
+  </div>
+</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Prefix Sum</span>
+    <span class="tag">Range sum</span>
+  </div>
+  <div class="pattern-desc">prefix[i] = sum(nums[0..i]). Subarray sum K → prefix + hash map.</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Subarray Sum Equals K، Range Sum Query</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ Integer overflow مع large sums</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">subarray_sum</span>(nums, k):
+    count, pre, mp = <span class="num">0</span>, <span class="num">0</span>, {0: <span class="num">1</span>}
+    <span class="kw">for</span> x <span class="kw">in</span> nums:
+        pre += x
+        count += mp.get(pre - k, <span class="num">0</span>)
+        mp[pre] = mp.get(pre, <span class="num">0</span>) + <span class="num">1</span>
+    <span class="kw">return</span> count</pre>
+</div>
+  </div>
+</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Binary Search</span>
+    <span class="tag">Sorted / monotonic</span>
+  </div>
+  <div class="pattern-desc">قسم المساحة للنصف — على array أو على answer space.</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Search Rotated Array، Search on Answer (min capacity)</div>
+  <div class="pattern-meta"><span>⏱ O(log n)</span><span>⚠️ Infinite loop — use mid = lo + (hi-lo)//2</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">binary_search</span>(nums, target):
+    lo, hi = <span class="num">0</span>, <span class="fn">len</span>(nums)-<span class="num">1</span>
+    <span class="kw">while</span> lo <= hi:
+        mid = lo + (hi-lo)//<span class="num">2</span>
+        <span class="kw">if</span> nums[mid] == target: <span class="kw">return</span> mid
+        <span class="kw">if</span> nums[mid] < target: lo = mid+<span class="num">1</span>
+        <span class="kw">else</span>: hi = mid-<span class="num">1</span>
+    <span class="kw">return</span> -<span class="num">1</span></pre>
+</div>
+  </div>
+</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Sorting Patterns</span>
+    <span class="tag">Intervals</span>
+  </div>
+  <div class="pattern-desc">Sort by start/end — merge intervals، meeting rooms، non-overlapping.</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Merge Intervals، Meeting Rooms II</div>
+  <div class="pattern-meta"><span>⏱ O(n log n)</span><span>⚠️ نسيان sort قبل interval logic</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">merge_intervals</span>(iv):
+    iv.sort(key=<span class="kw">lambda</span> x: x[0])
+    out = [iv[0]]
+    <span class="kw">for</span> s,e <span class="kw">in</span> iv[1:]:
+        <span class="kw">if</span> s <= out[-1][1]: out[-1][1] = <span class="fn">max</span>(out[-1][1], e)
+        <span class="kw">else</span>: out.append([s,e])
+    <span class="kw">return</span> out</pre>
+</div>
+  </div>
+</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Cyclic Sort</span>
+    <span class="tag">Range [1..n]</span>
+  </div>
+  <div class="pattern-desc">Place each num at index num-1 — find missing/duplicate in O(n) O(1).</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Find Missing Number، Find Duplicate</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ Out of range values need different approach</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">find_missing</span>(nums):
+    i = <span class="num">0</span>
+    <span class="kw">while</span> i < <span class="fn">len</span>(nums):
+        j = nums[i]-<span class="num">1</span>
+        <span class="kw">if</span> nums[i] != nums[j]: nums[i], nums[j] = nums[j], nums[i]
+        <span class="kw">else</span>: i += <span class="num">1</span>
+    <span class="kw">return</span> next(i <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums)) <span class="kw">if</span> nums[i] != i+<span class="num">1</span>)</pre>
+</div>
+  </div>
+</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">In-place Reversal</span>
+    <span class="tag">Linked list / array</span>
+  </div>
+  <div class="pattern-desc">Reverse linked list، reverse k-group، reverse array sections.</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Reverse Linked List، Reverse Nodes in k-Group</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ Losing reference to head/tail</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># see ds-linear section</span></pre>
+</div>
+  </div>
+</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Top K / Heap</span>
+    <span class="tag">K largest/smallest</span>
+  </div>
+  <div class="pattern-desc">Min-heap size k for K largest. Quickselect O(n) average.</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Kth Largest Element، Top K Frequent</div>
+  <div class="pattern-meta"><span>⏱ O(n log k)</span><span>⚠️ Using max-heap when min-heap needed</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">import</span> heapq
+<span class="kw">def</span> <span class="fn">kth_largest</span>(nums, k):
+    h = []
+    <span class="kw">for</span> x <span class="kw">in</span> nums:
+        heapq.heappush(h, x)
+        <span class="kw">if</span> <span class="fn">len</span>(h) > k: heapq.heappop(h)
+    <span class="kw">return</span> h[0]</pre>
+</div>
+  </div>
+</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">K-way Merge</span>
+    <span class="tag">K sorted lists</span>
+  </div>
+  <div class="pattern-desc">Heap of (value, list_idx, elem_idx) — pop smallest، push next from same list.</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Merge K Sorted Lists</div>
+  <div class="pattern-meta"><span>⏱ O(N log k)</span><span>⚠️ Empty list handling</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Min-heap of list heads — same as Top K pattern on streams</span></pre>
+</div>
+  </div>
+</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Subsets / Combinations</span>
+    <span class="tag">Backtracking</span>
+  </div>
+  <div class="pattern-desc">Include/exclude each element — subsets. Add pruning for combinations.</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Subsets، Combination Sum، Permutations</div>
+  <div class="pattern-meta"><span>⏱ O(2ⁿ) subsets</span><span>⚠️ Duplicate subsets without sorting+skip</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">subsets</span>(nums):
+    res, path = [], []
+    <span class="kw">def</span> <span class="fn">dfs</span>(i):
+        <span class="kw">if</span> i == <span class="fn">len</span>(nums): res.append(path[:]); <span class="kw">return</span>
+        path.append(nums[i]); <span class="fn">dfs</span>(i+<span class="num">1</span>); path.pop()
+        <span class="fn">dfs</span>(i+<span class="num">1</span>)
+    <span class="fn">dfs</span>(<span class="num">0</span>); <span class="kw">return</span> res</pre>
+</div>
+  </div>
+</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Modified Binary Search</span>
+    <span class="tag">Rotated / peak</span>
+  </div>
+  <div class="pattern-desc">One half always sorted — decide which half to search.</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Find Minimum in Rotated Array، Peak Element</div>
+  <div class="pattern-meta"><span>⏱ O(log n)</span><span>⚠️ Wrong half elimination</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Compare nums[mid] with nums[hi] for rotated array min</span></pre>
+</div>
+  </div>
+</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Monotonic Stack</span>
+    <span class="tag">Next greater</span>
+  </div>
+  <div class="pattern-desc">Stack maintains decreasing/increasing order — pop when condition met.</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Daily Temperatures، Largest Rectangle in Histogram</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ Equal elements — strict vs non-strict monotonic</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">daily_temps</span>(T):
+    ans, st = [<span class="num">0</span>]*<span class="fn">len</span>(T), []
+    <span class="kw">for</span> i, t <span class="kw">in</span> <span class="fn">enumerate</span>(T):
+        <span class="kw">while</span> st <span class="kw">and</span> T[st[-1]] < t:
+            j = st.pop(); ans[j] = i-j
+        st.append(i)
+    <span class="kw">return</span> ans</pre>
+</div>
+  </div>
+</div><div class="pattern-card">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Monotonic Queue</span>
+    <span class="tag">Sliding max</span>
+  </div>
+  <div class="pattern-desc">Deque stores indices in decreasing value order — front = max.</div>
+  <div class="pattern-when"><strong>امتى تستخدمه:</strong> Sliding Window Maximum</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ Stale indices outside window</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">from</span> collections <span class="kw">import</span> deque
+<span class="kw">def</span> <span class="fn">max_sliding</span>(nums, k):
+    dq, out = deque(), []
+    <span class="kw">for</span> i, x <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+        <span class="kw">while</span> dq <span class="kw">and</span> nums[dq[-1]] <= x: dq.pop()
+        dq.append(i)
+        <span class="kw">if</span> dq[0] <= i-k: dq.popleft()
+        <span class="kw">if</span> i >= k-<span class="num">1</span>: out.append(nums[dq[0]])
+    <span class="kw">return</span> out</pre>
+</div>
+  </div>
+</div></div>
+</section><section class="section" id="traversal">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">🔍</div>
+    <div>
+      <div class="section-title c-teal">Traversal & Search</div>
+      <div class="section-subtitle">DFS, BFS, Backtracking, Topo Sort</div>
+    </div>
+  </div>
+  <p class="lead">DFS = depth-first (stack/recursion). BFS = level-by-level (queue). Backtracking = DFS + undo. Topo sort = DAG ordering.</p>
+  <div class="grid-2">
+    <div class="card bg-teal"><div class="card-title c-teal">DFS</div><p>Tree/graph traversal، path finding، connected components. O(V+E). Use visited set for graphs.</p></div>
+    <div class="card bg-blue"><div class="card-title c-blue">BFS</div><p>Shortest path unweighted، level-order. O(V+E). Queue + visited.</p></div>
+    <div class="card bg-purple"><div class="card-title c-purple">Backtracking</div><p>Subsets، permutations، N-Queens، Sudoku. Prune invalid branches early.</p></div>
+    <div class="card bg-amber"><div class="card-title c-amber">Topological Sort</div><p>Kahn (BFS indegree) أو DFS post-order. Cycle detection in directed graph.</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Tree traversals — recursive DFS</span>
+<span class="kw">def</span> <span class="fn">preorder</span>(root):   <span class="cm"># Root → Left → Right</span>
+    <span class="kw">return</span> [root.val] + <span class="fn">preorder</span>(root.left) + <span class="fn">preorder</span>(root.right) <span class="kw">if</span> root <span class="kw">else</span> []
+<span class="kw">def</span> <span class="fn">inorder</span>(root):    <span class="cm"># Left → Root → Right (BST = sorted)</span>
+    <span class="kw">return</span> <span class="fn">inorder</span>(root.left) + [root.val] + <span class="fn">inorder</span>(root.right) <span class="kw">if</span> root <span class="kw">else</span> []
+<span class="kw">def</span> <span class="fn">postorder</span>(root):  <span class="cm"># Left → Right → Root</span>
+    <span class="kw">return</span> <span class="fn">postorder</span>(root.left) + <span class="fn">postorder</span>(root.right) + [root.val] <span class="kw">if</span> root <span class="kw">else</span> []</pre>
+</div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Permutations — backtracking O(n × n!)</span>
+<span class="kw">def</span> <span class="fn">permute</span>(nums):
+    res = []
+    <span class="kw">def</span> <span class="fn">dfs</span>(path, used):
+        <span class="kw">if</span> <span class="fn">len</span>(path) == <span class="fn">len</span>(nums): res.append(path[:]); <span class="kw">return</span>
+        <span class="kw">for</span> i, x <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+            <span class="kw">if</span> used[i]: <span class="kw">continue</span>
+            used[i] = <span class="kw">True</span>; path.append(x); <span class="fn">dfs</span>(path, used)
+            path.pop(); used[i] = <span class="kw">False</span>
+    <span class="fn">dfs</span>([], [<span class="kw">False</span>]*<span class="fn">len</span>(nums)); <span class="kw">return</span> res
+
+<span class="cm"># Combinations — choose k from n</span>
+<span class="kw">def</span> <span class="fn">combine</span>(n, k):
+    res = []
+    <span class="kw">def</span> <span class="fn">dfs</span>(start, path):
+        <span class="kw">if</span> <span class="fn">len</span>(path) == k: res.append(path[:]); <span class="kw">return</span>
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(start, n-<span class="fn">len</span>(path)+<span class="num">1</span>):
+            path.append(i+<span class="num">1</span>); <span class="fn">dfs</span>(i+<span class="num">1</span>, path); path.pop()
+    <span class="fn">dfs</span>(<span class="num">0</span>, []); <span class="kw">return</span> res</pre>
+</div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Number of Islands — DFS</span>
+<span class="kw">def</span> <span class="fn">num_islands</span>(grid):
+    <span class="kw">def</span> <span class="fn">dfs</span>(r, c):
+        <span class="kw">if</span> r<0 <span class="kw">or</span> c<0 <span class="kw">or</span> r>=<span class="fn">len</span>(grid) <span class="kw">or</span> c>=<span class="fn">len</span>(grid[0]) <span class="kw">or</span> grid[r][c]!=<span class="str">'1'</span>: <span class="kw">return</span>
+        grid[r][c] = <span class="str">'0'</span>
+        <span class="kw">for</span> dr,dc <span class="kw">in</span> [(0,1),(0,-1),(1,0),(-1,0)]: <span class="fn">dfs</span>(r+dr,c+dc)
+    cnt = <span class="num">0</span>
+    <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(grid)):
+        <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(grid[0])):
+            <span class="kw">if</span> grid[r][c]==<span class="str">'1'</span>: cnt+=<span class="num">1</span>; <span class="fn">dfs</span>(r,c)
+    <span class="kw">return</span> cnt</pre>
+</div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Course Schedule — topo sort (Kahn)</span>
+<span class="kw">def</span> <span class="fn">can_finish</span>(n, prereq):
+    indeg, adj = [<span class="num">0</span>]*n, [[] <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n)]
+    <span class="kw">for</span> a,b <span class="kw">in</span> prereq: adj[b].append(a); indeg[a]+=<span class="num">1</span>
+    q = [i <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n) <span class="kw">if</span> indeg[i]==<span class="num">0</span>]
+    seen = <span class="num">0</span>
+    <span class="kw">while</span> q:
+        u = q.pop()
+        seen += <span class="num">1</span>
+        <span class="kw">for</span> v <span class="kw">in</span> adj[u]:
+            indeg[v]-=<span class="num">1</span>
+            <span class="kw">if</span> indeg[v]==<span class="num">0</span>: q.append(v)
+    <span class="kw">return</span> seen == n</pre>
+</div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># N-Queens backtracking sketch</span>
+<span class="kw">def</span> <span class="fn">solve_n_queens</span>(n):
+    res, cols, diag1, diag2 = [], set(), set(), set()
+    <span class="kw">def</span> <span class="fn">dfs</span>(r, board):
+        <span class="kw">if</span> r == n: res.append(board[:]); <span class="kw">return</span>
+        <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">range</span>(n):
+            <span class="kw">if</span> c <span class="kw">in</span> cols <span class="kw">or</span> r+c <span class="kw">in</span> diag1 <span class="kw">or</span> r-c <span class="kw">in</span> diag2: <span class="kw">continue</span>
+            cols.add(c); diag1.add(r+c); diag2.add(r-c); board.append(c)
+            <span class="fn">dfs</span>(r+<span class="num">1</span>, board)
+            board.pop(); cols.remove(c); diag1.remove(r+c); diag2.remove(r-c)
+    <span class="fn">dfs</span>(<span class="num">0</span>, []); <span class="kw">return</span> res</pre>
+</div>
+  <div class="info-box note"><div class="info-box-icon">💡</div><div><strong>Backtracking template:</strong> choose → explore → unchoose. Prune early when partial solution invalid.</div></div>
+</section><section class="section" id="dp">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">🧠</div>
+    <div>
+      <div class="section-title c-purple">Dynamic Programming</div>
+      <div class="section-subtitle">Memoization & Tabulation</div>
+    </div>
+  </div>
+  <p class="lead">DP = optimal substructure + overlapping subproblems. <strong>Define state → recurrence → base case → order</strong>.</p>
+  <div class="grid-3">
+    <div class="card"><div class="card-title">1D DP</div><p>Climbing Stairs، House Robber، Coin Change — dp[i] from dp[i-1], dp[i-2].</p></div>
+    <div class="card"><div class="card-title">2D DP</div><p>Unique Paths، Edit Distance، LCS — dp[i][j] from neighbors.</p></div>
+    <div class="card"><div class="card-title">Knapsack</div><p>0/1: each item once. Unbounded: unlimited. Subset sum: boolean dp.</p></div>
+    <div class="card bg-teal"><div class="card-title c-teal">LIS / LCS</div><p>LIS: dp[i]=1+max(dp[j]) if nums[j]&lt;nums[i]. LCS: classic 2D table.</p></div>
+    <div class="card bg-amber"><div class="card-title c-amber">Interval DP</div><p>Burst Balloons، Matrix Chain — dp[i][j] over range [i,j].</p></div>
+    <div class="card bg-blue"><div class="card-title c-blue">State Machine DP</div><p>Buy/Sell Stock series — states: hold, sold, cooldown.</p></div>
+    <div class="card"><div class="card-title">Tree DP</div><p>House Robber III، diameter — post-order return (with/without node).</p></div>
+    <div class="card"><div class="card-title">Digit DP</div><p>Count numbers with property in range [L,R] — advanced interview topic.</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Coin Change — unbounded knapsack</span>
+<span class="kw">def</span> <span class="fn">coin_change</span>(coins, amount):
+    dp = [<span class="fn">float</span>(<span class="str">'inf'</span>)] * (amount+<span class="num">1</span>)
+    dp[<span class="num">0</span>] = <span class="num">0</span>
+    <span class="kw">for</span> a <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, amount+<span class="num">1</span>):
+        <span class="kw">for</span> c <span class="kw">in</span> coins:
+            <span class="kw">if</span> c <= a: dp[a] = <span class="fn">min</span>(dp[a], dp[a-c]+<span class="num">1</span>)
+    <span class="kw">return</span> dp[amount] <span class="kw">if</span> dp[amount] != <span class="fn">float</span>(<span class="str">'inf'</span>) <span class="kw">else</span> -<span class="num">1</span></pre>
+</div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># LIS — O(n log n) with patience sorting</span>
+<span class="kw">import</span> bisect
+<span class="kw">def</span> <span class="fn">length_of_lis</span>(nums):
+    tails = []
+    <span class="kw">for</span> x <span class="kw">in</span> nums:
+        i = bisect.bisect_left(tails, x)
+        <span class="kw">if</span> i == <span class="fn">len</span>(tails): tails.append(x)
+        <span class="kw">else</span>: tails[i] = x
+    <span class="kw">return</span> <span class="fn">len</span>(tails)</pre>
+</div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Edit Distance — 2D DP classic</span>
+<span class="kw">def</span> <span class="fn">min_distance</span>(a, b):
+    m, n = <span class="fn">len</span>(a), <span class="fn">len</span>(b)
+    dp = [[<span class="num">0</span>]*(n+<span class="num">1</span>) <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(m+<span class="num">1</span>)]
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(m+<span class="num">1</span>): dp[i][<span class="num">0</span>] = i
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n+<span class="num">1</span>): dp[<span class="num">0</span>][j] = j
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, m+<span class="num">1</span>):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, n+<span class="num">1</span>):
+            <span class="kw">if</span> a[i-<span class="num">1</span>] == b[j-<span class="num">1</span>]: dp[i][j] = dp[i-<span class="num">1</span>][j-<span class="num">1</span>]
+            <span class="kw">else</span>: dp[i][j] = <span class="num">1</span> + <span class="fn">min</span>(dp[i-<span class="num">1</span>][j], dp[i][j-<span class="num">1</span>], dp[i-<span class="num">1</span>][j-<span class="num">1</span>])
+    <span class="kw">return</span> dp[m][n]</pre>
+</div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># 0/1 Knapsack</span>
+<span class="kw">def</span> <span class="fn">knapsack</span>(W, wt, val):
+    n = <span class="fn">len</span>(wt)
+    dp = [[<span class="num">0</span>]*(W+<span class="num">1</span>) <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n+<span class="num">1</span>)]
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, n+<span class="num">1</span>):
+        <span class="kw">for</span> w <span class="kw">in</span> <span class="fn">range</span>(W+<span class="num">1</span>):
+            dp[i][w] = dp[i-<span class="num">1</span>][w]
+            <span class="kw">if</span> wt[i-<span class="num">1</span>] <= w:
+                dp[i][w] = <span class="fn">max</span>(dp[i][w], val[i-<span class="num">1</span>] + dp[i-<span class="num">1</span>][w-wt[i-<span class="num">1</span>]])
+    <span class="kw">return</span> dp[n][W]</pre>
+</div>
+  <div class="info-box tip"><div class="info-box-icon">💡</div><div><strong>DP checklist:</strong> 1) Define state 2) Base cases 3) Recurrence 4) Iteration order 5) Return dp[n] or max/min of dp.</div></div>
+</section><section class="section" id="greedy-dc">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">⚡</div>
+    <div>
+      <div class="section-title c-amber">Greedy & Divide and Conquer</div>
+      <div class="section-subtitle">When greedy works — and when it fails</div>
+    </div>
+  </div>
+  <p class="lead">Greedy: local optimal → global optimal (needs proof/exchange argument). D&C: split، solve، combine.</p>
+  <div class="grid-2">
+    <div class="card bg-amber"><div class="card-title c-amber">Greedy Examples</div><p>Activity selection، Jump Game، Huffman coding (concept). Fails: coin change with arbitrary denominations.</p></div>
+    <div class="card bg-teal"><div class="card-title c-teal">Divide & Conquer</div><p>Merge sort O(n log n)، Quick sort average O(n log n)، Binary search، Closest pair O(n log n).</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Merge Sort — classic D&C</span>
+<span class="kw">def</span> <span class="fn">merge_sort</span>(arr):
+    <span class="kw">if</span> <span class="fn">len</span>(arr) <= <span class="num">1</span>: <span class="kw">return</span> arr
+    mid = <span class="fn">len</span>(arr)//<span class="num">2</span>
+    L, R = <span class="fn">merge_sort</span>(arr[:mid]), <span class="fn">merge_sort</span>(arr[mid:])
+    out, i, j = [], <span class="num">0</span>, <span class="num">0</span>
+    <span class="kw">while</span> i < <span class="fn">len</span>(L) <span class="kw">and</span> j < <span class="fn">len</span>(R):
+        <span class="kw">if</span> L[i] <= R[j]: out.append(L[i]); i+=<span class="num">1</span>
+        <span class="kw">else</span>: out.append(R[j]); j+=<span class="num">1</span>
+    <span class="kw">return</span> out + L[i:] + R[j:]</pre>
+</div>
+  <div class="info-box warn"><div class="info-box-icon">⚠️</div><div>Greedy بدون justification = red flag في المقابلة. قل: "أختار X لأن..." واختبر counterexample.</div></div>
+</section><section class="section" id="bit-math">
+  <div class="section-header">
+    <div class="section-icon bg-blue" style="font-size:22px;">🔢</div>
+    <div>
+      <div class="section-title c-blue">Bit Manipulation & Math</div>
+      <div class="section-subtitle">XOR tricks, GCD, combinatorics, basic math</div>
+    </div>
+  </div>
+  <p class="lead">Bit ops للـ sets وparity. Basic math يظهر في geometry، statistics، وnumber theory مسائل.</p>
+  <div class="pattern-group"><div class="pattern-group-title">Bit Manipulation</div></div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title">Bit Tricks</div><p>XOR: a^a=0، find single number. n & (n-1) removes lowest set bit. 1&lt;&lt;k for mask. AND/OR for permissions.</p></div>
+    <div class="card"><div class="card-title">Count Set Bits</div><p>bin(n).count('1') أو Brian Kernighan: while n: n &= n-1; count++</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Single Number — XOR</span>
+<span class="kw">def</span> <span class="fn">single_number</span>(nums):
+    ans = <span class="num">0</span>
+    <span class="kw">for</span> x <span class="kw">in</span> nums: ans ^= x
+    <span class="kw">return</span> ans
+
+<span class="cm"># Power of two</span>
+<span class="kw">def</span> <span class="fn">is_power_of_two</span>(n):
+    <span class="kw">return</span> n > <span class="num">0</span> <span class="kw">and</span> (n & (n-<span class="num">1</span>)) == <span class="num">0</span></pre>
+</div>
+  <div class="pattern-group"><div class="pattern-group-title">Basic Math</div></div>
+  <div class="grid-3">
+    <div class="card bg-teal"><div class="card-title c-teal">GCD / LCM / Mod</div><p>math.gcd(a,b). LCM = a*b // gcd(a,b). Integer division: a//b. Modulus: a % b. Modular arithmetic: (a+b) % MOD.</p></div>
+    <div class="card bg-purple"><div class="card-title c-purple">Primes & Sieve</div><p>Check prime: trial to √n. Sieve of Eratosthenes O(n log log n) for all primes ≤ n.</p></div>
+    <div class="card bg-amber"><div class="card-title c-amber">Fibonacci & Sequences</div><p>Fib: F(n)=F(n-1)+F(n-2). Sum 1..n = n(n+1)/2. Arithmetic/geometric series formulas.</p></div>
+    <div class="card"><div class="card-title">Mean & Median</div><p>Mean = sum/n. Median: sort، middle element (or avg of two middles). QuickSelect for O(n) median.</p></div>
+    <div class="card"><div class="card-title">Euclidean Distance</div><p>2D: √((x₂-x₁)² + (y₂-y₁)²). Compare squared distance to avoid sqrt. k-closest points uses heap.</p></div>
+    <div class="card bg-blue"><div class="card-title c-blue">Division Notes</div><p>Integer division truncates toward zero (Python 3). Watch divide-by-zero. Long division rarely coded — know concept.</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Sieve of Eratosthenes</span>
+<span class="kw">def</span> <span class="fn">sieve</span>(n):
+    is_prime = [<span class="kw">True</span>] * (n+<span class="num">1</span>)
+    is_prime[<span class="num">0</span>] = is_prime[<span class="num">1</span>] = <span class="kw">False</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>, <span class="fn">int</span>(n**<span class="num">0.5</span>)+<span class="num">1</span>):
+        <span class="kw">if</span> is_prime[i]:
+            <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i*i, n+<span class="num">1</span>, i): is_prime[j] = <span class="kw">False</span>
+    <span class="kw">return</span> [i <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n+<span class="num">1</span>) <span class="kw">if</span> is_prime[i]]
+
+<span class="cm"># Euclidean distance (squared — no sqrt)</span>
+<span class="kw">def</span> <span class="fn">dist_sq</span>(a, b): <span class="kw">return</span> (a[0]-b[0])**<span class="num">2</span> + (a[1]-b[1])**<span class="num">2</span>
+
+<span class="cm"># Sum of sequence 1..n</span>
+<span class="kw">def</span> <span class="fn">sum_1_to_n</span>(n): <span class="kw">return</span> n * (n+<span class="num">1</span>) // <span class="num">2</span></pre>
+</div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># nCr — combinations via Pascal or formula</span>
+<span class="kw">def</span> <span class="fn">nCr</span>(n, r):
+    <span class="kw">if</span> r > n: <span class="kw">return</span> <span class="num">0</span>
+    r = <span class="fn">min</span>(r, n-r)
+    num, den = <span class="num">1</span>, <span class="num">1</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(r):
+        num *= n-i; den *= i+<span class="num">1</span>
+    <span class="kw">return</span> num // den</pre>
+</div>
+</section><section class="section" id="graph-algo">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">🗺️</div>
+    <div>
+      <div class="section-title c-coral">Graph Algorithms</div>
+      <div class="section-subtitle">Shortest path, MST, connectivity</div>
+    </div>
+  </div>
+  <p class="lead">Graph algorithms = core للـ medium/hard. Know when to use which.</p>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Algorithm</th><th>Use Case</th><th>Complexity</th></tr></thead>
+      <tbody>
+        <tr><td>BFS</td><td>Shortest path unweighted</td><td>O(V+E)</td></tr>
+        <tr><td>Dijkstra</td><td>Non-negative weights</td><td>O((V+E) log V)</td></tr>
+        <tr><td>Bellman-Ford</td><td>Negative weights, detect cycle</td><td>O(VE)</td></tr>
+        <tr><td>Floyd-Warshall</td><td>All pairs shortest path</td><td>O(V³)</td></tr>
+        <tr><td>Kruskal / Prim</td><td>Minimum Spanning Tree</td><td>O(E log E)</td></tr>
+        <tr><td>Union-Find</td><td>Connected components</td><td>~O(α(n))</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title">Cycle Detection</div><p>Undirected: DFS parent. Directed: topo sort or DFS 3-color.</p></div>
+    <div class="card"><div class="card-title">Bipartite Check</div><p>BFS/DFS 2-coloring. Odd cycle = not bipartite.</p></div>
+    <div class="card bg-purple"><div class="card-title c-purple">Bridges / Articulation</div><p>Tarjan DFS — advanced. Cut edge/node whose removal increases components.</p></div>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Dijkstra with heap</span>
+<span class="kw">import</span> heapq
+<span class="kw">def</span> <span class="fn">dijkstra</span>(n, edges, src):
+    adj = [[] <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n)]
+    <span class="kw">for</span> u,v,w <span class="kw">in</span> edges: adj[u].append((v,w))
+    dist = [<span class="fn">float</span>(<span class="str">'inf'</span>)]*n; dist[src]=<span class="num">0</span>
+    pq = [(<span class="num">0</span>, src)]
+    <span class="kw">while</span> pq:
+        d,u = heapq.heappop(pq)
+        <span class="kw">if</span> d > dist[u]: <span class="kw">continue</span>
+        <span class="kw">for</span> v,w <span class="kw">in</span> adj[u]:
+            <span class="kw">if</span> d+w < dist[v]:
+                dist[v]=d+w; heapq.heappush(pq,(dist[v],v))
+    <span class="kw">return</span> dist</pre>
+</div>
+</section><section class="section" id="sorting">
+  <div class="section-header">
+    <div class="section-icon bg-green" style="font-size:22px;">📶</div>
+    <div>
+      <div class="section-title c-teal">Sorting Algorithms Reference</div>
+      <div class="section-subtitle">When to use which sort</div>
+    </div>
+  </div>
+  <p class="lead">في المقابلات: rarely implement from scratch — but know complexity، stability، in-place.</p>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>Algorithm</th><th>Time</th><th>Space</th><th>Stable?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Bubble / Selection / Insertion</td><td>O(n²)</td><td>O(1)</td><td>Insertion yes</td><td>Small n only</td></tr>
+        <tr><td>Merge Sort</td><td>O(n log n)</td><td>O(n)</td><td>Yes</td><td>Linked lists, external sort</td></tr>
+        <tr><td>Quick Sort</td><td>O(n log n) avg</td><td>O(log n)</td><td>No</td><td>In-place, cache-friendly</td></tr>
+        <tr><td>Heap Sort</td><td>O(n log n)</td><td>O(1)</td><td>No</td><td>Guaranteed O(n log n) in-place</td></tr>
+        <tr><td>Counting / Radix</td><td>O(n+k)</td><td>O(k)</td><td>Yes</td><td>Integer keys in small range</td></tr>
+        <tr><td>Bucket Sort</td><td>O(n+k) avg</td><td>O(n+k)</td><td>Yes</td><td>Uniformly distributed floats/ints in range</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Quick Sort — partition + recurse</span>
+<span class="kw">def</span> <span class="fn">quicksort</span>(arr):
+    <span class="kw">if</span> <span class="fn">len</span>(arr) <= <span class="num">1</span>: <span class="kw">return</span> arr
+    pivot = arr[<span class="fn">len</span>(arr)//<span class="num">2</span>]
+    left  = [x <span class="kw">for</span> x <span class="kw">in</span> arr <span class="kw">if</span> x < pivot]
+    mid   = [x <span class="kw">for</span> x <span class="kw">in</span> arr <span class="kw">if</span> x == pivot]
+    right = [x <span class="kw">for</span> x <span class="kw">in</span> arr <span class="kw">if</span> x > pivot]
+    <span class="kw">return</span> <span class="fn">quicksort</span>(left) + mid + <span class="fn">quicksort</span>(right)
+
+<span class="cm"># Bucket Sort — for values in [0, 1) or bounded range</span>
+<span class="kw">def</span> <span class="fn">bucket_sort</span>(arr, k=<span class="num">10</span>):
+    buckets = [[] <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(k)]
+    <span class="kw">for</span> x <span class="kw">in</span> arr:
+        buckets[<span class="fn">int</span>(x * k)].append(x)
+    out = []
+    <span class="kw">for</span> b <span class="kw">in</span> buckets:
+        out.extend(<span class="fn">sorted</span>(b))
+    <span class="kw">return</span> out</pre>
+</div>
+  <div class="info-box tip"><div class="info-box-icon">✅</div><div>Python sorted() = Timsort O(n log n) stable. Use .sort() in-place when order among equal elements matters.</div></div>
+</section><section class="section" id="framework">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-purple">إطار حل المسائل</div>
+      <div class="section-subtitle">7-Step Interview Framework</div>
+    </div>
+  </div>
+  <p class="lead">اتبع هذا التسلسل في <strong>كل</strong> مسألة مقابلة — حتى Easy. Communication = نصف الدرجة.</p>
+  <div class="steps">
+    <div class="step" data-n="1"><div class="step-title">Clarify & Restate</div><p>أعد صياغة المسألة. اسأل عن constraints، duplicates، empty input، negative numbers، sorted؟</p></div>
+    <div class="step" data-n="2"><div class="step-title">Work Examples / Edge Cases</div><p>مثال عادي + edge: empty، single element، all same، max n.</p></div>
+    <div class="step" data-n="3"><div class="step-title">Brute Force</div><p>احكي الحل البطيء أولاً — O(n²) nested loops. يثبت إنك فاهم المسألة.</p></div>
+    <div class="step" data-n="4"><div class="step-title">Optimize (Pattern Recognition)</div><p>Hash map؟ Two pointers؟ DP state؟ ناقش trade-offs قبل الكود.</p></div>
+    <div class="step" data-n="5"><div class="step-title">Code</div><p>Clean naming، helper functions، avoid magic numbers. اكتب skeleton ثم fill.</p></div>
+    <div class="step" data-n="6"><div class="step-title">Test</div><p>Walk through example on paper. Fix bugs aloud — interviewer يحب ده.</p></div>
+    <div class="step" data-n="7"><div class="step-title">Analyze Complexity</div><p>State time AND space. Mention possible improvements (e.g., sort once vs multiple passes).</p></div>
+  </div>
+  <div class="info-box note"><div class="info-box-icon">💡</div><div><strong>Timing:</strong> 5 min clarify + examples، 10 min approach، 15 min code، 5 min test + complexity.</div></div>
+</section><section class="section" id="mistakes">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">⚠️</div>
+    <div>
+      <div class="section-title c-coral">أخطاء شائعة</div>
+      <div class="section-subtitle">Common Mistakes & Tricky Parts</div>
+    </div>
+  </div>
+  <p class="lead">تجنب هذه الأخطاء — بتظهر في 90% من الـ failed interviews. قائمة CTCI-style للـ tricky parts.</p>
+  <div class="pattern-group"><div class="pattern-group-title">Logic & Loop Bugs</div></div>
+  <div class="grid-2">
+    <div class="card" style="border-right:3px solid var(--coral);"><div class="card-title c-coral">Off-by-One Errors</div><p>Window boundaries، <code>i &lt; n</code> vs <code>i &lt;= n</code>، inclusive vs exclusive ranges. Binary search: <code>lo &lt;= hi</code> vs <code>lo &lt; hi</code>.</p></div>
+    <div class="card" style="border-right:3px solid var(--amber);"><div class="card-title c-amber">Infinite Loops</div><p>Binary search: forget to update lo/hi. While loop: condition never changes. Graph BFS: re-queue visited nodes.</p></div>
+    <div class="card" style="border-right:3px solid var(--purple);"><div class="card-title c-purple">Out of Range</div><p>Array index -1 or len(arr). Grid: row/col bounds. Empty input before accessing arr[0]. Always check bounds first.</p></div>
+    <div class="card" style="border-right:3px solid var(--teal);"><div class="card-title c-teal">Too Many Nested Loops</div><p>O(n³) or worse hidden in 3 nested loops. Look for hash map / sort to reduce. Repeated scans → prefix sum.</p></div>
+  </div>
+  <div class="pattern-group"><div class="pattern-group-title">Data & Numeric Pitfalls</div></div>
+  <div class="grid-2">
+    <div class="card" style="border-right:3px solid var(--amber);"><div class="card-title c-amber">Integer Overflow</div><p>Python OK for big ints. Java/C++: use <code>long</code>. Sum/product of large values — mod early with MOD = 10⁹+7.</p></div>
+    <div class="card" style="border-right:3px solid var(--blue);"><div class="card-title c-blue">int vs double / Float Precision</div><p>Never compare floats with ==. Use epsilon: abs(a-b) &lt; 1e-9. Division may need float: a/b vs a//b. Financial: use integers (cents).</p></div>
+    <div class="card" style="border-right:3px solid var(--coral);"><div class="card-title c-coral">Divide by Zero</div><p>Check denominator before /. Modular inverse requires gcd(a,MOD)=1. Average: count &gt; 0 before sum/count.</p></div>
+    <div class="card" style="border-right:3px solid var(--pink);"><div class="card-title c-pink">Null Pointer / None</div><p>Java NPE، Python None. Tree: if not root. Linked list: check node before node.next. Always handle empty input.</p></div>
+  </div>
+  <div class="pattern-group"><div class="pattern-group-title">Code Quality & Edge Cases</div></div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title">StringBuilder Pattern</div><p>❌ Java: s += c in loop → O(n²). ✅ StringBuilder.append(). Python: list + join. C++: ostringstream.</p></div>
+    <div class="card"><div class="card-title">Date & Time</div><p>Convert to epoch/unix timestamp for comparison. Watch timezones، daylight saving. Java: LocalDateTime، Python: datetime. Leap years for calendar problems.</p></div>
+    <div class="card"><div class="card-title">Edge Case Checklist</div><p>Empty، single element، duplicates، all same value، sorted/reverse sorted، max/min n، negative numbers، null root.</p></div>
+    <div class="card"><div class="card-title">Too Many if/else</div><p>Refactor to hash map lookup، polymorphism، or early return. State machine table for complex branching.</p></div>
+    <div class="card"><div class="card-title">Repeated Code (DRY)</div><p>Extract helper functions. Same loop body twice → merge. Copy-paste bugs are common in interviews.</p></div>
+    <div class="card"><div class="card-title">Modify While Iterating</div><p>Don't remove from list during for-loop. Use new list، iterate backwards، or mark-and-sweep.</p></div>
+    <div class="card"><div class="card-title">Wrong Base Case (Recursion/DP)</div><p>dp[0], empty string, leaf node. Off-by-one in memo indices.</p></div>
+    <div class="card"><div class="card-title">Duplicates in Backtracking</div><p>Sort + skip identical at same level. Hash set for "used" tracking in permutations.</p></div>
+  </div>
+  <div class="info-box warn"><div class="info-box-icon">⚠️</div><div><strong>Before submit:</strong> Walk through empty input، single element، and max constraint example. State time/space complexity aloud.</div></div>
+</section><section class="section" id="classic-problems">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">⭐</div>
+    <div>
+      <div class="section-title c-teal">مسائل كلاسيكية للمقابلة</div>
+      <div class="section-subtitle">12 High-Frequency Walkthroughs</div>
+    </div>
+  </div>
+  <p class="lead">كل walkthrough يتبع الـ 7-step framework — تدرّب عليهم حتى تشرحهم بدون تفكير.</p>
+  <div class="walkthrough">
+  <h4>Two Sum</h4>
+  <div class="steps"><div class="step" data-n="1"><div class="step-title">Clarify & Restate</div><p>Given unsorted array and target, return indices of two numbers that sum to target. Exactly one solution exists.</p></div><div class="step" data-n="2"><div class="step-title">Examples / Edge Cases</div><p>[2,7,11,15], target=9 → [0,1]. Edge: min length 2. No duplicate use of same index.</p></div><div class="step" data-n="3"><div class="step-title">Brute Force</div><p>Nested loops: for i, for j>i, if nums[i]+nums[j]==target return [i,j]. Time O(n²), space O(1).</p></div><div class="step" data-n="4"><div class="step-title">Optimize</div><p>Hash map stores value→index. For each x at i, if target-x in map, return. One pass O(n) time, O(n) space.</p></div><div class="step" data-n="5"><div class="step-title">Code</div><p>Use dict seen. Don't overwrite index before checking — or check before insert.</p></div><div class="step" data-n="6"><div class="step-title">Test</div><p>Walk [2,7,11,15], t=9: i=0, 2 not in map, seen={2:0}. i=1, 7, need 2 → found at 0. Return [0,1].</p></div><div class="step" data-n="7"><div class="step-title">Complexity</div><p>O(n) time, O(n) space. Cannot do O(1) space without sort (then two pointers O(n log n)).</p></div></div>
+</div><div class="walkthrough">
+  <h4>Valid Parentheses</h4>
+  <div class="steps"><div class="step" data-n="1"><div class="step-title">Clarify</div><p>String of ()[]{} only. Open must close same type in correct order. Empty valid.</p></div><div class="step" data-n="2"><div class="step-title">Examples</div><p>'()[]{}' ✓, '(]' ✗, '([)]' ✗, '{[]}' ✓.</p></div><div class="step" data-n="3"><div class="step-title">Brute Force</div><p>Replace '()' '' repeatedly until empty or stuck — O(n²). Not ideal.</p></div><div class="step" data-n="4"><div class="step-title">Optimize</div><p>Stack: push opens. On close, pop must match. End stack empty.</p></div><div class="step" data-n="5"><div class="step-title">Code</div><p>Map closing→opening. For c in s: if c in map, need stack and stack[-1]==map[c] else push.</p></div><div class="step" data-n="6"><div class="step-title">Test</div><p>'([{}])' — push (, [, {. Pop } match {. Pop ] mismatch? Actually } closes { OK, ] closes [ OK, ) closes ( OK.</p></div><div class="step" data-n="7"><div class="step-title">Complexity</div><p>O(n) time, O(n) space for stack.</p></div></div>
+</div><div class="walkthrough">
+  <h4>Merge Two Sorted Lists</h4>
+  <div class="steps"><div class="step" data-n="1"><div class="step-title">Clarify</div><p>Two sorted linked lists → merge one sorted list. Return head.</p></div><div class="step" data-n="2"><div class="step-title">Examples</div><p>1→3→5 + 2→4→6 → 1→2→3→4→5→6. Empty l1 → l2.</p></div><div class="step" data-n="3"><div class="step-title">Brute Force</div><p>Collect values, sort, rebuild — O(n log n). Wastes sorted property.</p></div><div class="step" data-n="4"><div class="step-title">Optimize</div><p>Dummy node, compare l1.val vs l2.val, attach smaller, advance pointer.</p></div><div class="step" data-n="5"><div class="step-title">Code</div><p>tail = dummy. While both: if l1.val<=l2.val attach l1 else l2. Attach remainder.</p></div><div class="step" data-n="6"><div class="step-title">Test</div><p>1,3,5 vs 2,4 — pick 1, pick 2, pick 3, pick 4, attach 5.</p></div><div class="step" data-n="7"><div class="step-title">Complexity</div><p>O(n+m) time, O(1) extra space.</p></div></div>
+</div><div class="walkthrough">
+  <h4>Binary Tree Level Order</h4>
+  <div class="steps"><div class="step" data-n="1"><div class="step-title">Clarify</div><p>Return values level by level as list of lists. Left to right per level.</p></div><div class="step" data-n="2"><div class="step-title">Examples</div><p>[3,9,20,null,null,15,7] → [[3],[9,20],[15,7]]. Empty → [].</p></div><div class="step" data-n="3"><div class="step-title">Brute Force</div><p>BFS without level separation — then group by depth with hash map.</p></div><div class="step" data-n="4"><div class="step-title">Optimize</div><p>Queue BFS: each iteration process len(q) nodes = one level.</p></div><div class="step" data-n="5"><div class="step-title">Code</div><p>deque([root]). While q: level=[], for _ in range(len(q)): pop, add val, push children.</p></div><div class="step" data-n="6"><div class="step-title">Test</div><p>Root 3: level0=[3]. Push 9,20. level1=[9,20]. Push 15,7. level2=[15,7].</p></div><div class="step" data-n="7"><div class="step-title">Complexity</div><p>O(n) time, O(n) queue space worst case (last level).</p></div></div>
+</div><div class="walkthrough">
+  <h4>Number of Islands</h4>
+  <div class="steps"><div class="step" data-n="1"><div class="step-title">Clarify</div><p>Grid '1' land '0' water. Connected 4-directionally. Count islands.</p></div><div class="step" data-n="2"><div class="step-title">Examples</div><p>Single '1' → 1. All '0' → 0. Diagonal not connected.</p></div><div class="step" data-n="3"><div class="step-title">Brute Force</div><p>Visited matrix + BFS each unvisited '1' — same as optimal.</p></div><div class="step" data-n="4"><div class="step-title">Optimize</div><p>DFS sink island: mark '1'→'0' when visited. Count DFS calls.</p></div><div class="step" data-n="5"><div class="step-title">Code</div><p>For each cell if '1': count++, dfs flood fill.</p></div><div class="step" data-n="6"><div class="step-title">Test</div><p>2x2: 11/01 → two islands? 11 top row one island, 01 bottom — 1 at (1,0) separate = 2.</p></div><div class="step" data-n="7"><div class="step-title">Complexity</div><p>O(rows×cols) time and space for recursion stack.</p></div></div>
+</div><div class="walkthrough">
+  <h4>Course Schedule</h4>
+  <div class="steps"><div class="step" data-n="1"><div class="step-title">Clarify</div><p>n courses, prerequisites [a,b]= must take b before a. Can finish all?</p></div><div class="step" data-n="2"><div class="step-title">Examples</div><p>n=2, [[1,0]] → true. n=2, [[1,0],[0,1]] → cycle false.</p></div><div class="step" data-n="3"><div class="step-title">Brute Force</div><p>Try all orderings — O(n!) impossible.</p></div><div class="step" data-n="4"><div class="step-title">Optimize</div><p>Topo sort: if cycle in prereq graph, impossible. Kahn BFS indegree.</p></div><div class="step" data-n="5"><div class="step-title">Code</div><p>Build adj reversed (b→a), indegree[a]++. Queue indegree 0. Process all? seen==n.</p></div><div class="step" data-n="6"><div class="step-title">Test</div><p>Cycle 0↔1: both indegree 1, queue empty, seen=0≠2.</p></div><div class="step" data-n="7"><div class="step-title">Complexity</div><p>O(V+E).</p></div></div>
+</div><div class="walkthrough">
+  <h4>Coin Change</h4>
+  <div class="steps"><div class="step" data-n="1"><div class="step-title">Clarify</div><p>Coins unlimited, min coins for amount. Return -1 if impossible.</p></div><div class="step" data-n="2"><div class="step-title">Examples</div><p>coins=[1,2,5], amount=11 → 3 (5+5+1). amount=3, coins=[2] → -1.</p></div><div class="step" data-n="3"><div class="step-title">Brute Force</div><p>Recursion try each coin — exponential without memo.</p></div><div class="step" data-n="4"><div class="step-title">Optimize</div><p>DP: dp[a]=min coins for amount a. dp[a]=min(dp[a-c]+1) for c in coins.</p></div><div class="step" data-n="5"><div class="step-title">Code</div><p>dp[0]=0, rest inf. Loop a 1..amount, inner loop coins.</p></div><div class="step" data-n="6"><div class="step-title">Test</div><p>amount=11: dp builds up 1,2,1,2,1,2,2,3,3,2,3 for 10, then 3 for 11.</p></div><div class="step" data-n="7"><div class="step-title">Complexity</div><p>O(amount × |coins|) time, O(amount) space.</p></div></div>
+</div><div class="walkthrough">
+  <h4>Longest Increasing Subsequence</h4>
+  <div class="steps"><div class="step" data-n="1"><div class="step-title">Clarify</div><p>Strictly increasing subsequence (not contiguous). Return length.</p></div><div class="step" data-n="2"><div class="step-title">Examples</div><p>[10,9,2,5,3,7,101,18] → 4 (2,3,7,101).</p></div><div class="step" data-n="3"><div class="step-title">Brute Force</div><p>Generate all 2^n subsequences — too slow for n=10⁵.</p></div><div class="step" data-n="4"><div class="step-title">Optimize</div><p>Patience sorting: tails[i]=smallest tail of LIS len i+1. Binary search insert x.</p></div><div class="step" data-n="5"><div class="step-title">Code</div><p>bisect_left on tails. If x > all tails, append else replace.</p></div><div class="step" data-n="6"><div class="step-title">Test</div><p>Process 10: tails=[10]. 9: replace → [9]. 2: [2]. 5: [2,5]. ...</p></div><div class="step" data-n="7"><div class="step-title">Complexity</div><p>O(n log n) time, O(n) space.</p></div></div>
+</div><div class="walkthrough">
+  <h4>Word Break</h4>
+  <div class="steps"><div class="step" data-n="1"><div class="step-title">Clarify</div><p>String s, wordDict. Can s segment into dictionary words? Reuse words OK.</p></div><div class="step" data-n="2"><div class="step-title">Examples</div><p>'leetcode', ['leet','code'] → true. 'catsandog', ['cat','cats'...] → false.</p></div><div class="step" data-n="3"><div class="step-title">Brute Force</div><p>Recursion try all split points — O(2^n).</p></div><div class="step" data-n="4"><div class="step-title">Optimize</div><p>dp[i]=can segment s[0:i]? dp[0]=True. For j<i: dp[j] and s[j:i] in set.</p></div><div class="step" data-n="5"><div class="step-title">Code</div><p>wordSet=set(dict). Optimize j from max(0,i-maxLen) to i.</p></div><div class="step" data-n="6"><div class="step-title">Test</div><p>'leetcode': dp at 4 true (leet), dp at 8 true (code).</p></div><div class="step" data-n="7"><div class="step-title">Complexity</div><p>O(n² × m) with word length m for hash lookup.</p></div></div>
+</div><div class="walkthrough">
+  <h4>Merge Intervals</h4>
+  <div class="steps"><div class="step" data-n="1"><div class="step-title">Clarify</div><p>Array of [start,end]. Merge all overlapping.</p></div><div class="step" data-n="2"><div class="step-title">Examples</div><p>[[1,3],[2,6],[8,10]] → [[1,6],[8,10]]. Touching [1,4][4,5] → merge? Usually yes if <=.</p></div><div class="step" data-n="3"><div class="step-title">Brute Force</div><p>Repeatedly merge any overlap until stable — O(n²).</p></div><div class="step" data-n="4"><div class="step-title">Optimize</div><p>Sort by start. If current start <= last end, extend last end. Else append.</p></div><div class="step" data-n="5"><div class="step-title">Code</div><p>out=[intervals[0]]. For s,e in intervals[1:]: merge or append.</p></div><div class="step" data-n="6"><div class="step-title">Test</div><p>[1,3][2,6]: 2<=3 extend to [1,6]. [8,10] new.</p></div><div class="step" data-n="7"><div class="step-title">Complexity</div><p>O(n log n) from sort.</p></div></div>
+</div><div class="walkthrough">
+  <h4>LRU Cache</h4>
+  <div class="steps"><div class="step" data-n="1"><div class="step-title">Clarify</div><p>Capacity cap. get(key) return val or -1. put(key,val) evict LRU if full. O(1) both.</p></div><div class="step" data-n="2"><div class="step-title">Examples</div><p>cap=2: put(1,1), put(2,2), get(1)→1, put(3,3) evicts key 2.</p></div><div class="step" data-n="3"><div class="step-title">Brute Force</div><p>Dict + timestamp list — O(n) eviction.</p></div><div class="step" data-n="4"><div class="step-title">Optimize</div><p>HashMap key→Node in doubly linked list. Head=MRU, tail=LRU.</p></div><div class="step" data-n="5"><div class="step-title">Code</div><p>get: move node to head. put: update or insert head, evict tail if over cap.</p></div><div class="step" data-n="6"><div class="step-title">Test</div><p>After get(1), 1 is MRU. put(3) evicts 2 not 1.</p></div><div class="step" data-n="7"><div class="step-title">Complexity</div><p>O(1) get and put.</p></div></div>
+</div><div class="walkthrough">
+  <h4>Trapping Rain Water</h4>
+  <div class="steps"><div class="step" data-n="1"><div class="step-title">Clarify</div><p>Elevation map array. How much water trapped after rain?</p></div><div class="step" data-n="2"><div class="step-title">Examples</div><p>[0,1,0,2,1,0,1,3,2,1,2,1] → 6.</p></div><div class="step" data-n="3"><div class="step-title">Brute Force</div><p>For each i, water += min(maxLeft,maxRight)-height[i] if positive. O(n²).</p></div><div class="step" data-n="4"><div class="step-title">Optimize</div><p>Two pointers l,r with maxL,maxR. Move smaller side — water on that side determined.</p></div><div class="step" data-n="5"><div class="step-title">Code</div><p>While l<r: update maxes, if height[l]<height[r] add max(0,maxL-h[l]) l++ else r--.</p></div><div class="step" data-n="6"><div class="step-title">Test</div><p>Classic array — pointer approach accumulates 6.</p></div><div class="step" data-n="7"><div class="step-title">Complexity</div><p>O(n) time, O(1) space.</p></div></div>
+</div><div class="walkthrough">
+  <h4>Serialize / Deserialize Binary Tree</h4>
+  <div class="steps"><div class="step" data-n="1"><div class="step-title">Clarify</div><p>Design codec: serialize tree to string, deserialize back. Same structure.</p></div><div class="step" data-n="2"><div class="step-title">Examples</div><p>[1,2,3,null,null,4,5] round-trip. Empty tree → 'null' or empty.</p></div><div class="step" data-n="3"><div class="step-title">Brute Force</div><p>JSON with nested objects — works but verbose.</p></div><div class="step" data-n="4"><div class="step-title">Optimize</div><p>BFS preorder with null markers, or comma-separated BFS level order.</p></div><div class="step" data-n="5"><div class="step-title">Code</div><p>Serialize: queue, append val or 'null'. Deserialize: split, rebuild with queue of indices.</p></div><div class="step" data-n="6"><div class="step-title">Test</div><p>Root 1, children 2,3 — string '1,2,3,null,null,null,null' style BFS.</p></div><div class="step" data-n="7"><div class="step-title">Complexity</div><p>O(n) both operations.</p></div></div>
+</div>
+</section><section class="section" id="roadmap">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">🗺️</div>
+    <div>
+      <div class="section-title c-amber">خارطة التعلم</div>
+      <div class="section-subtitle">16-Week Learning Roadmap</div>
+    </div>
+  </div>
+  <p class="lead">خطة منظمة — <strong>8 phases × 2 weeks</strong>. لا تقفز للـ DP قبل إتقان arrays و trees.</p>
+  <div class="roadmap-week"><div class="roadmap-week-title">Foundation — Weeks 1–2</div><ul><li>Complexity analysis</li><li>Arrays & strings</li><li>Hash maps</li><li>Two pointers intro</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">Linear DS — Weeks 3–4</div><ul><li>Linked lists, stack, queue</li><li>Sliding window</li><li>Fast & slow pointers</li><li>Prefix sum</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">Trees & Heaps — Weeks 5–6</div><ul><li>Binary tree traversals</li><li>BST operations</li><li>Heap & top-K</li><li>Trie basics</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">Graphs — Weeks 7–8</div><ul><li>BFS/DFS</li><li>Topo sort</li><li>Union-Find</li><li>Grid as graph</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">DP — Weeks 9–10</div><ul><li>1D/2D DP</li><li>Knapsack variants</li><li>LIS/LCS</li><li>State machine DP</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">Advanced — Weeks 11–12</div><ul><li>Greedy proofs</li><li>Bit manipulation</li><li>Dijkstra/Bellman-Ford</li><li>MST basics</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">Patterns & Review — Weeks 13–14</div><ul><li>Monotonic stack/queue</li><li>Binary search on answer</li><li>Mixed pattern review</li><li>Weak area drill</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">Mock Interviews — Weeks 15–16</div><ul><li>Timed LeetCode medium</li><li>Checklist review</li><li>Communication practice</li><li>System + DSA combo prep</li></ul></div>
+  <div class="info-box note"><div class="info-box-icon">💡</div><div>حل 2–3 مسائل يومياً. Week 15–16: mock interviews مع timer 45 min.</div></div>
+</section><section class="section" id="checklist">
+  <div class="section-header">
+    <div class="section-icon bg-green" style="font-size:22px;">✅</div>
+    <div>
+      <div class="section-title c-teal">Checklist المقابلة + Resources</div>
+      <div class="section-subtitle">Pre/During Interview + Platforms</div>
+    </div>
+  </div>
+  <p class="lead">استخدم هذه القائمة قبل كل mock interview حقيقي.</p>
+  <div class="grid-2">
+    <div class="card bg-purple"><div class="card-title c-purple">Pre-Interview</div>
+      <p>✓ IDE/language ready<br>✓ Quiet environment<br>✓ Paper for examples<br>✓ Review 2 weak patterns<br>✓ Sleep + hydration</p>
+    </div>
+    <div class="card bg-teal"><div class="card-title c-teal">During Interview</div>
+      <p>✓ Repeat problem aloud<br>✓ Ask clarifying questions<br>✓ Start brute force<br>✓ Think aloud while coding<br>✓ Test with example<br>✓ State complexity</p>
+    </div>
+  </div>
+  <div class="pattern-group"><div class="pattern-group-title">Practice Platforms</div></div>
+  <div class="grid-3">
+    <div class="card"><div class="card-title">LeetCode</div><p>Primary for FAANG interviews. Premium for company tags. 3000+ problems tagged by topic.</p></div>
+    <div class="card"><div class="card-title">NeetCode 150</div><p>Curated topic map — best structured path.</p></div>
+    <div class="card"><div class="card-title">Blind 75</div><p>High-frequency subset — good revision list.</p></div>
+    <div class="card"><div class="card-title">Codeforces</div><p>Competitive programming — speed & math.</p></div>
+    <div class="card"><div class="card-title">HackerRank</div><p>Screening tests, beginner friendly.</p></div>
+    <div class="card"><div class="card-title">Pramp / Interviewing.io</div><p>Peer mock interviews with feedback.</p></div>
+  </div>
+  <div class="pattern-group"><div class="pattern-group-title">Essential Books</div></div>
+  <div class="grid-3">
+    <div class="card bg-purple"><div class="card-title c-purple">Cracking the Coding Interview</div><p><strong>CTCI</strong> — Gayle McDowell. 189 questions + interview process, big-O, data structures. Best first book for interview prep.</p></div>
+    <div class="card bg-teal"><div class="card-title c-teal">Introduction to Algorithms</div><p><strong>CLRS</strong> — comprehensive reference for proofs, advanced algorithms, complexity. Deep understanding — not for cramming.</p></div>
+    <div class="card bg-amber"><div class="card-title c-amber">How to Use Together</div><p>CTCI for patterns + interview strategy. CLRS when you need rigorous proof. LeetCode for daily practice applying both.</p></div>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">📈</div>
+    <div><strong>Difficulty progression:</strong> Easy (patterns) → Medium (combine patterns) → Hard (DP/graph optimization). Don't skip Easy — they teach communication.</div>
+  </div>
+  <div class="info-box note">
+    <div class="info-box-icon">📚</div>
+    <div><strong>Companion guides:</strong> راجع <span style="color:var(--purple2);">OOD_Complete_Guide.html</span> للـ design patterns و <span style="color:var(--purple2);">System_Design_Complete_Guide.html</span> للمقابلات الكبيرة.</div>
+  </div>
+</section>
+
+<footer>
+  <p>🎓 Problem Solving Complete Guide · <span>Python</span> examples · 14 patterns · 12 walkthroughs</p>
+  <p style="margin-top:8px;">مرافق: OOD_Complete_Guide.html · System_Design_Complete_Guide.html</p>
+  <p style="margin-top:8px;">حل المسائل مهارة — pattern recognition + practice + communication.</p>
+</footer>
+
+</div>
+
+</body>
+</html>
