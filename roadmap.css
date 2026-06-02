@@ -551,6 +551,8 @@ pre {
 }
 .compare-table tr:hover td { background: rgba(255,255,255,.02); }
 .compare-table td:first-child { font-family: var(--eng); color: var(--text); font-weight: 500; }
+body.page-guide .compare-table a { color: var(--purple2); text-decoration: none; }
+body.page-guide .compare-table a:hover { text-decoration: underline; }
 .table-wrap {
   overflow-x: auto;
   border: 1px solid var(--border);
@@ -744,7 +746,8 @@ body.page-rdbms .roadmap-week a {
   text-decoration: none;
 }
 body.page-rdbms .roadmap-week a:hover { text-decoration: underline; }
-body.page-guide .pattern-card[id] { scroll-margin-top: 24px; }
+body.page-guide .pattern-card[id],
+body.page-guide [id^="topic-"] { scroll-margin-top: 24px; }
 body.page-guide .pattern-meta { font-size: 12px; color: var(--text3); margin-top: 6px; }
 body.page-guide .pattern-meta span { margin-left: 12px; }
 body.page-guide .walkthrough { border-right: 3px solid var(--teal); padding-right: 16px; margin-bottom: 28px; }

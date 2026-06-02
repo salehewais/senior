@@ -389,36 +389,666 @@
   </div>
   <p class="lead">Pattern recognition = <strong>80% من حل المسائل في المقابلة</strong>. تعلّم متى تستخدم كل pattern قبل حفظ الحلول.</p>
   <div class="info-box tip"><div class="info-box-icon">💡</div><div>اسأل نفسك: array مرتب؟ subarray contiguous؟ tree؟ graph؟ optimization؟ → pattern.</div></div>
+  <div class="pattern-group" id="essential-patterns-table">
+    <div class="pattern-group-title">Essential Interview Patterns — مرجع سريع</div>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:16px;">أهم <strong>15 pattern</strong> في مقابلات LeetCode — من <a href="Essential%20Coding%20Interview%20Problem%20Patterns.xlsx">Essential Coding Interview Problem Patterns.xlsx</a>. اضغط اسم الـ pattern للقفز على الكود والأمثلة بالأسفل.</p>
+    <div class="table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Pattern</th>
+            <th>Primary use case</th>
+            <th>Example problem</th>
+            <th>Complexity gain</th>
+            <th>Key DS / algo</th>
+            <th>LeetCode topics</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><a href="#topic-prefix-sum">Prefix Sum</a></td><td>Sum of subarray across many queries</td><td>Range sum between indices i and j</td><td>O(N·M) → O(1) per query</td><td>Prefix sum array</td><td>Range Sum Queries</td></tr>
+          <tr><td><a href="#topic-two-pointers">Two Pointers</a></td><td>Compare or move from both ends / same direction</td><td>Check if a string is a palindrome</td><td>O(N²) → O(N)</td><td>Two pointer variables</td><td>Two Pointers, Strings, Arrays</td></tr>
+          <tr><td><a href="#topic-sliding-window">Sliding Window</a></td><td>Contiguous subarray/substring matching criteria</td><td>Subarray of size K with maximum sum</td><td>O(N·K) → O(N)</td><td>Window sum / state variables</td><td>Sliding Window, Arrays, Strings</td></tr>
+          <tr><td><a href="#pattern-fast-slow">Fast &amp; Slow Pointers</a></td><td>Cycle detection or middle of linked list</td><td>Linked list has a cycle?</td><td>Linear-time cycle detection</td><td>Two speeds (1 step vs 2 steps)</td><td>Linked List, Cycle Detection</td></tr>
+          <tr><td><a href="#pattern-in-place-reversal">Linked List In-place Reversal</a></td><td>Rewire nodes without extra space</td><td>Reverse a linked list</td><td>O(N) time, O(1) space</td><td>Prev / curr / next pointers</td><td>Linked List</td></tr>
+          <tr><td><a href="#pattern-monotonic-stack">Monotonic Stack</a></td><td>Next greater / next smaller element</td><td>Next greater element for each item</td><td>O(N²) → O(N)</td><td>Stack</td><td>Stacks, Next Greater Element</td></tr>
+          <tr><td><a href="#topic-heap">Top K Elements</a></td><td>K largest, smallest, or most frequent</td><td>Three largest elements in an array</td><td>O(N log N) → O(N log K)</td><td>Min-heap (K largest) or max-heap</td><td>Heaps, Priority Queue</td></tr>
+          <tr><td><a href="#pattern-sorting-intervals">Overlapping Intervals</a></td><td>Merge, insert, or intersect intervals</td><td>Merge all overlapping intervals</td><td>Sort + single pass on ranges</td><td>Sort by start, list merge</td><td>Intervals, Sorting</td></tr>
+          <tr><td><a href="#pattern-modified-binary-search">Modified Binary Search</a></td><td>Search rotated / nearly sorted arrays</td><td>Search in rotated sorted array</td><td>O(N) → O(log N)</td><td>Binary search variant</td><td>Binary Search</td></tr>
+          <tr><td><a href="#topic-trees">Binary Tree Traversal</a></td><td>Pre / in / post / level order visits</td><td>BST values in sorted order (inorder)</td><td>O(N) traversal tuned to task</td><td>Stack, queue, recursion</td><td>Trees, Binary Trees</td></tr>
+          <tr><td><a href="#topic-graphs">Depth First Search (DFS)</a></td><td>Explore all paths / branches</td><td>Path between nodes, connected components</td><td>O(V + E) systematic search</td><td>Stack or recursion + visited</td><td>Graphs, Trees, DFS</td></tr>
+          <tr><td><a href="#topic-graphs">Breadth First Search (BFS)</a></td><td>Level-by-level; shortest unweighted path</td><td>Shortest word transformation sequence</td><td>Shortest path in unweighted graphs</td><td>Queue + visited</td><td>Graphs, Trees, BFS</td></tr>
+          <tr><td><a href="#topic-graphs">Matrix Traversal</a></td><td>Grid as graph — cells are nodes</td><td>Number of Islands (connected 1s)</td><td>O(rows × cols)</td><td>DFS / BFS on 2D grid</td><td>Matrix, Graphs</td></tr>
+          <tr><td><a href="#topic-backtracking">Backtracking</a></td><td>Try all paths; prune dead ends</td><td>Generate all subsets of an array</td><td>Prunes exponential search space</td><td>Recursion + undo</td><td>Backtracking, Permutations, Combinations</td></tr>
+          <tr><td><a href="#topic-basic-dp">Dynamic Programming (DP)</a></td><td>Optimization with overlapping subproblems</td><td>LCS, 0/1 Knapsack</td><td>Exponential → polynomial (e.g. O(2ⁿ) → O(N²))</td><td>Memoization or tabulation</td><td>Dynamic Programming</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info-box note" style="margin-top:12px;"><div class="info-box-icon">📎</div><div><strong>Source:</strong> <em>LeetCode was HARD until I Learned these 15 Patterns</em> — full sheet: <a href="Essential%20Coding%20Interview%20Problem%20Patterns.xlsx">Essential Coding Interview Problem Patterns.xlsx</a>.</div></div>
+  </div>
   <div class="pattern-group">
     <div class="pattern-group-title">Core Topics (with examples)</div>
-    <div class="grid-2">
-      <div class="card"><div class="card-title">Arrays / Strings</div><p>Patterns: <a href="#pattern-two-pointers">Two pointers</a>, <a href="#pattern-sliding-window">Sliding window</a>, <a href="#pattern-prefix-sum">Prefix sum</a>. Examples: Two Sum II, Longest Substring Without Repeating, Subarray Sum Equals K.</p></div>
-      <div class="card"><div class="card-title">Two Pointers</div><p><a href="#pattern-two-pointers">#pattern-two-pointers</a>. Examples: Two Sum II, 3Sum, Container With Most Water.</p></div>
-      <div class="card"><div class="card-title">Sliding Window</div><p><a href="#pattern-sliding-window">#pattern-sliding-window</a>. Examples: Longest Substring Without Repeating, Min Window Substring.</p></div>
-      <div class="card"><div class="card-title">Prefix Sum</div><p><a href="#pattern-prefix-sum">#pattern-prefix-sum</a>. Examples: Subarray Sum Equals K, Range Sum Query.</p></div>
-      <div class="card"><div class="card-title">Recursion</div><p>Use base case + invariants. Examples: recursive DFS traversals, recursive backtracking branches. <a href="#fundamentals">#fundamentals</a>.</p></div>
-      <div class="card"><div class="card-title">Time &amp; Space Complexity</div><p>Estimate growth & choose the right approach. Examples: O(n) vs O(n log n) vs O(2^n). <a href="#complexity">#complexity</a>.</p></div>
-      <div class="card"><div class="card-title">Sorting &amp; Binary Search</div><p>Order enables faster search. Examples: Merge Intervals, Search Rotated Array. <a href="#sorting">#sorting</a> + <a href="#pattern-binary-search">#pattern-binary-search</a>.</p></div>
-      <div class="card"><div class="card-title">Linked List</div><p>Fast/slow + in-place reversal. Examples: Find Middle, Reverse Linked List. <a href="#ds-linear">#ds-linear</a>.</p></div>
-      <div class="card"><div class="card-title">Stack / Queue</div><p>LIFO/FIFO for parsing + traversal. Examples: Valid Parentheses (stack), Course Schedule BFS (queue). <a href="#ds-linear">#ds-linear</a>, <a href="#traversal">#traversal</a>.</p></div>
-      <div class="card"><div class="card-title">Deque</div><p>Monotonic deque for sliding max. Example: Sliding Window Maximum. <a href="#pattern-monotonic-queue">#pattern-monotonic-queue</a>.</p></div>
-      <div class="card"><div class="card-title">Hash Table</div><p>O(1) lookup & grouping. Examples: Two Sum, Group Anagrams. <a href="#ds-hash-trees">#ds-hash-trees</a>.</p></div>
-      <div class="card"><div class="card-title">Set / Map</div><p>Dedup + frequency bookkeeping. Examples: visited sets in graphs, counting occurrences. <a href="#ds-hash-trees">#ds-hash-trees</a>.</p></div>
-      <div class="card"><div class="card-title">Recursion Tree</div><p>Visualize the call tree to predict branching & cost. Examples: subsets/permutations branching, N-Queens. <a href="#fundamentals">#fundamentals</a>.</p></div>
-      <div class="card"><div class="card-title">Backtracking</div><p>Choose → explore → unchoose (undo). Examples: Subsets, Permutations, N-Queens, Sudoku. <a href="#traversal">#traversal</a>.</p></div>
-      <div class="card"><div class="card-title">Basic Dynamic Programming</div><p>Memo/tabulation for overlapping subproblems. Examples: Climbing Stairs, House Robber, Coin Change. <a href="#dp">#dp</a>.</p></div>
-      <div class="card"><div class="card-title">Trees</div><p>Hierarchical data + traversals. Examples: Inorder traversal, Diameter of Binary Tree. <a href="#ds-hash-trees">#ds-hash-trees</a>.</p></div>
-      <div class="card"><div class="card-title">Binary Search Tree</div><p>Ordered tree properties. Examples: Validate Binary Search Tree, Kth Smallest in BST. <a href="#ds-hash-trees">#ds-hash-trees</a>.</p></div>
-      <div class="card"><div class="card-title">Heap</div><p>Efficient top-K. Examples: Kth Largest Element, Merge K Sorted Lists. <a href="#pattern-top-k">#pattern-top-k</a> + <a href="#pattern-k-way-merge">#pattern-k-way-merge</a>.</p></div>
-      <div class="card"><div class="card-title">Priority Queue</div><p>Heap-powered scheduling/selection. Examples: IPO, K Closest Points to Origin. <a href="#pattern-top-k">#pattern-top-k</a>.</p></div>
-      <div class="card"><div class="card-title">Graphs (BFS / DFS)</div><p>Explore graph states. Examples: Number of Islands (DFS), shortest path in unweighted graphs (BFS). <a href="#traversal">#traversal</a>.</p></div>
-      <div class="card"><div class="card-title">Union-Find</div><p>Connected components + cycle detection. Examples: Number of Provinces, Redundant Connection. <a href="#ds-graph-advanced">#ds-graph-advanced</a>.</p></div>
-      <div class="card"><div class="card-title">Greedy</div><p>Make the locally optimal choice that stays globally optimal. Examples: interval scheduling variants, activity selection. <a href="#greedy-dc">#greedy-dc</a>.</p></div>
-      <div class="card"><div class="card-title">Advanced DP</div><p>Harder state spaces: interval/tree/digit DP. Examples: Edit Distance, Burst Balloons, Digit DP. <a href="#dp">#dp</a>.</p></div>
-      <div class="card"><div class="card-title">Binary Search on Answer</div><p>Binary search over a feasible value range. Examples: Koko Eating Bananas, Capacity to Ship Packages Within D Days. <a href="#pattern-binary-search">#pattern-binary-search</a>.</p></div>
-    </div>
+    <div class="info-box note" style="margin-bottom:16px;"><div class="info-box-icon">👇</div><div>اضغط <strong>عرض الكود ↓</strong> على أي بطاقة لرؤية مثال Python — نفس أسلوب الـ 14 patterns بالأسفل.</div></div>
+<div class="pattern-card" id="topic-arrays-strings">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Arrays / Strings</span>
+    <span class="tag">Linear</span>
   </div>
-  <div class="pattern-group"><div class="pattern-group-title">14 Essential Patterns</div><div class="pattern-card" id="pattern-two-pointers">
+  <div class="pattern-desc">Two pointers, sliding window, prefix sum on contiguous data.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Two Sum II, Longest Substring Without Repeating, Valid Anagram</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ StringBuilder pattern, anagram check</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Valid anagram — O(n) time, O(1) space if charset fixed</span>
+<span class="kw">from</span> collections <span class="kw">import</span> Counter
+<span class="kw">def</span> <span class="fn">is_anagram</span>(s, t):
+    <span class="kw">return</span> Counter(s) == Counter(t)
+
+<span class="cm"># Palindrome — two pointers on string</span>
+<span class="kw">def</span> <span class="fn">is_palindrome</span>(s):
+    l, r = <span class="num">0</span>, <span class="fn">len</span>(s)-<span class="num">1</span>
+    <span class="kw">while</span> l < r:
+        <span class="kw">if</span> s[l] != s[r]: <span class="kw">return</span> <span class="kw">False</span>
+        l += <span class="num">1</span>; r -= <span class="num">1</span>
+    <span class="kw">return</span> <span class="kw">True</span></pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-two-pointers">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Two Pointers</span>
+    <span class="tag">Sorted array</span>
+  </div>
+  <div class="pattern-desc">Two indices move toward each other or same direction.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Two Sum II, 3Sum, Container With Most Water</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ Sort first for 3Sum; skip duplicates</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">two_sum_sorted</span>(nums, target):
+    l, r = <span class="num">0</span>, <span class="fn">len</span>(nums)-<span class="num">1</span>
+    <span class="kw">while</span> l < r:
+        s = nums[l] + nums[r]
+        <span class="kw">if</span> s == target: <span class="kw">return</span> [l+<span class="num">1</span>, r+<span class="num">1</span>]
+        <span class="kw">if</span> s < target: l += <span class="num">1</span>
+        <span class="kw">else</span>: r -= <span class="num">1</span>
+    <span class="kw">return</span> []</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-sliding-window">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Sliding Window</span>
+    <span class="tag">Subarray/substring</span>
+  </div>
+  <div class="pattern-desc">Fixed or variable window on contiguous segment.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Longest Substring Without Repeating, Min Window Substring</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ Shrink left when constraint breaks</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">longest_unique</span>(s):
+    seen, l, best = {}, <span class="num">0</span>, <span class="num">0</span>
+    <span class="kw">for</span> r, c <span class="kw">in</span> <span class="fn">enumerate</span>(s):
+        <span class="kw">if</span> c <span class="kw">in</span> seen <span class="kw">and</span> seen[c] >= l: l = seen[c]+<span class="num">1</span>
+        seen[c] = r
+        best = <span class="fn">max</span>(best, r-l+<span class="num">1</span>)
+    <span class="kw">return</span> best</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-prefix-sum">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Prefix Sum</span>
+    <span class="tag">Range sum</span>
+  </div>
+  <div class="pattern-desc">prefix[i] = sum(nums[0..i]); pair with hash map.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Subarray Sum Equals K, Range Sum Query</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ Initialize map with {0:1}</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">subarray_sum</span>(nums, k):
+    count, pre, mp = <span class="num">0</span>, <span class="num">0</span>, {0: <span class="num">1</span>}
+    <span class="kw">for</span> x <span class="kw">in</span> nums:
+        pre += x
+        count += mp.get(pre - k, <span class="num">0</span>)
+        mp[pre] = mp.get(pre, <span class="num">0</span>) + <span class="num">1</span>
+    <span class="kw">return</span> count</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-recursion">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Recursion</span>
+    <span class="tag">Base case</span>
+  </div>
+  <div class="pattern-desc">Function calls itself; always define base case + progress.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Tree DFS, factorial, Fibonacci with memo</div>
+  <div class="pattern-meta"><span>⏱ O(n) with memo</span><span>⚠️ Missing base case → stack overflow</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">fib</span>(n, memo=None):
+    <span class="kw">if</span> memo <span class="kw">is</span> <span class="kw">None</span>: memo = {}
+    <span class="kw">if</span> n <= <span class="num">1</span>: <span class="kw">return</span> n
+    <span class="kw">if</span> n <span class="kw">in</span> memo: <span class="kw">return</span> memo[n]
+    memo[n] = <span class="fn">fib</span>(n-<span class="num">1</span>, memo) + <span class="fn">fib</span>(n-<span class="num">2</span>, memo)
+    <span class="kw">return</span> memo[n]</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-complexity">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Time & Space Complexity</span>
+    <span class="tag">Big-O</span>
+  </div>
+  <div class="pattern-desc">State time AND space after every solution.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Compare O(n) hash vs O(n²) nested loops</div>
+  <div class="pattern-meta"><span>⏱ Varies</span><span>⚠️ n ≤ 10⁵ → need O(n) or O(n log n)</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># O(n) time, O(n) space — hash map one pass</span>
+<span class="kw">def</span> <span class="fn">two_sum</span>(nums, target):
+    seen = {}
+    <span class="kw">for</span> i, x <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+        <span class="kw">if</span> target - x <span class="kw">in</span> seen:
+            <span class="kw">return</span> [seen[target-x], i]
+        seen[x] = i
+
+<span class="cm"># O(n²) time, O(1) space — brute force (too slow for large n)</span>
+<span class="kw">def</span> <span class="fn">two_sum_brute</span>(nums, target):
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums)):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i+<span class="num">1</span>, <span class="fn">len</span>(nums)):
+            <span class="kw">if</span> nums[i]+nums[j] == target: <span class="kw">return</span> [i, j]</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-sorting-binary-search">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Sorting & Binary Search</span>
+    <span class="tag">Order</span>
+  </div>
+  <div class="pattern-desc">Sort to unlock binary search or greedy on intervals.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Merge Intervals, Search in Rotated Sorted Array</div>
+  <div class="pattern-meta"><span>⏱ O(n log n) sort</span><span>⚠️ Use mid = lo + (hi-lo)//2</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">merge_intervals</span>(iv):
+    iv.sort(key=<span class="kw">lambda</span> x: x[0])
+    out = [iv[0]]
+    <span class="kw">for</span> s, e <span class="kw">in</span> iv[1:]:
+        <span class="kw">if</span> s <= out[-1][1]: out[-1][1] = <span class="fn">max</span>(out[-1][1], e)
+        <span class="kw">else</span>: out.append([s, e])
+    <span class="kw">return</span> out
+
+<span class="kw">def</span> <span class="fn">binary_search</span>(nums, target):
+    lo, hi = <span class="num">0</span>, <span class="fn">len</span>(nums)-<span class="num">1</span>
+    <span class="kw">while</span> lo <= hi:
+        mid = lo + (hi-lo)//<span class="num">2</span>
+        <span class="kw">if</span> nums[mid] == target: <span class="kw">return</span> mid
+        <span class="kw">if</span> nums[mid] < target: lo = mid+<span class="num">1</span>
+        <span class="kw">else</span>: hi = mid-<span class="num">1</span>
+    <span class="kw">return</span> -<span class="num">1</span></pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-linked-list">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Linked List</span>
+    <span class="tag">Pointers</span>
+  </div>
+  <div class="pattern-desc">Fast/slow pointers, in-place reversal, merge sorted lists.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Reverse Linked List, Linked List Cycle, Merge Two Sorted Lists</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ Save next before rewiring pointers</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">reverse_list</span>(head):
+    prev, curr = <span class="kw">None</span>, head
+    <span class="kw">while</span> curr:
+        nxt = curr.next
+        curr.next = prev
+        prev, curr = curr, nxt
+    <span class="kw">return</span> prev
+
+<span class="kw">def</span> <span class="fn">middle_node</span>(head):
+    slow = fast = head
+    <span class="kw">while</span> fast <span class="kw">and</span> fast.next:
+        slow, fast = slow.next, fast.next.next
+    <span class="kw">return</span> slow</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-stack-queue">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Stack / Queue</span>
+    <span class="tag">LIFO / FIFO</span>
+  </div>
+  <div class="pattern-desc">Stack for matching/parsing; queue for BFS levels.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Valid Parentheses, Course Schedule (BFS topo)</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ BFS uses queue; DFS uses stack/recursion</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Stack — valid parentheses</span>
+<span class="kw">def</span> <span class="fn">is_valid</span>(s):
+    st, pairs = [], {<span class="str">")"</span>: <span class="str">"("</span>, <span class="str">"]"</span>: <span class="str">"["</span>, <span class="str">"}"</span>: <span class="str">"{"</span>}
+    <span class="kw">for</span> c <span class="kw">in</span> s:
+        <span class="kw">if</span> c <span class="kw">in</span> pairs:
+            <span class="kw">if not</span> st <span class="kw">or</span> st.pop() != pairs[c]: <span class="kw">return</span> <span class="kw">False</span>
+        <span class="kw">else</span>: st.append(c)
+    <span class="kw">return not</span> st
+
+<span class="cm"># Queue — BFS shortest path (unweighted)</span>
+<span class="kw">from</span> collections <span class="kw">import</span> deque
+<span class="kw">def</span> <span class="fn">bfs</span>(start, adj):
+    q, seen = deque([start]), {start}
+    <span class="kw">while</span> q:
+        u = q.popleft()
+        <span class="kw">for</span> v <span class="kw">in</span> adj[u]:
+            <span class="kw">if</span> v <span class="kw">not in</span> seen:
+                seen.add(v); q.append(v)</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-deque">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Deque</span>
+    <span class="tag">Sliding max</span>
+  </div>
+  <div class="pattern-desc">Double-ended queue; monotonic deque for window max.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Sliding Window Maximum</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ Pop stale indices outside window</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">from</span> collections <span class="kw">import</span> deque
+<span class="kw">def</span> <span class="fn">max_sliding_window</span>(nums, k):
+    dq, out = deque(), []
+    <span class="kw">for</span> i, x <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+        <span class="kw">while</span> dq <span class="kw">and</span> nums[dq[-1]] <= x: dq.pop()
+        dq.append(i)
+        <span class="kw">if</span> dq[0] <= i-k: dq.popleft()
+        <span class="kw">if</span> i >= k-<span class="num">1</span>: out.append(nums[dq[0]])
+    <span class="kw">return</span> out</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-hash-table">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Hash Table</span>
+    <span class="tag">O(1) lookup</span>
+  </div>
+  <div class="pattern-desc">dict for complement/frequency/grouping.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Two Sum, Group Anagrams, Subarray Sum Equals K</div>
+  <div class="pattern-meta"><span>⏱ O(n) avg</span><span>⚠️ Worst O(n) if many collisions</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">two_sum</span>(nums, target):
+    seen = {}
+    <span class="kw">for</span> i, x <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+        <span class="kw">if</span> target - x <span class="kw">in</span> seen:
+            <span class="kw">return</span> [seen[target-x], i]
+        seen[x] = i
+
+<span class="kw">from</span> collections <span class="kw">import</span> defaultdict
+<span class="kw">def</span> <span class="fn">group_anagrams</span>(strs):
+    g = defaultdict(<span class="fn">list</span>)
+    <span class="kw">for</span> s <span class="kw">in</span> strs: g[tuple(sorted(s))].append(s)
+    <span class="kw">return</span> <span class="fn">list</span>(g.values())</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-set-map">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Set / Map</span>
+    <span class="tag">Dedup + count</span>
+  </div>
+  <div class="pattern-desc">set for visited; map/Counter for frequencies.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Contains Duplicate, Top K Frequent Elements</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ defaultdict avoids key checks</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">from</span> collections <span class="kw">import</span> Counter
+<span class="kw">def</span> <span class="fn">top_k_frequent</span>(nums, k):
+    freq = Counter(nums)
+    <span class="kw">return</span> [x <span class="kw">for</span> x, _ <span class="kw">in</span> freq.most_common(k)]
+
+<span class="kw">def</span> <span class="fn">has_duplicate</span>(nums):
+    seen = set()
+    <span class="kw">for</span> x <span class="kw">in</span> nums:
+        <span class="kw">if</span> x <span class="kw">in</span> seen: <span class="kw">return</span> <span class="kw">True</span>
+        seen.add(x)
+    <span class="kw">return</span> <span class="kw">False</span></pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-recursion-tree">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Recursion Tree</span>
+    <span class="tag">Branching</span>
+  </div>
+  <div class="pattern-desc">Draw the call tree to estimate depth and total calls.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Fibonacci tree, subsets branching, permutations</div>
+  <div class="pattern-meta"><span>⏱ O(2ⁿ) naive</span><span>⚠️ Memoization prunes repeated subtrees</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="cm"># Subsets — each level: include or skip → 2^n leaves</span>
+<span class="kw">def</span> <span class="fn">subsets</span>(nums):
+    res, path = [], []
+    <span class="kw">def</span> <span class="fn">dfs</span>(i):
+        <span class="kw">if</span> i == <span class="fn">len</span>(nums):
+            res.append(path[:]); <span class="kw">return</span>
+        path.append(nums[i]); <span class="fn">dfs</span>(i+<span class="num">1</span>); path.pop()  <span class="cm"># include</span>
+        <span class="fn">dfs</span>(i+<span class="num">1</span>)                                      <span class="cm"># skip</span>
+    <span class="fn">dfs</span>(<span class="num">0</span>); <span class="kw">return</span> res
+
+<span class="cm"># fib(4) tree: fib(3)+fib(2) → ~9 calls without memo, ~5 with memo</span></pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-backtracking">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Backtracking</span>
+    <span class="tag">Choose/undo</span>
+  </div>
+  <div class="pattern-desc">DFS + undo when path fails; prune early.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Subsets, Permutations, Combination Sum, N-Queens</div>
+  <div class="pattern-meta"><span>⏱ O(2ⁿ) or O(n!)</span><span>⚠️ Template: choose → explore → unchoose</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">permute</span>(nums):
+    res = []
+    <span class="kw">def</span> <span class="fn">dfs</span>(path, used):
+        <span class="kw">if</span> <span class="fn">len</span>(path) == <span class="fn">len</span>(nums):
+            res.append(path[:]); <span class="kw">return</span>
+        <span class="kw">for</span> i, x <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+            <span class="kw">if</span> used[i]: <span class="kw">continue</span>
+            used[i] = <span class="kw">True</span>; path.append(x); <span class="fn">dfs</span>(path, used)
+            path.pop(); used[i] = <span class="kw">False</span>
+    <span class="fn">dfs</span>([], [<span class="kw">False</span>]*<span class="fn">len</span>(nums)); <span class="kw">return</span> res</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-basic-dp">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Basic Dynamic Programming</span>
+    <span class="tag">1D tabulation</span>
+  </div>
+  <div class="pattern-desc">Overlapping subproblems + optimal substructure.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Climbing Stairs, House Robber, Coin Change</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ Define state before coding</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">climb_stairs</span>(n):
+    <span class="kw">if</span> n <= <span class="num">2</span>: <span class="kw">return</span> n
+    a, b = <span class="num">1</span>, <span class="num">2</span>
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">3</span>, n+<span class="num">1</span>):
+        a, b = b, a+b
+    <span class="kw">return</span> b
+
+<span class="kw">def</span> <span class="fn">coin_change</span>(coins, amount):
+    dp = [<span class="fn">float</span>(<span class="str">'inf'</span>)] * (amount+<span class="num">1</span>); dp[<span class="num">0</span>] = <span class="num">0</span>
+    <span class="kw">for</span> a <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, amount+<span class="num">1</span>):
+        <span class="kw">for</span> c <span class="kw">in</span> coins:
+            <span class="kw">if</span> c <= a: dp[a] = <span class="fn">min</span>(dp[a], dp[a-c]+<span class="num">1</span>)
+    <span class="kw">return</span> dp[amount] <span class="kw">if</span> dp[amount] != <span class="fn">float</span>(<span class="str">'inf'</span>) <span class="kw">else</span> -<span class="num">1</span></pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-trees">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Trees</span>
+    <span class="tag">DFS/BFS</span>
+  </div>
+  <div class="pattern-desc">Recursive or iterative traversals on hierarchical nodes.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Maximum Depth, Diameter of Binary Tree, Level Order</div>
+  <div class="pattern-meta"><span>⏱ O(n)</span><span>⚠️ Pass min/max range for BST validation</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">max_depth</span>(root):
+    <span class="kw">if not</span> root: <span class="kw">return</span> <span class="num">0</span>
+    <span class="kw">return</span> <span class="num">1</span> + <span class="fn">max</span>(<span class="fn">max_depth</span>(root.left), <span class="fn">max_depth</span>(root.right))
+
+<span class="kw">def</span> <span class="fn">inorder</span>(root):
+    <span class="kw">return</span> <span class="fn">inorder</span>(root.left) + [root.val] + <span class="fn">inorder</span>(root.right) <span class="kw">if</span> root <span class="kw">else</span> []</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-bst">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Binary Search Tree</span>
+    <span class="tag">Ordered</span>
+  </div>
+  <div class="pattern-desc">Left < root < right; inorder gives sorted order.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Validate BST, Kth Smallest Element in BST</div>
+  <div class="pattern-meta"><span>⏱ O(h)</span><span>⚠️ Pass (lo, hi) bounds per node</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">is_valid_bst</span>(root, lo=<span class="fn">float</span>(<span class="str">'-inf'</span>), hi=<span class="fn">float</span>(<span class="str">'inf'</span>)):
+    <span class="kw">if not</span> root: <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">if not</span> (lo < root.val < hi): <span class="kw">return</span> <span class="kw">False</span>
+    <span class="kw">return</span> <span class="fn">is_valid_bst</span>(root.left, lo, root.val) <span class="kw">and</span> <span class="fn">is_valid_bst</span>(root.right, root.val, hi)
+
+<span class="kw">def</span> <span class="fn">kth_smallest</span>(root, k):
+    st, cur = [], root
+    <span class="kw">while</span> <span class="kw">True</span>:
+        <span class="kw">while</span> cur: st.append(cur); cur = cur.left
+        cur = st.pop(); k -= <span class="num">1</span>
+        <span class="kw">if</span> k == <span class="num">0</span>: <span class="kw">return</span> cur.val
+        cur = cur.right</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-heap">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Heap</span>
+    <span class="tag">Top-K</span>
+  </div>
+  <div class="pattern-desc">Min-heap size k for k largest; Python heapq is min-heap.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Kth Largest Element, Merge K Sorted Lists</div>
+  <div class="pattern-meta"><span>⏱ O(n log k)</span><span>⚠️ Negate values for max-heap trick</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">import</span> heapq
+<span class="kw">def</span> <span class="fn">kth_largest</span>(nums, k):
+    h = []
+    <span class="kw">for</span> x <span class="kw">in</span> nums:
+        heapq.heappush(h, x)
+        <span class="kw">if</span> <span class="fn">len</span>(h) > k: heapq.heappop(h)
+    <span class="kw">return</span> h[0]</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-priority-queue">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Priority Queue</span>
+    <span class="tag">Scheduling</span>
+  </div>
+  <div class="pattern-desc">Always process smallest/largest next — backed by heap.</div>
+  <div class="pattern-when"><strong>Examples:</strong> K Closest Points to Origin, IPO, Task Scheduler</div>
+  <div class="pattern-meta"><span>⏱ O(n log k)</span><span>⚠️ heapq.heappush/pop</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">import</span> heapq
+<span class="kw">def</span> <span class="fn">k_closest</span>(points, k):
+    <span class="cm"># max-heap of size k by distance (negate dist)</span>
+    h = []
+    <span class="kw">for</span> x, y <span class="kw">in</span> points:
+        d = x*x + y*y
+        heapq.heappush(h, (-d, x, y))
+        <span class="kw">if</span> <span class="fn">len</span>(h) > k: heapq.heappop(h)
+    <span class="kw">return</span> [[x, y] <span class="kw">for</span> _, x, y <span class="kw">in</span> h]</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-graphs">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Graphs (BFS / DFS)</span>
+    <span class="tag">V+E</span>
+  </div>
+  <div class="pattern-desc">DFS for components/paths; BFS for shortest unweighted path.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Number of Islands, Clone Graph, Shortest Path</div>
+  <div class="pattern-meta"><span>⏱ O(V+E)</span><span>⚠️ Mark visited to avoid cycles</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">num_islands</span>(grid):
+    <span class="kw">def</span> <span class="fn">dfs</span>(r, c):
+        <span class="kw">if</span> r<0 <span class="kw">or</span> c<0 <span class="kw">or</span> r>=<span class="fn">len</span>(grid) <span class="kw">or</span> c>=<span class="fn">len</span>(grid[0]) <span class="kw">or</span> grid[r][c]!=<span class="str">'1'</span>: <span class="kw">return</span>
+        grid[r][c] = <span class="str">'0'</span>
+        <span class="kw">for</span> dr, dc <span class="kw">in</span> [(0,1),(0,-1),(1,0),(-1,0)]: <span class="fn">dfs</span>(r+dr, c+dc)
+    cnt = <span class="num">0</span>
+    <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(grid)):
+        <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(grid[0])):
+            <span class="kw">if</span> grid[r][c]==<span class="str">'1'</span>: cnt += <span class="num">1</span>; <span class="fn">dfs</span>(r, c)
+    <span class="kw">return</span> cnt</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-union-find">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Union-Find</span>
+    <span class="tag">Components</span>
+  </div>
+  <div class="pattern-desc">Path compression + union by rank for near O(1) ops.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Number of Provinces, Redundant Connection, Accounts Merge</div>
+  <div class="pattern-meta"><span>⏱ O(α(n))</span><span>⚠️ find before union</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">class</span> <span class="cl">UnionFind</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, n):
+        self.parent = <span class="fn">list</span>(<span class="fn">range</span>(n))
+        self.rank = [<span class="num">0</span>] * n
+    <span class="kw">def</span> <span class="fn">find</span>(self, x):
+        <span class="kw">if</span> self.parent[x] != x:
+            self.parent[x] = self.<span class="fn">find</span>(self.parent[x])
+        <span class="kw">return</span> self.parent[x]
+    <span class="kw">def</span> <span class="fn">union</span>(self, a, b):
+        ra, rb = self.<span class="fn">find</span>(a), self.<span class="fn">find</span>(b)
+        <span class="kw">if</span> ra == rb: <span class="kw">return</span> <span class="kw">False</span>
+        <span class="kw">if</span> self.rank[ra] < self.rank[rb]: ra, rb = rb, ra
+        self.parent[rb] = ra
+        <span class="kw">if</span> self.rank[ra] == self.rank[rb]: self.rank[ra] += <span class="num">1</span>
+        <span class="kw">return</span> <span class="kw">True</span></pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-greedy">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Greedy</span>
+    <span class="tag">Local optimal</span>
+  </div>
+  <div class="pattern-desc">Pick best local choice; prove it stays globally optimal.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Jump Game, Non-overlapping Intervals, Activity Selection</div>
+  <div class="pattern-meta"><span>⏱ O(n log n) if sort</span><span>⚠️ Greedy fails on arbitrary coin denominations</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">can_jump</span>(nums):
+    reach = <span class="num">0</span>
+    <span class="kw">for</span> i, x <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+        <span class="kw">if</span> i > reach: <span class="kw">return</span> <span class="kw">False</span>
+        reach = <span class="fn">max</span>(reach, i + x)
+    <span class="kw">return</span> <span class="kw">True</span>
+
+<span class="kw">def</span> <span class="fn">erase_overlap</span>(iv):
+    iv.sort(key=<span class="kw">lambda</span> x: x[1])
+    end, cnt = <span class="fn">float</span>(<span class="str">'-inf'</span>), <span class="num">0</span>
+    <span class="kw">for</span> s, e <span class="kw">in</span> iv:
+        <span class="kw">if</span> s >= end: end = e; cnt += <span class="num">1</span>
+    <span class="kw">return</span> cnt</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-advanced-dp">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Advanced DP</span>
+    <span class="tag">2D / interval</span>
+  </div>
+  <div class="pattern-desc">Harder state: two strings, ranges, trees.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Edit Distance, Longest Common Subsequence, Burst Balloons</div>
+  <div class="pattern-meta"><span>⏱ O(n²) or more</span><span>⚠️ Fill base row/col first</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">min_distance</span>(a, b):
+    m, n = <span class="fn">len</span>(a), <span class="fn">len</span>(b)
+    dp = [[<span class="num">0</span>]*(n+<span class="num">1</span>) <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(m+<span class="num">1</span>)]
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(m+<span class="num">1</span>): dp[i][<span class="num">0</span>] = i
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n+<span class="num">1</span>): dp[<span class="num">0</span>][j] = j
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, m+<span class="num">1</span>):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, n+<span class="num">1</span>):
+            <span class="kw">if</span> a[i-<span class="num">1</span>] == b[j-<span class="num">1</span>]: dp[i][j] = dp[i-<span class="num">1</span>][j-<span class="num">1</span>]
+            <span class="kw">else</span>: dp[i][j] = <span class="num">1</span> + <span class="fn">min</span>(dp[i-<span class="num">1</span>][j], dp[i][j-<span class="num">1</span>], dp[i-<span class="num">1</span>][j-<span class="num">1</span>])
+    <span class="kw">return</span> dp[m][n]</pre>
+</div>
+  </div>
+</div>
+<div class="pattern-card" id="topic-binary-search-answer">
+  <div class="pattern-card-header">
+    <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Binary Search on Answer</span>
+    <span class="tag">Monotonic feasibility</span>
+  </div>
+  <div class="pattern-desc">Binary search the answer space, not the array index.</div>
+  <div class="pattern-when"><strong>Examples:</strong> Koko Eating Bananas, Capacity To Ship Packages, Split Array Largest Sum</div>
+  <div class="pattern-meta"><span>⏱ O(n log R)</span><span>⚠️ Check feasibility with greedy/linear scan</span></div>
+  <button class="code-toggle" onclick="toggleCode(this)">عرض الكود ↓</button>
+  <div class="collapsible">
+    <div class="code-wrap">
+  <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre><span class="kw">def</span> <span class="fn">min_eating_speed</span>(piles, h):
+    <span class="kw">def</span> <span class="fn">can</span>(k):
+        hrs = <span class="num">0</span>
+        <span class="kw">for</span> p <span class="kw">in</span> piles:
+            hrs += (p + k - <span class="num">1</span>) // k
+        <span class="kw">return</span> hrs <= h
+    lo, hi = <span class="num">1</span>, <span class="fn">max</span>(piles)
+    <span class="kw">while</span> lo < hi:
+        mid = lo + (hi-lo)//<span class="num">2</span>
+        <span class="kw">if</span> <span class="fn">can</span>(mid): hi = mid
+        <span class="kw">else</span>: lo = mid + <span class="num">1</span>
+    <span class="kw">return</span> lo</pre>
+</div>
+  </div>
+</div>
+  </div>  <div class="pattern-group"><div class="pattern-group-title">14 Essential Patterns</div><div class="pattern-card" id="pattern-two-pointers">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Two Pointers</span>
     <span class="tag">Sorted array</span>
