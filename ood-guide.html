@@ -18,6 +18,7 @@
 <!-- ───── SIDE NAV ───── -->
 <nav class="side-nav" id="sidenav">
   <div class="nav-logo">OOD Guide</div>
+  <a href="index.html" class="nav-link nav-link--hub"><span class="nav-dot"></span>← Road Map</a>
 
   <div class="nav-section">المقدمة</div>
   <a href="#intro"      class="nav-link"><span class="nav-dot"></span>ما هو OOD؟</a>
@@ -43,6 +44,8 @@
   <a href="#abstract"   class="nav-link"><span class="nav-dot"></span>Abstract vs Interface</a>
   <a href="#process"    class="nav-link"><span class="nav-dot"></span>OOD Process</a>
   <a href="#antipatterns" class="nav-link"><span class="nav-dot"></span>Anti-Patterns</a>
+  <div class="nav-section">الختام</div>
+  <a href="#roadmap" class="nav-link"><span class="nav-dot"></span>خارطة 8 أسابيع</a>
 </nav>
 
 <!-- ───── MAIN ───── -->
@@ -2277,9 +2280,27 @@ console.log(ast.<span class="fn">accept</span>(<span class="kw">new</span> <span
   </div>
 </section>
 
+<section class="section" id="roadmap">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">🗺️</div>
+    <div>
+      <div class="section-title c-amber">خارطة التعلم</div>
+      <div class="section-subtitle">8-Week Roadmap</div>
+    </div>
+  </div>
+  <p class="lead">محتوى الدليل جاهز — هذه خطة أسبوعية للمذاكرة قبل LLD interviews. <a href="index.html#master-roadmap">المسار الموحّد</a> يضع OOD في الأسابيع 5–8.</p>
+  <div class="roadmap-week"><div class="roadmap-week-title">Weeks 1–2</div><ul><li><a href="#pillars">4 Pillars</a></li><li><a href="#classes">Classes & Objects</a></li><li><a href="#relations">Relationships</a></li></ul></div>
+  <div class="roadmap-week"><div class="roadmap-week-title">Weeks 3–4</div><ul><li><a href="#solid">SOLID</a></li><li><a href="#dry-kiss">DRY / KISS / YAGNI</a></li></ul></div>
+  <div class="roadmap-week"><div class="roadmap-week-title">Weeks 5–6</div><ul><li><a href="#creational">Creational patterns</a></li><li><a href="#structural">Structural patterns</a></li></ul></div>
+  <div class="roadmap-week"><div class="roadmap-week-title">Week 7</div><ul><li><a href="#behavioral">Behavioral patterns</a></li><li><a href="#uml">UML & class diagrams</a></li></ul></div>
+  <div class="roadmap-week"><div class="roadmap-week-title">Week 8</div><ul><li><a href="#process">OOD process</a></li><li><a href="#antipatterns">Anti-patterns</a></li><li>Mock LLD (parking lot / elevator)</li></ul></div>
+  <div class="info-box note"><div class="info-box-icon">💡</div><div>بعد الأسبوع 8: ارسم class diagrams بسرعة واربط كل مسألة بـ pattern واحد على الأقل — انظر <a href="problem-solving-guide.html#framework">إطار PS</a> للتواصل أثناء الحل.</div></div>
+</section>
+
 <!-- FOOTER -->
 <footer>
   <p>🎓 OOD Complete Guide · Built with <span>TypeScript</span> examples · 25 patterns (23 GoF + Object Pool bonus)</p>
+  <p style="margin-top:8px;"><a href="index.html">← Road Map</a> · <a href="problem-solving-guide.html">Problem Solving</a> · <a href="system-design-guide.html">System Design</a></p>
   <p style="margin-top:8px;">الـ OOD مش حفظ patterns — ده طريقة تفكير. Practice وبتتحسن.</p>
 </footer>
 

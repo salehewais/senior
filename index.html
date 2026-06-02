@@ -38,13 +38,14 @@
 
     <div class="guides-grid">
 
-      <a href="OOD_Complete_Guide.html" class="guide-card guide-card--purple">
+      <a href="ood-guide.html" class="guide-card guide-card--purple">
         <div class="guide-card-icon" aria-hidden="true">🧩</div>
         <div class="guide-card-title">Object-Oriented Design</div>
         <div class="guide-card-title-ar">التصميم الكائني — OOD</div>
         <p class="guide-card-desc">
           من الـ 4 Pillars و SOLID إلى 25 Design Pattern و UML — دليل مرجعي كامل قبل ما تكتب كود.
         </p>
+        <p class="guide-card-hours">⏱ تقدير: 50–70 ساعة · خارطة 8 أسابيع</p>
         <div class="guide-card-tags">
           <span class="guide-card-tag">25 Patterns</span>
           <span class="guide-card-tag">SOLID</span>
@@ -56,16 +57,17 @@
         </div>
       </a>
 
-      <a href="System_Design_Complete_Guide.html" class="guide-card guide-card--teal">
+      <a href="system-design-guide.html" class="guide-card guide-card--teal">
         <div class="guide-card-icon" aria-hidden="true">🏗️</div>
         <div class="guide-card-title">System Design</div>
         <div class="guide-card-title-ar">تصميم الأنظمة</div>
         <p class="guide-card-desc">
           أنظمة موزعة، scalability، caching، و 25 مسألة مقابلة كلاسيكية — من الأساسيات للـ trade-offs.
         </p>
+        <p class="guide-card-hours">⏱ تقدير: 80–120 ساعة · خارطة 12 أسبوع</p>
         <div class="guide-card-tags">
           <span class="guide-card-tag">25 Problems</span>
-          <span class="guide-card-tag">8 Architectures</span>
+          <span class="guide-card-tag">9 Architectures</span>
           <span class="guide-card-tag">Distributed</span>
         </div>
         <div class="guide-card-footer">
@@ -74,15 +76,16 @@
         </div>
       </a>
 
-      <a href="Problem_Solving_Complete_Guide.html" class="guide-card guide-card--amber">
+      <a href="problem-solving-guide.html" class="guide-card guide-card--amber">
         <div class="guide-card-icon" aria-hidden="true">⚡</div>
         <div class="guide-card-title">Problem Solving</div>
         <div class="guide-card-title-ar">حل المسائل البرمجية</div>
         <p class="guide-card-desc">
           DSA، أنماط الحل، DP، graphs، وخطة 16 أسبوع — إطار عمل للمقابلات والمذاكرة اليومية.
         </p>
+        <p class="guide-card-hours">⏱ تقدير: 120–160 ساعة · خارطة 16 أسبوع</p>
         <div class="guide-card-tags">
-          <span class="guide-card-tag">15+ Patterns</span>
+          <span class="guide-card-tag">14 Patterns</span>
           <span class="guide-card-tag">16-Week Plan</span>
           <span class="guide-card-tag">Walkthroughs</span>
         </div>
@@ -92,13 +95,14 @@
         </div>
       </a>
 
-      <a href="rdbms-study-guide.html" class="guide-card guide-card--blue">
+      <a href="rdbms-guide.html" class="guide-card guide-card--blue">
         <div class="guide-card-icon" aria-hidden="true">🗄️</div>
         <div class="guide-card-title">RDBMS</div>
         <div class="guide-card-title-ar">قواعد البيانات العلائقية</div>
         <p class="guide-card-desc">
           SQL، normalization، indexes، transactions، و ACID — من الأساسيات لمواضيع الـ advanced.
         </p>
+        <p class="guide-card-hours">⏱ تقدير: 40–60 ساعة · خارطة 8 أسابيع</p>
         <div class="guide-card-tags">
           <span class="guide-card-tag">18 Topics</span>
           <span class="guide-card-tag">30+ Examples</span>
@@ -111,6 +115,55 @@
       </a>
 
     </div>
+  </section>
+
+  <section class="landing-section" id="master-roadmap" aria-labelledby="master-roadmap-heading">
+    <h2 class="landing-section-title" id="master-roadmap-heading">مسار مقترح — 32 أسبوع</h2>
+    <p class="landing-tagline" style="max-width:720px;margin:0 auto 28px;text-align:center;">
+      خطة موحّدة لمراجعة Senior interviews — كل صف يربطك بالدليل وقسم البداية. عدّل السرعة حسب خبرتك.
+    </p>
+    <div class="master-roadmap-wrap">
+      <table class="master-roadmap">
+        <thead>
+          <tr><th>المرحلة</th><th>الأسابيع</th><th>الدليل</th><th>التركيز</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Foundations</td>
+            <td>1–4</td>
+            <td><a href="rdbms-guide.html#roadmap">RDBMS</a> + <a href="problem-solving-guide.html#complexity">PS</a></td>
+            <td>SQL، normalization، <a href="problem-solving-guide.html#ds-hash-trees">arrays/hash</a>، تعقيد زمني</td>
+          </tr>
+          <tr>
+            <td>OOD</td>
+            <td>5–8</td>
+            <td><a href="ood-guide.html#roadmap">OOD</a></td>
+            <td><a href="ood-guide.html#pillars">Pillars</a> → <a href="ood-guide.html#solid">SOLID</a> → <a href="ood-guide.html#creational">patterns</a></td>
+          </tr>
+          <tr>
+            <td>DSA depth</td>
+            <td>9–16</td>
+            <td><a href="problem-solving-guide.html#roadmap">PS</a></td>
+            <td>اتبع خارطة الـ 16 أسبوع (trees → graphs → DP)</td>
+          </tr>
+          <tr>
+            <td>System design</td>
+            <td>17–28</td>
+            <td><a href="system-design-guide.html#roadmap">System Design</a></td>
+            <td>شبكات، DB، <a href="system-design-guide.html#caching">caching</a>، 25 تصميم كلاسيكي</td>
+          </tr>
+          <tr>
+            <td>Integration</td>
+            <td>29–32</td>
+            <td>الكل</td>
+            <td>أسبوعياً: مسألة coding + SD + LLD/mock</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--text3);">
+      فهارس و replication: إتقان على عقدة واحدة في <a href="rdbms-guide.html#s5" style="color:var(--blue2)">RDBMS</a>، ثم scale موزّع في <a href="system-design-guide.html#replication-sharding" style="color:var(--blue2)">SD</a>.
+    </p>
   </section>
 
 </main>

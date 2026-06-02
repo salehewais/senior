@@ -17,6 +17,7 @@
 
 <nav class="side-nav" id="sidenav">
   <div class="nav-logo">System Design</div>
+  <a href="index.html" class="nav-link nav-link--hub"><span class="nav-dot"></span>← Road Map</a>
   <div class="nav-section">المقدمة</div>
   <a href="#intro" class="nav-link"><span class="nav-dot"></span>ما هو تصميم الأنظمة؟</a>
   <a href="#requirements" class="nav-link"><span class="nav-dot"></span>المتطلبات</a>
@@ -107,7 +108,7 @@
     <div class="hero-stat"><div class="num">12</div><div class="lbl">أجزاء رئيسية</div></div>
     <div class="hero-stat"><div class="num">45+</div><div class="lbl">أقسام</div></div>
     <div class="hero-stat"><div class="num">25</div><div class="lbl">مسائل كلاسيكية</div></div>
-    <div class="hero-stat"><div class="num">8</div><div class="lbl">أنماط معمارية</div></div>
+    <div class="hero-stat"><div class="num">9</div><div class="lbl">أنماط معمارية</div></div>
     <div class="hero-stat"><div class="num">16</div><div class="lbl">محاور تعلم</div></div>
   </div>
 </div>
@@ -413,6 +414,7 @@ Bandwidth: 70K × 2KB ≈ 140MB/s read-heavy</pre>
       </tbody>
     </table>
   </div>
+  <div class="info-box note"><div class="info-box-icon">🔗</div><div>تفاصيل ACID على مستوى الـ RDBMS (isolation levels، locks): <a href="rdbms-guide.html#s6">RDBMS § Transactions</a>.</div></div>
 </section>
 
 <section class="section" id="consistency">
@@ -1552,6 +1554,10 @@ Write: Client → App → DB → Invalidate/Update cache
     </div>
   </div>
   <p class="lead">كل مسألة أدناه تتبع قالباً موحّداً: 7 خطوات من المتطلبات إلى pitfalls. تدرّب على 3–5 مسائل بعمق ثم skim الباقي.</p>
+  <div class="grid-2" style="margin-bottom:24px;">
+    <div class="card bg-teal"><div class="card-title c-teal">Tier 1 — Must (عمق)</div><p>URL Shortener، Rate Limiter، News Feed، Chat، Video، Dropbox، Uber، Payment، Search Engine، Notification — 2–3 مسائل/أسبوع في خارطة الأسابيع 9–11.</p></div>
+    <div class="card"><div class="card-title">Tier 2 — Skim</div><p>Paste، KV Store، Snowflake، Crawler، Yelp، Ticketmaster، Autocomplete، E-commerce، Metrics، Webhooks، Recommendations، Email، Hotel، Collab Editor، Leaderboard.</p></div>
+  </div>
   <div class="table-wrap">
     <table class="compare-table">
       <thead><tr><th>Interview Question</th><th>Section in Guide</th></tr></thead>
@@ -3884,34 +3890,43 @@ Read → ZREVRANGE top N</pre>
       <div class="section-subtitle">12-Week Roadmap</div>
     </div>
   </div>
+  <p class="lead">12 أسبوعاً داخل الدليل — ضمن <a href="index.html#master-roadmap">المسار 32 أسبوع</a> يُفضّل الأسابيع 17–28. كل أسبوع يربط أقساماً محددة.</p>
   <div class="steps">
     <div class="step" data-n="1">
       <div class="step-title">Week 1–2</div>
-      <p>Foundations: CAP, consistency, estimation, interview framework.</p>
+      <p><a href="#cap-pacelc">CAP</a>، <a href="#consistency">consistency</a>، <a href="#estimation">estimation</a>، <a href="#interview-framework">interview framework</a>.</p>
     </div>
     <div class="step" data-n="2">
       <div class="step-title">Week 3–4</div>
-      <p>Networking, APIs, load balancing, caching basics.</p>
+      <p><a href="#networking">Networking</a>، <a href="#api-styles">APIs</a>، <a href="#load-balancing">load balancing</a>، <a href="#caching">caching</a>.</p>
     </div>
     <div class="step" data-n="3">
       <div class="step-title">Week 5–6</div>
-      <p>Databases: SQL/NoSQL, replication, sharding, indexing.</p>
+      <p><a href="#databases">SQL/NoSQL</a>، <a href="#replication-sharding">replication & sharding</a> (scale موزّع — بعد <a href="rdbms-guide.html#s5">فهارس RDBMS</a>).</p>
     </div>
     <div class="step" data-n="4">
       <div class="step-title">Week 7–8</div>
-      <p>Messaging, security, common algorithms.</p>
+      <p><a href="#messaging">Messaging</a>، <a href="#security">security</a>، <a href="#algorithms">common algorithms</a>.</p>
     </div>
     <div class="step" data-n="5">
-      <div class="step-title">Week 9–10</div>
-      <p>Resilience, observability, deployment patterns.</p>
+      <div class="step-title">Week 9</div>
+      <p><a href="#resilience">Resilience</a>، <a href="#observability">observability</a>، <a href="#deployment">deployment</a>، <a href="#cloud-infra">cloud</a>.</p>
     </div>
     <div class="step" data-n="6">
-      <div class="step-title">Week 11</div>
-      <p>Classic designs 1–12: URL shortener through Dropbox.</p>
+      <div class="step-title">Week 10</div>
+      <p><a href="#data-processing">Data processing</a>، <a href="#system-patterns">system patterns</a>، <a href="#trade-offs">trade-offs</a>.</p>
     </div>
     <div class="step" data-n="7">
-      <div class="step-title">Week 12</div>
-      <p>Classic designs 13–25 + mock interviews + review checklist.</p>
+      <div class="step-title">Week 11 — Tier 1 (جزء 1)</div>
+      <p>6 designs: <a href="#design-url-shortener">URL</a>، <a href="#design-rate-limiter">Rate limiter</a>، <a href="#design-news-feed">Feed</a>، <a href="#design-chat">Chat</a>، <a href="#design-video">Video</a>، <a href="#design-dropbox">Dropbox</a>.</p>
+    </div>
+    <div class="step" data-n="8">
+      <div class="step-title">Week 11 — Tier 1 (جزء 2)</div>
+      <p>6 designs: <a href="#design-uber">Uber</a>، <a href="#design-payment">Payment</a>، <a href="#design-search-engine">Search</a>، <a href="#design-notification">Notifications</a>، <a href="#design-instagram">Instagram</a>، <a href="#design-kv-store">KV store</a> (skim if short on time).</p>
+    </div>
+    <div class="step" data-n="9">
+      <div class="step-title">Week 12 — Tier 2 + mocks</div>
+      <p>Skim باقي الـ <a href="#classic-designs-overview">25 design</a> + <a href="#checklist">checklist</a> + mock interviews.</p>
     </div>
   </div>
   <div class="info-box note">
@@ -3923,6 +3938,7 @@ Read → ZREVRANGE top N</pre>
 
 <footer>
   <p>🎓 System Design Complete Guide · مرجع تعلّم — <span>System Design</span></p>
+  <p style="margin-top:8px;"><a href="index.html">← Road Map</a> · <a href="rdbms-guide.html">RDBMS</a> · <a href="problem-solving-guide.html">Problem Solving</a> · <a href="ood-guide.html">OOD</a></p>
   <p style="margin-top:8px;">تصميم الأنظمة مهارة تُبنى بالممارسة — ارسم، قدّر، وناقش trade-offs.</p>
 </footer>
 

@@ -18,6 +18,7 @@
 <nav class="side-nav" id="sidenav">
 
   <div class="nav-logo">Problem Solving</div>
+  <a href="index.html" class="nav-link nav-link--hub"><span class="nav-dot"></span>← Road Map</a>
   <div class="nav-section">المقدمة</div>
   <a href="#intro" class="nav-link"><span class="nav-dot"></span>ما هو حل المسائل؟</a>
   <a href="#complexity" class="nav-link"><span class="nav-dot"></span>تحليل التعقيد</a>
@@ -50,7 +51,7 @@
   <h1>Problem Solving</h1>
   <p>الدليل الشامل لحل المسائل البرمجية — DSA، patterns، DP، graphs، وإطار المقابلة</p>
   <div class="hero-stats">
-    <div class="hero-stat"><div class="num">15+</div><div class="lbl">Patterns</div></div>
+    <div class="hero-stat"><div class="num">14</div><div class="lbl">Patterns</div></div>
     <div class="hero-stat"><div class="num">12+</div><div class="lbl">Data Structures</div></div>
     <div class="hero-stat"><div class="num">13</div><div class="lbl">Classic Walkthroughs</div></div>
     <div class="hero-stat"><div class="num">16</div><div class="lbl">Week Roadmap</div></div>
@@ -85,15 +86,6 @@
     <div class="card bg-blue"><div class="card-title c-blue">قراءة المسألة</div><p>اقرأ مرتين. حدد input/output، constraints (n ≤ 10⁵؟)، duplicates؟ negative numbers؟ sorted؟</p></div>
   </div>
   <div class="info-box note"><div class="info-box-icon">💡</div><div><strong>LeetCode / Codeforces / HackerRank:</strong> LeetCode للمقابلات، Codeforces للـ CP، HackerRank للـ screening. ابدأ بـ NeetCode 150 أو Blind 75 كخريطة مواضيع.</div></div>
-  <div class="pattern-group" style="margin-top:32px;"><div class="pattern-group-title">أنواع أسئلة المقابلات</div></div>
-  <div class="grid-3">
-    <div class="card bg-purple"><div class="card-title c-purple">Easy</div><p>Pattern واحد واضح — hash map، two pointers، stack. الهدف: speed + clean code.</p></div>
-    <div class="card bg-teal"><div class="card-title c-teal">Medium</div><p>Pattern + twist — sliding window with constraint، tree DFS with state. الأكثر شيوعاً.</p></div>
-    <div class="card bg-amber"><div class="card-title c-amber">Hard</div><p>DP optimization، graph algorithms، design (LRU). نادر في screening، شائع في onsite.</p></div>
-    <div class="card"><div class="card-title">Live Coding</div><p>45 min — clarify، approach، code، test. Think aloud mandatory.</p></div>
-    <div class="card"><div class="card-title">Take-home</div><p>Hours/days — production quality، tests، README. Shows real engineering.</p></div>
-    <div class="card bg-blue"><div class="card-title c-blue">Reading Constraints</div><p>n ≤ 10⁵ → O(n log n) max. n ≤ 500 → O(n³) maybe. n ≤ 20 → exponential OK.</p></div>
-  </div>
   <div class="analogy"><span class="analogy-icon">🎯</span><span>المقابلة مش امتحان حفظ — هي simulation ليوم عمل: تفهم المشكلة، تناقش trade-offs، تكتب كود يشتغل، وتتعامل مع feedback.</span></div>
 </section><section class="section" id="complexity">
   <div class="section-header">
@@ -397,7 +389,36 @@
   </div>
   <p class="lead">Pattern recognition = <strong>80% من حل المسائل في المقابلة</strong>. تعلّم متى تستخدم كل pattern قبل حفظ الحلول.</p>
   <div class="info-box tip"><div class="info-box-icon">💡</div><div>اسأل نفسك: array مرتب؟ subarray contiguous؟ tree؟ graph؟ optimization؟ → pattern.</div></div>
-  <div class="pattern-group"><div class="pattern-group-title">14 Essential Patterns</div><div class="pattern-card">
+  <div class="pattern-group">
+    <div class="pattern-group-title">Core Topics (with examples)</div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Arrays / Strings</div><p>Patterns: <a href="#pattern-two-pointers">Two pointers</a>, <a href="#pattern-sliding-window">Sliding window</a>, <a href="#pattern-prefix-sum">Prefix sum</a>. Examples: Two Sum II, Longest Substring Without Repeating, Subarray Sum Equals K.</p></div>
+      <div class="card"><div class="card-title">Two Pointers</div><p><a href="#pattern-two-pointers">#pattern-two-pointers</a>. Examples: Two Sum II, 3Sum, Container With Most Water.</p></div>
+      <div class="card"><div class="card-title">Sliding Window</div><p><a href="#pattern-sliding-window">#pattern-sliding-window</a>. Examples: Longest Substring Without Repeating, Min Window Substring.</p></div>
+      <div class="card"><div class="card-title">Prefix Sum</div><p><a href="#pattern-prefix-sum">#pattern-prefix-sum</a>. Examples: Subarray Sum Equals K, Range Sum Query.</p></div>
+      <div class="card"><div class="card-title">Recursion</div><p>Use base case + invariants. Examples: recursive DFS traversals, recursive backtracking branches. <a href="#fundamentals">#fundamentals</a>.</p></div>
+      <div class="card"><div class="card-title">Time &amp; Space Complexity</div><p>Estimate growth & choose the right approach. Examples: O(n) vs O(n log n) vs O(2^n). <a href="#complexity">#complexity</a>.</p></div>
+      <div class="card"><div class="card-title">Sorting &amp; Binary Search</div><p>Order enables faster search. Examples: Merge Intervals, Search Rotated Array. <a href="#sorting">#sorting</a> + <a href="#pattern-binary-search">#pattern-binary-search</a>.</p></div>
+      <div class="card"><div class="card-title">Linked List</div><p>Fast/slow + in-place reversal. Examples: Find Middle, Reverse Linked List. <a href="#ds-linear">#ds-linear</a>.</p></div>
+      <div class="card"><div class="card-title">Stack / Queue</div><p>LIFO/FIFO for parsing + traversal. Examples: Valid Parentheses (stack), Course Schedule BFS (queue). <a href="#ds-linear">#ds-linear</a>, <a href="#traversal">#traversal</a>.</p></div>
+      <div class="card"><div class="card-title">Deque</div><p>Monotonic deque for sliding max. Example: Sliding Window Maximum. <a href="#pattern-monotonic-queue">#pattern-monotonic-queue</a>.</p></div>
+      <div class="card"><div class="card-title">Hash Table</div><p>O(1) lookup & grouping. Examples: Two Sum, Group Anagrams. <a href="#ds-hash-trees">#ds-hash-trees</a>.</p></div>
+      <div class="card"><div class="card-title">Set / Map</div><p>Dedup + frequency bookkeeping. Examples: visited sets in graphs, counting occurrences. <a href="#ds-hash-trees">#ds-hash-trees</a>.</p></div>
+      <div class="card"><div class="card-title">Recursion Tree</div><p>Visualize the call tree to predict branching & cost. Examples: subsets/permutations branching, N-Queens. <a href="#fundamentals">#fundamentals</a>.</p></div>
+      <div class="card"><div class="card-title">Backtracking</div><p>Choose → explore → unchoose (undo). Examples: Subsets, Permutations, N-Queens, Sudoku. <a href="#traversal">#traversal</a>.</p></div>
+      <div class="card"><div class="card-title">Basic Dynamic Programming</div><p>Memo/tabulation for overlapping subproblems. Examples: Climbing Stairs, House Robber, Coin Change. <a href="#dp">#dp</a>.</p></div>
+      <div class="card"><div class="card-title">Trees</div><p>Hierarchical data + traversals. Examples: Inorder traversal, Diameter of Binary Tree. <a href="#ds-hash-trees">#ds-hash-trees</a>.</p></div>
+      <div class="card"><div class="card-title">Binary Search Tree</div><p>Ordered tree properties. Examples: Validate Binary Search Tree, Kth Smallest in BST. <a href="#ds-hash-trees">#ds-hash-trees</a>.</p></div>
+      <div class="card"><div class="card-title">Heap</div><p>Efficient top-K. Examples: Kth Largest Element, Merge K Sorted Lists. <a href="#pattern-top-k">#pattern-top-k</a> + <a href="#pattern-k-way-merge">#pattern-k-way-merge</a>.</p></div>
+      <div class="card"><div class="card-title">Priority Queue</div><p>Heap-powered scheduling/selection. Examples: IPO, K Closest Points to Origin. <a href="#pattern-top-k">#pattern-top-k</a>.</p></div>
+      <div class="card"><div class="card-title">Graphs (BFS / DFS)</div><p>Explore graph states. Examples: Number of Islands (DFS), shortest path in unweighted graphs (BFS). <a href="#traversal">#traversal</a>.</p></div>
+      <div class="card"><div class="card-title">Union-Find</div><p>Connected components + cycle detection. Examples: Number of Provinces, Redundant Connection. <a href="#ds-graph-advanced">#ds-graph-advanced</a>.</p></div>
+      <div class="card"><div class="card-title">Greedy</div><p>Make the locally optimal choice that stays globally optimal. Examples: interval scheduling variants, activity selection. <a href="#greedy-dc">#greedy-dc</a>.</p></div>
+      <div class="card"><div class="card-title">Advanced DP</div><p>Harder state spaces: interval/tree/digit DP. Examples: Edit Distance, Burst Balloons, Digit DP. <a href="#dp">#dp</a>.</p></div>
+      <div class="card"><div class="card-title">Binary Search on Answer</div><p>Binary search over a feasible value range. Examples: Koko Eating Bananas, Capacity to Ship Packages Within D Days. <a href="#pattern-binary-search">#pattern-binary-search</a>.</p></div>
+    </div>
+  </div>
+  <div class="pattern-group"><div class="pattern-group-title">14 Essential Patterns</div><div class="pattern-card" id="pattern-two-pointers">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Two Pointers</span>
     <span class="tag">Sorted array</span>
@@ -418,7 +439,7 @@
         <span class="kw">else</span>: r -= <span class="num">1</span></pre>
 </div>
   </div>
-</div><div class="pattern-card">
+</div><div class="pattern-card" id="pattern-sliding-window">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Sliding Window</span>
     <span class="tag">Subarray/substring</span>
@@ -439,7 +460,7 @@
     <span class="kw">return</span> best</pre>
 </div>
   </div>
-</div><div class="pattern-card">
+</div><div class="pattern-card" id="pattern-fast-slow">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Fast & Slow Pointers</span>
     <span class="tag">Linked list</span>
@@ -459,7 +480,7 @@
     <span class="kw">return</span> <span class="kw">False</span></pre>
 </div>
   </div>
-</div><div class="pattern-card">
+</div><div class="pattern-card" id="pattern-prefix-sum">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Prefix Sum</span>
     <span class="tag">Range sum</span>
@@ -480,7 +501,7 @@
     <span class="kw">return</span> count</pre>
 </div>
   </div>
-</div><div class="pattern-card">
+</div><div class="pattern-card" id="pattern-binary-search">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Binary Search</span>
     <span class="tag">Sorted / monotonic</span>
@@ -502,7 +523,7 @@
     <span class="kw">return</span> -<span class="num">1</span></pre>
 </div>
   </div>
-</div><div class="pattern-card">
+</div><div class="pattern-card" id="pattern-sorting-intervals">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Sorting Patterns</span>
     <span class="tag">Intervals</span>
@@ -523,7 +544,7 @@
     <span class="kw">return</span> out</pre>
 </div>
   </div>
-</div><div class="pattern-card">
+</div><div class="pattern-card" id="pattern-cyclic-sort">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Cyclic Sort</span>
     <span class="tag">Range [1..n]</span>
@@ -544,7 +565,7 @@
     <span class="kw">return</span> next(i <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums)) <span class="kw">if</span> nums[i] != i+<span class="num">1</span>)</pre>
 </div>
   </div>
-</div><div class="pattern-card">
+</div><div class="pattern-card" id="pattern-in-place-reversal">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">In-place Reversal</span>
     <span class="tag">Linked list / array</span>
@@ -559,7 +580,7 @@
 <pre><span class="cm"># see ds-linear section</span></pre>
 </div>
   </div>
-</div><div class="pattern-card">
+</div><div class="pattern-card" id="pattern-top-k">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Top K / Heap</span>
     <span class="tag">K largest/smallest</span>
@@ -580,7 +601,7 @@
     <span class="kw">return</span> h[0]</pre>
 </div>
   </div>
-</div><div class="pattern-card">
+</div><div class="pattern-card" id="pattern-k-way-merge">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">K-way Merge</span>
     <span class="tag">K sorted lists</span>
@@ -595,7 +616,7 @@
 <pre><span class="cm"># Min-heap of list heads — same as Top K pattern on streams</span></pre>
 </div>
   </div>
-</div><div class="pattern-card">
+</div><div class="pattern-card" id="pattern-subsets">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(245,166,35,.12);color:var(--amber2);">Subsets / Combinations</span>
     <span class="tag">Backtracking</span>
@@ -616,7 +637,7 @@
     <span class="fn">dfs</span>(<span class="num">0</span>); <span class="kw">return</span> res</pre>
 </div>
   </div>
-</div><div class="pattern-card">
+</div><div class="pattern-card" id="pattern-modified-binary-search">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(74,158,255,.12);color:var(--blue2);">Modified Binary Search</span>
     <span class="tag">Rotated / peak</span>
@@ -631,7 +652,7 @@
 <pre><span class="cm"># Compare nums[mid] with nums[hi] for rotated array min</span></pre>
 </div>
   </div>
-</div><div class="pattern-card">
+</div><div class="pattern-card" id="pattern-monotonic-stack">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(124,106,247,.15);color:var(--purple2);">Monotonic Stack</span>
     <span class="tag">Next greater</span>
@@ -652,7 +673,7 @@
     <span class="kw">return</span> ans</pre>
 </div>
   </div>
-</div><div class="pattern-card">
+</div><div class="pattern-card" id="pattern-monotonic-queue">
   <div class="pattern-card-header">
     <span class="badge" style="background:rgba(45,212,160,.12);color:var(--teal2);">Monotonic Queue</span>
     <span class="tag">Sliding max</span>
@@ -1127,9 +1148,101 @@
       <div class="section-subtitle">16-Week Learning Roadmap</div>
     </div>
   </div>
-  <p class="lead">خطة منظمة — <strong>8 phases × 2 weeks</strong>. لا تقفز للـ DP قبل إتقان arrays و trees.</p>
-  <div class="roadmap-week"><div class="roadmap-week-title">Foundation — Weeks 1–2</div><ul><li>Complexity analysis</li><li>Arrays & strings</li><li>Hash maps</li><li>Two pointers intro</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">Linear DS — Weeks 3–4</div><ul><li>Linked lists, stack, queue</li><li>Sliding window</li><li>Fast & slow pointers</li><li>Prefix sum</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">Trees & Heaps — Weeks 5–6</div><ul><li>Binary tree traversals</li><li>BST operations</li><li>Heap & top-K</li><li>Trie basics</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">Graphs — Weeks 7–8</div><ul><li>BFS/DFS</li><li>Topo sort</li><li>Union-Find</li><li>Grid as graph</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">DP — Weeks 9–10</div><ul><li>1D/2D DP</li><li>Knapsack variants</li><li>LIS/LCS</li><li>State machine DP</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">Advanced — Weeks 11–12</div><ul><li>Greedy proofs</li><li>Bit manipulation</li><li>Dijkstra/Bellman-Ford</li><li>MST basics</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">Patterns & Review — Weeks 13–14</div><ul><li>Monotonic stack/queue</li><li>Binary search on answer</li><li>Mixed pattern review</li><li>Weak area drill</li></ul></div><div class="roadmap-week"><div class="roadmap-week-title">Mock Interviews — Weeks 15–16</div><ul><li>Timed LeetCode medium</li><li>Checklist review</li><li>Communication practice</li><li>System + DSA combo prep</li></ul></div>
-  <div class="info-box note"><div class="info-box-icon">💡</div><div>حل 2–3 مسائل يومياً. Week 15–16: mock interviews مع timer 45 min.</div></div>
+  <p class="lead">خطة منظمة — <strong>8 مراحل × أسبوعان</strong> (16 أسبوعاً). الترتيب يتبع <strong>تبعيات التعلم</strong> (complexity → linear → trees → graphs → DP)، مو topics عشوائية. لا تقفز للـ DP قبل إتقان arrays و trees. <a href="index.html#master-roadmap">المسار الموحّد 32 أسبوع</a> على الـ hub.</p>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead><tr><th>المرحلة</th><th>الأسابيع</th><th>الهدف</th><th>أقسام الدليل</th></tr></thead>
+      <tbody>
+        <tr><td>1 — الأساس</td><td>1–2</td><td>Big-O، arrays، hash، عقلية المقابلة</td><td><a href="#complexity">complexity</a>، <a href="#ds-linear">linear</a>، <a href="#pattern-two-pointers">two pointers</a></td></tr>
+        <tr><td>2 — خطي + أنماط</td><td>3–4</td><td>LL، stack/queue، أنماط المصفوفات</td><td><a href="#ds-linear">linear</a>، <a href="#pattern-sliding-window">sliding window</a>، <a href="#pattern-binary-search">binary search</a></td></tr>
+        <tr><td>3 — أشجار و Heaps</td><td>5–6</td><td>Tree، BST، heap، trie</td><td><a href="#traversal">traversal</a>، <a href="#pattern-top-k">top-K</a></td></tr>
+        <tr><td>4 — رسوم و Backtracking</td><td>7–8</td><td>DFS/BFS، topo، union-find</td><td><a href="#ds-graph-advanced">graphs</a>، <a href="#pattern-subsets">subsets</a></td></tr>
+        <tr><td>5 — DP</td><td>9–10</td><td>1D/2D، knapsack، LIS/LCS</td><td><a href="#dp">dp</a></td></tr>
+        <tr><td>6 — متقدم</td><td>11–12</td><td>Greedy، bits، shortest path، sorting</td><td><a href="#greedy-dc">greedy</a>، <a href="#sorting">sorting</a></td></tr>
+        <tr><td>7 — مراجعة</td><td>13–14</td><td>NeetCode buckets، أخطاء شائعة</td><td><a href="#patterns">patterns</a>، <a href="#mistakes">mistakes</a></td></tr>
+        <tr><td>8 — mocks</td><td>15–16</td><td>Timed mediums، framework، classics</td><td><a href="#framework">framework</a>، <a href="#classic-problems">classics</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="roadmap-week">
+    <div class="roadmap-week-title">المرحلة 1 — الأساس <span class="tag">Weeks 1–2</span></div>
+    <ul>
+      <li>اقرأ: <a href="#complexity">تحليل التعقيد (Big-O)</a> — Complexity</li>
+      <li>اقرأ: <a href="#fundamentals">Recursion و invariants</a> — Fundamentals</li>
+      <li>اقرأ: <a href="#ds-linear">Arrays، strings، hash map</a> — Linear DS</li>
+      <li>اقرأ: <a href="#pattern-two-pointers">Two pointers</a> على مصفوفات مرتبة</li>
+      <li>تمرين: ~15 easy + 5 medium (arrays/hash)</li>
+    </ul>
+  </div>
+  <div class="roadmap-week">
+    <div class="roadmap-week-title">المرحلة 2 — خطي + أنماط <span class="tag">Weeks 3–4</span></div>
+    <ul>
+      <li>اقرأ: <a href="#ds-linear">Linked list، stack، queue</a></li>
+      <li>اقرأ: <a href="#pattern-sliding-window">Sliding window</a>، <a href="#pattern-fast-slow">Fast & slow</a>، <a href="#pattern-prefix-sum">Prefix sum</a></li>
+      <li>اقرأ: <a href="#pattern-binary-search">Binary search</a>، <a href="#pattern-in-place-reversal">In-place reversal</a>، <a href="#pattern-cyclic-sort">Cyclic sort</a></li>
+      <li>اقرأ: <a href="#pattern-monotonic-stack">Monotonic stack</a> (بعد stack DS)</li>
+      <li>تمرين: ~10 easy + 10 medium (LL + array patterns)</li>
+    </ul>
+  </div>
+  <div class="roadmap-week">
+    <div class="roadmap-week-title">المرحلة 3 — أشجار و Heaps <span class="tag">Weeks 5–6</span></div>
+    <ul>
+      <li>اقرأ: <a href="#ds-hash-trees">Binary tree، BST، heap، trie</a></li>
+      <li>اقرأ: <a href="#traversal">DFS/BFS traversals</a> على trees و graphs</li>
+      <li>اقرأ: <a href="#pattern-top-k">Top K / heap</a>، <a href="#pattern-k-way-merge">K-way merge</a></li>
+      <li>اقرأ: <a href="#pattern-modified-binary-search">Modified binary search</a> (rotated array، peak)</li>
+      <li>تمرين: ~8 easy + 12 medium (trees/heaps)</li>
+    </ul>
+  </div>
+  <div class="roadmap-week">
+    <div class="roadmap-week-title">المرحلة 4 — رسوم و Backtracking <span class="tag">Weeks 7–8</span></div>
+    <ul>
+      <li>اقرأ: <a href="#traversal">DFS، BFS، backtracking، topo sort</a></li>
+      <li>اقرأ: <a href="#ds-graph-advanced">Union-Find، grid as graph، advanced BFS</a></li>
+      <li>اقرأ: <a href="#pattern-subsets">Subsets / combinations</a> مع graphs</li>
+      <li>تمرين: ~5 easy + 15 medium (graphs/backtracking)</li>
+    </ul>
+  </div>
+  <div class="roadmap-week">
+    <div class="roadmap-week-title">المرحلة 5 — DP <span class="tag">Weeks 9–10</span></div>
+    <ul>
+      <li>اقرأ: <a href="#dp">1D/2D DP</a></li>
+      <li>اقرأ: <a href="#dp">Knapsack variants</a></li>
+      <li>اقرأ: <a href="#dp">LIS / LCS</a></li>
+      <li>اقرأ: <a href="#dp">State machine DP</a></li>
+      <li>تمرين: ~5 easy + 15 medium (DP focus)</li>
+    </ul>
+  </div>
+  <div class="roadmap-week">
+    <div class="roadmap-week-title">المرحلة 6 — متقدم <span class="tag">Weeks 11–12</span></div>
+    <ul>
+      <li>اقرأ: <a href="#greedy-dc">Greedy proofs</a>، <a href="#bit-math">Bit manipulation</a></li>
+      <li>اقرأ: <a href="#graph-algo">Dijkstra، Bellman-Ford، MST</a> (خوارزميات، ليس patterns فقط)</li>
+      <li>اقرأ: <a href="#sorting">Sorting algorithms</a> — مرجع سريع</li>
+      <li>اقرأ: <a href="#pattern-sorting-intervals">Sorting intervals</a>، <a href="#pattern-monotonic-queue">Monotonic queue</a> (sliding max)</li>
+      <li>تمرين: ~10 easy + 10 medium (greedy/graph/sorting mix)</li>
+    </ul>
+  </div>
+  <div class="roadmap-week">
+    <div class="roadmap-week-title">المرحلة 7 — مراجعة <span class="tag">Weeks 13–14</span></div>
+    <ul>
+      <li>اقرأ: <a href="#patterns">14 patterns — نظرة شاملة</a> (NeetCode 150 / Blind 75 buckets)</li>
+      <li>اقرأ: <a href="#mistakes">أخطاء شائعة</a> في المقابلة</li>
+      <li>اقرأ: <a href="#checklist">Checklist + resources</a></li>
+      <li>تمرين: spaced repetition — أعد حل ~20 medium من أسابيع 1–10 (مواضيع ضعيفة أولاً)</li>
+    </ul>
+  </div>
+  <div class="roadmap-week">
+    <div class="roadmap-week-title">المرحلة 8 — مقابلات تجريبية <span class="tag">Weeks 15–16</span></div>
+    <ul>
+      <li>اقرأ: <a href="#framework">إطار حل المسألة (7 خطوات)</a></li>
+      <li>اقرأ: <a href="#classic-problems">Classic walkthroughs</a> — Two Sum، LRU، Course Schedule…</li>
+      <li>اقرأ: <a href="#checklist">Checklist قبل/أثناء المقابلة</a></li>
+      <li>تمرين: timed LeetCode medium (45 min) + تواصل صوتي</li>
+      <li>اربط مع: <a href="system-design-guide.html#roadmap">System Design roadmap</a> — DSA + SD combo</li>
+    </ul>
+  </div>
+  <div class="info-box note"><div class="info-box-icon">💡</div><div>حل <strong>2–3 مسائل يومياً</strong> طوال الخطة. الأسابيع 13–14: مراجعة متباعدة (spaced repetition) من مراحل 1–5، مو تعلّم patterns جديدة لأول مرة. الأسابيع 15–16: mock interviews مع <strong>timer 45 دقيقة</strong> واتبع <a href="#framework">#framework</a> خطوة بخطوة.</div></div>
 </section><section class="section" id="checklist">
   <div class="section-header">
     <div class="section-icon bg-green" style="font-size:22px;">✅</div>
@@ -1168,13 +1281,13 @@
   </div>
   <div class="info-box note">
     <div class="info-box-icon">📚</div>
-    <div><strong>Companion guides:</strong> راجع <span style="color:var(--purple2);">OOD_Complete_Guide.html</span> للـ design patterns و <span style="color:var(--purple2);">System_Design_Complete_Guide.html</span> للمقابلات الكبيرة.</div>
+    <div><strong>Companion guides:</strong> راجع <a href="ood-guide.html#patterns">OOD</a> للـ design patterns، <a href="system-design-guide.html#roadmap">System Design</a> للمقابلات الكبيرة، و <a href="rdbms-guide.html#roadmap">RDBMS</a> لأسئلة SQL.</div>
   </div>
 </section>
 
 <footer>
-  <p>🎓 Problem Solving Complete Guide · <span>Python</span> examples · 14 patterns · 12 walkthroughs</p>
-  <p style="margin-top:8px;">مرافق: OOD_Complete_Guide.html · System_Design_Complete_Guide.html</p>
+  <p>🎓 Problem Solving Complete Guide · <span>Python</span> examples · 14 patterns · 13 walkthroughs</p>
+  <p style="margin-top:8px;">مرافق: <a href="ood-guide.html">OOD</a> · <a href="system-design-guide.html">System Design</a> · <a href="rdbms-guide.html">RDBMS</a> · <a href="index.html">Road Map</a></p>
   <p style="margin-top:8px;">حل المسائل مهارة — pattern recognition + practice + communication.</p>
 </footer>
 

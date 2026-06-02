@@ -25,6 +25,8 @@
   </div>
 </header>
 
+<a href="index.html" class="hub-back">← Road Map — مركز الأدلة</a>
+
 <!-- TABLE OF CONTENTS -->
 <div class="toc" style="margin: 40px auto; max-width: 1200px;">
   <h2>📋 فهرس المحتوى</h2>
@@ -47,6 +49,7 @@
     <a href="#s16"><span class="toc-num">16</span> Scalability & Performance</a>
     <a href="#s17"><span class="toc-num">17</span> NoSQL vs RDBMS</a>
     <a href="#s18"><span class="toc-num">18</span> ORM</a>
+    <a href="#roadmap"><span class="toc-num">🗺️</span> خارطة 8 أسابيع</a>
     <a href="#refs"><span class="toc-num">📚</span> المراجع</a>
   </div>
 </div>
@@ -421,6 +424,14 @@
     <div>
       <h2>Transactions & ACID</h2>
       <div class="section-desc">ضمان سلامة البيانات حتى لو في أعطال</div>
+    </div>
+  </div>
+
+  <div class="callout info" style="margin-bottom: 20px;">
+    <div class="callout-icon">🔗</div>
+    <div class="callout-text">
+      <div class="callout-title">ACID في مقابلات System Design</div>
+      ملخص موزّع و BASE: <a href="system-design-guide.html#acid-base" style="color: var(--accent2);">System Design — ACID vs BASE</a>.
     </div>
   </div>
 
@@ -1146,6 +1157,31 @@
 
 <div class="divider"></div>
 
+<!-- ===== ROADMAP ===== -->
+<section class="section" id="roadmap">
+  <div class="section-header">
+    <div class="section-num">🗺️</div>
+    <div>
+      <h2>خارطة التعلم — 8 أسابيع</h2>
+      <div class="section-desc">18 توبك موزّعة — ابدأ هنا قبل scale موزّع في System Design</div>
+    </div>
+  </div>
+  <p style="color: var(--text2); margin-bottom: 20px;">ضمن <a href="index.html#master-roadmap" style="color: var(--accent2);">المسار 32 أسبوع</a>: RDBMS في الأسابيع 1–4 مع Problem Solving.</p>
+  <div class="roadmap-week"><div class="roadmap-week-title">Weeks 1–2</div><ul><li><a href="#s1">Core concepts</a></li><li><a href="#s2">SQL language</a></li><li><a href="#s3">Joins</a></li></ul></div>
+  <div class="roadmap-week"><div class="roadmap-week-title">Weeks 3–4</div><ul><li><a href="#s4">Normalization</a></li><li><a href="#s5">Indexes</a></li><li><a href="#s6">Transactions & ACID</a></li></ul></div>
+  <div class="roadmap-week"><div class="roadmap-week-title">Weeks 5–6</div><ul><li><a href="#s8">Query optimization</a></li><li><a href="#s9">Relationships</a></li><li><a href="#s10">Subqueries</a></li><li><a href="#s11">Aggregates</a></li><li><a href="#s12">Database design</a></li></ul></div>
+  <div class="roadmap-week"><div class="roadmap-week-title">Weeks 7–8</div><ul><li><a href="#s13">Concurrency</a></li><li><a href="#s14">Backup & recovery</a></li><li><a href="#s15">Security</a></li><li><a href="#s16">Scalability</a> → ثم <a href="system-design-guide.html#replication-sharding">SD replication</a></li><li><a href="#s17">NoSQL vs RDBMS</a></li><li><a href="#s18">ORM</a></li></ul></div>
+  <div class="callout info">
+    <div class="callout-icon">💡</div>
+    <div class="callout-text">
+      <div class="callout-title">فهارس vs sharding</div>
+      إتقان الفهارس على عقدة واحدة هنا؛ التوسع الأفقي في <a href="system-design-guide.html#replication-sharding" style="color: var(--accent2);">System Design</a>.
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
 <!-- ===== REFERENCES ===== -->
 <section class="section" id="refs">
   <div class="section-header">
@@ -1260,7 +1296,7 @@
 
 <footer>
   <p>تم إعداده بـ ❤️ · دليل مذاكرة <span>RDBMS</span> الشامل · 18 توبك · 100+ مفهوم</p>
-  <p style="margin-top: 8px; font-size: 0.78rem;">استخدم الـ Checklist ✓ فوق عشان تتأكد إنك غطيت كل حاجة</p>
+  <p style="margin-top: 8px; font-size: 0.78rem;"><a href="index.html" style="color: var(--accent2);">← Road Map</a> · <a href="problem-solving-guide.html" style="color: var(--accent2);">Problem Solving</a> · <a href="system-design-guide.html" style="color: var(--accent2);">System Design</a></p>
 </footer>
 
 </body>
