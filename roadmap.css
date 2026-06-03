@@ -553,6 +553,8 @@ pre {
 .compare-table td:first-child { font-family: var(--eng); color: var(--text); font-weight: 500; }
 body.page-guide .compare-table a { color: var(--purple2); text-decoration: none; }
 body.page-guide .compare-table a:hover { text-decoration: underline; }
+.compare-table--wide { min-width: 960px; }
+.compare-table--wide td { max-width: 280px; line-height: 1.55; }
 .table-wrap {
   overflow-x: auto;
   border: 1px solid var(--border);

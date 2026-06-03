@@ -20,6 +20,7 @@
   <a href="index.html" class="nav-link nav-link--hub"><span class="nav-dot"></span>← Road Map</a>
   <div class="nav-section">المقدمة</div>
   <a href="#intro" class="nav-link"><span class="nav-dot"></span>ما هو تصميم الأنظمة؟</a>
+  <a href="#core-concepts-30" class="nav-link"><span class="nav-dot"></span>30 Core Concepts</a>
   <a href="#requirements" class="nav-link"><span class="nav-dot"></span>المتطلبات</a>
   <a href="#interview-framework" class="nav-link"><span class="nav-dot"></span>إطار المقابلة</a>
   <a href="#estimation" class="nav-link"><span class="nav-dot"></span>Back-of-envelope</a>
@@ -136,7 +137,7 @@
   </div>
   <div class="info-box note">
     <div class="info-box-icon">💡</div>
-    <div><strong>في المقابلة:</strong> System Design يختبر قدرتك على التفكير بصوت عالٍ، طرح أسئلة clarifying، وتبرير قراراتك — مش الحل المثالي الوحيد.</div>
+    <div><strong>في المقابلة:</strong> System Design يختبر قدرتك على التفكير بصوت عالٍ، طرح أسئلة clarifying، وتبرير قراراتك — مش الحل المثالي الوحيد. ابدأ بـ <a href="#core-concepts-30">30 Core Concepts</a> كمرجع سريع.</div>
   </div>
   <div class="pattern-group" style="margin-top:32px;">
     <div class="pattern-group-title">متى تُستخدم كل مستوى</div>
@@ -158,6 +159,63 @@
       <p>K8s، regions، monitoring — غالباً out of scope إلا إذا سُئلت.</p>
     </div>
     </div>
+  </div>
+</section>
+
+<section class="section" id="core-concepts-30">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">📚</div>
+    <div>
+      <div class="section-title c-amber">30 Core System Design Concepts</div>
+      <div class="section-subtitle">Essential Concepts &amp; Definitions</div>
+    </div>
+  </div>
+  <p class="lead">أهم المفاهيم التي تتكرر في <strong>كل مقابلة System Design</strong> — تعريف، فائدة، تقنيات مرتبطة، و trade-offs. اضغط اسم المفهوم للقفز إلى القسم التفصيلي في الدليل.</p>
+  <div class="pattern-group" id="essential-sd-concepts-table">
+    <div class="pattern-group-title">مرجع سريع — Core System Design Concepts</div>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:16px;">من <a href="Core%20System%20Design%20Concepts%20and%20Definitions.xlsx">Core System Design Concepts and Definitions.xlsx</a> — إطار <em>30 concepts</em> (جدول التفاصيل أدناه: 26 مفهوماً معرفاً).</p>
+    <div class="table-wrap">
+      <table class="compare-table compare-table--wide">
+        <thead>
+          <tr>
+            <th>Concept</th>
+            <th>Description</th>
+            <th>Key benefit</th>
+            <th>Related technologies</th>
+            <th>Trade-offs / challenges</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><a href="#networking">Client-Server Architecture</a></td><td>A model where a client (browser/app) sends requests to a server that processes them and sends back a response.</td><td>Foundational structure for web applications; allows centralized data processing.</td><td>Web browsers, Mobile apps</td><td>Requires an address (IP) to locate servers; potential for single point of failure if the server goes down.</td></tr>
+          <tr><td><a href="#networking">DNS (Domain Name System)</a></td><td>A system that maps human-friendly domain names to numerical IP addresses.</td><td>Improves user experience by eliminating the need to remember IP addresses.</td><td>algo-master.io, Ping command</td><td>DNS resolution adds a small initial delay to the connection process.</td></tr>
+          <tr><td><a href="#networking">HTTP / HTTPS</a></td><td>Protocols for transferring data between client and server. HTTPS uses encryption (SSL/TLS).</td><td>Standardized communication; HTTPS provides security and data integrity.</td><td>SSL, TLS</td><td>HTTP is insecure (plain text); HTTPS requires processing overhead for encryption/decryption.</td></tr>
+          <tr><td><a href="#api-styles">REST API</a></td><td>A stateless API style using standard HTTP methods (GET, POST, etc.) and resources.</td><td>Simplicity, scalability, and easy to cache.</td><td>HTTP, JSON, XML</td><td>Over-fetching (returning more data than needed) leading to inefficient network usage.</td></tr>
+          <tr><td><a href="#api-styles">GraphQL</a></td><td>A query language for APIs that allows clients to request exactly the data they need.</td><td>Efficiency; eliminates over-fetching and under-fetching.</td><td>Facebook (creator)</td><td>More complex server-side processing; harder to cache compared to REST.</td></tr>
+          <tr><td><a href="#databases">SQL Databases</a></td><td>Relational databases with strict schemas and ACID properties.</td><td>Strong consistency and structured relationships.</td><td>Banking systems</td><td>Difficult to scale horizontally compared to NoSQL; rigid schema.</td></tr>
+          <tr><td><a href="#db-types">NoSQL Databases</a></td><td>Non-relational databases optimized for high scalability and flexible data models.</td><td>High scalability, performance, and flexible schema.</td><td>Key-value stores, Document stores, Graph databases</td><td>Usually sacrifices strong consistency for availability and speed.</td></tr>
+          <tr><td><a href="#load-balancing">Load Balancer</a></td><td>A traffic manager that distributes incoming requests across multiple backend servers.</td><td>Prevents server overload; improves reliability through health checks.</td><td>Round-robin, Least connections, IP hashing</td><td>Can become a single point of failure if not properly redundant.</td></tr>
+          <tr><td><a href="#databases">Database Indexing</a></td><td>A lookup table that helps the database locate data quickly without scanning every row.</td><td>Significantly speeds up read queries.</td><td>Primary keys, Foreign keys</td><td>Slows down write operations as indexes must be updated.</td></tr>
+          <tr><td><a href="#replication-sharding">Database Replication</a></td><td>Creating copies of a database across multiple servers (Primary and Read Replicas).</td><td>Improves read performance and high availability.</td><td>Primary-replica architecture</td><td>Data consistency challenges (delay in syncing replicas).</td></tr>
+          <tr><td><a href="#replication-sharding">Sharding</a></td><td>Horizontal partitioning that splits a database into smaller pieces (shards) across multiple servers.</td><td>Scales write operations and handles massive data volumes.</td><td>Sharding key (e.g., User ID)</td><td>Increases architectural complexity; difficult to perform joins across shards.</td></tr>
+          <tr><td><a href="#caching">Caching</a></td><td>Storing frequently accessed data in high-speed memory.</td><td>Reduces latency; lowers load on the primary database.</td><td>Cache-aside pattern, TTL (Time to Live)</td><td>Risk of serving stale (outdated) data.</td></tr>
+          <tr><td><a href="#databases">Denormalization</a></td><td>Combining related data into a single table to reduce the number of joins.</td><td>Faster read performance in read-heavy applications.</td><td>User-orders table example</td><td>Data redundancy; increased storage; complex update operations.</td></tr>
+          <tr><td><a href="#cap-pacelc">CAP Theorem</a></td><td>A principle stating a distributed system can only provide two of three: Consistency, Availability, Partition Tolerance.</td><td>Guides architectural decisions in distributed systems.</td><td>Distributed systems</td><td>Forces a trade-off between consistency and availability during network failures.</td></tr>
+          <tr><td><a href="#cloud-infra">Blob Storage</a></td><td>Storage designed for large, unstructured files like images and videos.</td><td>High scalability, cost-effective (pay-as-you-go), and easy web access.</td><td>Amazon S3, Buckets</td><td>Higher latency for direct retrieval if the server is physically distant.</td></tr>
+          <tr><td><a href="#gateway-cdn">CDN (Content Delivery Network)</a></td><td>A global network of servers that deliver content to users from the closest geographic location.</td><td>Reduces latency and buffering for static assets and media.</td><td>HTML, JavaScript, Images, Videos</td><td>Additional cost and complexity in cache invalidation.</td></tr>
+          <tr><td><a href="#design-chat">WebSockets</a></td><td>A protocol providing full-duplex, persistent communication between client and server.</td><td>Enables real-time interaction; eliminates the overhead of polling.</td><td>Live chat, Stock dashboards, Online games</td><td>Requires maintaining open connections, which consumes server resources.</td></tr>
+          <tr><td><a href="#design-webhook">Webhooks</a></td><td>A server-to-server communication method where one server sends an HTTP POST to another when an event occurs.</td><td>Saves resources; eliminates the need for constant API polling.</td><td>Payment gateways</td><td>The receiver must be available to handle the incoming request; security of the endpoint.</td></tr>
+          <tr><td><a href="#microservices">Microservices</a></td><td>Breaking a monolithic application into small, independent services.</td><td>Independent scaling, deployment, and development.</td><td>APIs, Message queues</td><td>Increased operational complexity; difficult to manage service communication.</td></tr>
+          <tr><td><a href="#rate-limit-algo">Rate Limiting</a></td><td>Restricting the number of requests a client can make within a specific timeframe.</td><td>Protects servers from crashes, bots, and resource exhaustion.</td><td>Fixed window, Sliding window, Token bucket</td><td>May block legitimate users if limits are set too low.</td></tr>
+          <tr><td><a href="#gateway-cdn">API Gateway</a></td><td>A centralized entry point for all client requests in a microservices architecture.</td><td>Simplifies management by handling authentication, routing, and rate limiting.</td><td>Authentication, Logging, Monitoring</td><td>Can become a performance bottleneck or single point of failure if not scaled.</td></tr>
+          <tr><td><a href="#idempotency">Idempotency</a></td><td>Ensuring that repeated requests result in the same state change as a single request.</td><td>Prevents duplicate processing (e.g., double payments) during retries.</td><td>Unique Request IDs</td><td>Requires extra logic and storage to track processed request IDs.</td></tr>
+          <tr><td><a href="#load-balancing">Proxy / Reverse Proxy</a></td><td>Intermediaries between clients and servers. A proxy hides client identity; a reverse proxy intercepts and forwards client requests to backend servers.</td><td>Security (hides IP), privacy, and traffic management.</td><td>Not in source</td><td>Adds an extra hop in the network path, potentially increasing latency.</td></tr>
+          <tr><td><a href="#scaling-patterns">Vertical Scaling</a></td><td>Upgrading a single server with more CPU, RAM, or storage.</td><td>Quick fix for increasing capacity.</td><td>Not in source</td><td>Hardware limits; exponential cost; creates a single point of failure.</td></tr>
+          <tr><td><a href="#scaling-patterns">Horizontal Scaling</a></td><td>Adding more servers to share the workload.</td><td>Higher capacity, fault tolerance, and reliability.</td><td>Not in source</td><td>Increased complexity in managing multiple servers and distributing traffic.</td></tr>
+          <tr><td><a href="#messaging">Message Queues</a></td><td>A system for asynchronous communication between services via a producer-consumer model.</td><td>Decouples services; prevents internal system overload; improves scalability.</td><td>Not in source</td><td>Introduces eventual consistency and more complex debugging.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info-box note" style="margin-top:12px;"><div class="info-box-icon">📎</div><div><strong>Source:</strong> <em>System Design was HARD until I Learned these 30 Concepts</em> — full sheet: <a href="Core%20System%20Design%20Concepts%20and%20Definitions.xlsx">Core System Design Concepts and Definitions.xlsx</a>. بقية مواضيع الـ 30 (مثل observability، consensus) موجودة في أقسام الدليل أدناه.</div></div>
   </div>
 </section>
 
