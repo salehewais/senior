@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Senior Odoo Developer — Interview Roadmap</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface-2: #243044;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #9aa8bc;
+      --accent: #714b67;
+      --accent-light: #a67c9d;
+      --comment-bg: #1e2a1e;
+      --comment-border: #3d6b3d;
+      --comment-text: #b8d4b8;
+      --tip-bg: #2a2418;
+      --tip-border: #8b6914;
+      --tip-text: #e8d5a3;
+      --new-bg: #1a2433;
+      --new-border: #3a6ea5;
+      --new-text: #a8cce8;
+      --code-bg: #0d1117;
+      --link: #7eb8da;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, 'Noto Sans Arabic', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #714b67 0%, #3d2840 50%, #1a2332 100%);
+      padding: 3rem 2rem;
+      border-bottom: 3px solid var(--accent-light);
+    }
+
+    .hero h1 {
+      font-size: 2.2rem;
+      margin-bottom: 0.75rem;
+      color: #fff;
+    }
+
+    .hero p {
+      color: #ddd;
+      max-width: 900px;
+      font-size: 1.05rem;
+    }
+
+    .hero .meta {
+      margin-top: 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .badge {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      color: #eee;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    nav.toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    nav.toc h2 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: var(--accent-light);
+    }
+
+    nav.toc ol {
+      columns: 2;
+      column-gap: 2rem;
+      padding-right: 1.25rem;
+    }
+
+    @media (max-width: 700px) {
+      nav.toc ol { columns: 1; }
+    }
+
+    nav.toc a {
+      color: var(--link);
+      text-decoration: none;
+      font-size: 0.92rem;
+    }
+
+    nav.toc a:hover { text-decoration: underline; }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    section h2 {
+      font-size: 1.45rem;
+      color: var(--accent-light);
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section h3 {
+      font-size: 1.1rem;
+      color: #c9b8c4;
+      margin: 1.25rem 0 0.6rem;
+    }
+
+    section p.goal {
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    ul, ol { padding-right: 1.5rem; margin-bottom: 0.75rem; }
+    li { margin-bottom: 0.35rem; }
+
+    code, pre {
+      font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+      direction: ltr;
+      text-align: left;
+    }
+
+    code {
+      background: var(--code-bg);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.88em;
+      color: #79c0ff;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 0.75rem 0;
+      font-size: 0.88rem;
+    }
+
+    .comment {
+      background: var(--comment-bg);
+      border-right: 4px solid var(--comment-border);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      font-size: 0.93rem;
+      color: var(--comment-text);
+    }
+
+    .comment strong { color: #8fdf8f; }
+
+    .tip {
+      background: var(--tip-bg);
+      border-right: 4px solid var(--tip-border);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      font-size: 0.93rem;
+      color: var(--tip-text);
+    }
+
+    .added {
+      background: var(--new-bg);
+      border-right: 4px solid var(--new-border);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      font-size: 0.93rem;
+      color: var(--new-text);
+    }
+
+    .added strong { color: #6db3f2; }
+
+    blockquote {
+      border-right: 3px solid var(--accent);
+      padding: 0.75rem 1.25rem;
+      margin: 1rem 0;
+      background: var(--surface-2);
+      border-radius: 0 8px 8px 0;
+      color: #d4c4cc;
+      font-style: italic;
+    }
+
+    .top30 {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.5rem;
+      list-style: none;
+      padding: 0;
+    }
+
+    .top30 li {
+      background: var(--surface-2);
+      padding: 0.5rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+    }
+
+    .top30 li::before {
+      content: "✓ ";
+      color: var(--accent-light);
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .en { direction: ltr; text-align: left; display: inline; }
+  </style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>خريطة مقابلة Senior Odoo Developer</h1>
+  <p>
+    دليل شامل لأسئلة المقابلات التقنية لمطور Odoo سeniور — من Python و PostgreSQL
+    إلى ORM و OWL و Security و Deployment و Architecture.
+    تم دمج مصدرين + إضافة تعليقات وأسئلة ناقصة.
+  </p>
+  <div class="meta">
+    <span class="badge">Senior / Team Lead</span>
+    <span class="badge">Odoo 14 → 18+</span>
+    <span class="badge">Backend + Frontend + DevOps</span>
+    <span class="badge">تم التحديث: يونيو 2026</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <nav class="toc">
+    <h2>جدول المحتويات</h2>
+    <ol>
+      <li><a href="#s0">ملاحظات عامة</a></li>
+      <li><a href="#s1">Python Fundamentals</a></li>
+      <li><a href="#s2">PostgreSQL</a></li>
+      <li><a href="#s3">Odoo Architecture &amp; Inheritance</a></li>
+      <li><a href="#s4">Odoo ORM</a></li>
+      <li><a href="#s5">Fields</a></li>
+      <li><a href="#s6">Computed Fields</a></li>
+      <li><a href="#s7">Constraints</a></li>
+      <li><a href="#s8">Onchange</a></li>
+      <li><a href="#s9">Security</a></li>
+      <li><a href="#s10">Controllers &amp; HTTP</a></li>
+      <li><a href="#s11">Views</a></li>
+      <li><a href="#s12">Actions &amp; Menus</a></li>
+      <li><a href="#s13">Reports &amp; QWeb</a></li>
+      <li><a href="#s14">Scheduled Actions (Cron)</a></li>
+      <li><a href="#s15">Mail Framework</a></li>
+      <li><a href="#s16">Performance</a></li>
+      <li><a href="#s17">Multi Company</a></li>
+      <li><a href="#s18">Integrations &amp; APIs</a></li>
+      <li><a href="#s19">JavaScript / OWL</a></li>
+      <li><a href="#s20">Website &amp; Portal</a></li>
+      <li><a href="#s21">Module Development</a></li>
+      <li><a href="#s22">Deployment &amp; DevOps</a></li>
+      <li><a href="#s23">Upgrade &amp; Migration</a></li>
+      <li><a href="#s24">Testing</a></li>
+      <li><a href="#s25">Architecture</a></li>
+      <li><a href="#s26">Debugging</a></li>
+      <li><a href="#s27">Business Domains</a></li>
+      <li><a href="#s28">سيناريوهات واقعية</a></li>
+      <li><a href="#s29">Team Lead &amp; Soft Skills</a></li>
+      <li><a href="#s30">أهم 30 سؤال</a></li>
+      <li><a href="#s31">نصائح المقابل</a></li>
+    </ol>
+  </nav>
+
+  <!-- SECTION 0 -->
+  <section id="s0">
+    <h2>0) ملاحظات عامة على الخريطة</h2>
+    <div class="comment">
+      <strong>تعليق:</strong> الخريطة الأصلية ممتازة وتغطي ~85% من ما يُسأل فعلاً في مقابلات Senior.
+      لكن Senior حقيقي يُقيَّم أيضاً على: <strong>Controllers</strong>، <strong>read_group</strong>،
+      <strong>Command API</strong> في x2many، <strong>Assets bundles</strong>،
+      <strong>Portal/Website</strong>، <strong>Data loading (noupdate/xmlid)</strong>،
+      و<strong>الفرق بين إصدارات Odoo</strong>. تمت إضافتها أدناه.
+    </div>
+    <div class="tip">
+      <strong>معيار النجاح:</strong> لو قدر يجاوب 80% بعمق مع أمثلة من مشاريع حقيقية
+      (مش تعريفات من الويكي) — فهو Senior قوي جداً.
+    </div>
+    <ul>
+      <li>اطلب دائماً الإجابة على <strong>«ليه؟»</strong> مش بس «إزاي».</li>
+      <li>Live coding بسيط فيه trap أفضل من 20 سؤال نظري.</li>
+      <li>اسأل: «إيه أسوأ مشكلة Performance واجهتها؟» — الإجابة تكشف الخبرة الحقيقية.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 1 -->
+  <section id="s1">
+    <h2>1) Python Fundamentals</h2>
+    <p class="goal">Odoo في الآخر Python — السeniور لازم يكون قوي هنا.</p>
+    <h3>أسئلة</h3>
+    <ul>
+      <li>الفرق بين <code>list</code> و <code>tuple</code>.</li>
+      <li>إمتى تستخدم <code>set</code>.</li>
+      <li>Explain generators.</li>
+      <li>الفرق بين <code>yield</code> و <code>return</code>.</li>
+      <li>Explain decorators.</li>
+      <li>Explain context managers (<code>with</code>).</li>
+      <li>الفرق بين shallow copy و deep copy.</li>
+      <li>Explain GIL — وتأثيره على Odoo workers.</li>
+      <li>الفرق بين multithreading و multiprocessing.</li>
+      <li>What are metaclasses?</li>
+      <li>Explain MRO.</li>
+      <li>What is monkey patching? (مهم في Odoo inheritance)</li>
+      <li>Explain <code>*args</code> and <code>**kwargs</code>.</li>
+      <li>Explain closures.</li>
+      <li>What is <code>__new__</code> vs <code>__init__</code>?</li>
+      <li>What are descriptors?</li>
+    </ul>
+    <div class="added">
+      <strong>أسئلة إضافية (ناقصة):</strong>
+      <ul>
+        <li>الفرق بين <code>is</code> و <code>==</code> — ولماذا مهم في ORM comparisons.</li>
+        <li>Explain <code>@classmethod</code> vs <code>@staticmethod</code> — وربطهم بـ <code>@api.model</code>.</li>
+        <li>What is <code>functools.wraps</code> and why decorators need it?</li>
+        <li>Explain <code>collections.defaultdict</code>, <code>Counter</code> — استخدامات عملية في batch processing.</li>
+        <li>Difference between <code>import x</code> and <code>from x import y</code> in large codebases.</li>
+        <li>Exception handling best practices — متى <code>raise</code> من جديد vs <code>UserError</code> في Odoo.</li>
+      </ul>
+    </div>
+    <div class="comment">
+      <strong>تعليق:</strong> لا تكتفي بأسئلة Python عامة. اربط كل إجابة بـ Odoo:
+      decorators = <code>@api.depends</code>، context managers = cursor transactions،
+      MRO = method resolution في <code>_inherit</code> chains.
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section id="s2">
+    <h2>2) PostgreSQL</h2>
+    <p class="goal">السeniور لازم يعرف الداتا بتتحط فين وإزاي تتأثر بالأداء.</p>
+    <h3>أسئلة</h3>
+    <ul>
+      <li>Explain indexes.</li>
+      <li>B-tree vs Hash indexes.</li>
+      <li>Composite indexes — ترتيب الأعمدة مهم.</li>
+      <li>What is VACUUM?</li>
+      <li>What is ANALYZE?</li>
+      <li>Explain transactions.</li>
+      <li>ACID properties.</li>
+      <li>Isolation levels.</li>
+      <li>Deadlocks — إزاي تتعامل معها في Odoo.</li>
+      <li>Explain EXPLAIN ANALYZE.</li>
+      <li>Difference between LEFT JOIN and INNER JOIN.</li>
+      <li>CTE (WITH clauses).</li>
+      <li>Window functions.</li>
+      <li>Partial indexes.</li>
+      <li>Materialized views.</li>
+    </ul>
+    <div class="added">
+      <strong>أسئلة إضافية:</strong>
+      <ul>
+        <li>JSONB columns — استخدامها في Odoo 16+ (<code>fields.Json</code>).</li>
+        <li>Sequence vs UUID — <code>ir.sequence</code> و concurrency.</li>
+        <li>Connection pooling — <code>db_maxconn</code> في Odoo vs <code>max_connections</code> في PostgreSQL.</li>
+        <li>Table bloat — متى <code>VACUUM FULL</code> خطر.</li>
+        <li>Foreign key constraints — <code>ondelete='cascade'</code> vs <code>'restrict'</code> vs <code>'set null'</code> في Odoo fields.</li>
+        <li>Read replicas — هل Odoo يدعم read/write splitting natively?</li>
+      </ul>
+    </div>
+    <div class="comment">
+      <strong>تعليق:</strong> في مقابلات Senior، اطلب مثال: «عندك domain بطيء على 2M records —
+      إيه خطوات التشخيص؟» الإجابة المتوقعة: EXPLAIN ANALYZE → index → rewrite domain → stored computed field.
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section id="s3">
+    <h2>3) Odoo Architecture &amp; Inheritance</h2>
+    <p class="goal">الهدف: فهم كيفية عمل Odoo من الداخل — مش بس كتابة modules.</p>
+    <h3>أسئلة</h3>
+    <ul>
+      <li>الفرق بين <code>_inherit</code> (Classical) و <code>_name</code> (New Model) و <code>_inherits</code> (Delegation Inheritance) — وإمتى نستخدم كل واحدة؟</li>
+      <li>إزاي بتتعامل مع Module Dependencies؟ إيه اللي بيحصل مع Circular Dependency؟</li>
+      <li>دورة حياة الـ Record: Creation → Write → Unlink — و Override آمن مع <code>super()</code>.</li>
+      <li>الفرق بين <code>@api.model</code>, <code>@api.depends</code>, <code>@api.onchange</code>, <code>@api.constrains</code>.</li>
+      <li>إزاي بتتعامل مع Translations؟ دور <code>_()</code> و <code>env._()</code>.</li>
+      <li>What is the Registry (<code>odoo.registry</code>)? و caching بين requests.</li>
+      <li>Explain module loading order — <code>__manifest__.py</code> → <code>depends</code> → <code>data</code> files.</li>
+      <li>What are hooks? (<code>pre_init_hook</code>, <code>post_init_hook</code>, <code>post_load</code>, <code>uninstall_hook</code>)</li>
+      <li>What is <code>ir.model.data</code> and XML IDs (<code>module.name</code>)?</li>
+      <li>What does <code>noupdate="1"</code> mean in XML data files?</li>
+    </ul>
+    <div class="comment">
+      <strong>تعليق:</strong> Delegation inheritance (<code>_inherits</code>) سؤال ممتاز — كثير من Juniors يخلطونه مع <code>_inherit</code>.
+      السeniور يشرح: partner extension via <code>res.partner</code> vs separate table with delegation.
+    </div>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section id="s4">
+    <h2>4) Odoo ORM</h2>
+    <p class="goal">أهم جزء في أي مقابلة Odoo.</p>
+
+    <h3>Models</h3>
+    <ul>
+      <li>الفرق بين: <code>Model</code> · <code>AbstractModel</code> · <code>TransientModel</code></li>
+      <li>متى تستخدم Wizard (<code>TransientModel</code>) vs permanent model?</li>
+    </ul>
+
+    <h3>CRUD</h3>
+    <ul>
+      <li>Explain: <code>create</code> · <code>write</code> · <code>unlink</code> · <code>copy</code></li>
+      <li><code>@api.model_create_multi</code> — ليه مهم للأداء؟</li>
+      <li>Best practices لـ override <code>create</code>/<code>write</code> — إمتى <code>super()</code> قبل/b بعد logic?</li>
+      <li>What is <code>Command</code> API (<code>Command.create</code>, <code>Command.update</code>, <code>Command.delete</code>, <code>Command.link</code>) في x2many writes?</li>
+    </ul>
+
+    <h3>Search &amp; Read</h3>
+    <ul>
+      <li>الفرق بين: <code>search</code> · <code>browse</code> · <code>read</code> · <code>search_read</code> · <code>search_fetch</code> · <code>search_count</code></li>
+      <li>What is <code>read_group</code> / <code>_read_group</code>? — pivot/graph reports.</li>
+      <li>Domains — operators, <code>&amp;</code>, <code>|</code>, <code>!</code>, <code>in</code>, <code>ilike</code>, relational dot notation.</li>
+      <li><code>active_test</code> in context — archived records.</li>
+      <li><code>limit</code>, <code>offset</code>, <code>order</code> — pagination best practices.</li>
+    </ul>
+
+    <h3>Environment</h3>
+    <ul>
+      <li>What is <code>env</code>?</li>
+      <li>What is <code>env.cr</code> (cursor)?</li>
+      <li>What is <code>env.user</code>?</li>
+      <li>What is <code>env.company</code> / <code>env.companies</code>?</li>
+      <li>What is <code>env.context</code>?</li>
+      <li>What is <code>env.ref('module.xml_id')</code>?</li>
+      <li>What is <code>with_env</code>, <code>with_user</code>, <code>with_company</code>?</li>
+    </ul>
+
+    <h3>Recordsets</h3>
+    <ul>
+      <li>What is a recordset?</li>
+      <li>Are recordsets immutable?</li>
+      <li>Why can a recordset contain duplicates?</li>
+      <li>Explain: <code>filtered</code> · <code>mapped</code> · <code>sorted</code> · <code>grouped</code></li>
+      <li>What is <code>NewId</code> — records not yet saved?</li>
+      <li><code>ensure_one()</code> vs <code>len(self)</code> checks.</li>
+      <li><code>flush_recordset()</code> · <code>invalidate_recordset()</code> — caching pitfalls.</li>
+    </ul>
+
+    <h3>Context</h3>
+    <ul>
+      <li>What is context?</li>
+      <li>How to pass context?</li>
+      <li><code>with_context()</code> — keys شائعة: <code>default_*</code>, <code>tracking_disable</code>, <code>mail_create_nolog</code>, <code>prefetch_fields</code>.</li>
+      <li><code>active_id</code> · <code>active_ids</code> · <code>active_model</code>.</li>
+    </ul>
+
+    <h3>sudo</h3>
+    <ul>
+      <li>What is <code>sudo()</code>?</li>
+      <li>When should you avoid <code>sudo()</code>?</li>
+      <li><code>sudo(False)</code> — reverting superuser.</li>
+      <li>Security implications — bypasses record rules, NOT access rights.</li>
+    </ul>
+    <div class="comment">
+      <strong>تعليق:</strong> <code>search_fetch</code> (Odoo 17+) سؤال ممتاز للتمييز — يثبت إن المرشح يتابع التحديثات.
+      <code>Command</code> API أساسي من Odoo 13+ — كثير仍 يستخدم tuple syntax القديم (<code>(0,0,{})</code>).
+    </div>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section id="s5">
+    <h2>5) Fields</h2>
+    <h3>Field Types</h3>
+    <ul>
+      <li>الفرق بين: <code>Char</code> · <code>Text</code> · <code>Html</code> · <code>Boolean</code> · <code>Integer</code> · <code>Float</code> · <code>Monetary</code> · <code>Selection</code> · <code>Date</code> · <code>Datetime</code> · <code>Binary</code> · <code>Image</code> · <code>Json</code></li>
+      <li><code>fields.Reference</code> — polymorphic relations.</li>
+      <li><code>fields.Many2oneReference</code>.</li>
+      <li><code>fields.Properties</code> (Odoo 16+) — dynamic fields.</li>
+    </ul>
+
+    <h3>Relational Fields</h3>
+    <ul>
+      <li><code>Many2one</code> — <code>ondelete</code>, <code>delegate</code>.</li>
+      <li><code>One2many</code> — <code>inverse_name</code> required.</li>
+      <li><code>Many2many</code> — relation table, <code>column1</code>/<code>column2</code>.</li>
+      <li><code>related</code> fields — stored vs non-stored.</li>
+    </ul>
+
+    <h3>Field Parameters</h3>
+    <ul>
+      <li><code>required</code> · <code>copy</code> · <code>readonly</code> · <code>tracking</code> · <code>compute</code> · <code>store</code> · <code>inverse</code> · <code>search</code> · <code>company_dependent</code> · <code>index</code></li>
+      <li><code>groups</code> — field-level security.</li>
+      <li><code>default</code> — callable vs static.</li>
+      <li><code>translate=True</code> — translatable fields.</li>
+      <li><code>_rec_name</code>, <code>_order</code>, <code>display_name</code> compute.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 6 -->
+  <section id="s6">
+    <h2>6) Computed Fields</h2>
+    <ul>
+      <li>Explain computed fields.</li>
+      <li>Why <code>@api.depends</code>?</li>
+      <li>Stored vs non-stored compute — trade-offs.</li>
+      <li>What is <code>inverse</code>?</li>
+      <li>Custom <code>search</code> on computed field.</li>
+      <li>Circular dependency problems — detection and fix.</li>
+      <li><code>compute_sudo</code> — when and risks.</li>
+      <li><code>precompute</code> (Odoo 17+) — what changed?</li>
+    </ul>
+    <div class="comment">
+      <strong>تعليق:</strong> Live coding trap: compute field يعتمد على One2many sum —
+      المرشح لازم يعرف <code>@api.depends('line_ids.amount')</code> مش loop manual.
+    </div>
+  </section>
+
+  <!-- SECTION 7 -->
+  <section id="s7">
+    <h2>7) Constraints</h2>
+    <h3>Python Constraints</h3>
+    <pre>@api.constrains('field1', 'field2')
+def _check_something(self):
+    ...</pre>
+
+    <h3>SQL Constraints</h3>
+    <pre>_sql_constraints = [
+    ('name_unique', 'UNIQUE(name)', 'Name must be unique'),
+]</pre>
+
+    <h3>أسئلة</h3>
+    <ul>
+      <li>الفرق بين Python constraints و SQL constraints.</li>
+      <li>إمتى تستخدم كل واحد?</li>
+      <li>Python constraints run on <code>create</code> and <code>write</code> — performance impact.</li>
+      <li>SQL constraints fail at DB level — better for uniqueness.</li>
+      <li><code>models.Constraint</code> (Odoo 18+) — new API.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 8 -->
+  <section id="s8">
+    <h2>8) Onchange</h2>
+    <ul>
+      <li>Explain <code>@api.onchange</code>.</li>
+      <li>Difference between onchange and compute.</li>
+      <li>Why onchange isn't enough for business validation.</li>
+      <li>Onchange only runs in UI — not on API/RPC calls.</li>
+      <li>Performance: heavy logic in onchange — alternative patterns.</li>
+      <li><code>@api.onchange</code> return value (<code>warning</code>, domain updates).</li>
+    </ul>
+    <div class="comment">
+      <strong>تعليق:</strong> السeniور يقول: «Validation في <code>constrains</code>، UX hints في <code>onchange</code>،
+      business logic في <code>create/write</code> overrides.»
+    </div>
+  </section>
+
+  <!-- SECTION 9 -->
+  <section id="s9">
+    <h2>9) Security</h2>
+    <p class="goal">من أهم الأقسام — ثغرة security = فشل في production.</p>
+
+    <h3>Groups</h3>
+    <ul>
+      <li>How groups work — <code>res.groups</code>.</li>
+      <li><code>implied_ids</code> — group inheritance.</li>
+      <li><code>category_id</code> — app sections in user form.</li>
+    </ul>
+
+    <h3>ACL — Access Rights</h3>
+    <pre>ir.model.access.csv → read, write, create, unlink per model per group</pre>
+    <ul>
+      <li>Model-level permissions — no record filtering.</li>
+    </ul>
+
+    <h3>Record Rules</h3>
+    <ul>
+      <li>Global rules (<code>global=True</code>) — AND with other rules.</li>
+      <li>Non-global rules — OR within same group.</li>
+      <li><code>domain_force</code> — record filtering.</li>
+    </ul>
+
+    <h3>أسئلة مهمة</h3>
+    <ul>
+      <li>Why <code>sudo()</code> may bypass record rules?</li>
+      <li>Difference between ACL and Record Rules.</li>
+      <li>Field-level <code>groups</code> vs view <code>groups</code> — UI only vs data access.</li>
+      <li>Hide field from users — View groups vs Record Rules? (Answer: depends — UI hiding ≠ security)</li>
+      <li>Multi-company record rules — <code>[('company_id', 'in', company_ids)]</code>.</li>
+      <li><code>check_company=True</code> on relational fields.</li>
+    </ul>
+    <div class="comment">
+      <strong>تعليق:</strong> سؤال كلاسيكي: «sudo bypasses rules — does it bypass ACL?»
+      الإجابة: <strong>لا</strong> — ACL still applies unless superuser (uid=1).
+    </div>
+  </section>
+
+  <!-- SECTION 10 - NEW -->
+  <section id="s10">
+    <h2>10) Controllers &amp; HTTP <span style="font-size:0.7em;color:#6db3f2;">← مضاف</span></h2>
+    <p class="goal">ناقص في الخريطة الأصلية — ضروري لـ API endpoints و integrations.</p>
+    <ul>
+      <li>How to create an HTTP controller — <code>@http.route</code>.</li>
+      <li><code>type='http'</code> vs <code>type='json'</code>.</li>
+      <li><code>auth='user'</code> vs <code>'public'</code> vs <code>'none'</code> — security implications.</li>
+      <li>CSRF protection — <code>csrf=False</code> — when acceptable?</li>
+      <li>CORS — handling cross-origin requests.</li>
+      <li>How to return JSON/file downloads from controllers.</li>
+      <li>Rate limiting patterns for public endpoints.</li>
+      <li><code>request.env</code> — environment in controllers.</li>
+      <li>Website vs backend routes — <code>website=True</code>.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 11 -->
+  <section id="s11">
+    <h2>11) Views (XML)</h2>
+    <h3>View Types</h3>
+    <ul>
+      <li><code>form</code> · <code>tree/list</code> · <code>kanban</code> · <code>search</code> · <code>graph</code> · <code>pivot</code> · <code>calendar</code> · <code>activity</code> · <code>gantt</code> · <code>cohort</code></li>
+    </ul>
+
+    <h3>XPath Inheritance</h3>
+    <ul>
+      <li>Positions: <code>before</code> · <code>after</code> · <code>replace</code> · <code>inside</code> · <code>attributes</code></li>
+      <li>Common xpath mistakes — brittle selectors.</li>
+    </ul>
+
+    <h3>View Logic</h3>
+    <ul>
+      <li><code>attrs</code> vs <code>modifiers</code> — Odoo 17+ migration to <code>invisible</code>/<code>readonly</code>/<code>required</code> directly.</li>
+      <li><code>invisible</code>, <code>readonly</code>, <code>required</code> — Python expressions.</li>
+      <li><code>domain</code> on relational fields.</li>
+      <li><code>context</code> on fields and buttons.</li>
+      <li><code>widget</code> attribute — specialized UI.</li>
+      <li><code>decoration-*</code> on tree views.</li>
+      <li><code>editable="top/bottom"</code> on tree views.</li>
+      <li><code>groups</code> on views/fields/buttons.</li>
+    </ul>
+    <div class="comment">
+      <strong>تعليق:</strong> في Odoo 17+، <code>attrs</code> deprecated — اسأل المرشح عن الت migration.
+    </div>
+  </section>
+
+  <!-- SECTION 12 -->
+  <section id="s12">
+    <h2>12) Actions &amp; Menus</h2>
+    <ul>
+      <li><code>ir.actions.act_window</code> — views, domain, context.</li>
+      <li><code>ir.actions.server</code> — Python code, multi-record.</li>
+      <li><code>ir.actions.client</code> — OWL client actions.</li>
+      <li><code>ir.actions.report</code> — PDF/QWeb reports.</li>
+      <li><code>ir.actions.act_url</code> — external links.</li>
+      <li><code>ir.ui.menu</code> — menu hierarchy, <code>sequence</code>, <code>groups</code>.</li>
+      <li>Binding actions to models — <code>binding_model_id</code>.</li>
+      <li>Difference between Client Actions and Server Actions.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 13 -->
+  <section id="s13">
+    <h2>13) Reports &amp; QWeb</h2>
+    <h3>QWeb</h3>
+    <ul>
+      <li>How QWeb works.</li>
+      <li><code>t-if</code> · <code>t-foreach</code> · <code>t-call</code> · <code>t-set</code> · <code>t-field</code> · <code>t-esc</code> · <code>t-out</code></li>
+      <li>Difference between <code>t-field</code> and <code>t-esc</code> — formatting vs escaping.</li>
+      <li>Report inheritance — extend existing reports.</li>
+      <li><code>report_type</code>: qweb-pdf, qweb-text, qweb-html.</li>
+    </ul>
+
+    <h3>PDF</h3>
+    <ul>
+      <li>wkhtmltopdf problems — versions, rendering issues.</li>
+      <li>Paper format customization — <code>report.paperformat</code>.</li>
+      <li>Large reports (50K records) — background job, SQL, pagination.</li>
+    </ul>
+    <div class="comment">
+      <strong>تعليق:</strong> Odoo 18+ يتحرك نحو alternatives — اسأل عن تجربة مع report performance.
+    </div>
+  </section>
+
+  <!-- SECTION 14 -->
+  <section id="s14">
+    <h2>14) Scheduled Actions (Cron)</h2>
+    <ul>
+      <li>How cron works — <code>ir.cron</code>, interval types.</li>
+      <li>Avoid duplicate execution — <code>doall</code>, locks, <code>numbercall</code>.</li>
+      <li>Handling failures — logging, alerts.</li>
+      <li>Retry mechanisms.</li>
+      <li>Cron vs Queue Job vs dedicated worker — when to use each?</li>
+      <li>Heavy job takes 1 hour — use cron? (Answer: no — use queue/async worker)</li>
+      <li><code>priority</code>, <code>user_id</code> on cron — runs as which user?</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 15 -->
+  <section id="s15">
+    <h2>15) Mail Framework</h2>
+    <ul>
+      <li><code>mail.thread</code> — chatter, message_post.</li>
+      <li><code>mail.activity.mixin</code> — activities.</li>
+      <li>Tracking fields — <code>tracking=True</code>.</li>
+      <li>Subtypes — <code>mail.message.subtype</code>.</li>
+      <li>Email templates — <code>mail.template</code>, QWeb in emails.</li>
+      <li>Followers — <code>message_subscribe</code>.</li>
+      <li>Suppress logging — <code>mail_create_nolog</code>, <code>tracking_disable</code>.</li>
+      <li>Notification vs Email — in-app vs SMTP.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 16 -->
+  <section id="s16">
+    <h2>16) Performance</h2>
+    <p class="goal">أهم أسئلة السeniور — الفرق بين Junior و Senior هنا.</p>
+    <ul>
+      <li>N+1 problem — detection and fix.</li>
+      <li>Prefetching — how ORM prefetches x2many/m2o.</li>
+      <li><code>with_context(prefetch_fields=False)</code> — when?</li>
+      <li>How ORM caches records — cache invalidation.</li>
+      <li>Batch <code>create</code>/<code>write</code> — <code>@api.model_create_multi</code>.</li>
+      <li>Avoid loops with <code>search</code> inside loops.</li>
+      <li>SQL vs ORM — when raw SQL is justified.</li>
+      <li>SQL injection prevention — parameterized queries.</li>
+      <li>Profiling techniques — <code>--log-sql</code>, Odoo profiler, query counting.</li>
+      <li>Logging SQL queries.</li>
+      <li>Indexing strategy — <code>index=True</code>, partial indexes.</li>
+      <li>When indexes hurt write performance.</li>
+      <li><code>read_group</code> for aggregations vs Python loops.</li>
+    </ul>
+
+    <blockquote>
+      عندك 50 ألف record والكود بطيء جداً — هتعمل إيه؟
+      (Profile → identify N+1 → batch → stored compute → SQL → background job)
+    </blockquote>
+
+    <div class="comment">
+      <strong>تعليق:</strong> Junior داخل <code>@api.depends</code> يعمل <code>search()</code> + <code>write()</code>
+      على نفس الموديل = recursion/infinite loop. سؤال scenario ممتاز.
+    </div>
+  </section>
+
+  <!-- SECTION 17 -->
+  <section id="s17">
+    <h2>17) Multi Company</h2>
+    <ul>
+      <li><code>company_id</code> · <code>company_ids</code> on <code>res.users</code>.</li>
+      <li><code>check_company=True</code> on relational fields.</li>
+      <li><code>company_dependent</code> fields — <code>ir.property</code>.</li>
+      <li>Multi-company security pitfalls — missing record rules.</li>
+      <li>Shared products/partners across companies.</li>
+      <li>Inter-company transactions.</li>
+      <li>Data leak investigation — audit logs, <code>mail.message</code>, rule domains.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 18 -->
+  <section id="s18">
+    <h2>18) Integrations &amp; APIs</h2>
+    <h3>REST / HTTP</h3>
+    <ul>
+      <li><code>requests</code> library — timeouts, retries, session.</li>
+      <li>Authentication: API Keys, OAuth2, Basic Auth, Bearer tokens.</li>
+      <li>Error handling and idempotency.</li>
+      <li>Webhook design — signature verification, retry, dedup.</li>
+    </ul>
+
+    <h3>Odoo RPC</h3>
+    <ul>
+      <li>XML-RPC vs JSON-RPC — differences, when to use each.</li>
+      <li>External API authentication — API keys (Odoo 14+).</li>
+      <li>Rate limits and pagination on large syncs.</li>
+    </ul>
+
+    <h3>Async Patterns</h3>
+    <ul>
+      <li>Odoo Queue Job (OCA) vs Celery vs cron — trade-offs.</li>
+      <li>Outbox pattern — store then process.</li>
+      <li>Idempotency keys — prevent duplicate records.</li>
+    </ul>
+
+    <h3>Scenarios</h3>
+    <ul>
+      <li>How would you integrate SAP with Odoo?</li>
+      <li>How to sync external systems that go offline?</li>
+      <li>Guarantee no data loss — transactional outbox, retry queues, dead letter.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 19 -->
+  <section id="s19">
+    <h2>19) JavaScript / OWL</h2>
+    <p class="goal">Odoo 14+ — Frontend part of Senior interviews.</p>
+    <h3>OWL Framework</h3>
+    <ul>
+      <li>What is OWL?</li>
+      <li>Components, Props, State (<code>useState</code>).</li>
+      <li>Lifecycle hooks: <code>onWillStart</code>, <code>onMounted</code>, <code>onWillUnmount</code>.</li>
+      <li>Services and Registries.</li>
+      <li>Patching existing components — <code>patch</code> utility.</li>
+      <li>Templates — OWL XML syntax.</li>
+    </ul>
+
+    <h3>Odoo JS Services</h3>
+    <ul>
+      <li><code>action</code> service.</li>
+      <li><code>rpc</code> service / <code>orm</code> service.</li>
+      <li><code>notification</code> service.</li>
+      <li><code>dialog</code> service.</li>
+    </ul>
+
+    <h3>Assets</h3>
+    <ul>
+      <li>Asset bundles — <code>__manifest__.py</code> <code>assets</code> key.</li>
+      <li><code>web.assets_backend</code>, <code>web.assets_frontend</code>.</li>
+      <li>Extend vs replace assets.</li>
+    </ul>
+
+    <div class="added">
+      <strong>أسئلة إضافية:</strong>
+      <ul>
+        <li>Legacy Widget system vs OWL — migration approach.</li>
+        <li>How to extend POS UI (common real project).</li>
+        <li><code>@odoo-module</code> ES modules — import rules.</li>
+        <li>Bus / longpolling vs WebSocket notifications.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SECTION 20 - NEW -->
+  <section id="s20">
+    <h2>20) Website &amp; Portal <span style="font-size:0.7em;color:#6db3f2;">← مضاف</span></h2>
+    <ul>
+      <li>Website builder basics — pages, snippets.</li>
+      <li>Portal access — <code>portal</code> module, record rules for portal users.</li>
+      <li><code>website_published</code> — public visibility.</li>
+      <li>eCommerce flow — product, cart, checkout (high level).</li>
+      <li>SEO — meta tags, URL redirects.</li>
+      <li>Payment providers integration.</li>
+      <li>Multi-website — <code>website_id</code>.</li>
+    </ul>
+    <div class="comment">
+      <strong>تعليق:</strong> كثير من مشاريع Odoo فيها Portal — Senior لازم يفهم security للـ <code>portal</code> group.
+    </div>
+  </section>
+
+  <!-- SECTION 21 - NEW -->
+  <section id="s21">
+    <h2>21) Module Development Best Practices <span style="font-size:0.7em;color:#6db3f2;">← مضاف</span></h2>
+    <ul>
+      <li><code>__manifest__.py</code> — <code>depends</code>, <code>data</code>, <code>demo</code>, <code>license</code>, <code>application</code>, <code>auto_install</code>.</li>
+      <li>Module structure — <code>models/</code>, <code>views/</code>, <code>security/</code>, <code>data/</code>, <code>reports/</code>, <code>wizards/</code>, <code>static/</code>.</li>
+      <li>Naming conventions — model names, XML IDs.</li>
+      <li><code>__init__.py</code> import order.</li>
+      <li>Version numbering — <code>16.0.1.0.0</code> format.</li>
+      <li>Odoo Enterprise vs Community — licensing, module availability.</li>
+      <li>Odoo Studio — when to use vs custom code.</li>
+      <li>Git branching strategy for Odoo projects.</li>
+      <li>Odoo CLI: <code>odoo-bin shell</code>, <code>-u module</code>, <code>-i module</code>, <code>--stop-after-init</code>, <code>--test-enable</code>.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 22 -->
+  <section id="s22">
+    <h2>22) Deployment &amp; DevOps</h2>
+    <ul>
+      <li>Odoo configuration file — key options.</li>
+      <li>Workers — <code>workers=N</code>, formula (2×CPU+1).</li>
+      <li>Longpolling / bus — gevent, port 8072.</li>
+      <li>Reverse proxy — nginx setup.</li>
+      <li>SSL termination.</li>
+      <li>systemd service.</li>
+      <li>Docker deployment — docker-compose components (odoo, postgres, nginx).</li>
+      <li>Odoo.sh — staging, production, branches.</li>
+      <li>Filestore — <code>data_dir</code>, backups.</li>
+      <li>Multi-database — <code>dbfilter</code>, <code>list_db</code> security.</li>
+      <li>PostgreSQL tuning: <code>shared_buffers</code>, <code>work_mem</code>, <code>max_connections</code>.</li>
+      <li>CI/CD pipeline — run tests before deploy.</li>
+      <li>Backup strategy — DB + filestore.</li>
+      <li>Monitoring — logs, Sentry, Prometheus.</li>
+      <li>Zero-downtime deployment — challenges with Odoo.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 23 -->
+  <section id="s23">
+    <h2>23) Upgrade &amp; Migration</h2>
+    <ul>
+      <li>Module upgrade process — <code>-u module_name</code>.</li>
+      <li>Pre-migration scripts — <code>migrations/16.0.2.0.0/pre-migrate.py</code>.</li>
+      <li>Post-migration scripts.</li>
+      <li>OpenUpgrade — Community version upgrades.</li>
+      <li>Data migration strategies — ETL, CSV, RPC, SQL.</li>
+      <li>Version upgrade 14→16→17 — common breaking changes.</li>
+      <li>Testing migration on staging clone.</li>
+      <li>Handling custom modules during Odoo version upgrade.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 24 -->
+  <section id="s24">
+    <h2>24) Testing</h2>
+    <ul>
+      <li><code>TransactionCase</code> — rolls back after each test.</li>
+      <li><code>SavepointCase</code> — savepoints for nested rollback.</li>
+      <li><code>HttpCase</code> — browser/RPC simulation.</li>
+      <li><code>@tagged</code> decorator — <code>post_install</code>, <code>-standard</code>.</li>
+      <li>Mocking external APIs — <code>unittest.mock.patch</code>.</li>
+      <li>Unit tests vs integration tests.</li>
+      <li>Tour tests — JS UI testing.</li>
+      <li>Test data — <code>setUpClass</code>, demo data.</li>
+      <li>Running tests: <code>--test-enable --stop-after-init -i module</code>.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 25 -->
+  <section id="s25">
+    <h2>25) Architecture</h2>
+    <p class="goal">دي اللي بتميز السeniور الحقيقي.</p>
+    <ul>
+      <li>كيف تصمم module كبيرة؟</li>
+      <li>متى تفصل الموديول؟</li>
+      <li>متى تستخدم mixins (<code>AbstractModel</code>)?</li>
+      <li>كيف تتجنب cyclic dependencies?</li>
+      <li>كيف تطبق SOLID داخل Odoo?</li>
+      <li>Extensible architecture — hooks, configurable stages.</li>
+      <li>Configuration vs customization — when to say no to custom code.</li>
+      <li>State machine design — <code>Selection</code> field + constraints + workflow.</li>
+      <li>Approval workflow design — extensible stages, groups, notifications.</li>
+      <li>Generic vs specific models — trade-offs.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 26 -->
+  <section id="s26">
+    <h2>26) Debugging &amp; Troubleshooting</h2>
+    <ul>
+      <li>Deadlocks — PostgreSQL logs, retry logic.</li>
+      <li>Stack trace reading — identify module/file.</li>
+      <li>AccessError debugging — ACL vs rules vs field groups.</li>
+      <li>Who changed a field value? — <code>mail.tracking</code>, audit logs.</li>
+      <li>Performance debugging — profiler, SQL log, <code>EXPLAIN</code>.</li>
+      <li><code>--dev=all</code> mode — assets reload, warnings.</li>
+      <li>Odoo shell debugging — <code>odoo-bin shell</code>.</li>
+      <li>Common errors: <code>CacheMiss</code>, <code>AccessError</code>, <code>ValidationError</code>, <code>UserError</code>.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 27 - NEW -->
+  <section id="s27">
+    <h2>27) Business Domains (Senior Breadth) <span style="font-size:0.7em;color:#6db3f2;">← مضاف</span></h2>
+    <p class="goal">Senior مش بس framework — لازم يفهم business flows.</p>
+    <ul>
+      <li>Accounting: journal entries, reconciliations, fiscal positions (high level).</li>
+      <li>Sales flow: quotation → SO → delivery → invoice.</li>
+      <li>Purchase flow: RFQ → PO → receipt → bill.</li>
+      <li>Inventory: stock moves, routes, MTO, reordering rules.</li>
+      <li>Manufacturing: BOM, work orders (MRP).</li>
+      <li>HR/Payroll basics (if relevant).</li>
+      <li>Project/Timesheet integration.</li>
+    </ul>
+    <div class="comment">
+      <strong>تعليق:</strong> لا تسأل accounting بالتفصيل إلا لو المشروع ERP-heavy —
+      لكن Senior لازم يفهم document flow بين modules.
+    </div>
+  </section>
+
+  <!-- SECTION 28 -->
+  <section id="s28">
+    <h2>28) سيناريوهات واقعية (الأهم)</h2>
+
+    <h3>سيناريو 1 — Approval Workflow</h3>
+    <blockquote>
+      Customer يريد Approval Workflow مع صلاحيات مختلفة وإشعارات وإمكانية إضافة مراحل مستقبلًا. كيف تصممه؟
+    </blockquote>
+    <div class="comment">
+      <strong>إجابة Senior:</strong> configurable stages model, state machine, mail templates,
+      record rules per stage/ group, avoid hardcoded states, use server actions or automated actions.
+    </div>
+
+    <h3>سيناريو 2 — Million Records Performance</h3>
+    <blockquote>
+      موديول بطيء جداً بعد وصول البيانات لمليون record. ماذا تفعل؟
+    </blockquote>
+
+    <h3>سيناريو 3 — Unreliable External System</h3>
+    <blockquote>
+      دمج Odoo مع نظام خارجي يتوقف أحيانًا. كيف تضمن عدم فقد البيانات؟
+    </blockquote>
+
+    <h3>سيناريو 4 — Heavy Job</h3>
+    <blockquote>
+      Job ثقيلة تستغرق ساعة. هل تستخدم Cron؟ ولماذا؟
+    </blockquote>
+    <div class="comment">
+      <strong>تعليق:</strong> الإجابة: لا — cron has timeout limits. Use queue job, dedicated worker, or chunked processing with progress tracking.
+    </div>
+
+    <h3>سيناريو 5 — Multi-company Data Leak</h3>
+    <blockquote>
+      Multi-company environment وحدث تسريب بيانات بين الشركات. كيف تحقق؟
+    </blockquote>
+
+    <h3>سيناريو 6 — Report 50K Invoices</h3>
+    <blockquote>
+      العميل يشتكي إن طباعة تقرير 50,000 فاتورة بطيئة جداً. خطوات الـ debugging?
+    </blockquote>
+
+    <h3>سيناريو 7 — Depends Recursion</h3>
+    <blockquote>
+      Junior كتب <code>@api.depends</code> يعمل <code>search()</code> و <code>write()</code> على نفس الموديل. إيه المشكلة؟
+    </blockquote>
+
+    <h3>سيناريو 8 — Legacy Migration</h3>
+    <blockquote>
+      Data migration من نظام قديم — استرategytك؟
+    </blockquote>
+  </section>
+
+  <!-- SECTION 29 -->
+  <section id="s29">
+    <h2>29) Team Lead &amp; Soft Skills</h2>
+    <ul>
+      <li>How do you review Odoo code?</li>
+      <li>PR review checklist — security, performance, naming, tests, manifest.</li>
+      <li>How do you mentor juniors?</li>
+      <li>How do you estimate tasks with many dependencies?</li>
+      <li>How do you handle technical debt?</li>
+      <li>Customization vs configuration — how do you decide?</li>
+      <li>Client wants feature against Odoo standard — how do you handle?</li>
+      <li>How do you document modules for the team?</li>
+      <li>How do you run technical discovery with a client?</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 30 -->
+  <section id="s30">
+    <h2>30) أهم 30 سؤال متكررة</h2>
+    <ul class="top30">
+      <li>search vs browse</li>
+      <li>compute vs onchange</li>
+      <li>ACL vs Record Rules</li>
+      <li>sudo dangers</li>
+      <li>create/write overrides best practices</li>
+      <li>@api.depends</li>
+      <li>Stored compute fields</li>
+      <li>Many2one vs One2many vs Many2many</li>
+      <li>N+1 problem</li>
+      <li>Prefetch</li>
+      <li>env object</li>
+      <li>Context usage</li>
+      <li>SQL vs Python constraints</li>
+      <li>Multi-company pitfalls</li>
+      <li>Recordsets</li>
+      <li>Batch operations</li>
+      <li>OWL basics</li>
+      <li>Cron jobs</li>
+      <li>QWeb reports</li>
+      <li>XML xpath inheritance</li>
+      <li>AccessError debugging</li>
+      <li>Odoo caching</li>
+      <li>Integration patterns</li>
+      <li>Deployment architecture</li>
+      <li>Workers configuration</li>
+      <li>Database optimization</li>
+      <li>OpenUpgrade</li>
+      <li>Testing framework</li>
+      <li>Large module architecture</li>
+      <li>Real-world design scenarios</li>
+    </ul>
+    <div class="added">
+      <strong>5 أسئلة إضافية يجب إضافتها للقائمة:</strong>
+      <ul>
+        <li><code>_inherit</code> vs <code>_inherits</code></li>
+        <li><code>Command</code> API in x2many writes</li>
+        <li><code>read_group</code> for aggregations</li>
+        <li>Controller <code>auth</code> modes</li>
+        <li><code>ir.model.data</code> / <code>noupdate</code></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SECTION 31 -->
+  <section id="s31">
+    <h2>31) نصائح للمقابل (Interviewer)</h2>
+    <div class="tip">
+      <strong>1. Live Coding Traps:</strong>
+      <ul>
+        <li>Compute field from One2many lines sum.</li>
+        <li>Extend form view with xpath — add button + server action.</li>
+        <li>Write record rule for multi-company.</li>
+        <li>Fix N+1 code snippet.</li>
+      </ul>
+    </div>
+    <div class="tip">
+      <strong>2. Red Flags (علامات Junior):</strong>
+      <ul>
+        <li>يستخدم <code>sudo()</code> لحل كل AccessError.</li>
+        <li>Validation فقط في onchange.</li>
+        <li><code>search</code> inside for loop.</li>
+        <li>مش فاهم فرق ACL و Record Rules.</li>
+        <li>مش عارف إن onchange مش بيشتغل على RPC.</li>
+      </ul>
+    </div>
+    <div class="tip">
+      <strong>3. Green Flags (علامات Senior):</strong>
+      <ul>
+        <li>يسأل عن Odoo version و deployment context.</li>
+        <li>يذكر trade-offs قبل ما يختار حل.</li>
+        <li>يتكلم عن testing و rollback plans.</li>
+        <li>يفصل security عن UI hiding.</li>
+        <li>يعطي أمثلة production حقيقية.</li>
+      </ul>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Senior Odoo Developer Interview Roadmap — merged, annotated &amp; extended — June 2026
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Senior Odoo Developer — Interview Answers</title>
+  <style>
+    :root {
+      --bg: #0f1419; --surface: #1a2332; --surface-2: #243044; --border: #2d3a4f;
+      --text: #e7ecf3; --muted: #9aa8bc; --accent: #714b67; --accent-light: #a67c9d;
+      --q-bg: #1e2433; --q-border: #4a6fa5; --a-bg: #1a2820; --a-border: #3d6b3d;
+      --code-bg: #0d1117; --link: #7eb8da; --example-bg: #2a2418; --example-border: #8b6914;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Tahoma, 'Noto Sans Arabic', sans-serif; background: var(--bg); color: var(--text); line-height: 1.75; font-size: 15px; }
+    .hero { background: linear-gradient(135deg, #2d5a3d 0%, #1a3a28 50%, #1a2332 100%); padding: 2.5rem 2rem; border-bottom: 3px solid #5a9a6a; }
+    .hero h1 { font-size: 2rem; color: #fff; margin-bottom: 0.5rem; }
+    .hero p { color: #ccc; max-width: 900px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    nav.toc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; margin-bottom: 2rem; }
+    nav.toc h2 { color: var(--accent-light); margin-bottom: 0.75rem; font-size: 1.1rem; }
+    nav.toc ol { columns: 2; column-gap: 2rem; padding-right: 1.25rem; }
+    @media (max-width:700px) { nav.toc ol { columns: 1; } }
+    nav.toc a { color: var(--link); text-decoration: none; font-size: 0.9rem; }
+    section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; margin-bottom: 1.25rem; }
+    section > h2 { font-size: 1.35rem; color: var(--accent-light); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+    .qa { margin-bottom: 1.25rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+    .q { background: var(--q-bg); border-right: 4px solid var(--q-border); padding: 0.75rem 1rem; font-weight: 600; color: #a8cce8; }
+    .a { background: var(--a-bg); border-right: 4px solid var(--a-border); padding: 0.85rem 1rem; color: #d4e8d4; }
+    .a p { margin-bottom: 0.5rem; }
+    .a ul, .a ol { padding-right: 1.25rem; margin: 0.4rem 0; }
+    .a li { margin-bottom: 0.25rem; }
+    code { font-family: Consolas, monospace; background: var(--code-bg); padding: 0.1rem 0.4rem; border-radius: 3px; color: #79c0ff; font-size: 0.88em; direction: ltr; display: inline-block; }
+    pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.85rem; overflow-x: auto; margin: 0.5rem 0; direction: ltr; text-align: left; font-size: 0.85rem; color: #c9d1d9; }
+    .example { background: var(--example-bg); border-right: 3px solid var(--example-border); padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 0 6px 6px 0; color: #e8d5a3; font-size: 0.92rem; }
+    footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>إجابات نموذجية — Senior Odoo Developer Interview</h1>
+  <p>إجابات مختصرة وعملية لكل أسئلة خريطة المقابلة. مناسبة للتحضير أو لتقييم المرشحين.</p>
+</header>
+
+<div class="container">
+
+<nav class="toc">
+  <h2>جدول المحتويات</h2>
+  <ol>
+    <li><a href="#s1">Python Fundamentals</a></li>
+    <li><a href="#s2">PostgreSQL</a></li>
+    <li><a href="#s3">Odoo Architecture</a></li>
+    <li><a href="#s4">Odoo ORM</a></li>
+    <li><a href="#s5">Fields</a></li>
+    <li><a href="#s6">Computed Fields</a></li>
+    <li><a href="#s7">Constraints</a></li>
+    <li><a href="#s8">Onchange</a></li>
+    <li><a href="#s9">Security</a></li>
+    <li><a href="#s10">Controllers</a></li>
+    <li><a href="#s11">Views</a></li>
+    <li><a href="#s12">Actions</a></li>
+    <li><a href="#s13">Reports</a></li>
+    <li><a href="#s14">Cron</a></li>
+    <li><a href="#s15">Mail</a></li>
+    <li><a href="#s16">Performance</a></li>
+    <li><a href="#s17">Multi Company</a></li>
+    <li><a href="#s18">Integrations</a></li>
+    <li><a href="#s19">OWL / JS</a></li>
+    <li><a href="#s20">Website & Portal</a></li>
+    <li><a href="#s21">Module Dev</a></li>
+    <li><a href="#s22">Deployment</a></li>
+    <li><a href="#s23">Migration</a></li>
+    <li><a href="#s24">Testing</a></li>
+    <li><a href="#s25">Architecture</a></li>
+    <li><a href="#s26">Debugging</a></li>
+    <li><a href="#s27">Business Domains</a></li>
+    <li><a href="#s28">Scenarios</a></li>
+    <li><a href="#s29">Team Lead</a></li>
+  </ol>
+</nav>
+
+<!-- ==================== 1. PYTHON ==================== -->
+<section id="s1">
+  <h2>1) Python Fundamentals</h2>
+
+  <div class="qa"><div class="q">الفرق بين list و tuple?</div>
+  <div class="a"><p><code>list</code> mutable (تتغير)، <code>tuple</code> immutable. List أبطأ قليلاً في الذاكرة. Tuple مناسبة للـ keys في dict وللـ return values ثابتة. في Odoo: domains أحياناً tuples، record IDs tuples.</p></div></div>
+
+  <div class="qa"><div class="q">إمتى تستخدم set?</div>
+  <div class="a"><p>للتجميعات بدون تكرار، membership tests سريعة O(1). مثال: <code>seen = set(records.ids)</code> لإزالة duplicates، أو intersection بين recordsets.</p></div></div>
+
+  <div class="qa"><div class="q">Explain generators</div>
+  <div class="a"><p>Functions تستخدم <code>yield</code> بدل <code>return</code> — تنتج values lazily واحدة واحدة بدون تحميل كل القائمة في الذاكرة. مفيدة لمعالجة datasets كبيرة.</p></div></div>
+
+  <div class="qa"><div class="q">الفرق بين yield و return?</div>
+  <div class="a"><p><code>return</code> ينهي الدالة ويرجع value واحدة. <code>yield</code> يوقف مؤقتاً ويرجع value ويحتفظ بالـ state — الدالة تصبح generator.</p></div></div>
+
+  <div class="qa"><div class="q">Explain decorators</div>
+  <div class="a"><p>Functions تلف functions أخرى لتعديل سلوكها بدون تغيير الكود الأصلي. Syntax: <code>@decorator</code>. في Odoo: <code>@api.depends</code>, <code>@api.constrains</code> كلها decorators تعدّل metadata وbehavior.</p></div></div>
+
+  <div class="qa"><div class="q">Explain context managers (with)</div>
+  <div class="a"><p>Objects implementing <code>__enter__</code> و <code>__exit__</code> — تضمن cleanup. مثال: <code>with open(...)</code>. في Odoo: cursor transactions — <code>cr.savepoint()</code> context manager للـ rollback جزئي.</p></div></div>
+
+  <div class="qa"><div class="q">Shallow copy vs deep copy?</div>
+  <div class="a"><p>Shallow: ينسخ المرجع الخارجي، nested objects مشتركة. Deep: ينسخ كل المستويات.recursively. <code>copy.copy()</code> vs <code>copy.deepcopy()</code>. مهم لما تعدّل dict/list داخل record values.</p></div></div>
+
+  <div class="qa"><div class="q">Explain GIL</div>
+  <div class="a"><p>Global Interpreter Lock — thread واحد بس ينفّذ Python bytecode في نفس الوقت. Multithreading مش effective للـ CPU-bound tasks. Odoo workers = multiprocessing (processes منفصلة)، كل worker process له Python interpreter خاص.</p></div></div>
+
+  <div class="qa"><div class="q">Multithreading vs multiprocessing?</div>
+  <div class="a"><p>Threading: threads في process واحد — good for I/O-bound. Multiprocessing: processes منفصلة — bypass GIL، good for CPU-bound. Odoo production يستخدم multi-worker (processes) + gevent للـ longpolling.</p></div></div>
+
+  <div class="qa"><div class="q">Metaclasses?</div>
+  <div class="a"><p>Class of a class — تتحكم في إنشاء classes. Odoo ORM يستخدم metaclass (<code>MetaModel</code>) لبناء models، fields، و tables تلقائياً من class definition.</p></div></div>
+
+  <div class="qa"><div class="q">Explain MRO</div>
+  <div class="a"><p>Method Resolution Order — ترتيب البحث عن methods في inheritance chain (C3 linearization). في Odoo: <code>_inherit</code> chains — <code>super()</code> يتبع MRO. مهم لما عندك multiple inheritance.</p></div></div>
+
+  <div class="qa"><div class="q">Monkey patching?</div>
+  <div class="a"><p>تعديل class/module at runtime بدون تغيير source. Odoo extension via <code>_inherit</code> is structured monkey patching — تضيف/تعدّل methods على models موجودة.</p></div></div>
+
+  <div class="qa"><div class="q">*args and **kwargs?</div>
+  <div class="a"><p><code>*args</code> = tuple of positional args. <code>**kwargs</code> = dict of keyword args. في Odoo overrides: <code>def create(self, vals_list): return super().create(vals_list)</code> — لازم pاس نفس signature.</p></div></div>
+
+  <div class="qa"><div class="q">Closures?</div>
+  <div class="a"><p>Inner function تحتفظ بالـ variables من outer scope حتى بعد ما outer function تخلص. مفيدة في decorators و callbacks.</p></div></div>
+
+  <div class="qa"><div class="q">__new__ vs __init__?</div>
+  <div class="a"><p><code>__new__</code> ينشئ الـ instance (class method). <code>__init__</code> يinitialize الـ instance بعد الإنشاء. ORM Odoo يoverride <code>__new__</code> لإنشاء recordsets مش instances عادية.</p></div></div>
+
+  <div class="qa"><div class="q">Descriptors?</div>
+  <div class="a"><p>Objects with <code>__get__</code>, <code>__set__</code>, <code>__delete__</code>. Odoo fields are descriptors — <code>record.name</code> triggers field's <code>__get__</code> which reads from cache/DB.</p></div></div>
+
+  <div class="qa"><div class="q">is vs ==?</div>
+  <div class="a"><p><code>is</code> = same object in memory (identity). <code>==</code> = equal values. في Odoo: <code>record is record2</code> rarely useful؛ compare <code>record.id == record2.id</code> or use <code>record == record2</code> (recordset comparison).</p></div></div>
+
+  <div class="qa"><div class="q">@classmethod vs @staticmethod?</div>
+  <div class="a"><p><code>@classmethod</code> receives class as first arg (cls). <code>@staticmethod</code> no implicit first arg. Odoo <code>@api.model</code> ≈ classmethod — method on model level not record level.</p></div></div>
+</section>
+
+<!-- ==================== 2. POSTGRESQL ==================== -->
+<section id="s2">
+  <h2>2) PostgreSQL</h2>
+
+  <div class="qa"><div class="q">Explain indexes</div>
+  <div class="a"><p>Data structure (usually B-tree) يسرّع SELECT/WHERE/JOIN على columns مفهرسة. Trade-off: أسرع reads، أبطأ writes + مساحة إضافية. في Odoo: <code>index=True</code> على field.</p></div></div>
+
+  <div class="qa"><div class="q">B-tree vs Hash indexes</div>
+  <div class="a"><p>B-tree (default): equality + range queries + sorting. Hash: equality only (=)، no range. PostgreSQL B-tree covers 99% of Odoo use cases.</p></div></div>
+
+  <div class="qa"><div class="q">Composite indexes</div>
+  <div class="a"><p>Index على multiple columns. ترتيب الأعمدة مهم — leftmost prefix rule. مثال: index على <code>(company_id, state, date)</code> يخدم queries filter بـ company_id أولاً.</p></div></div>
+
+  <div class="qa"><div class="q">VACUUM?</div>
+  <div class="a"><p>ينظف dead tuples بعد UPDATE/DELETE، يمنع bloat، يحدّث visibility map. PostgreSQL autovacuum يشتغل تلقائياً. مهم بعد bulk deletes في Odoo migrations.</p></div></div>
+
+  <div class="qa"><div class="q">ANALYZE?</div>
+  <div class="a"><p>يحدّث statistics للـ query planner (row counts, distribution). بدونها planner يختار plans سيئة. <code>VACUUM ANALYZE</code> بعد bulk data changes.</p></div></div>
+
+  <div class="qa"><div class="q">Transactions & ACID</div>
+  <div class="a"><p>Transaction = unit of work. ACID: Atomicity (all or nothing), Consistency (valid state), Isolation (concurrent txs), Durability (committed = permanent). Odoo: كل request = transaction — rollback on error.</p></div></div>
+
+  <div class="qa"><div class="q">Isolation levels</div>
+  <div class="a"><p>Read Uncommitted → Read Committed (PG default) → Repeatable Read → Serializable. Higher = less anomalies, more locking. Odoo relies on Read Committed + application-level locking for critical sections.</p></div></div>
+
+  <div class="qa"><div class="q">Deadlocks?</div>
+  <div class="a"><p>Two transactions wait for each other's locks — PG kills one. Fix: consistent lock ordering, shorter transactions, retry logic. في Odoo: common in concurrent writes on same records.</p></div></div>
+
+  <div class="qa"><div class="q">EXPLAIN ANALYZE</div>
+  <div class="a"><p>Shows query execution plan + actual timings. Detect: Seq Scan (bad on large tables), missing indexes, high cost nodes. Essential for Odoo performance debugging.</p></div></div>
+
+  <div class="qa"><div class="q">LEFT JOIN vs INNER JOIN</div>
+  <div class="a"><p>INNER: only matching rows from both tables. LEFT: all rows from left table + matching from right (NULL if no match). Use LEFT when optional relation.</p></div></div>
+
+  <div class="qa"><div class="q">CTE (WITH clauses)</div>
+  <div class="a"><p>Named subquery in same statement — improves readability. Can be recursive. PG 12+ can inline/materialize depending on planner.</p></div></div>
+
+  <div class="qa"><div class="q">Window functions</div>
+  <div class="a"><p>Aggregate over row sets without GROUP BY collapsing rows. <code>ROW_NUMBER()</code>, <code>RANK()</code>, <code>LAG()</code>, <code>SUM() OVER (PARTITION BY ...)</code>. Useful in complex SQL reports bypassing ORM.</p></div></div>
+
+  <div class="qa"><div class="q">Partial indexes</div>
+  <div class="a"><p>Index on subset: <code>CREATE INDEX ... WHERE state = 'done'</code>. Smaller, faster when queries always filter same condition.</p></div></div>
+
+  <div class="qa"><div class="q">Materialized views</div>
+  <div class="a"><p>Pre-computed query result stored on disk. Fast reads, stale until REFRESH. Alternative to stored computed fields for heavy analytics.</p></div></div>
+
+  <div class="qa"><div class="q">db_maxconn vs max_connections</div>
+  <div class="a"><p>Odoo <code>db_maxconn</code> = max connections per worker to PG. PG <code>max_connections</code> = total server limit. Formula: workers × db_maxconn + longpolling + admin headroom ≤ max_connections.</p></div></div>
+</section>
+
+<!-- ==================== 3. ARCHITECTURE ==================== -->
+<section id="s3">
+  <h2>3) Odoo Architecture & Inheritance</h2>
+
+  <div class="qa"><div class="q">_inherit vs _name vs _inherits?</div>
+  <div class="a">
+    <ul>
+      <li><code>_name</code> + no <code>_inherit</code> = model جديد + table جديد.</li>
+      <li><code>_inherit = 'existing.model'</code> = Classical inheritance — extend model موجود (same table, merge fields/methods).</li>
+      <li><code>_inherits = {'parent.model': 'parent_id'}</code> = Delegation — composition. Model جديد table جديد + FK للـ parent. Access parent fields via delegation. مثال: <code>res.users</code> inherits <code>res.partner</code>.</li>
+    </ul>
+    <div class="example">استخدم _inherit للـ extension. _inherits لما محتاج model منفصل logically لكن يshare بيانات partner.</div>
+  </div></div>
+
+  <div class="qa"><div class="q">Module dependencies & circular deps?</div>
+  <div class="a"><p><code>depends</code> في manifest — Odoo loads modules in topological order. Circular dependency = install fails. Fix: extract shared logic لـ third module، or use <code>_inherit</code> without hard dependency via late loading (bad practice). Best: refactor into base module both depend on.</p></div></div>
+
+  <div class="qa"><div class="q">Record lifecycle & safe overrides?</div>
+  <div class="a">
+    <pre>def create(self, vals_list):
+    # pre-processing
+    records = super().create(vals_list)
+    # post-processing
+    return records
+
+def write(self, vals):
+    res = super().write(vals)
+    return res
+
+def unlink(self):
+    # cleanup before delete
+    return super().unlink()</pre>
+    <p>Always call <code>super()</code>. Don't break return values. Avoid recursive writes in create/write.</p>
+  </div></div>
+
+  <div class="qa"><div class="q">@api.model vs @api.depends vs @api.onchange vs @api.constrains?</div>
+  <div class="a">
+    <ul>
+      <li><code>@api.model</code> — method on model, not specific records.</li>
+      <li><code>@api.depends</code> — computed field dependencies.</li>
+      <li><code>@api.onchange</code> — UI-only field reactions.</li>
+      <li><code>@api.constrains</code> — validation on create/write (backend).</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">Translations — _() role?</div>
+  <div class="a"><p><code>_('Sale Order')</code> marks string for export/import via PO files. At runtime returns translated string based on user language. Use on user-visible strings in Python. XML: <code>string="..."</code> auto-translatable. <code>env._()</code> or <code>self.env._()</code> in Odoo 16+.</p></div></div>
+
+  <div class="qa"><div class="q">Registry?</div>
+  <div class="a"><p><code>odoo.registry</code> — per-database cache of all models, fields, constraints. Built at startup/module install. Invalidated on module update. Each worker has own registry in memory.</p></div></div>
+
+  <div class="qa"><div class="q">ir.model.data & noupdate?</div>
+  <div class="a"><p><code>ir.model.data</code> maps XML ID (<code>module.name</code>) → database record. <code>noupdate="1"</code> = on module upgrade, don't overwrite record if exists — protects user customizations.</p></div></div>
+
+  <div class="qa"><div class="q">Hooks?</div>
+  <div class="a">
+    <ul>
+      <li><code>pre_init_hook</code> — before module install (DB not ready fully).</li>
+      <li><code>post_init_hook</code> — after install.</li>
+      <li><code>post_load</code> — after registry loaded (server start).</li>
+      <li><code>uninstall_hook</code> — before uninstall cleanup.</li>
+    </ul>
+  </div></div>
+</section>
+
+<!-- ==================== 4. ORM ==================== -->
+<section id="s4">
+  <h2>4) Odoo ORM</h2>
+
+  <div class="qa"><div class="q">Model vs AbstractModel vs TransientModel?</div>
+  <div class="a">
+    <ul>
+      <li><code>models.Model</code> — persistent, real DB table, data stays.</li>
+      <li><code>models.AbstractModel</code> — no table, mixin for shared fields/methods (mail.thread).</li>
+      <li><code>models.TransientModel</code> — temporary table, auto-vacuumed (wizards, cron cleanup).</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">create / write / unlink / copy?</div>
+  <div class="a">
+    <ul>
+      <li><code>create(vals_list)</code> — insert records, returns recordset.</li>
+      <li><code>write(vals)</code> — update records in recordset.</li>
+      <li><code>unlink()</code> — delete records.</li>
+      <li><code>copy(default=None)</code> — duplicate record (+ lines if copy=True on O2M).</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">@api.model_create_multi?</div>
+  <div class="a"><p>Decorator for batch create — receives list of dicts, creates all in optimized batch. Odoo 13+ default. Override must handle <code>vals_list</code> not single dict. Much faster than loop create().</p></div></div>
+
+  <div class="qa"><div class="q">search vs browse vs read vs search_read vs search_fetch vs search_count?</div>
+  <div class="a">
+    <ul>
+      <li><code>search(domain)</code> — returns recordset of IDs (lightweight).</li>
+      <li><code>browse(ids)</code> — recordset from IDs without DB check.</li>
+      <li><code>read(['fields'])</code> — dicts with field values (DB hit).</li>
+      <li><code>search_read(domain, fields)</code> — search + read in one call (common for APIs).</li>
+      <li><code>search_fetch(domain, fields)</code> — Odoo 17+ optimized: fetch only needed columns.</li>
+      <li><code>search_count(domain)</code> — COUNT query, no records loaded.</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">read_group?</div>
+  <div class="a"><p>SQL GROUP BY wrapper. <code>self.read_group(domain, ['amount:sum'], ['partner_id', 'state'])</code> — powers pivot/graph views. Always prefer over Python loops for aggregations.</p></div></div>
+
+  <div class="qa"><div class="q">env & components?</div>
+  <div class="a">
+    <ul>
+      <li><code>env</code> — Environment: bundles cr, uid, context, registry.</li>
+      <li><code>env.cr</code> — database cursor (transaction).</li>
+      <li><code>env.user</code> — current user record.</li>
+      <li><code>env.company</code> — current company. <code>env.companies</code> — all allowed.</li>
+      <li><code>env.context</code> — dict of contextual flags.</li>
+      <li><code>env.ref('module.xml_id')</code> — resolve XML ID to record.</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">Recordsets — immutable? duplicates?</div>
+  <div class="a"><p>Recordset = ordered collection of IDs + env. Operations return NEW recordsets (immutable style). Can contain duplicates if you do <code>recordset + recordset</code> with overlapping IDs — use <code>.ids</code> set if needed.</p></div></div>
+
+  <div class="qa"><div class="q">filtered / mapped / sorted?</div>
+  <div class="a">
+    <ul>
+      <li><code>filtered(lambda r: r.state == 'done')</code> or <code>filtered('state')</code> — filter in memory.</li>
+      <li><code>mapped('partner_id.name')</code> — extract field values across records.</li>
+      <li><code>sorted(key=lambda r: r.date)</code> — sort recordset.</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">NewId?</div>
+  <div class="a"><p>Placeholder ID for unsaved records in UI (id like <code>NewId_0x...</code>). <code>record.id</code> is falsy or special. Can't search/write to DB until saved.</p></div></div>
+
+  <div class="qa"><div class="q">Context & with_context?</div>
+  <div class="a"><p>Dict passed through env affecting behavior. <code>record.with_context(key=value)</code> returns same records with new env context. Common keys: <code>default_field</code>, <code>tracking_disable</code>, <code>mail_create_nolog</code>, <code>prefetch_fields=False</code>, <code>lang</code>.</p></div></div>
+
+  <div class="qa"><div class="q">active_id / active_ids?</div>
+  <div class="a"><p>Set by UI when opening wizards/actions. <code>active_id</code> = single selected record. <code>active_ids</code> = list of selected records. <code>active_model</code> = model name. Access via context in wizards.</p></div></div>
+
+  <div class="qa"><div class="q">sudo() — when to avoid?</div>
+  <div class="a"><p><code>sudo()</code> runs as superuser — bypasses record rules (NOT ACL unless uid=1). Use only for system operations (cron, automated emails). Avoid for user-facing logic — security hole. <code>sudo(False)</code> reverts to original user.</p></div></div>
+
+  <div class="qa"><div class="q">Command API?</div>
+  <div class="a"><pre>from odoo import Command
+'line_ids': [
+    Command.create({'product_id': 1, 'qty': 5}),
+    Command.update(line_id, {'qty': 10}),
+    Command.delete(line_id),
+    Command.link(existing_id),
+    Command.unlink(link_id),
+    Command.clear(),
+    Command.set([id1, id2]),
+]</pre></div></div>
+
+  <div class="qa"><div class="q">flush / invalidate?</div>
+  <div class="a"><p><code>flush_recordset()</code> — push pending ORM changes to DB. <code>invalidate_recordset()</code> — clear cache. Needed when mixing raw SQL with ORM on same records.</p></div></div>
+</section>
+
+<!-- ==================== 5. FIELDS ==================== -->
+<section id="s5">
+  <h2>5) Fields</h2>
+
+  <div class="qa"><div class="q">Field types differences?</div>
+  <div class="a">
+    <ul>
+      <li><code>Char</code> — short text, indexed, max ~255.</li>
+      <li><code>Text</code> — long text, no index by default.</li>
+      <li><code>Html</code> — sanitized HTML, widget renders rich text.</li>
+      <li><code>Boolean</code> — True/False/NULL.</li>
+      <li><code>Integer</code> / <code>Float</code> — numbers. Use Float carefully (precision).</li>
+      <li><code>Monetary</code> — Float + currency_field.</li>
+      <li><code>Selection</code> — fixed choices list.</li>
+      <li><code>Date</code> / <code>Datetime</code> — date vs timestamp.</li>
+      <li><code>Binary</code> — file content in DB or filestore.</li>
+      <li><code>Image</code> — Binary with resize (max_width/max_height).</li>
+      <li><code>Json</code> — JSONB column (Odoo 16+).</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">Many2one / One2many / Many2many?</div>
+  <div class="a">
+    <ul>
+      <li><code>Many2one</code> — FK column in this table → one related record. <code>ondelete='cascade/restrict/set null'</code>.</li>
+      <li><code>One2many</code> — reverse of Many2one on other model. Virtual — no column here. Needs <code>inverse_name</code>.</li>
+      <li><code>Many2many</code> — relation table with two FK columns. <code>relation</code>, <code>column1</code>, <code>column2</code> optional.</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">Field parameters?</div>
+  <div class="a">
+    <ul>
+      <li><code>required</code> — NOT NULL + UI validation.</li>
+      <li><code>copy=False</code> — skip on duplicate.</li>
+      <li><code>readonly=True</code> — UI readonly (not DB enforced).</li>
+      <li><code>tracking=True</code> — log changes in chatter.</li>
+      <li><code>compute/store/inverse/search</code> — computed field config.</li>
+      <li><code>company_dependent=True</code> — stored in ir.property per company.</li>
+      <li><code>index=True</code> — DB index.</li>
+      <li><code>groups</code> — field-level access restriction.</li>
+    </ul>
+  </div></div>
+</section>
+
+<!-- ==================== 6. COMPUTED ==================== -->
+<section id="s6">
+  <h2>6) Computed Fields</h2>
+
+  <div class="qa"><div class="q">Computed fields & @api.depends?</div>
+  <div class="a"><pre>total = fields.Float(compute='_compute_total', store=True)
+
+@api.depends('line_ids.price_subtotal')
+def _compute_total(self):
+    for rec in self:
+        rec.total = sum(rec.line_ids.mapped('price_subtotal'))</pre>
+    <p><code>@api.depends</code> tells ORM when to recompute — critical for correctness and performance.</p>
+  </div></div>
+
+  <div class="qa"><div class="q">Stored vs non-stored?</div>
+  <div class="a">
+    <ul>
+      <li><strong>Non-stored</strong> — computed on read, always fresh, can't search/group (unless search method), slower on large recordsets.</li>
+      <li><strong>Stored</strong> (<code>store=True</code>) — saved in DB, searchable, faster reads, recomputed on dependency change. Use for fields in domains/reports.</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">inverse?</div>
+  <div class="a"><p>Makes computed field writable — user edits trigger inverse method to update source fields. <code>inverse='_inverse_total'</code>.</p></div></div>
+
+  <div class="qa"><div class="q">Custom search on computed field?</div>
+  <div class="a"><pre>amount_total = fields.Float(compute='_compute_amount', search='_search_amount')
+
+def _search_amount(self, operator, value):
+    return [('line_ids.price_subtotal', operator, value)]  # domain translation</pre></div></div>
+
+  <div class="qa"><div class="q">Circular dependencies?</div>
+  <div class="a"><p>A depends on B, B depends on A — infinite recompute loop. Fix: restructure fields, use related stored fields, or compute both from shared source. Detect via logs/warnings on install.</p></div></div>
+</section>
+
+<!-- ==================== 7. CONSTRAINTS ==================== -->
+<section id="s7">
+  <h2>7) Constraints</h2>
+
+  <div class="qa"><div class="q">Python vs SQL constraints?</div>
+  <div class="a">
+    <ul>
+      <li><strong>Python</strong> (<code>@api.constrains</code>) — flexible logic, cross-field validation, runs in ORM layer, can show UserError message. Slower, can be bypassed by SQL.</li>
+      <li><strong>SQL</strong> (<code>_sql_constraints</code>) — DB-level, fast, enforced always (UNIQUE, CHECK). Less flexible error messages.</li>
+    </ul>
+    <p>Use SQL for uniqueness/integrity. Python for complex business rules.</p>
+  </div></div>
+</section>
+
+<!-- ==================== 8. ONCHANGE ==================== -->
+<section id="s8">
+  <h2>8) Onchange</h2>
+
+  <div class="qa"><div class="q">Explain onchange</div>
+  <div class="a"><p><code>@api.onchange('partner_id')</code> — triggered in UI when field changes. Updates other fields on same form (not saved yet). Returns warnings/domains.</p></div></div>
+
+  <div class="qa"><div class="q">Onchange vs compute?</div>
+  <div class="a">
+    <ul>
+      <li>Onchange: UI only, before save, interactive UX.</li>
+      <li>Compute: backend, on read/write, always consistent, works via API too.</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">Why onchange isn't enough for validation?</div>
+  <div class="a"><p>Onchange doesn't run on RPC/API/import/cron writes. User can bypass UI. Always enforce business rules in <code>@api.constrains</code> or <code>create/write</code> overrides.</p></div></div>
+</section>
+
+<!-- ==================== 9. SECURITY ==================== -->
+<section id="s9">
+  <h2>9) Security</h2>
+
+  <div class="qa"><div class="q">Groups & implied_ids?</div>
+  <div class="a"><p><code>res.groups</code> define roles. <code>implied_ids</code> = auto-grant sub-groups (Sales/User implies Employee). Creates hierarchy. Users get union of all group permissions.</p></div></div>
+
+  <div class="qa"><div class="q">ACL vs Record Rules?</div>
+  <div class="a">
+    <ul>
+      <li><strong>ACL</strong> (<code>ir.model.access</code>) — model-level CRUD permissions per group. Can user access this model at all?</li>
+      <li><strong>Record Rules</strong> (<code>ir.rule</code>) — row-level filtering via domain. WHICH records can they see/edit?</li>
+    </ul>
+    <p>Both must pass. ACL checked first, then rules filter records.</p>
+  </div></div>
+
+  <div class="qa"><div class="q">Global vs non-global rules?</div>
+  <div class="a"><p>Global rules (<code>global=True</code>): AND together for all users. Non-global: OR within same group, AND across groups. Misconfigured rules = data leaks or AccessErrors.</p></div></div>
+
+  <div class="qa"><div class="q">sudo bypasses rules?</div>
+  <div class="a"><p>Yes — record rules skipped with sudo(). ACL still applies (unless superuser uid=1 has all access). Never use sudo to "fix" security — fix rules/ACL properly.</p></div></div>
+
+  <div class="qa"><div class="q">Hide field — view groups or record rules?</div>
+  <div class="a"><p>View/field <code>groups</code> = UI hiding only — NOT security (user can still access via RPC). For real security: ACL + record rules + field <code>groups</code> attribute together.</p></div></div>
+</section>
+
+<!-- ==================== 10. CONTROLLERS ==================== -->
+<section id="s10">
+  <h2>10) Controllers & HTTP</h2>
+
+  <div class="qa"><div class="q">@http.route basics</div>
+  <div class="a"><pre>@http.route('/api/orders', type='json', auth='user', methods=['POST'])
+def get_orders(self, **kw):
+    return request.env['sale.order'].search_read([], ['name', 'amount_total'])</pre></div></div>
+
+  <div class="qa"><div class="q">auth modes?</div>
+  <div class="a">
+    <ul>
+      <li><code>auth='user'</code> — must be logged in (default safe).</li>
+      <li><code>auth='public'</code> — website visitor or logged user.</li>
+      <li><code>auth='none'</code> — no DB user, no session — dangerous, use carefully.</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">type='http' vs type='json'?</div>
+  <div class="a"><p><code>json</code> — JSON-RPC body, auto parse/serialize. <code>http</code> — raw HTTP, you handle request/response manually (HTML, files, custom JSON).</p></div></div>
+
+  <div class="qa"><div class="q">CSRF?</div>
+  <div class="a"><p>Odoo validates CSRF token on state-changing HTTP requests. <code>csrf=False</code> only for external webhooks with other auth (signature verification). Never disable without alternative protection.</p></div></div>
+</section>
+
+<!-- ==================== 11. VIEWS ==================== -->
+<section id="s11">
+  <h2>11) Views</h2>
+
+  <div class="qa"><div class="q">View types?</div>
+  <div class="a"><p>form (detail), tree/list (rows), kanban (cards), search (filters/groupby), graph (charts), pivot (cross-tab), calendar, activity, gantt, cohort — each optimized for different UX.</p></div></div>
+
+  <div class="qa"><div class="q">XPath positions?</div>
+  <div class="a">
+    <ul>
+      <li><code>inside</code> — append inside element.</li>
+      <li><code>before/after</code> — sibling position.</li>
+      <li><code>replace</code> — replace element entirely.</li>
+      <li><code>attributes</code> — modify attributes (add/remove attribute nodes).</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">attrs vs modifiers (Odoo 17+)?</div>
+  <div class="a"><p>Old: <code>attrs="{'invisible': [('state','!=','draft')]}"</code>. New (17+): direct Python expressions: <code>invisible="state != 'draft'"</code>. Cleaner, same logic.</p></div></div>
+
+  <div class="qa"><div class="q">domain on field?</div>
+  <div class="a"><p>Filters selectable records in relational fields. <code>domain="[('company_id', '=', company_id)]"</code>. Can use context variables.</p></div></div>
+</section>
+
+<!-- ==================== 12. ACTIONS ==================== -->
+<section id="s12">
+  <h2>12) Actions & Menus</h2>
+
+  <div class="qa"><div class="q">Action types?</div>
+  <div class="a">
+    <ul>
+      <li><code>ir.actions.act_window</code> — open views (most common).</li>
+      <li><code>ir.actions.server</code> — execute Python code/email/actions on records.</li>
+      <li><code>ir.actions.client</code> — trigger OWL client action (tag).</li>
+      <li><code>ir.actions.report</code> — generate PDF/QWeb report.</li>
+      <li><code>ir.actions.act_url</code> — redirect to URL.</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">Client vs Server actions?</div>
+  <div class="a"><p>Server: Python runs on backend — data operations, emails, CRUD. Client: JavaScript/OWL runs in browser — UI interactions, dashboards, custom widgets.</p></div></div>
+</section>
+
+<!-- ==================== 13. REPORTS ==================== -->
+<section id="s13">
+  <h2>13) Reports & QWeb</h2>
+
+  <div class="qa"><div class="q">QWeb directives?</div>
+  <div class="a">
+    <ul>
+      <li><code>t-if</code> — conditional render.</li>
+      <li><code>t-foreach</code> — loop (<code>t-as</code> for alias).</li>
+      <li><code>t-call</code> — include sub-template.</li>
+      <li><code>t-set</code> — set variable.</li>
+      <li><code>t-field</code> — render field with formatting (dates, monetary).</li>
+      <li><code>t-esc</code> — escape HTML (plain text, safe).</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">t-field vs t-esc?</div>
+  <div class="a"><p><code>t-field</code> — uses field formatter (respects user language, monetary, widgets). <code>t-esc</code> — raw value HTML-escaped. Use t-field for model fields, t-esc for plain strings.</p></div></div>
+
+  <div class="qa"><div class="q">wkhtmltopdf problems?</div>
+  <div class="a"><p>Version compatibility (0.12.5 common), CSS flexbox issues, slow on large HTML, memory leaks. Fix: simplify template, paginate, use background jobs, or switch to alternative engines in newer Odoo versions.</p></div></div>
+</section>
+
+<!-- ==================== 14. CRON ==================== -->
+<section id="s14">
+  <h2>14) Scheduled Actions (Cron)</h2>
+
+  <div class="qa"><div class="q">How cron works?</div>
+  <div class="a"><p><code>ir.cron</code> records with interval (minutes/hours/days/weeks), next call datetime, model method to execute. Worker checks due crons, runs as specified <code>user_id</code>. One cron at a time per DB (lock).</p></div></div>
+
+  <div class="qa"><div class="q">Avoid duplicate execution?</div>
+  <div class="a"><p>Odoo has DB-level lock for crons. For custom jobs: use advisory locks, check state flag, or queue job with unique job UUID. Set realistic intervals.</p></div></div>
+
+  <div class="qa"><div class="q">Cron for 1-hour job?</div>
+  <div class="a"><p><strong>No.</strong> Cron has timeout (~limit_time_real_cron). Use: Queue Job (OCA), dedicated worker process, or chunked cron with progress tracking (process 1000 records per run).</p></div></div>
+</section>
+
+<!-- ==================== 15. MAIL ==================== -->
+<section id="s15">
+  <h2>15) Mail Framework</h2>
+
+  <div class="qa"><div class="q">mail.thread & mail.activity.mixin?</div>
+  <div class="a"><p><code>mail.thread</code> — chatter, followers, message_post, tracking. <code>mail.activity.mixin</code> — scheduled activities (calls, todos). Inherit both for full collaboration features.</p></div></div>
+
+  <div class="qa"><div class="q">Tracking fields?</div>
+  <div class="a"><p><code>tracking=True</code> on field — logs old→new value in chatter on write. Uses <code>mail.tracking.value</code>. Disable with <code>tracking_disable</code> in context for bulk ops.</p></div></div>
+
+  <div class="qa"><div class="q">Suppress mail logging?</div>
+  <div class="a"><p>Context keys: <code>mail_create_nolog</code>, <code>mail_notrack</code>, <code>tracking_disable</code>. Essential for imports/migrations performance.</p></div></div>
+</section>
+
+<!-- ==================== 16. PERFORMANCE ==================== -->
+<section id="s16">
+  <h2>16) Performance</h2>
+
+  <div class="qa"><div class="q">N+1 problem?</div>
+  <div class="a"><p>Loop over N records, each accesses related field → N extra queries. Fix: prefetch (automatic if same recordset batch), use <code>mapped()</code>, <code>read()</code> with all fields, or <code>search_read</code>.</p>
+    <div class="example">Bad: for order in orders: print(order.partner_id.name) — 1 + N queries. Good: orders.mapped('partner_id.name') — 2 queries.</div>
+  </div></div>
+
+  <div class="qa"><div class="q">Prefetching?</div>
+  <div class="a"><p>ORM batches related field reads — when you read partner_id on 100 records, one query fetches all partners. Disable: <code>with_context(prefetch_fields=False)</code> when reading many fields you don't need.</p></div></div>
+
+  <div class="qa"><div class="q">ORM cache?</div>
+  <div class="a"><p>Records cached in memory per transaction. Re-read same field = no DB hit. Invalidated on write/unlink. Stale cache issues when mixing SQL + ORM — use flush/invalidate.</p></div></div>
+
+  <div class="qa"><div class="q">When raw SQL?</div>
+  <div class="a"><p>Heavy reports, bulk updates millions of rows, complex aggregations ORM can't express efficiently. Always parameterized queries: <code>cr.execute("SELECT ... WHERE id = %s", [id])</code> — NEVER string format user input.</p></div></div>
+
+  <div class="qa"><div class="q">50K slow records — what to do?</div>
+  <div class="a"><ol>
+    <li>Profile (--log-sql, Odoo profiler, query counter).</li>
+    <li>Find N+1, loops with search(), missing indexes.</li>
+    <li>Fix: batch ops, stored computed, read_group, SQL.</li>
+    <li>Background job for heavy reports.</li>
+    <li>EXPLAIN ANALYZE on slow queries.</li>
+  </ol></div></div>
+</section>
+
+<!-- ==================== 17. MULTI COMPANY ==================== -->
+<section id="s17">
+  <h2>17) Multi Company</h2>
+
+  <div class="qa"><div class="q">company_id / company_ids / check_company?</div>
+  <div class="a"><p>Records have <code>company_id</code>. Users have <code>company_ids</code> (allowed) + <code>company_id</code> (current). <code>check_company=True</code> on relational fields validates same company. Record rules filter by company.</p></div></div>
+
+  <div class="qa"><div class="q">company_dependent fields?</div>
+  <div class="a"><p>Stored in <code>ir.property</code> — different value per company on same record. E.g., account payable per company for shared partner.</p></div></div>
+
+  <div class="qa"><div class="q">Data leak investigation?</div>
+  <div class="a"><ol>
+    <li>Audit record rules on affected model — missing company domain?</li>
+    <li>Check sudo() usage in controllers/cron.</li>
+    <li>Review shared records (company_id=False).</li>
+    <li>Check mail.message followers cross-company.</li>
+    <li>Test with user in company A — search records from company B.</li>
+  </ol></div></div>
+</section>
+
+<!-- ==================== 18. INTEGRATIONS ==================== -->
+<section id="s18">
+  <h2>18) Integrations & APIs</h2>
+
+  <div class="qa"><div class="q">XML-RPC vs JSON-RPC?</div>
+  <div class="a"><p>Both call Odoo models via RPC. XML-RPC older, XML encoding. JSON-RPC lighter, JSON encoding — preferred for new integrations. Same authentication (db, uid, password/api key).</p></div></div>
+
+  <div class="qa"><div class="q">Webhook integration design?</div>
+  <div class="a"><ol>
+    <li>Controller with signature verification (HMAC).</li>
+    <li>Store raw payload in queue table immediately (outbox).</li>
+    <li>Process async via cron/queue job.</li>
+    <li>Idempotency key — skip duplicates.</li>
+    <li>Retry with exponential backoff.</li>
+  </ol></div></div>
+
+  <div class="qa"><div class="q">External system goes offline?</div>
+  <div class="a"><p>Outbox pattern: save intent locally first, sync later. Retry queue, dead letter for failures. Never lose data — transactional local write before external call. Reconciliation cron.</p></div></div>
+
+  <div class="qa"><div class="q">Queue Job vs Celery vs Cron?</div>
+  <div class="a">
+    <ul>
+      <li>Cron — simple scheduled, not for heavy/async.</li>
+      <li>Queue Job (OCA) — Odoo-native, channels, retries, UI — best for Odoo projects.</li>
+      <li>Celery — external broker (Redis/RabbitMQ), more infra, good for multi-system.</li>
+    </ul>
+  </div></div>
+</section>
+
+<!-- ==================== 19. OWL ==================== -->
+<section id="s19">
+  <h2>19) JavaScript / OWL</h2>
+
+  <div class="qa"><div class="q">What is OWL?</div>
+  <div class="a"><p>Odoo Web Library — Odoo's React-like component framework. Declarative templates, reactive state, component composition. Replaced old Widget system from Odoo 14+.</p></div></div>
+
+  <div class="qa"><div class="q">Components, Props, State?</div>
+  <div class="a"><p>Component = UI unit with template. Props = inputs from parent (read-only). State (<code>useState</code>) = internal reactive data — changes trigger re-render.</p></div></div>
+
+  <div class="qa"><div class="q">Lifecycle hooks?</div>
+  <div class="a"><p><code>onWillStart</code> (async setup), <code>onMounted</code> (DOM ready), <code>onWillUpdateProps</code>, <code>onWillUnmount</code> (cleanup). Like React lifecycle.</p></div></div>
+
+  <div class="qa"><div class="q">Services & Registries?</div>
+  <div class="a"><p>Services = singletons injected via <code>useService('rpc')</code>. Registry = catalog of components, fields, services. Extend via <code>registry.category('fields').add(...)</code>.</p></div></div>
+
+  <div class="qa"><div class="q">Patching?</div>
+  <div class="a"><pre>import { patch } from "@web/core/utils/patch";
+import { ListController } from "@web/views/list/list_controller";
+patch(ListController.prototype, {
+    async onClickCreate() { /* custom */ }
+});</pre></div></div>
+
+  <div class="qa"><div class="q">Odoo JS services?</div>
+  <div class="a"><p><code>action</code> — open views/actions. <code>orm</code>/<code>rpc</code> — backend calls. <code>notification</code> — toasts. <code>dialog</code> — modals.</p></div></div>
+
+  <div class="qa"><div class="q">Asset bundles?</div>
+  <div class="a"><p>In manifest <code>'assets': {'web.assets_backend': ['module/static/src/js/*.js']}</code>. Bundled and minified. Extend existing bundles, don't replace entirely.</p></div></div>
+</section>
+
+<!-- ==================== 20. WEBSITE ==================== -->
+<section id="s20">
+  <h2>20) Website & Portal</h2>
+
+  <div class="qa"><div class="q">Portal access?</div>
+  <div class="a"><p>Portal users = restricted public users linked to partner. Record rules limit to own records (e.g., own invoices). <code>portal</code> module provides base templates/routes.</p></div></div>
+
+  <div class="qa"><div class="q">website_published?</div>
+  <div class="a"><p>Boolean field — controls public website visibility. Combined with website record rules and multi-website (<code>website_id</code>).</p></div></div>
+</section>
+
+<!-- ==================== 21. MODULE DEV ==================== -->
+<section id="s21">
+  <h2>21) Module Development</h2>
+
+  <div class="qa"><div class="q">__manifest__.py key fields?</div>
+  <div class="a"><p><code>name</code>, <code>version</code> (16.0.1.0.0), <code>depends</code>, <code>data</code> (load order matters!), <code>assets</code>, <code>license</code>, <code>installable</code>, <code>application</code> (shows as app), <code>auto_install</code>.</p></div></div>
+
+  <div class="qa"><div class="q">Odoo CLI useful commands?</div>
+  <div class="a"><pre>odoo-bin -c odoo.conf -d mydb -u my_module --stop-after-init
+odoo-bin shell -d mydb --no-http
+odoo-bin -d mydb --test-enable -i my_module --stop-after-init</pre></div></div>
+
+  <div class="qa"><div class="q">Studio vs custom code?</div>
+  <div class="a"><p>Studio: quick customizations, non-dev friendly, harder to version control. Custom modules: full control, git, tests, portable. Senior knows when Studio is enough vs when code is required.</p></div></div>
+</section>
+
+<!-- ==================== 22. DEPLOYMENT ==================== -->
+<section id="s22">
+  <h2>22) Deployment & DevOps</h2>
+
+  <div class="qa"><div class="q">Workers configuration?</div>
+  <div class="a"><p><code>workers = (2 × CPU cores) + 1</code> rule of thumb. Each worker = separate process. Also need gevent worker for longpolling (bus). <code>max_cron_threads</code> for crons.</p></div></div>
+
+  <div class="qa"><div class="q">Key odoo.conf options?</div>
+  <div class="a"><p><code>db_host</code>, <code>db_name</code>, <code>data_dir</code> (filestore), <code>workers</code>, <code>limit_time_cpu</code>, <code>limit_time_real</code>, <code>proxy_mode</code>, <code>db_maxconn</code>, <code>log_level</code>, <code>admin_passwd</code>.</p></div></div>
+
+  <div class="qa"><div class="q">nginx reverse proxy?</div>
+  <div class="a"><p>Proxy pass to Odoo (8069) + longpolling (8072). Set <code>proxy_mode = True</code>. SSL termination at nginx. Gzip, client max body size for uploads.</p></div></div>
+
+  <div class="qa"><div class="q">Docker compose components?</div>
+  <div class="a"><p>Services: odoo (app), postgres (db), nginx (proxy optional). Volumes: filestore, PG data. Env vars for credentials. Separate dev/staging/prod compose files.</p></div></div>
+
+  <div class="qa"><div class="q">PostgreSQL tuning?</div>
+  <div class="a"><p><code>shared_buffers</code> ~25% RAM, <code>work_mem</code> for sorts, <code>effective_cache_size</code> ~75% RAM, <code>max_connections</code> match Odoo pool. Monitor with pg_stat_statements.</p></div></div>
+
+  <div class="qa"><div class="q">Backup strategy?</div>
+  <div class="a"><p>pg_dump (database) + filestore copy (attachments). Both required — attachments not in DB (since filestore). Test restore regularly.</p></div></div>
+</section>
+
+<!-- ==================== 23. MIGRATION ==================== -->
+<section id="s23">
+  <h2>23) Upgrade & Migration</h2>
+
+  <div class="qa"><div class="q">Module upgrade?</div>
+  <div class="a"><p><code>-u module_name</code> reloads data files (respecting noupdate), runs migrations, updates views. Always test on staging clone first.</p></div></div>
+
+  <div class="qa"><div class="q">Migration scripts?</div>
+  <div class="a"><p>In <code>migrations/16.0.2.0.0/pre-migrate.py</code> and <code>end-migrate.py</code>. <code>migrate(cr, version)</code> function. pre = before model update, end/post = after.</p></div></div>
+
+  <div class="qa"><div class="q">OpenUpgrade?</div>
+  <div class="a"><p>OCA project for Community version upgrades (14→15→16→17). Provides migration scripts for standard modules. Custom modules need your own migration scripts.</p></div></div>
+
+  <div class="qa"><div class="q">Data migration strategies?</div>
+  <div class="a"><p>CSV import, RPC scripts, SQL ETL, intermediate staging DB. Use <code>tracking_disable</code>, batch creates, validate counts/checksums after migration.</p></div></div>
+</section>
+
+<!-- ==================== 24. TESTING ==================== -->
+<section id="s24">
+  <h2>24) Testing</h2>
+
+  <div class="qa"><div class="q">TransactionCase vs SavepointCase vs HttpCase?</div>
+  <div class="a">
+    <ul>
+      <li><code>TransactionCase</code> — each test method rolled back after run.</li>
+      <li><code>SavepointCase</code> — savepoints allow nested rollback (faster suite).</li>
+      <li><code>HttpCase</code> — HTTP/RPC level tests, browser tours, controller tests.</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">Mocking external APIs?</div>
+  <div class="a"><pre>@patch('requests.post')
+def test_sync(self, mock_post):
+    mock_post.return_value.json.return_value = {'status': 'ok'}
+    self.env['my.sync'].sync_data()
+    mock_post.assert_called_once()</pre></div></div>
+
+  <div class="qa"><div class="q">Run tests?</div>
+  <div class="a"><p><code>odoo-bin -d test_db --test-enable -i module --stop-after-init --log-level=test</code>. Use separate test DB — tests create/delete data.</p></div></div>
+</section>
+
+<!-- ==================== 25. ARCHITECTURE ==================== -->
+<section id="s25">
+  <h2>25) Architecture</h2>
+
+  <div class="qa"><div class="q">Design large module?</div>
+  <div class="a"><p>Split by domain: models/, views/, security/, data/, wizards/, reports/. Base module + feature modules. Abstract mixins for shared behavior. Clear dependencies. Config models for flexibility.</p></div></div>
+
+  <div class="qa"><div class="q">When split module?</div>
+  <div class="a"><p>When: independent features, different install needs, team ownership, reduce upgrade risk. Keep core + extensions pattern (sale + sale_custom).</p></div></div>
+
+  <div class="qa"><div class="q">Avoid cyclic dependencies?</div>
+  <div class="a"><p>Extract shared code to base module. Use _inherit without depends when absolutely needed. Event/hook pattern instead of direct imports. Dependency graph review in PR.</p></div></div>
+
+  <div class="qa"><div class="q">SOLID in Odoo?</div>
+  <div class="a">
+    <ul>
+      <li>S — one model one responsibility.</li>
+      <li>O — extend via _inherit not modify core.</li>
+      <li>L — overrides respect super contract.</li>
+      <li>I — small mixins vs god models.</li>
+      <li>D — depend on abstractions (config params, mixin interfaces).</li>
+    </ul>
+  </div></div>
+
+  <div class="qa"><div class="q">Customization vs configuration?</div>
+  <div class="a"><p>Prefer standard Odoo flows, Studio, server actions, automated actions before custom code. Code when: performance, complex logic, integration, standard doesn't fit. Document why custom was needed.</p></div></div>
+</section>
+
+<!-- ==================== 26. DEBUGGING ==================== -->
+<section id="s26">
+  <h2>26) Debugging</h2>
+
+  <div class="qa"><div class="q">AccessError debugging?</div>
+  <div class="a"><ol>
+    <li>Check ACL for user's groups on model.</li>
+    <li>Check record rules — test domain manually in shell.</li>
+    <li>Check field-level groups.</li>
+    <li>Check if sudo() needed (last resort).</li>
+    <li>Read full traceback — which method, which uid.</li>
+  </ol></div></div>
+
+  <div class="qa"><div class="q">Who changed field value?</div>
+  <div class="a"><p><code>tracking=True</code> fields show in chatter. Or audit via <code>mail.tracking.value</code>. For untracked: server logs, custom audit model, PG triggers (last resort).</p></div></div>
+
+  <div class="qa"><div class="q">Performance debugging?</div>
+  <div class="a"><p><code>--log-sql</code>, Odoo profiler (debug mode), query counter, EXPLAIN ANALYZE, identify N+1, check indexes, monitor worker memory/CPU.</p></div></div>
+
+  <div class="qa"><div class="q">Deadlocks?</div>
+  <div class="a"><p>Check PG logs for deadlock detail. Fix lock ordering, shorten transactions, retry on OperationalError. Common: two users editing interdependent records.</p></div></div>
+</section>
+
+<!-- ==================== 27. BUSINESS ==================== -->
+<section id="s27">
+  <h2>27) Business Domains</h2>
+
+  <div class="qa"><div class="q">Sales flow?</div>
+  <div class="a"><p>Quotation (draft) → Sent → Sale Order (confirmed) → Delivery (stock.picking) → Invoice (account.move) → Payment. Each step creates linked documents.</p></div></div>
+
+  <div class="qa"><div class="q">Purchase flow?</div>
+  <div class="a"><p>RFQ → PO confirmed → Receipt → Vendor Bill. Routes determine auto PO from SO (MTO, dropship).</p></div></div>
+
+  <div class="qa"><div class="q">Inventory basics?</div>
+  <div class="a"><p>stock.move = individual movement. stock.picking = group of moves. Routes (buy, manufacture, cross-dock). Rules: pull/push. Quant = actual stock in location.</p></div></div>
+</section>
+
+<!-- ==================== 28. SCENARIOS ==================== -->
+<section id="s28">
+  <h2>28) سيناريوهات واقعية — الإجابات</h2>
+
+  <div class="qa"><div class="q">سيناريو 1: Approval Workflow</div>
+  <div class="a"><ol>
+    <li>Model <code>approval.stage</code> configurable (sequence, group, email template).</li>
+    <li>State machine on document: draft → pending_approval → approved → done.</li>
+    <li>M2M/O2M <code>approval.history</code> for audit trail.</li>
+    <li>Record rules: each group sees only their stage records.</li>
+    <li>Server actions / automated actions for notifications.</li>
+    <li>Don't hardcode stages — config table for future extensibility.</li>
+  </ol></div></div>
+
+  <div class="qa"><div class="q">سيناريو 2: Million records slow module</div>
+  <div class="a"><ol>
+    <li>Profile first — don't guess.</li>
+    <li>Add indexes on filtered/sorted fields.</li>
+    <li>Convert frequent computed fields to stored.</li>
+    <li>Replace search-in-loop with batch/SQL/read_group.</li>
+    <li>Archive old records (active=False).</li>
+    <li>Pagination on views, limit default searches.</li>
+    <li>Partition heavy reports to background jobs.</li>
+  </ol></div></div>
+
+  <div class="qa"><div class="q">سيناريو 3: Unreliable external system</div>
+  <div class="a"><ol>
+    <li>Outbox table: save payload + status (pending/synced/failed).</li>
+    <li>Process via queue job with retries.</li>
+    <li>Idempotency keys prevent duplicates.</li>
+    <li>Reconciliation cron compares both systems.</li>
+    <li>Dead letter queue for manual review.</li>
+  </ol></div></div>
+
+  <div class="qa"><div class="q">سيناريو 4: 1-hour job — Cron?</div>
+  <div class="a"><p><strong>No.</strong> Use Queue Job or dedicated worker. If must use cron: chunk into 5-min batches with progress field (processed_count/total). Cron timeout will kill long jobs.</p></div></div>
+
+  <div class="qa"><div class="q">سيناريو 5: Multi-company data leak</div>
+  <div class="a"><ol>
+    <li>Reproduce with test users in separate companies.</li>
+    <li>Audit ir.rule on leaked model — add <code>('company_id', 'in', company_ids)</code>.</li>
+    <li>Check records with company_id=False (shared).</li>
+    <li>Review sudo() in controllers.</li>
+    <li>Fix, deploy, audit all related models.</li>
+  </ol></div></div>
+
+  <div class="qa"><div class="q">سيناريو 6: Report 50K invoices slow</div>
+  <div class="a"><ol>
+    <li>Check template — nested loops, t-foreach on lines?</li>
+    <li>Simplify QWeb — pre-fetch data in report model method.</li>
+    <li>Use SQL to prepare summary data.</li>
+    <li>Background report with email notification when ready.</li>
+    <li>Pagination or date-range splitting.</li>
+  </ol></div></div>
+
+  <div class="qa"><div class="q">سيناريo 7: @api.depends with search+write</div>
+  <div class="a"><p>Problem: infinite recursion — compute triggers write triggers compute again. Fix: move logic out of compute, use write override, or use <code>with_context(skip_compute=True)</code> flag. Never write same model inside its own compute.</p></div></div>
+
+  <div class="qa"><div class="q">سيناريو 8: Legacy data migration</div>
+  <div class="a"><ol>
+    <li>Map fields external → Odoo models.</li>
+    <li>Staging DB or CSV intermediate.</li>
+    <li>Script with batch create, tracking_disable.</li>
+    <li>Validate: record counts, checksums, sample manual review.</li>
+    <li>post_init_hook for one-time setup.</li>
+    <li>Rollback plan before go-live.</li>
+  </ol></div></div>
+</section>
+
+<!-- ==================== 29. TEAM LEAD ==================== -->
+<section id="s29">
+  <h2>29) Team Lead & Soft Skills</h2>
+
+  <div class="qa"><div class="q">Code review checklist?</div>
+  <div class="a"><ul>
+    <li>Security: ACL, rules, no unnecessary sudo.</li>
+    <li>Performance: no search in loops, stored vs computed choice.</li>
+    <li>Correct API usage: constrains not onchange for validation.</li>
+    <li>Naming, manifest version bump, translations.</li>
+    <li>Tests for critical logic.</li>
+    <li>No hardcoded IDs — use XML IDs.</li>
+    <li>Migration scripts if schema changes.</li>
+  </ul></div></div>
+
+  <div class="qa"><div class="q">Task estimation?</div>
+  <div class="a"><p>Break into subtasks. Estimate best/worst/likely. Add buffer for testing, review, unknowns. Track actual vs estimate to improve. Include dependency wait time.</p></div></div>
+
+  <div class="qa"><div class="q">Technical debt?</div>
+  <div class="a"><p>Maintain backlog of debt items. Allocate 15-20% sprint capacity. Prioritize debt causing bugs/performance. Refactor when touching area anyway (boy scout rule).</p></div></div>
+
+  <div class="qa"><div class="q">Client wants anti-standard feature?</div>
+  <div class="a"><p>Explain trade-offs: upgrade pain, maintenance cost, performance. Propose standard alternative. If must customize: document decision, isolate custom code, plan for upgrade impact.</p></div></div>
+
+  <div class="qa"><div class="q">Mentoring juniors?</div>
+  <div class="a"><p>Pair programming, review with explanations not just fixes, progressive task complexity, share debugging techniques, encourage reading Odoo source code.</p></div></div>
+</section>
+
+</div>
+
+<footer>
+  Senior Odoo Developer Interview Answers — June 2026<br>
+  Companion to: senior-odoo-developer-interview-roadmap.html
+</footer>
+
+</body>
+</html>
