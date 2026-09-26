@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clean vs Layered Architecture — FastAPI + PostgreSQL</title>
+<meta name="description" content="مقارنة عملية بين Clean Architecture و Layered Architecture مع مثال Todo كامل بـ FastAPI و PostgreSQL.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1219;
+    --bg-elev: #161b26;
+    --bg-soft: #1c2333;
+    --ink: #e8ecf4;
+    --muted: #9aa6bf;
+    --line: rgba(140, 160, 210, 0.16);
+    --accent: #7c9cff;
+    --accent-2: #a8b8ff;
+    --accent-deep: #4a63d4;
+    --warn: #f0b429;
+    --ok: #3ecf8e;
+    --clean: #7c9cff;
+    --layered: #5ec8c0;
+    --glow: rgba(124, 156, 255, 0.22);
+    --radius: 18px;
+    --shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
+    --font: "IBM Plex Sans Arabic", "Cairo", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    background:
+      radial-gradient(1100px 560px at 100% -10%, rgba(124, 156, 255, 0.16), transparent 55%),
+      radial-gradient(800px 480px at -10% 25%, rgba(94, 200, 192, 0.08), transparent 50%),
+      linear-gradient(180deg, #0b0e14 0%, var(--bg) 40%, #11151f 100%);
+    color: var(--ink);
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { color: var(--accent); }
+
+  .shell {
+    width: min(1120px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 1.25rem 0 4rem;
+  }
+
+  .topbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .brand-mark {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+    box-shadow: 0 0 0 4px var(--glow);
+    display: grid;
+    place-items: center;
+    font-size: 0.85rem;
+    font-family: var(--mono);
+    color: #0b0e14;
+    font-weight: 700;
+  }
+
+  .meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 0.85rem;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .hero {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    background:
+      linear-gradient(145deg, rgba(36, 44, 70, 0.92), rgba(15, 18, 25, 0.96)),
+      repeating-linear-gradient(
+        -32deg,
+        transparent,
+        transparent 12px,
+        rgba(124, 156, 255, 0.03) 12px,
+        rgba(124, 156, 255, 0.03) 13px
+      );
+    box-shadow: var(--shadow);
+    padding: clamp(1.5rem, 4vw, 2.75rem);
+    margin-bottom: 1.5rem;
+    animation: rise 0.7s ease both;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: auto -20% -40% 40%;
+    height: 280px;
+    background: radial-gradient(circle, var(--glow), transparent 70%);
+    pointer-events: none;
+  }
+  .hero h1 {
+    margin: 0.4rem 0 0.75rem;
+    font-size: clamp(1.65rem, 4.2vw, 2.55rem);
+    line-height: 1.3;
+    font-weight: 800;
+    position: relative;
+    z-index: 1;
+  }
+  .hero p {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: 1.05rem;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+    color: #0b0e14;
+  }
+  .btn-ghost {
+    background: rgba(255,255,255,0.03);
+    border-color: var(--line);
+    color: var(--ink);
+  }
+
+  .toc {
+    position: sticky;
+    top: 0.75rem;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.65rem;
+    margin-bottom: 1.75rem;
+    padding: 0.35rem 0;
+    animation: rise 0.8s ease 0.08s both;
+    backdrop-filter: blur(10px);
+  }
+  @media (max-width: 900px) {
+    .toc { grid-template-columns: 1fr 1fr; position: static; }
+  }
+  @media (max-width: 560px) {
+    .toc { grid-template-columns: 1fr; }
+  }
+  .toc a {
+    display: block;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: rgba(22, 27, 38, 0.92);
+    color: var(--ink);
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+  }
+  .toc a:hover {
+    border-color: rgba(124, 156, 255, 0.45);
+    background: var(--bg-soft);
+    transform: translateY(-2px);
+  }
+  .toc strong { display: block; margin-bottom: 0.15rem; font-size: 0.95rem; }
+  .toc span { color: var(--muted); font-size: 0.82rem; }
+
+  .section {
+    margin-bottom: 2rem;
+    animation: rise 0.75s ease both;
+  }
+
+  .panel {
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: rgba(22, 27, 38, 0.92);
+    overflow: hidden;
+  }
+  .panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,0.02);
+  }
+  .panel-head h2 { margin: 0; font-size: 1.2rem; }
+  .panel-body { padding: clamp(1rem, 3vw, 1.6rem); }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(124, 156, 255, 0.12);
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .badge.layered {
+    background: rgba(94, 200, 192, 0.12);
+    color: var(--layered);
+  }
+  .badge.warn {
+    background: rgba(240, 180, 41, 0.14);
+    color: var(--warn);
+  }
+
+  .prose p { margin: 0 0 0.9rem; color: var(--muted); }
+  .prose p:last-child { margin-bottom: 0; }
+  .prose strong { color: var(--ink); }
+  .prose code, .inline-code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    direction: ltr;
+    unicode-bidi: isolate;
+    background: rgba(255,255,255,0.05);
+    padding: 0.1rem 0.35rem;
+    border-radius: 6px;
+  }
+
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+  }
+  @media (max-width: 780px) {
+    .compare { grid-template-columns: 1fr; }
+  }
+  .compare-col {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 1rem;
+    background: var(--bg);
+  }
+  .compare-col h3 { margin: 0 0 0.5rem; font-size: 1rem; }
+  .compare-col ul { margin: 0.4rem 0 0; padding-inline-start: 1.1rem; color: var(--muted); }
+  .compare-col.clean { border-color: rgba(124, 156, 255, 0.35); }
+  .compare-col.layered { border-color: rgba(94, 200, 192, 0.35); }
+
+  .table-wrap { overflow-x: auto; margin: 0.75rem 0; }
+  table.compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    min-width: 560px;
+  }
+  table.compare-table th,
+  table.compare-table td {
+    border: 1px solid var(--line);
+    padding: 0.7rem 0.85rem;
+    text-align: right;
+  }
+  table.compare-table th {
+    background: rgba(255,255,255,0.04);
+    color: var(--ink);
+    font-weight: 700;
+  }
+  table.compare-table td { color: var(--muted); }
+  table.compare-table code {
+    font-family: var(--mono);
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-size: 0.85em;
+    color: var(--accent-2);
+  }
+  table.compare-table tr:hover td { background: rgba(124, 156, 255, 0.04); }
+
+  .flow {
+    display: grid;
+    gap: 0.55rem;
+    margin: 1rem 0;
+    direction: ltr;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+  }
+  .flow-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .flow-box {
+    padding: 0.55rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--bg-elev);
+    color: var(--ink);
+  }
+  .flow-box.api { border-color: rgba(124,156,255,.45); }
+  .flow-box.svc { border-color: rgba(240,180,41,.4); }
+  .flow-box.repo { border-color: rgba(94,200,192,.45); }
+  .flow-box.db { border-color: rgba(160,160,180,.35); }
+  .flow-box.dom { border-color: rgba(124,156,255,.55); background: rgba(124,156,255,.08); }
+  .flow-arrow { color: var(--muted); }
+
+  .arch-diagram {
+    display: grid;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+  .arch-layer {
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .arch-layer .name { font-weight: 700; }
+  .arch-layer .desc { color: var(--muted); font-size: 0.9rem; }
+  .arch-layer.l1 { border-inline-start: 4px solid var(--accent); }
+  .arch-layer.l2 { border-inline-start: 4px solid var(--warn); }
+  .arch-layer.l3 { border-inline-start: 4px solid var(--layered); }
+  .arch-layer.l4 { border-inline-start: 4px solid #9aa6bf; }
+  .dep-rule {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin: 0.35rem 0 0.75rem;
+  }
+
+  .tree-wrap {
+    margin: 1rem 0;
+    padding: 1rem 1.1rem;
+    border-radius: 16px;
+    border: 1px dashed rgba(124, 156, 255, 0.28);
+    background: #10141c;
+    overflow-x: auto;
+  }
+  .tree-wrap pre {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    direction: ltr;
+    text-align: left;
+    color: var(--accent-2);
+    line-height: 1.55;
+  }
+
+  .files { display: grid; gap: 0.65rem; }
+  details.file {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  details.file[open] { border-color: rgba(124, 156, 255, 0.35); }
+  details.file summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 0.85rem 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  details.file summary::-webkit-details-marker { display: none; }
+  details.file summary::before {
+    content: "＋";
+    color: var(--accent);
+    font-weight: 700;
+  }
+  details.file[open] summary::before { content: "−"; }
+  details.file summary code {
+    font-family: var(--mono);
+    font-size: 0.88rem;
+    color: var(--accent-2);
+  }
+  .file-note {
+    margin: 0;
+    padding: 0 1rem 0.75rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .code-block {
+    margin: 0;
+    border-top: 1px solid var(--line);
+    background: #0a0d13;
+  }
+  .code-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.45rem 0.9rem;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,0.02);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .code-label .fname { color: var(--accent-2); }
+  .code-block pre {
+    margin: 0;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    line-height: 1.55;
+    color: #d5dceb;
+  }
+  .code-block code { font-family: inherit; }
+
+  .checklist {
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.55rem;
+  }
+  .checklist li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.65rem;
+    align-items: start;
+    padding: 0.75rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--muted);
+  }
+  .checklist .box {
+    width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 4px;
+    border: 2px solid var(--accent);
+    margin-top: 0.2rem;
+  }
+
+  .note {
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+    background: rgba(240, 180, 41, 0.08);
+    border: 1px solid rgba(240, 180, 41, 0.22);
+    color: #f3dfa0;
+  }
+  .tip {
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+    background: rgba(124, 156, 255, 0.08);
+    border: 1px solid rgba(124, 156, 255, 0.22);
+    color: var(--accent-2);
+  }
+
+  .path-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+  }
+  @media (max-width: 780px) {
+    .path-grid { grid-template-columns: 1fr; }
+  }
+  .path-card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 1rem;
+    background: var(--bg);
+  }
+  .path-card h3 { margin: 0 0 0.75rem; font-size: 1rem; }
+  .path-steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+    display: grid;
+    gap: 0.45rem;
+  }
+  .path-steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 1.6rem 1fr;
+    gap: 0.5rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .path-steps li::before {
+    content: counter(step);
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 8px;
+    background: rgba(124,156,255,.12);
+    color: var(--accent);
+    display: grid;
+    place-items: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: var(--mono);
+  }
+  .path-card.layered .path-steps li::before {
+    background: rgba(94,200,192,.12);
+    color: var(--layered);
+  }
+
+  .footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media print {
+    body { background: #fff; color: #111; }
+    .topbar, .hero-actions, .btn, .toc { display: none !important; }
+    .panel, .hero, details.file { break-inside: avoid; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">CA</span>
+        <span>Architecture Guide</span>
+      </div>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <span class="meta-chip">FastAPI · PostgreSQL · Todo</span>
+        <span class="meta-chip">Clean vs Layered</span>
+      </div>
+    </div>
+
+    <header class="hero">
+      <div class="meta-chip">دليل مذاكرة تطبيقي</div>
+      <h1>مقارنة Clean Architecture و Layered Architecture</h1>
+      <p>
+        نفس تطبيق Todo بـ FastAPI و PostgreSQL — مرّتين. مرة بأسلوب الطبقات التقليدي،
+        ومرة بـ Clean Architecture. قارن الاعتماديات، مسار الطلب، والكود ملف بملف.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#why">ابدأ بالمفاهيم</a>
+        <a class="btn btn-ghost" href="#layered">Layered</a>
+        <a class="btn btn-ghost" href="#clean">Clean</a>
+        <button class="btn btn-ghost" type="button" onclick="document.querySelectorAll('details.file').forEach(d=>d.open=true)">توسيع كل الملفات</button>
+        <button class="btn btn-ghost" type="button" onclick="document.querySelectorAll('details.file').forEach(d=>d.open=false)">طي الملفات</button>
+      </div>
+    </header>
+
+    <nav class="toc" aria-label="أقسام الدليل">
+      <a href="#why"><strong>ما الفرق؟</strong><span>تعريفات وقاعدة الاعتمادية</span></a>
+      <a href="#compare"><strong>مقارنة جنبًا لجنب</strong><span>جدول + مخططات تدفق</span></a>
+      <a href="#layered"><strong>Layered walkthrough</strong><span>شجرة مجلدات + كل الملفات</span></a>
+      <a href="#clean"><strong>Clean walkthrough</strong><span>Domain → Presentation</span></a>
+      <a href="#paths"><strong>نفس الطلب، مساران</strong><span>POST /todos خطوة بخطوة</span></a>
+      <a href="#api"><strong>مرجع الـ API</strong><span>Endpoints مشتركة</span></a>
+      <a href="#run"><strong>التشغيل</strong><span>createdb · pip · uvicorn</span></a>
+      <a href="#extras"><strong>إضافات مهمة</strong><span>Errors · DI · Migration</span></a>
+      <a href="#next"><strong>الخطوات التالية</strong><span>JWT · Tests · Alembic</span></a>
+    </nav>
+
+    <!-- 1. What & why -->
+    <section class="section" id="why">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>ما هما؟ ولماذا يهمّان؟</h2>
+          <span class="badge">Dependency Rule</span>
+        </div>
+        <div class="panel-body prose">
+          <div class="compare" style="margin-bottom:1.1rem">
+            <div class="compare-col layered">
+              <h3>Layered Architecture</h3>
+              <p>تقسيم رأسي شائع: Presentation → Business → Data. كل طبقة تتكلم مع اللي تحتها مباشرة. أبسط للفهم وأسرع للبدء في أغلب مشاريع CRUD المتوسطة.</p>
+            </div>
+            <div class="compare-col clean">
+              <h3>Clean Architecture</h3>
+              <p>قلب مستقل (Domain) محاط بـ Use Cases، والـ Infrastructure/UI على الأطراف. الاعتماديات تتجه <strong>للداخل</strong> فقط — الـ Domain لا يعرف FastAPI ولا SQLAlchemy.</p>
+            </div>
+          </div>
+
+          <p><strong>قاعدة الاعتمادية في Clean:</strong> الكود الداخلي لا يعتمد على الخارجي. الـ Domain لا يستورد من Infrastructure؛ والعكس مسموح عبر Interfaces (Ports).</p>
+          <p><strong>قاعدة الاعتمادية في Layered:</strong> من فوق لتحت — الـ API يعتمد على Service، والـ Service على Repository، والـ Repository على الـ Database/ORM.</p>
+
+          <div class="tip">
+            اختر <strong>Layered</strong> لو الفريق صغير والمشروع واضح الحدود.
+            انتقل لـ <strong>Clean</strong> لما تتعدد مصادر البيانات، أو تحتاج اختبارات Use Case بدون DB، أو يتغير الـ framework كثيرًا.
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- 2. Comparison -->
+    <section class="section" id="compare">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>مقارنة جنبًا لجنب</h2>
+          <span class="badge warn">نفس Todo · بنيتان</span>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table class="compare-table">
+              <thead>
+                <tr>
+                  <th>النقطة</th>
+                  <th>Clean Architecture</th>
+                  <th>Layered Architecture</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>التعقيد</td><td>أعلى (ملفات أكثر، abstractions)</td><td>أبسط وأوضح</td></tr>
+                <tr><td>الاستقلالية</td><td>عالية جدًا (Domain معزول)</td><td>متوسطة (ORM يتسرّب أحيانًا)</td></tr>
+                <tr><td>عدد الطبقات</td><td>4 طبقات واضحة</td><td>عادة 3–4 (API / Service / Repo / DB)</td></tr>
+                <tr><td>الاتجاهية</td><td>للداخل فقط (Inward)</td><td>من فوق لتحت (Top-down)</td></tr>
+                <tr><td>اختبار المنطق</td><td>سهل: mock للـ Repository interface</td><td>ممكن، لكن غالبًا مربوط بالـ session/ORM</td></tr>
+                <tr><td>تبديل PostgreSQL</td><td>تغيير Infrastructure فقط</td><td>يمس Repository + غالبًا Models/Services</td></tr>
+                <tr><td>الاستخدام الشائع</td><td>مشاريع كبيرة / متعددة الفرق</td><td>معظم المشاريع المتوسطة</td></tr>
+                <tr><td>منحنى التعلم</td><td>أعلى</td><td>منخفض</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 style="margin:1.25rem 0 0.5rem;font-size:1.05rem;">مخطط الطبقات</h3>
+          <div class="compare">
+            <div>
+              <p class="dep-rule" style="text-align:right">Layered — السهم لأسفل</p>
+              <div class="arch-diagram">
+                <div class="arch-layer l1"><span class="name">API / Presentation</span><span class="desc">Routes + Schemas</span></div>
+                <div class="dep-rule">↓ يعتمد على</div>
+                <div class="arch-layer l2"><span class="name">Service</span><span class="desc">Business Logic</span></div>
+                <div class="dep-rule">↓</div>
+                <div class="arch-layer l3"><span class="name">Repository</span><span class="desc">Data Access</span></div>
+                <div class="dep-rule">↓</div>
+                <div class="arch-layer l4"><span class="name">Database / ORM</span><span class="desc">SQLAlchemy + PostgreSQL</span></div>
+              </div>
+            </div>
+            <div>
+              <p class="dep-rule" style="text-align:right">Clean — السهم للداخل</p>
+              <div class="arch-diagram">
+                <div class="arch-layer l1"><span class="name">Presentation</span><span class="desc">FastAPI + Pydantic</span></div>
+                <div class="arch-layer l4"><span class="name">Infrastructure</span><span class="desc">DB + Repo Impl</span></div>
+                <div class="dep-rule">كلاهما يعتمد على ↓</div>
+                <div class="arch-layer l2"><span class="name">Application</span><span class="desc">Use Cases</span></div>
+                <div class="dep-rule">↓ يعتمد على</div>
+                <div class="arch-layer l3"><span class="name">Domain (القلب)</span><span class="desc">Entities + Interfaces</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- 3. Layered -->
+    <section class="section" id="layered">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>Layered Architecture — walkthrough</h2>
+          <span class="badge layered">todo_layered/</span>
+        </div>
+        <div class="panel-body">
+          <p class="prose" style="color:var(--muted);margin-top:0">الأسلوب التقليدي الأكثر استخدامًا: API يستدعي Service، والـ Service يستدعي Repository.</p>
+          <div class="tree-wrap"><pre>todo_layered/
+├── models/
+│   └── todo.py              # SQLAlchemy Model
+├── schemas/
+│   └── todo.py              # Pydantic Schemas
+├── repositories/
+│   └── todo_repository.py   # Data Access Layer
+├── services/
+│   └── todo_service.py      # Business Logic Layer
+├── api/
+│   └── todos.py             # Presentation Layer (Routes)
+├── database.py
+├── main.py
+└── requirements.txt</pre></div>
+
+          <div class="table-wrap">
+            <table class="compare-table">
+              <thead><tr><th>الطبقة</th><th>الملف</th><th>المسؤولية</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Presentation</strong></td><td><code>api/todos.py</code></td><td>استقبال الطلبات وإرجاع الردود</td></tr>
+                <tr><td><strong>Business Logic</strong></td><td><code>services/todo_service.py</code></td><td>المنطق التجاري والقواعد</td></tr>
+                <tr><td><strong>Data Access</strong></td><td><code>repositories/...</code></td><td>التعامل مع قاعدة البيانات</td></tr>
+                <tr><td><strong>Database</strong></td><td><code>models/</code> + <code>database.py</code></td><td>تعريف الجداول والاتصال</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="files" style="margin-top:1rem">
+<details class="file" open>
+<summary><code dir="ltr">database.py</code></summary>
+<p class="file-note">اتصال async بـ PostgreSQL عبر asyncpg + جلسة لكل طلب.</p>
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">database.py</span><span class="lang">python</span></div><pre><code class="language-python">from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+DATABASE_URL = &quot;postgresql+asyncpg://postgres:password@localhost:5432/todo_db&quot;
+
+engine = create_async_engine(DATABASE_URL, echo=True)
+AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+Base = declarative_base()
+
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">models/todo.py</code></summary>
+<p class="file-note">في Layered غالباً الـ ORM model هو نفسه تمثيل البيانات عبر الطبقات.</p>
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">models/todo.py</span><span class="lang">python</span></div><pre><code class="language-python">from sqlalchemy import Column, String, Boolean, DateTime, Text
+from sqlalchemy.dialects.postgresql import UUID
+from datetime import datetime
+import uuid
+from database import Base
+
+class Todo(Base):
+    __tablename__ = &quot;todos&quot;
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    is_completed = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">schemas/todo.py</code></summary>
+
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">schemas/todo.py</span><span class="lang">python</span></div><pre><code class="language-python">from pydantic import BaseModel, Field
+from datetime import datetime
+from uuid import UUID
+from typing import Optional
+
+class TodoCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
+
+class TodoUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    is_completed: Optional[bool] = None
+
+class TodoResponse(BaseModel):
+    id: UUID
+    title: str
+    description: Optional[str]
+    is_completed: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">repositories/todo_repository.py</code></summary>
+<p class="file-note">طبقة الوصول للبيانات فقط — بدون قواعد عمل.</p>
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">repositories/todo_repository.py</span><span class="lang">python</span></div><pre><code class="language-python">from typing import List, Optional
+from uuid import UUID
+from sqlalchemy import select, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+from models.todo import Todo
+
+class TodoRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(self, title: str, description: str | None = None) -&gt; Todo:
+        todo = Todo(title=title, description=description)
+        self.session.add(todo)
+        await self.session.commit()
+        await self.session.refresh(todo)
+        return todo
+
+    async def get_by_id(self, todo_id: UUID) -&gt; Optional[Todo]:
+        result = await self.session.execute(
+            select(Todo).where(Todo.id == todo_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_all(self) -&gt; List[Todo]:
+        result = await self.session.execute(select(Todo))
+        return list(result.scalars().all())
+
+    async def update(
+        self,
+        todo_id: UUID,
+        title: str | None = None,
+        description: str | None = None,
+        is_completed: bool | None = None,
+    ) -&gt; Optional[Todo]:
+        todo = await self.get_by_id(todo_id)
+        if not todo:
+            return None
+
+        if title is not None:
+            todo.title = title
+        if description is not None:
+            todo.description = description
+        if is_completed is not None:
+            todo.is_completed = is_completed
+
+        await self.session.commit()
+        await self.session.refresh(todo)
+        return todo
+
+    async def delete(self, todo_id: UUID) -&gt; bool:
+        result = await self.session.execute(
+            delete(Todo).where(Todo.id == todo_id)
+        )
+        await self.session.commit()
+        return result.rowcount &gt; 0</code></pre>
+</div>
+</details>
+<details class="file" open>
+<summary><code dir="ltr">services/todo_service.py</code></summary>
+<p class="file-note">المنطق التجاري يعيش هنا؛ الـ API يستدعي الـ Service فقط.</p>
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">services/todo_service.py</span><span class="lang">python</span></div><pre><code class="language-python">from typing import List, Optional
+from uuid import UUID
+from sqlalchemy.ext.asyncio import AsyncSession
+from repositories.todo_repository import TodoRepository
+from models.todo import Todo
+
+class TodoService:
+    def __init__(self, session: AsyncSession):
+        self.repository = TodoRepository(session)
+
+    async def create_todo(self, title: str, description: str | None = None) -&gt; Todo:
+        # هنا تقدر تضيف أي Business Logic
+        # مثلاً: validation إضافي، logging، إرسال إشعار... إلخ
+        if not title.strip():
+            raise ValueError(&quot;Title cannot be empty&quot;)
+
+        return await self.repository.create(title=title, description=description)
+
+    async def get_todo(self, todo_id: UUID) -&gt; Optional[Todo]:
+        return await self.repository.get_by_id(todo_id)
+
+    async def list_todos(self) -&gt; List[Todo]:
+        return await self.repository.get_all()
+
+    async def update_todo(
+        self,
+        todo_id: UUID,
+        title: str | None = None,
+        description: str | None = None,
+        is_completed: bool | None = None,
+    ) -&gt; Optional[Todo]:
+        return await self.repository.update(
+            todo_id=todo_id,
+            title=title,
+            description=description,
+            is_completed=is_completed,
+        )
+
+    async def delete_todo(self, todo_id: UUID) -&gt; bool:
+        return await self.repository.delete(todo_id)</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">api/todos.py</code></summary>
+
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">api/todos.py</span><span class="lang">python</span></div><pre><code class="language-python">from fastapi import APIRouter, Depends, HTTPException, status
+from uuid import UUID
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from database import get_db
+from services.todo_service import TodoService
+from schemas.todo import TodoCreate, TodoUpdate, TodoResponse
+
+router = APIRouter(prefix=&quot;/todos&quot;, tags=[&quot;Todos&quot;])
+
+def get_service(session: AsyncSession = Depends(get_db)) -&gt; TodoService:
+    return TodoService(session)
+
+@router.post(&quot;/&quot;, response_model=TodoResponse, status_code=status.HTTP_201_CREATED)
+async def create_todo(
+    data: TodoCreate,
+    service: TodoService = Depends(get_service),
+):
+    try:
+        todo = await service.create_todo(title=data.title, description=data.description)
+        return todo
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get(&quot;/&quot;, response_model=list[TodoResponse])
+async def list_todos(service: TodoService = Depends(get_service)):
+    return await service.list_todos()
+
+@router.get(&quot;/{todo_id}&quot;, response_model=TodoResponse)
+async def get_todo(
+    todo_id: UUID,
+    service: TodoService = Depends(get_service),
+):
+    todo = await service.get_todo(todo_id)
+    if not todo:
+        raise HTTPException(status_code=404, detail=&quot;Todo not found&quot;)
+    return todo
+
+@router.put(&quot;/{todo_id}&quot;, response_model=TodoResponse)
+async def update_todo(
+    todo_id: UUID,
+    data: TodoUpdate,
+    service: TodoService = Depends(get_service),
+):
+    todo = await service.update_todo(
+        todo_id=todo_id,
+        title=data.title,
+        description=data.description,
+        is_completed=data.is_completed,
+    )
+    if not todo:
+        raise HTTPException(status_code=404, detail=&quot;Todo not found&quot;)
+    return todo
+
+@router.delete(&quot;/{todo_id}&quot;, status_code=status.HTTP_204_NO_CONTENT)
+async def delete_todo(
+    todo_id: UUID,
+    service: TodoService = Depends(get_service),
+):
+    success = await service.delete_todo(todo_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=&quot;Todo not found&quot;)</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">main.py</code></summary>
+
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">main.py</span><span class="lang">python</span></div><pre><code class="language-python">from fastapi import FastAPI
+from database import engine, Base
+from api.todos import router as todos_router
+
+app = FastAPI(title=&quot;Layered Architecture Todo API&quot;)
+
+app.include_router(todos_router)
+
+@app.on_event(&quot;startup&quot;)
+async def startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+@app.get(&quot;/&quot;)
+async def root():
+    return {&quot;message&quot;: &quot;Layered Architecture with FastAPI + PostgreSQL&quot;}</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">requirements.txt</code></summary>
+
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">requirements.txt</span><span class="lang">text</span></div><pre><code class="language-text">fastapi==0.115.0
+uvicorn[standard]==0.30.6
+sqlalchemy[asyncio]==2.0.35
+asyncpg==0.29.0
+pydantic==2.9.2</code></pre>
+</div>
+</details>
+          </div>
+
+          <div class="note">
+            في Layered الاعتمادية من فوق لتحت (API → Service → Repository → Database).
+            أسهل للمشاريع الصغيرة والمتوسطة، ولو كبر المشروع تقدر تهاجر تدريجيًا لـ Clean.
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- 4. Clean -->
+    <section class="section" id="clean">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>Clean Architecture — walkthrough</h2>
+          <span class="badge">todo_clean/</span>
+        </div>
+        <div class="panel-body">
+          <p style="color:var(--muted);margin-top:0">نفس الـ Todo، لكن الـ Domain Entity منفصل عن SQLAlchemy Model، والـ Repository Interface في القلب والتنفيذ في Infrastructure.</p>
+          <div class="tree-wrap"><pre>todo_clean/
+├── domain/
+│   ├── entities/
+│   │   └── todo.py
+│   └── repositories/
+│       └── todo_repository.py      # Interface (Abstract)
+├── application/
+│   └── use_cases/
+│       ├── create_todo.py
+│       ├── get_todo.py
+│       ├── list_todos.py
+│       ├── update_todo.py
+│       └── delete_todo.py
+├── infrastructure/
+│   ├── database/
+│   │   ├── connection.py
+│   │   └── models.py               # SQLAlchemy Models
+│   └── repositories/
+│       └── todo_repository_impl.py # Implementation
+├── presentation/
+│   ├── api/
+│   │   └── todos.py                # FastAPI Routes
+│   └── schemas/
+│       └── todo_schemas.py         # Pydantic Schemas
+├── main.py
+└── requirements.txt</pre></div>
+
+          <div class="table-wrap">
+            <table class="compare-table">
+              <thead><tr><th>الطبقة</th><th>المسؤولية</th><th>تعتمد على</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Domain</strong></td><td>Entities + Interfaces</td><td>لا شيء</td></tr>
+                <tr><td><strong>Application</strong></td><td>Use Cases (المنطق)</td><td>Domain فقط</td></tr>
+                <tr><td><strong>Infrastructure</strong></td><td>Database + Implementation</td><td>Domain</td></tr>
+                <tr><td><strong>Presentation</strong></td><td>FastAPI + Schemas</td><td>Application (+ wiring)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="files" style="margin-top:1rem">
+<details class="file" open>
+<summary><code dir="ltr">domain/entities/todo.py</code></summary>
+<p class="file-note">Entity نقي — بدون SQLAlchemy أو FastAPI.</p>
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">domain/entities/todo.py</span><span class="lang">python</span></div><pre><code class="language-python">from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
+from uuid import UUID
+
+@dataclass
+class Todo:
+    id: UUID
+    title: str
+    description: Optional[str]
+    is_completed: bool
+    created_at: datetime
+    updated_at: datetime</code></pre>
+</div>
+</details>
+<details class="file" open>
+<summary><code dir="ltr">domain/repositories/todo_repository.py</code></summary>
+<p class="file-note">Interface في الـ Domain؛ التنفيذ في Infrastructure.</p>
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">domain/repositories/todo_repository.py</span><span class="lang">python</span></div><pre><code class="language-python">from abc import ABC, abstractmethod
+from typing import List, Optional
+from uuid import UUID
+from domain.entities.todo import Todo
+
+class TodoRepository(ABC):
+    @abstractmethod
+    async def create(self, todo: Todo) -&gt; Todo:
+        pass
+
+    @abstractmethod
+    async def get_by_id(self, todo_id: UUID) -&gt; Optional[Todo]:
+        pass
+
+    @abstractmethod
+    async def list_all(self) -&gt; List[Todo]:
+        pass
+
+    @abstractmethod
+    async def update(self, todo: Todo) -&gt; Todo:
+        pass
+
+    @abstractmethod
+    async def delete(self, todo_id: UUID) -&gt; bool:
+        pass</code></pre>
+</div>
+</details>
+<details class="file" open>
+<summary><code dir="ltr">application/use_cases/create_todo.py</code></summary>
+
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">application/use_cases/create_todo.py</span><span class="lang">python</span></div><pre><code class="language-python">from datetime import datetime
+from uuid import uuid4
+from domain.entities.todo import Todo
+from domain.repositories.todo_repository import TodoRepository
+
+class CreateTodoUseCase:
+    def __init__(self, repository: TodoRepository):
+        self.repository = repository
+
+    async def execute(self, title: str, description: str | None = None) -&gt; Todo:
+        now = datetime.utcnow()
+        todo = Todo(
+            id=uuid4(),
+            title=title,
+            description=description,
+            is_completed=False,
+            created_at=now,
+            updated_at=now,
+        )
+        return await self.repository.create(todo)</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">application/use_cases/get_todo.py</code></summary>
+
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">application/use_cases/get_todo.py</span><span class="lang">python</span></div><pre><code class="language-python">from uuid import UUID
+from domain.entities.todo import Todo
+from domain.repositories.todo_repository import TodoRepository
+
+class GetTodoUseCase:
+    def __init__(self, repository: TodoRepository):
+        self.repository = repository
+
+    async def execute(self, todo_id: UUID) -&gt; Todo | None:
+        return await self.repository.get_by_id(todo_id)</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">application/use_cases/list_todos.py</code></summary>
+
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">application/use_cases/list_todos.py</span><span class="lang">python</span></div><pre><code class="language-python">from typing import List
+from domain.entities.todo import Todo
+from domain.repositories.todo_repository import TodoRepository
+
+class ListTodosUseCase:
+    def __init__(self, repository: TodoRepository):
+        self.repository = repository
+
+    async def execute(self) -&gt; List[Todo]:
+        return await self.repository.list_all()</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">application/use_cases/update_todo.py</code></summary>
+
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">application/use_cases/update_todo.py</span><span class="lang">python</span></div><pre><code class="language-python">from datetime import datetime
+from uuid import UUID
+from domain.entities.todo import Todo
+from domain.repositories.todo_repository import TodoRepository
+
+class UpdateTodoUseCase:
+    def __init__(self, repository: TodoRepository):
+        self.repository = repository
+
+    async def execute(
+        self,
+        todo_id: UUID,
+        title: str | None = None,
+        description: str | None = None,
+        is_completed: bool | None = None,
+    ) -&gt; Todo | None:
+        todo = await self.repository.get_by_id(todo_id)
+        if not todo:
+            return None
+
+        if title is not None:
+            todo.title = title
+        if description is not None:
+            todo.description = description
+        if is_completed is not None:
+            todo.is_completed = is_completed
+
+        todo.updated_at = datetime.utcnow()
+        return await self.repository.update(todo)</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">application/use_cases/delete_todo.py</code></summary>
+
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">application/use_cases/delete_todo.py</span><span class="lang">python</span></div><pre><code class="language-python">from uuid import UUID
+from domain.repositories.todo_repository import TodoRepository
+
+class DeleteTodoUseCase:
+    def __init__(self, repository: TodoRepository):
+        self.repository = repository
+
+    async def execute(self, todo_id: UUID) -&gt; bool:
+        return await self.repository.delete(todo_id)</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">infrastructure/database/connection.py</code></summary>
+
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">infrastructure/database/connection.py</span><span class="lang">python</span></div><pre><code class="language-python">from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+DATABASE_URL = &quot;postgresql+asyncpg://postgres:password@localhost:5432/todo_db&quot;
+
+engine = create_async_engine(DATABASE_URL, echo=True)
+AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+Base = declarative_base()
+
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">infrastructure/database/models.py</code></summary>
+<p class="file-note">ORM model منفصل عن Domain Entity.</p>
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">infrastructure/database/models.py</span><span class="lang">python</span></div><pre><code class="language-python">from sqlalchemy import Column, String, Boolean, DateTime, Text
+from sqlalchemy.dialects.postgresql import UUID
+from datetime import datetime
+import uuid
+from infrastructure.database.connection import Base
+
+class TodoModel(Base):
+    __tablename__ = &quot;todos&quot;
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    is_completed = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">infrastructure/repositories/todo_repository_impl.py</code></summary>
+<p class="file-note">يحوّل بين TodoModel و Domain Entity.</p>
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">infrastructure/repositories/todo_repository_impl.py</span><span class="lang">python</span></div><pre><code class="language-python">from typing import List, Optional
+from uuid import UUID
+from sqlalchemy import select, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+from domain.entities.todo import Todo
+from domain.repositories.todo_repository import TodoRepository
+from infrastructure.database.models import TodoModel
+
+class TodoRepositoryImpl(TodoRepository):
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(self, todo: Todo) -&gt; Todo:
+        db_todo = TodoModel(
+            id=todo.id,
+            title=todo.title,
+            description=todo.description,
+            is_completed=todo.is_completed,
+            created_at=todo.created_at,
+            updated_at=todo.updated_at,
+        )
+        self.session.add(db_todo)
+        await self.session.commit()
+        await self.session.refresh(db_todo)
+        return self._to_entity(db_todo)
+
+    async def get_by_id(self, todo_id: UUID) -&gt; Optional[Todo]:
+        result = await self.session.execute(
+            select(TodoModel).where(TodoModel.id == todo_id)
+        )
+        db_todo = result.scalar_one_or_none()
+        return self._to_entity(db_todo) if db_todo else None
+
+    async def list_all(self) -&gt; List[Todo]:
+        result = await self.session.execute(select(TodoModel))
+        return [self._to_entity(item) for item in result.scalars().all()]
+
+    async def update(self, todo: Todo) -&gt; Todo:
+        result = await self.session.execute(
+            select(TodoModel).where(TodoModel.id == todo.id)
+        )
+        db_todo = result.scalar_one()
+        db_todo.title = todo.title
+        db_todo.description = todo.description
+        db_todo.is_completed = todo.is_completed
+        db_todo.updated_at = todo.updated_at
+        await self.session.commit()
+        await self.session.refresh(db_todo)
+        return self._to_entity(db_todo)
+
+    async def delete(self, todo_id: UUID) -&gt; bool:
+        result = await self.session.execute(
+            delete(TodoModel).where(TodoModel.id == todo_id)
+        )
+        await self.session.commit()
+        return result.rowcount &gt; 0
+
+    def _to_entity(self, model: TodoModel) -&gt; Todo:
+        return Todo(
+            id=model.id,
+            title=model.title,
+            description=model.description,
+            is_completed=model.is_completed,
+            created_at=model.created_at,
+            updated_at=model.updated_at,
+        )</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">presentation/schemas/todo_schemas.py</code></summary>
+
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">presentation/schemas/todo_schemas.py</span><span class="lang">python</span></div><pre><code class="language-python">from pydantic import BaseModel, Field
+from datetime import datetime
+from uuid import UUID
+from typing import Optional
+
+class TodoCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
+
+class TodoUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    is_completed: Optional[bool] = None
+
+class TodoResponse(BaseModel):
+    id: UUID
+    title: str
+    description: Optional[str]
+    is_completed: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">presentation/api/todos.py</code></summary>
+<p class="file-note">الـ Routes رفيعة: تبني Use Case وتنفّذه.</p>
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">presentation/api/todos.py</span><span class="lang">python</span></div><pre><code class="language-python">from fastapi import APIRouter, Depends, HTTPException, status
+from uuid import UUID
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from infrastructure.database.connection import get_db
+from infrastructure.repositories.todo_repository_impl import TodoRepositoryImpl
+from application.use_cases.create_todo import CreateTodoUseCase
+from application.use_cases.get_todo import GetTodoUseCase
+from application.use_cases.list_todos import ListTodosUseCase
+from application.use_cases.update_todo import UpdateTodoUseCase
+from application.use_cases.delete_todo import DeleteTodoUseCase
+from presentation.schemas.todo_schemas import TodoCreate, TodoUpdate, TodoResponse
+
+router = APIRouter(prefix=&quot;/todos&quot;, tags=[&quot;Todos&quot;])
+
+def get_repository(session: AsyncSession = Depends(get_db)) -&gt; TodoRepositoryImpl:
+    return TodoRepositoryImpl(session)
+
+@router.post(&quot;/&quot;, response_model=TodoResponse, status_code=status.HTTP_201_CREATED)
+async def create_todo(
+    data: TodoCreate,
+    repo: TodoRepositoryImpl = Depends(get_repository),
+):
+    use_case = CreateTodoUseCase(repo)
+    todo = await use_case.execute(title=data.title, description=data.description)
+    return todo
+
+@router.get(&quot;/&quot;, response_model=list[TodoResponse])
+async def list_todos(repo: TodoRepositoryImpl = Depends(get_repository)):
+    use_case = ListTodosUseCase(repo)
+    return await use_case.execute()
+
+@router.get(&quot;/{todo_id}&quot;, response_model=TodoResponse)
+async def get_todo(
+    todo_id: UUID,
+    repo: TodoRepositoryImpl = Depends(get_repository),
+):
+    use_case = GetTodoUseCase(repo)
+    todo = await use_case.execute(todo_id)
+    if not todo:
+        raise HTTPException(status_code=404, detail=&quot;Todo not found&quot;)
+    return todo
+
+@router.put(&quot;/{todo_id}&quot;, response_model=TodoResponse)
+async def update_todo(
+    todo_id: UUID,
+    data: TodoUpdate,
+    repo: TodoRepositoryImpl = Depends(get_repository),
+):
+    use_case = UpdateTodoUseCase(repo)
+    todo = await use_case.execute(
+        todo_id=todo_id,
+        title=data.title,
+        description=data.description,
+        is_completed=data.is_completed,
+    )
+    if not todo:
+        raise HTTPException(status_code=404, detail=&quot;Todo not found&quot;)
+    return todo
+
+@router.delete(&quot;/{todo_id}&quot;, status_code=status.HTTP_204_NO_CONTENT)
+async def delete_todo(
+    todo_id: UUID,
+    repo: TodoRepositoryImpl = Depends(get_repository),
+):
+    use_case = DeleteTodoUseCase(repo)
+    success = await use_case.execute(todo_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=&quot;Todo not found&quot;)</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">main.py</code></summary>
+
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">main.py</span><span class="lang">python</span></div><pre><code class="language-python">from fastapi import FastAPI
+from infrastructure.database.connection import engine, Base
+from presentation.api.todos import router as todos_router
+
+app = FastAPI(title=&quot;Clean Architecture Todo API&quot;)
+
+app.include_router(todos_router)
+
+@app.on_event(&quot;startup&quot;)
+async def startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+@app.get(&quot;/&quot;)
+async def root():
+    return {&quot;message&quot;: &quot;Clean Architecture with FastAPI + PostgreSQL&quot;}</code></pre>
+</div>
+</details>
+<details class="file">
+<summary><code dir="ltr">requirements.txt</code></summary>
+
+<div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">requirements.txt</span><span class="lang">text</span></div><pre><code class="language-text">fastapi==0.115.0
+uvicorn[standard]==0.30.6
+sqlalchemy[asyncio]==2.0.35
+asyncpg==0.29.0
+pydantic==2.9.2</code></pre>
+</div>
+</details>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- 5. Same request -->
+    <section class="section" id="paths">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>نفس الطلب، مساران — <code dir="ltr" style="font-family:var(--mono);font-size:.9em">POST /todos</code></h2>
+          <span class="badge">Request Trace</span>
+        </div>
+        <div class="panel-body">
+          <p style="color:var(--muted);margin-top:0">Body: <code class="inline-code">{"title": "Buy milk", "description": "2L"}</code> → <code class="inline-code">201 Created</code></p>
+
+          <div class="path-grid">
+            <div class="path-card layered">
+              <h3><span class="badge layered">Layered</span></h3>
+              <ol class="path-steps">
+                <li><code class="inline-code">api/todos.create_todo</code> يتحقق من الـ schema</li>
+                <li><code class="inline-code">Depends(get_service)</code> يبني TodoService + session</li>
+                <li><code class="inline-code">TodoService.create_todo</code> يفحص العنوان الفارغ</li>
+                <li><code class="inline-code">TodoRepository.create</code> يكتب صف ORM</li>
+                <li>Commit + refresh → يُعاد كـ <code class="inline-code">TodoResponse</code></li>
+              </ol>
+              <div class="flow" style="margin-top:1rem">
+                <div class="flow-row">
+                  <span class="flow-box api">API</span><span class="flow-arrow">→</span>
+                  <span class="flow-box svc">Service</span><span class="flow-arrow">→</span>
+                  <span class="flow-box repo">Repository</span><span class="flow-arrow">→</span>
+                  <span class="flow-box db">PostgreSQL</span>
+                </div>
+              </div>
+            </div>
+            <div class="path-card">
+              <h3><span class="badge">Clean</span></h3>
+              <ol class="path-steps">
+                <li><code class="inline-code">presentation/api</code> يستقبل TodoCreate</li>
+                <li><code class="inline-code">TodoRepositoryImpl</code> عبر Depends</li>
+                <li><code class="inline-code">CreateTodoUseCase.execute</code> يبني Domain Entity</li>
+                <li>الـ Use Case يستدعي Interface (التنفيذ في Infrastructure)</li>
+                <li><code class="inline-code">_to_entity</code> بعد الحفظ → Response</li>
+              </ol>
+              <div class="flow" style="margin-top:1rem">
+                <div class="flow-row">
+                  <span class="flow-box api">API</span><span class="flow-arrow">→</span>
+                  <span class="flow-box svc">UseCase</span><span class="flow-arrow">→</span>
+                  <span class="flow-box dom">Port</span><span class="flow-arrow">→</span>
+                  <span class="flow-box repo">Impl</span><span class="flow-arrow">→</span>
+                  <span class="flow-box db">DB</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrap" style="margin-top:1.2rem">
+            <table class="compare-table">
+              <thead>
+                <tr><th>الخطوة</th><th>Layered</th><th>Clean</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>تمثيل المهمة</td><td><code>models.Todo</code> (ORM)</td><td><code>domain.entities.Todo</code> (dataclass)</td></tr>
+                <tr><td>أين المنطق؟</td><td><code>TodoService</code></td><td><code>CreateTodoUseCase</code></td></tr>
+                <tr><td>عقد التخزين</td><td>كلاس عادي في repositories/</td><td>ABC في domain + Impl في infrastructure</td></tr>
+                <tr><td>معرفة الـ DB في القلب؟</td><td>جزئيًا (ORM يتسرّب)</td><td>لا</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- 6. API -->
+    <section class="section" id="api">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>مرجع الـ API (مشترك للنسختين)</h2>
+          <span class="badge">/todos</span>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table class="compare-table">
+              <thead>
+                <tr><th>Method</th><th>Path</th><th>Body</th><th>نجاح</th><th>أخطاء شائعة</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>POST</code></td>
+                  <td><code>/todos/</code></td>
+                  <td><code>{"title","description?"}</code></td>
+                  <td><code>201</code> + Todo</td>
+                  <td><code>400</code> validation / عنوان فارغ</td>
+                </tr>
+                <tr>
+                  <td><code>GET</code></td>
+                  <td><code>/todos/</code></td>
+                  <td>—</td>
+                  <td><code>200</code> list</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><code>GET</code></td>
+                  <td><code>/todos/{id}</code></td>
+                  <td>—</td>
+                  <td><code>200</code> Todo</td>
+                  <td><code>404</code> غير موجود</td>
+                </tr>
+                <tr>
+                  <td><code>PUT</code></td>
+                  <td><code>/todos/{id}</code></td>
+                  <td><code>{"title?","description?","is_completed?"}</code></td>
+                  <td><code>200</code> Todo</td>
+                  <td><code>404</code></td>
+                </tr>
+                <tr>
+                  <td><code>DELETE</code></td>
+                  <td><code>/todos/{id}</code></td>
+                  <td>—</td>
+                  <td><code>204</code></td>
+                  <td><code>404</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="color:var(--muted);margin:0.75rem 0 0;font-size:0.92rem">
+            الوثائق التفاعلية بعد التشغيل: <code class="inline-code">http://127.0.0.1:8000/docs</code>
+          </p>
+        </div>
+      </article>
+    </section>
+
+    <!-- 7. Run -->
+    <section class="section" id="run">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>طريقة التشغيل</h2>
+          <span class="badge layered">محليًا</span>
+        </div>
+        <div class="panel-body">
+          <ol style="margin:0;padding-inline-start:1.25rem;color:var(--muted);display:grid;gap:0.85rem">
+            <li>
+              أنشئ قاعدة البيانات:
+              <div class="code-block" dir="ltr">
+<pre><code class="language-bash">createdb todo_db</code></pre>
+</div>
+            </li>
+            <li>عدّل <code class="inline-code">DATABASE_URL</code> في <code class="inline-code">database.py</code> (Layered) أو <code class="inline-code">infrastructure/database/connection.py</code> (Clean).</li>
+            <li>
+              ثبّت المكتبات:
+              <div class="code-block" dir="ltr">
+<pre><code class="language-bash">pip install -r requirements.txt</code></pre>
+</div>
+            </li>
+            <li>
+              شغّل السيرفر من مجلد المشروع:
+              <div class="code-block" dir="ltr">
+<pre><code class="language-bash">uvicorn main:app --reload</code></pre>
+</div>
+            </li>
+            <li>افتح <code class="inline-code">http://127.0.0.1:8000/docs</code> وجرّب <code class="inline-code">POST /todos/</code>.</li>
+          </ol>
+          <div class="note">
+            هذا الدليل HTML للدراسة فقط — لا يحتوي مستودع Python runnable داخل الـ workspace.
+            انسخ الملفات إلى مجلد مشروع منفصل عند التجريب.
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- 8. Extras -->
+    <section class="section" id="extras">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>إضافات يجب أن تعرفها</h2>
+          <span class="badge warn">Must-have</span>
+        </div>
+        <div class="panel-body">
+          <h3 style="margin:0 0 0.5rem;font-size:1.05rem;">1) Exception Handling مركزي</h3>
+          <p style="color:var(--muted);margin:0 0 0.75rem">
+            لا ترفع <code class="inline-code">HTTPException</code> من الـ Domain/Use Cases.
+            عرّف أخطاء مجال، وترجمها لـ HTTP في طبقة العرض عبر exception handlers.
+          </p>
+          <div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">exception handling sketch</span><span class="lang">python</span></div><pre><code class="language-python"># domain/errors.py
+class DomainError(Exception):
+    &quot;&quot;&quot;Base domain error.&quot;&quot;&quot;
+
+class NotFoundError(DomainError):
+    def __init__(self, resource: str, id: str):
+        self.resource = resource
+        self.id = id
+        super().__init__(f&quot;{resource} not found: {id}&quot;)
+
+class ValidationError(DomainError):
+    pass
+
+
+# presentation/exception_handlers.py
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from domain.errors import NotFoundError, ValidationError, DomainError
+
+def register_exception_handlers(app: FastAPI) -&gt; None:
+    @app.exception_handler(NotFoundError)
+    async def not_found_handler(_: Request, exc: NotFoundError):
+        return JSONResponse(status_code=404, content={&quot;detail&quot;: str(exc)})
+
+    @app.exception_handler(ValidationError)
+    async def validation_handler(_: Request, exc: ValidationError):
+        return JSONResponse(status_code=400, content={&quot;detail&quot;: str(exc)})
+
+    @app.exception_handler(DomainError)
+    async def domain_handler(_: Request, exc: DomainError):
+        return JSONResponse(status_code=422, content={&quot;detail&quot;: str(exc)})
+
+
+# في الـ Use Case / Service:
+# raise NotFoundError(&quot;Todo&quot;, str(todo_id))
+# بدل HTTPException داخل الطبقات الداخلية</code></pre>
+</div>
+
+          <h3 style="margin:1.4rem 0 0.5rem;font-size:1.05rem;">2) Dependency Injection</h3>
+          <p style="color:var(--muted);margin:0 0 0.75rem">
+            <strong>FastAPI <code class="inline-code">Depends</code></strong> يكفي لمعظم المشاريع: يحقن الـ session والـ repository والـ use case في الـ route.
+            مكتبة <code class="inline-code">dependency-injector</code> اختيارية لما يصير الـ wiring معقّدًا (عدة adapters، lifespan، اختبارات كثيرة).
+          </p>
+          <div class="code-block" dir="ltr">
+<div class="code-label"><span class="fname">Depends wiring</span><span class="lang">python</span></div><pre><code class="language-python"># FastAPI Depends — كافٍ غالباً
+def get_repository(session: AsyncSession = Depends(get_db)) -&gt; TodoRepository:
+    return TodoRepositoryImpl(session)
+
+def get_create_todo(repo: TodoRepository = Depends(get_repository)) -&gt; CreateTodoUseCase:
+    return CreateTodoUseCase(repo)
+
+@router.post(&quot;/&quot;)
+async def create_todo(
+    data: TodoCreate,
+    use_case: CreateTodoUseCase = Depends(get_create_todo),
+):
+    return await use_case.execute(data.title, data.description)
+
+# اختياري للمشاريع الكبيرة: مكتبة dependency-injector
+# لتسجيل Containers وربط providers خارج الـ routes</code></pre>
+</div>
+
+          <h3 style="margin:1.4rem 0 0.5rem;font-size:1.05rem;">3) قائمة ترحيل Layered → Clean</h3>
+          <ul class="checklist">
+            <li><span class="box" aria-hidden="true"></span><span>استخرج Domain Entity منفصل عن SQLAlchemy Model (مثلاً <code class="inline-code">Todo</code> vs <code class="inline-code">TodoModel</code>).</span></li>
+            <li><span class="box" aria-hidden="true"></span><span>انقل عقد التخزين إلى Interface في <code class="inline-code">domain/repositories</code> واترك التنفيذ في Infrastructure.</span></li>
+            <li><span class="box" aria-hidden="true"></span><span>قسّم <code class="inline-code">TodoService</code> إلى Use Cases صغيرة (<code class="inline-code">Create</code> / <code class="inline-code">Update</code> / …).</span></li>
+            <li><span class="box" aria-hidden="true"></span><span>اجعل الـ API يبني Use Case فقط — بدون منطق أعمال داخل الـ route.</span></li>
+            <li><span class="box" aria-hidden="true"></span><span>أضف mapper (<code class="inline-code">_to_entity</code>) في الـ Repository Impl.</span></li>
+            <li><span class="box" aria-hidden="true"></span><span>انقل أخطاء المجال خارج <code class="inline-code">HTTPException</code> وسجّل handlers مركزية.</span></li>
+            <li><span class="box" aria-hidden="true"></span><span>اكتب اختبارات Use Case بـ fake repository قبل لمس قاعدة البيانات.</span></li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <!-- 9. Next -->
+    <section class="section" id="next">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>الخطوات التالية</h2>
+          <span class="badge">Next steps</span>
+        </div>
+        <div class="panel-body">
+          <div class="compare">
+            <div class="compare-col">
+              <h3>Authentication (JWT)</h3>
+              <ul>
+                <li>طبقة Presentation: استخراج المستخدم من التوكن</li>
+                <li>Use Case / Service: صلاحيات على الموارد</li>
+                <li>لا تخلط منطق JWT داخل الـ Domain Entity</li>
+              </ul>
+            </div>
+            <div class="compare-col">
+              <h3>Tests per layer</h3>
+              <ul>
+                <li>Domain/Use Cases: unit + fake repo</li>
+                <li>Repository: integration مع PostgreSQL/testcontainers</li>
+                <li>API: TestClient لمسارات HTTP</li>
+              </ul>
+            </div>
+            <div class="compare-col">
+              <h3>Alembic migrations</h3>
+              <ul>
+                <li>بدل <code class="inline-code">create_all</code> في الإنتاج</li>
+                <li>migrations تتبع نماذج Infrastructure</li>
+                <li>الـ Domain لا يعرف ملفات الهجرة</li>
+              </ul>
+            </div>
+          </div>
+          <div class="tip" style="margin-top:1rem">
+            ابدأ بـ Layered لو هدفك سرعة التسليم، وهاجر تدريجيًا للـ Clean عندما يظهر ألم حقيقي: اختبارات صعبة، تبديل تخزين، أو تعدد واجهات لنفس المنطق.
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <footer class="footer">
+      <span>Architecture Guide · FastAPI + PostgreSQL Todo</span>
+      <a href="index.html">← العودة لـ Road Map</a>
+    </footer>
+  </div>
+</body>
+</html>

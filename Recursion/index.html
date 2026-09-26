@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>خريطة العودية — Recursion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,680&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #f3eee4;
+      --paper-2: #e7e0d2;
+      --ink: #1c1915;
+      --muted: #6b645b;
+      --line: #c9c0b0;
+      --card: #faf7f1;
+      --shadow: 0 18px 40px rgba(48, 36, 18, 0.08);
+      --recursion: #9a5b12;
+      --recursion-soft: #f3e2c4;
+      --tree: #2f6a45;
+      --tree-soft: #d7eadc;
+      --graph: #1d4f72;
+      --graph-soft: #d5e6f2;
+      --dp: #5a3d86;
+      --dp-soft: #e6dcf4;
+      --back: #9a3b24;
+      --back-soft: #f6ddd4;
+      --easy: #2f6a45;
+      --medium: #9a5b12;
+      --hard: #9a3b24;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% -8%, rgba(154, 91, 18, 0.08), transparent 32%),
+        radial-gradient(circle at 100% 0%, rgba(29, 79, 114, 0.07), transparent 28%),
+        var(--paper);
+      font-family: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+      line-height: 1.6;
+    }
+
+    a { color: inherit; }
+    button, input { font: inherit; }
+
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding-bottom: 80px;
+    }
+
+    header.top {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 28px;
+      align-items: start;
+      padding: 36px 0 18px;
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--recursion);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.15;
+      font-weight: 700;
+    }
+
+    h1 span {
+      display: block;
+      max-width: 22ch;
+      margin-top: 8px;
+      margin-right: 0;
+      margin-left: auto;
+      font-family: Fraunces, Georgia, serif;
+      font-weight: 560;
+      font-size: 0.46em;
+      line-height: 1.25;
+      color: var(--muted);
+      letter-spacing: -0.02em;
+    }
+
+    .progress {
+      min-width: 148px;
+      padding: 14px 16px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .progress strong {
+      display: block;
+      direction: ltr;
+      font-family: Outfit, sans-serif;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .progress span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .lede {
+      max-width: 68ch;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .map-panel {
+      margin-top: 28px;
+      padding: 22px 18px 10px;
+      background: rgba(250, 247, 241, 0.72);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .map-panel h2,
+    .topic h2 {
+      margin: 0 0 4px;
+      font-size: 22px;
+    }
+
+    .hint {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .map {
+      position: relative;
+      height: 640px;
+    }
+
+    .map svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .edge {
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-dasharray: 8 7;
+    }
+
+    .edge-label {
+      font-family: "IBM Plex Sans Arabic", sans-serif;
+      font-size: 13px;
+      fill: #5c564e;
+      paint-order: stroke;
+      stroke: #f7f3eb;
+      stroke-width: 5px;
+    }
+
+    .node {
+      position: absolute;
+      z-index: 1;
+      width: 210px;
+      padding: 14px 16px 13px;
+      border: 1px solid transparent;
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 10px 24px rgba(48, 36, 18, 0.06);
+      text-align: right;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .node:hover,
+    .node:focus-visible,
+    .node.active {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 30px rgba(48, 36, 18, 0.12);
+      outline: none;
+    }
+
+    .node small {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .node strong {
+      display: block;
+      margin-top: 2px;
+      font-family: Fraunces, Georgia, serif;
+      font-size: 22px;
+      font-weight: 680;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+
+    .node em {
+      display: block;
+      margin-top: 6px;
+      font-style: normal;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .node.recursion {
+      width: 240px;
+      left: 50%;
+      top: 18px;
+      transform: translateX(-50%);
+      background: var(--recursion-soft);
+      border-color: #e2c89a;
+      color: #6a3d0c;
+    }
+    .node.recursion:hover,
+    .node.recursion:focus-visible,
+    .node.recursion.active { transform: translateX(-50%) translateY(-3px); }
+    .node.recursion strong { font-size: 28px; }
+
+    .node.tree {
+      left: 23%;
+      top: 248px;
+      background: var(--tree-soft);
+      border-color: #b7d4c0;
+      color: var(--tree);
+    }
+    .node.graph {
+      left: 4%;
+      top: 78px;
+      background: var(--graph-soft);
+      border-color: #b7d0e2;
+      color: var(--graph);
+    }
+    .node.dp {
+      width: 270px;
+      right: 2%;
+      top: 186px;
+      background: var(--dp-soft);
+      border-color: #d4c4ea;
+      color: var(--dp);
+    }
+    .node.dp strong { font-size: 20px; }
+    .node.back {
+      left: 24%;
+      top: 470px;
+      background: var(--back-soft);
+      border-color: #ecc4b6;
+      color: var(--back);
+    }
+
+    .relations {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 12px;
+      margin: 8px 0 18px;
+    }
+
+    .relations p {
+      margin: 0;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.45);
+      border-radius: 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 22px 0 8px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      padding: 10px 0;
+      background: linear-gradient(var(--paper), rgba(243, 238, 228, 0.92) 70%, transparent);
+    }
+
+    .nav a {
+      text-decoration: none;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .topics { display: grid; gap: 22px; margin-top: 12px; }
+
+    .topic {
+      padding: 22px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      scroll-margin-top: 72px;
+    }
+
+    .topic-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .topic-head p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+
+    .step {
+      display: inline-grid;
+      place-items: center;
+      width: 1.55em;
+      height: 1.55em;
+      margin-inline-end: 8px;
+      border-radius: 999px;
+      background: var(--paper-2);
+      font-family: Outfit, sans-serif;
+      font-size: 0.72em;
+      font-weight: 600;
+      vertical-align: 2px;
+    }
+
+    .count {
+      font-family: Outfit, sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--paper);
+      white-space: nowrap;
+    }
+
+    .group-label {
+      margin: 16px 0 8px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .problem {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid var(--paper-2);
+      border-radius: 14px;
+      background: #fffdf9;
+    }
+
+    .problem.done { opacity: 0.62; }
+    .problem.done .title { text-decoration: line-through; }
+
+    .problem input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--tree);
+      cursor: pointer;
+    }
+
+    .meta { min-width: 0; direction: ltr; text-align: left; }
+    .title {
+      display: block;
+      font-family: Outfit, sans-serif;
+      font-weight: 560;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+    .sub {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 3px;
+      color: var(--muted);
+      font-family: Outfit, sans-serif;
+      font-size: 12px;
+    }
+    .sub a { color: var(--graph); }
+
+    .badge, .premium {
+      font-family: Outfit, sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      padding: 3px 7px;
+      border-radius: 999px;
+    }
+    .badge.Easy { color: var(--easy); background: var(--tree-soft); }
+    .badge.Medium { color: var(--medium); background: var(--recursion-soft); }
+    .badge.Hard { color: var(--hard); background: var(--back-soft); }
+    .premium { color: #6b645b; background: var(--paper-2); }
+
+    .recursion-topic { box-shadow: inset -4px 0 0 var(--recursion); }
+    .tree-topic { box-shadow: inset -4px 0 0 var(--tree); }
+    .graph-topic { box-shadow: inset -4px 0 0 var(--graph); }
+    .dp-topic { box-shadow: inset -4px 0 0 var(--dp); }
+    .back-topic { box-shadow: inset -4px 0 0 var(--back); }
+
+    .mobile-map { display: none; }
+
+    footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 860px) {
+      .map { display: none; }
+      .relations { grid-template-columns: 1fr; }
+      .list { grid-template-columns: 1fr; }
+      .mobile-map { display: grid; gap: 10px; margin-bottom: 12px; }
+      .mobile-map button {
+        text-align: right;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: #fffdf9;
+        cursor: pointer;
+      }
+      header.top { flex-direction: column; align-items: stretch; }
+    }
+
+    @media print {
+      .nav, .progress, .problem input { display: none; }
+      body { background: white; }
+      .topic, .map-panel { break-inside: avoid; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div>
+        <p class="eyebrow">مخطط المفاهيم</p>
+        <h1>العودية وما يتفرع عنها<span>Recursion, Dynamic Programming, Tree, Backtracking, Graph</span></h1>
+        <p class="lede">ترتيب التعلم: العودية، ثم البرمجة الديناميكية، ثم الأشجار، ثم التراجع، ثم الرسوم البيانية. العودية تتفرع يميناً إلى البرمجة الديناميكية ويساراً إلى الأشجار، ومنها أيضاً الرسوم البيانية. ومن الأشجار ينزل التراجع.</p>
+      </div>
+      <div class="progress" aria-live="polite">
+        <strong id="solved">0 / 60</strong>
+        <span>مسائل معلَّمة كمحلولة</span>
+      </div>
+    </header>
+
+    <section class="map-panel" aria-labelledby="map-title">
+      <h2 id="map-title">تفريغ المخطط</h2>
+      <p class="hint">اضغط أي عقدة للانتقال إلى مسائلها.</p>
+
+      <div class="mobile-map">
+        <button type="button" data-jump="recursion">1 — Recursion</button>
+        <button type="button" data-jump="dp">2 — Dynamic Programming</button>
+        <button type="button" data-jump="tree">3 — Tree</button>
+        <button type="button" data-jump="backtracking">4 — Backtracking</button>
+        <button type="button" data-jump="graph">5 — Graph</button>
+      </div>
+
+      <div class="map">
+        <svg id="links" aria-hidden="true"></svg>
+
+        <button class="node recursion" type="button" data-jump="recursion">
+          <small>1 · الجذر</small>
+          <strong>Recursion</strong>
+          <em>العودية · 10 مسائل</em>
+        </button>
+        <button class="node graph" type="button" data-jump="graph">
+          <small>5 · من العودية</small>
+          <strong>Graph</strong>
+          <em>10 مسائل</em>
+        </button>
+        <button class="node tree" type="button" data-jump="tree">
+          <small>3 · يسار العودية</small>
+          <strong>Tree</strong>
+          <em>الأشجار · 10 مسائل</em>
+        </button>
+        <button class="node dp" type="button" data-jump="dp">
+          <small>2 · يمين العودية</small>
+          <strong>Dynamic Programming</strong>
+          <em>10 مسائل</em>
+        </button>
+        <button class="node back" type="button" data-jump="backtracking">
+          <small>4 · أسفل الشجرة</small>
+          <strong>Backtracking</strong>
+          <em>التراجع · 20 مسألة</em>
+        </button>
+      </div>
+
+      <div class="relations">
+        <p>العودية في الأعلى. يتفرع منها Dynamic Programming يميناً، و Tree يساراً، و Graph منها مباشرة.</p>
+        <p>من Tree ينزل Backtracking فقط. ترتيب التعلم: 1 Recursion، 2 Dynamic Programming، 3 Tree، 4 Backtracking، 5 Graph.</p>
+      </div>
+    </section>
+
+    <nav class="nav" aria-label="ترتيب التعلم">
+      <a href="#recursion">1 Recursion</a>
+      <a href="#dp">2 Dynamic Programming</a>
+      <a href="#tree">3 Tree</a>
+      <a href="#backtracking">4 Backtracking</a>
+      <a href="#graph">5 Graph</a>
+    </nav>
+
+    <div class="topics" id="topics"></div>
+
+    <footer>أسماء المسائل وروابطها من LeetCode. العلامة تُحفظ في هذا المتصفح فقط.</footer>
+  </div>
+
+  <script>
+    const topics = [
+      {
+        id: "recursion",
+        step: "1",
+        en: "Recursion",
+        ar: "العودية",
+        note: "الخطوة الأولى، والمفهوم الرئيسي في أعلى المخطط.",
+        groups: [
+          {
+            label: "مسائل شائعة",
+            items: [
+              ["509", "Fibonacci Number", "Easy", "fibonacci-number"],
+              ["344", "Reverse String", "Easy", "reverse-string"],
+              ["21", "Merge Two Sorted Lists", "Easy", "merge-two-sorted-lists"],
+              ["50", "Pow(x, n)", "Medium", "powx-n"],
+              ["118", "Pascal's Triangle", "Easy", "pascals-triangle"],
+              ["24", "Swap Nodes in Pairs", "Medium", "swap-nodes-in-pairs"],
+              ["779", "K-th Symbol in Grammar", "Medium", "k-th-symbol-in-grammar"],
+              ["2", "Add Two Numbers", "Medium", "add-two-numbers"],
+              ["95", "Unique Binary Search Trees II", "Medium", "unique-binary-search-trees-ii"],
+              ["394", "Decode String", "Medium", "decode-string"]
+            ]
+          }
+        ]
+      },
+      {
+        id: "dp",
+        step: "2",
+        en: "Dynamic Programming",
+        ar: "البرمجة الديناميكية",
+        note: "الخطوة الثانية. الفرع الأيمن من العودية.",
+        groups: [
+          {
+            label: "مسائل شائعة",
+            items: [
+              ["70", "Climbing Stairs", "Easy", "climbing-stairs"],
+              ["198", "House Robber", "Medium", "house-robber"],
+              ["213", "House Robber II", "Medium", "house-robber-ii"],
+              ["5", "Longest Palindromic Substring", "Medium", "longest-palindromic-substring"],
+              ["322", "Coin Change", "Medium", "coin-change"],
+              ["300", "Longest Increasing Subsequence", "Medium", "longest-increasing-subsequence"],
+              ["416", "Partition Equal Subset Sum", "Medium", "partition-equal-subset-sum"],
+              ["62", "Unique Paths", "Medium", "unique-paths"],
+              ["72", "Edit Distance", "Hard", "edit-distance"],
+              ["1143", "Longest Common Subsequence", "Medium", "longest-common-subsequence"]
+            ]
+          }
+        ]
+      },
+      {
+        id: "tree",
+        step: "3",
+        en: "Tree",
+        ar: "الأشجار",
+        note: "الخطوة الثالثة. الفرع الأيسر من العودية، ومنه Backtracking.",
+        groups: [
+          {
+            label: "مسائل شائعة",
+            items: [
+              ["104", "Maximum Depth of Binary Tree", "Easy", "maximum-depth-of-binary-tree"],
+              ["226", "Invert Binary Tree", "Easy", "invert-binary-tree"],
+              ["100", "Same Tree", "Easy", "same-tree"],
+              ["102", "Binary Tree Level Order Traversal", "Medium", "binary-tree-level-order-traversal"],
+              ["98", "Validate Binary Search Tree", "Medium", "validate-binary-search-tree"],
+              ["236", "Lowest Common Ancestor of a Binary Tree", "Medium", "lowest-common-ancestor-of-a-binary-tree"],
+              ["572", "Subtree of Another Tree", "Easy", "subtree-of-another-tree"],
+              ["543", "Diameter of Binary Tree", "Easy", "diameter-of-binary-tree"],
+              ["124", "Binary Tree Maximum Path Sum", "Hard", "binary-tree-maximum-path-sum"],
+              ["105", "Construct Binary Tree from Preorder and Inorder Traversal", "Medium", "construct-binary-tree-from-preorder-and-inorder-traversal"]
+            ]
+          }
+        ]
+      },
+      {
+        id: "backtracking",
+        step: "4",
+        en: "Backtracking",
+        ar: "التراجع",
+        note: "الخطوة الرابعة. فرع نازل من الأشجار. القائمة الأولى هي مسائل الصورة، والثانية مسائل إضافية.",
+        groups: [
+          {
+            label: "من الصورة",
+            items: [
+              ["78", "Subsets", "Medium", "subsets"],
+              ["90", "Subsets II", "Medium", "subsets-ii"],
+              ["46", "Permutations", "Medium", "permutations"],
+              ["47", "Permutations II", "Medium", "permutations-ii"],
+              ["39", "Combination Sum", "Medium", "combination-sum"],
+              ["40", "Combination Sum II", "Medium", "combination-sum-ii"],
+              ["131", "Palindrome Partitioning", "Medium", "palindrome-partitioning"],
+              ["51", "N-Queens", "Hard", "n-queens"],
+              ["79", "Word Search", "Medium", "word-search"],
+              ["37", "Sudoku Solver", "Hard", "sudoku-solver"]
+            ]
+          },
+          {
+            label: "مسائل إضافية",
+            items: [
+              ["17", "Letter Combinations of a Phone Number", "Medium", "letter-combinations-of-a-phone-number"],
+              ["216", "Combination Sum III", "Medium", "combination-sum-iii"],
+              ["93", "Restore IP Addresses", "Medium", "restore-ip-addresses"],
+              ["698", "Partition to K Equal Sum Subsets", "Medium", "partition-to-k-equal-sum-subsets"],
+              ["212", "Word Search II", "Hard", "word-search-ii"],
+              ["473", "Matchsticks to Square", "Medium", "matchsticks-to-square"],
+              ["52", "N-Queens II", "Hard", "n-queens-ii"],
+              ["491", "Non-decreasing Subsequences", "Medium", "non-decreasing-subsequences"],
+              ["526", "Beautiful Arrangement", "Medium", "beautiful-arrangement"],
+              ["1849", "Splitting a String Into Descending Consecutive Values", "Medium", "splitting-a-string-into-descending-consecutive-values"]
+            ]
+          }
+        ]
+      },
+      {
+        id: "graph",
+        step: "5",
+        en: "Graph",
+        ar: "الرسوم البيانية",
+        note: "الخطوة الخامسة. يتفرع من العودية مباشرة.",
+        groups: [
+          {
+            label: "مسائل شائعة",
+            items: [
+              ["200", "Number of Islands", "Medium", "number-of-islands"],
+              ["133", "Clone Graph", "Medium", "clone-graph"],
+              ["695", "Max Area of Island", "Medium", "max-area-of-island"],
+              ["207", "Course Schedule", "Medium", "course-schedule"],
+              ["417", "Pacific Atlantic Water Flow", "Medium", "pacific-atlantic-water-flow"],
+              ["994", "Rotting Oranges", "Medium", "rotting-oranges"],
+              ["261", "Graph Valid Tree", "Medium", "graph-valid-tree", true],
+              ["127", "Word Ladder", "Hard", "word-ladder"],
+              ["743", "Network Delay Time", "Medium", "network-delay-time"],
+              ["787", "Cheapest Flights Within K Stops", "Medium", "cheapest-flights-within-k-stops"]
+            ]
+          }
+        ]
+      }
+    ];
+
+    const root = document.getElementById("topics");
+    const storageKey = "recursion-map-solved";
+    const solved = new Set(JSON.parse(localStorage.getItem(storageKey) || "[]"));
+
+    function problemCount() {
+      return topics.reduce((sum, topic) => sum + topic.groups.reduce((inner, group) => inner + group.items.length, 0), 0);
+    }
+
+    function renderProgress() {
+      document.getElementById("solved").textContent = solved.size + " / " + problemCount();
+    }
+
+    function render() {
+      root.innerHTML = topics.map((topic) => {
+        const count = topic.groups.reduce((sum, group) => sum + group.items.length, 0);
+        const groups = topic.groups.map((group) => `
+          <h3 class="group-label">${group.label}</h3>
+          <ul class="list">
+            ${group.items.map(([num, title, difficulty, slug, premium], index) => {
+              const id = topic.id + "-" + group.label + "-" + index;
+              const checked = solved.has(id) ? "checked" : "";
+              const done = solved.has(id) ? "done" : "";
+              return `
+                <li class="problem ${done}">
+                  <input type="checkbox" data-id="${id}" ${checked} aria-label="تم حل ${title}" />
+                  <div class="meta">
+                    <span class="title">${title}</span>
+                    <span class="sub">
+                      <span>#${num}</span>
+                      ${premium ? '<span class="premium">Premium</span>' : ""}
+                      <a href="https://leetcode.com/problems/${slug}/" target="_blank" rel="noopener">LeetCode</a>
+                    </span>
+                  </div>
+                  <span class="badge ${difficulty}">${difficulty}</span>
+                </li>`;
+            }).join("")}
+          </ul>`).join("");
+
+        return `
+          <section class="topic ${topic.id}-topic" id="${topic.id}">
+            <div class="topic-head">
+              <div>
+                <h2><span class="step">${topic.step}</span> ${topic.en}</h2>
+                <p>${topic.ar} — ${topic.note}</p>
+              </div>
+              <span class="count">${count}</span>
+            </div>
+            ${groups}
+          </section>`;
+      }).join("");
+      renderProgress();
+    }
+
+    render();
+
+    root.addEventListener("change", (event) => {
+      const box = event.target.closest("input[type=checkbox]");
+      if (!box) return;
+      if (box.checked) solved.add(box.dataset.id);
+      else solved.delete(box.dataset.id);
+      localStorage.setItem(storageKey, JSON.stringify([...solved]));
+      box.closest(".problem").classList.toggle("done", box.checked);
+      renderProgress();
+    });
+
+    document.querySelectorAll("[data-jump]").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".node").forEach((node) => node.classList.remove("active"));
+        button.classList.add("active");
+        document.getElementById(button.dataset.jump).scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    function pointOn(box, side) {
+      const spots = {
+        top: [box.x + box.w * 0.5, box.y],
+        "top-left": [box.x + box.w * 0.22, box.y],
+        "top-right": [box.x + box.w * 0.78, box.y],
+        bottom: [box.x + box.w * 0.5, box.y + box.h],
+        "bottom-left": [box.x + box.w * 0.28, box.y + box.h],
+        "bottom-right": [box.x + box.w * 0.72, box.y + box.h],
+        left: [box.x, box.y + box.h * 0.5],
+        right: [box.x + box.w, box.y + box.h * 0.5]
+      };
+      return spots[side];
+    }
+
+    function curve(from, to) {
+      const [x1, y1] = from;
+      const [x2, y2] = to;
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const c1 = [x1 + dx * 0.35, y1 + dy * 0.08];
+      const c2 = [x1 + dx * 0.65, y1 + dy * 0.92];
+      const d = "M " + x1 + " " + y1 + " C " + c1[0] + " " + c1[1] + ", " + c2[0] + " " + c2[1] + ", " + x2 + " " + y2;
+      return { d, c1, c2, from, to };
+    }
+
+    function drawLinks() {
+      const map = document.querySelector(".map");
+      const svg = document.getElementById("links");
+      if (!map || getComputedStyle(map).display === "none") return;
+      const frame = map.getBoundingClientRect();
+      svg.setAttribute("viewBox", "0 0 " + frame.width + " " + frame.height);
+      const boxOf = (name) => {
+        const el = map.querySelector(".node." + name);
+        const b = el.getBoundingClientRect();
+        return { x: b.left - frame.left, y: b.top - frame.top, w: b.width, h: b.height };
+      };
+      const links = [
+        ["recursion", "right", "dp", "left", "إلى اليمين", "#9a5b12", 10, -28],
+        ["recursion", "left", "graph", "right", "من العودية", "#1d4f72", 0, -24],
+        ["recursion", "bottom-left", "tree", "top-right", "إلى اليسار", "#2f6a45", -46, -6],
+        ["tree", "bottom", "back", "top", "هبوطاً", "#9a3b24", 52, -4]
+      ];
+      svg.innerHTML = links.map((link) => {
+        const path = curve(pointOn(boxOf(link[0]), link[1]), pointOn(boxOf(link[2]), link[3]));
+        const mx = (path.from[0] + path.to[0]) / 2 + link[6];
+        const my = (path.from[1] + path.to[1]) / 2 + link[7];
+        const dot = (pt) => '<circle cx="' + pt[0] + '" cy="' + pt[1] + '" r="3.5" fill="' + link[5] + '" />';
+        return '<path class="edge" stroke="' + link[5] + '" d="' + path.d + '" />' +
+          dot(path.from) + dot(path.to) +
+          '<text class="edge-label" text-anchor="middle" x="' + mx + '" y="' + my + '">' + link[4] + "</text>";
+      }).join("");
+    }
+
+    drawLinks();
+    window.addEventListener("resize", drawLinks);
+  </script>
+</body>
+</html>

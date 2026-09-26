@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شجرة التكرار — حل معادلتين تكراريتين</title>
+<meta name="description" content="دليل تفاعلي لحل معادلات التكرار بطريقة شجرة التكرار، مع رسوم توضيحية ومقارنة بين الشجرة المتماثلة وغير المتماثلة.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+<style>
+  :root {
+    --bg: #0f1a17;
+    --bg-elev: #16241f;
+    --bg-soft: #1c2e28;
+    --ink: #e8f2ed;
+    --muted: #9bb5aa;
+    --line: rgba(140, 190, 165, 0.18);
+    --accent: #3ecf8e;
+    --accent-2: #7dd3c0;
+    --warn: #f0b429;
+    --user: #243d35;
+    --glow: rgba(62, 207, 142, 0.22);
+    --radius: 18px;
+    --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+    --font: "IBM Plex Sans Arabic", "Cairo", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    background:
+      radial-gradient(1200px 600px at 100% -10%, rgba(62, 207, 142, 0.14), transparent 55%),
+      radial-gradient(900px 500px at -10% 30%, rgba(125, 211, 192, 0.08), transparent 50%),
+      linear-gradient(180deg, #0c1512 0%, var(--bg) 40%, #101c18 100%);
+    color: var(--ink);
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { color: var(--accent); }
+
+  .shell {
+    width: min(1100px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 1.25rem 0 4rem;
+  }
+
+  .topbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .brand-mark {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), #1f8f63);
+    box-shadow: 0 0 0 4px var(--glow);
+    display: grid;
+    place-items: center;
+    font-size: 0.95rem;
+  }
+
+  .meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 0.85rem;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .hero {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    background:
+      linear-gradient(145deg, rgba(30, 55, 46, 0.9), rgba(15, 26, 23, 0.95)),
+      repeating-linear-gradient(
+        -32deg,
+        transparent,
+        transparent 12px,
+        rgba(62, 207, 142, 0.03) 12px,
+        rgba(62, 207, 142, 0.03) 13px
+      );
+    box-shadow: var(--shadow);
+    padding: clamp(1.5rem, 4vw, 2.75rem);
+    margin-bottom: 1.5rem;
+    animation: rise 0.7s ease both;
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: auto -20% -40% 40%;
+    height: 280px;
+    background: radial-gradient(circle, var(--glow), transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero h1 {
+    margin: 0.4rem 0 0.75rem;
+    font-size: clamp(1.8rem, 4.5vw, 2.8rem);
+    line-height: 1.25;
+    font-weight: 800;
+  }
+
+  .hero p {
+    margin: 0;
+    max-width: 58ch;
+    color: var(--muted);
+    font-size: 1.05rem;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.4rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #2aa56f);
+    color: #062016;
+  }
+  .btn-ghost {
+    background: rgba(255,255,255,0.03);
+    border-color: var(--line);
+    color: var(--ink);
+  }
+
+  .toc {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+    animation: rise 0.8s ease 0.08s both;
+  }
+  @media (max-width: 800px) {
+    .toc { grid-template-columns: 1fr; }
+  }
+
+  .toc a {
+    display: block;
+    padding: 1rem 1.1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: var(--bg-elev);
+    color: var(--ink);
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+  }
+  .toc a:hover {
+    border-color: rgba(62, 207, 142, 0.45);
+    background: var(--bg-soft);
+    transform: translateY(-2px);
+  }
+  .toc strong { display: block; margin-bottom: 0.2rem; }
+  .toc span { color: var(--muted); font-size: 0.9rem; }
+
+  .turn {
+    margin-bottom: 2rem;
+    animation: rise 0.75s ease both;
+  }
+
+  .bubble-user {
+    width: fit-content;
+    max-width: min(680px, 100%);
+    margin-inline-start: auto;
+    margin-bottom: 1rem;
+    padding: 1rem 1.15rem;
+    border-radius: 18px 18px 4px 18px;
+    background: var(--user);
+    border: 1px solid var(--line);
+    white-space: pre-wrap;
+    font-size: 1rem;
+  }
+  .bubble-user .label {
+    display: block;
+    color: var(--accent-2);
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+  }
+  .bubble-user code, .eq {
+    font-family: var(--mono);
+    direction: ltr;
+    unicode-bidi: isolate;
+    display: inline-block;
+  }
+
+  .panel {
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: rgba(22, 36, 31, 0.92);
+    overflow: hidden;
+  }
+
+  .panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,0.02);
+  }
+  .panel-head h2 {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(62, 207, 142, 0.12);
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .badge.warn {
+    background: rgba(240, 180, 41, 0.14);
+    color: var(--warn);
+  }
+
+  .panel-body { padding: clamp(1rem, 3vw, 1.6rem); }
+
+  .result-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0 1.25rem;
+    padding: 0.65rem 1rem;
+    border-radius: 14px;
+    background: linear-gradient(90deg, rgba(62, 207, 142, 0.16), rgba(62, 207, 142, 0.05));
+    border: 1px solid rgba(62, 207, 142, 0.28);
+    font-weight: 700;
+  }
+
+  .steps { display: grid; gap: 0.85rem; }
+  details.step {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--bg);
+    padding: 0.15rem 0.9rem 0.9rem;
+  }
+  details.step[open] { border-color: rgba(62, 207, 142, 0.35); }
+  details.step summary {
+    cursor: pointer;
+    list-style: none;
+    font-weight: 700;
+    padding: 0.85rem 0.2rem;
+  }
+  details.step summary::-webkit-details-marker { display: none; }
+  details.step summary::before {
+    content: "＋";
+    display: inline-block;
+    width: 1.4rem;
+    color: var(--accent);
+    margin-inline-end: 0.25rem;
+  }
+  details.step[open] summary::before { content: "−"; }
+
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.65rem;
+    margin: 0.75rem 0;
+  }
+  .level {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 0.75rem;
+    background: var(--bg-elev);
+  }
+  .level .k { color: var(--muted); font-size: 0.82rem; }
+  .level .v { font-weight: 700; margin-top: 0.15rem; font-family: var(--mono); direction: ltr; }
+
+  .tree-wrap {
+    margin: 1rem 0 0.4rem;
+    padding: 1rem;
+    border-radius: 18px;
+    border: 1px dashed rgba(62, 207, 142, 0.28);
+    background:
+      radial-gradient(circle at 50% 0%, rgba(62, 207, 142, 0.08), transparent 55%),
+      #101a16;
+    overflow-x: auto;
+  }
+  .tree-wrap svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+  .tree-caption {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-top: 0.55rem;
+  }
+
+  .node {
+    fill: #1b3229;
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .node.leaf { fill: #2a2414; stroke: var(--warn); }
+  .edge { stroke: rgba(157, 197, 180, 0.55); stroke-width: 2; fill: none; }
+  .nlabel {
+    fill: var(--ink);
+    font-family: var(--mono);
+    font-size: 12px;
+    text-anchor: middle;
+  }
+  .cost {
+    fill: var(--accent-2);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-anchor: middle;
+  }
+
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+  }
+  @media (max-width: 780px) {
+    .compare { grid-template-columns: 1fr; }
+  }
+  .compare-col {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 1rem;
+    background: var(--bg);
+  }
+  .compare-col h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+  }
+  .compare-col ul { margin: 0.4rem 0 0; padding-inline-start: 1.1rem; color: var(--muted); }
+
+  .note {
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+    background: rgba(240, 180, 41, 0.08);
+    border: 1px solid rgba(240, 180, 41, 0.22);
+    color: #f3dfa0;
+  }
+
+  .footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+  }
+
+  .katex-display { overflow-x: auto; overflow-y: hidden; direction: ltr; }
+  .katex { direction: ltr; unicode-bidi: isolate; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media print {
+    body { background: #fff; color: #111; }
+    .topbar, .hero-actions, .btn { display: none !important; }
+    .panel, .hero, .toc a, details.step, .compare-col { break-inside: avoid; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">Σ</span>
+        <span>Recursion Trees</span>
+      </div>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <span class="meta-chip">من محادثة Gemini · 3.6 Flash</span>
+        <span class="meta-chip">9 سبتمبر 2026</span>
+      </div>
+    </div>
+
+    <header class="hero">
+      <div class="meta-chip">دليل مذاكرة تفاعلي</div>
+      <h1>حل معادلات التكرار بشجرة التكرار</h1>
+      <p>
+        نسخة محسّنة من محادثة Gemini: معادلتان، رسوم شجرية تفاعلية، جداول تكلفة لكل مستوى،
+        وتوضيح لماذا نحسب الأوراق في مسألة ولا نحسبها بنفس الطريقة في الأخرى.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#p1">ابدأ بالمسألة الأولى</a>
+        <a class="btn btn-ghost" href="https://share.gemini.google/PL8uWPzNTvuW" target="_blank" rel="noopener">المصدر الأصلي</a>
+        <button class="btn btn-ghost" type="button" onclick="document.querySelectorAll('details.step').forEach(d=>d.open=true)">توسيع كل الخطوات</button>
+      </div>
+    </header>
+
+    <nav class="toc" aria-label="أقسام الدليل">
+      <a href="#p1">
+        <strong>المسألة 1</strong>
+        <span>$T(n)=2T(n/4)+1$ → $\Theta(\sqrt{n})$</span>
+      </a>
+      <a href="#p2">
+        <strong>المسألة 2</strong>
+        <span>$T(n)=2T(n/4)+T(n/2)+1$ → $\Theta(n)$</span>
+      </a>
+      <a href="#why">
+        <strong>لماذا اختلف الحساب؟</strong>
+        <span>متماثلة vs غير متماثلة + Akra-Bazzi</span>
+      </a>
+    </nav>
+
+    <!-- Problem 1 -->
+    <section class="turn" id="p1">
+      <div class="bubble-user">
+        <span class="label">أنت</span>can we solve this ??
+solve in Arabic
+
+<code>t(n) = t(n/4) + t(n/4) + 1</code>
+
+with recursion tree
+      </div>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>المسألة الأولى — شجرة متماثلة</h2>
+          <span class="badge">النتيجة: $\Theta(\sqrt{n})$</span>
+        </div>
+        <div class="panel-body">
+          <p>حل المعادلة التكرارية باستخدام <b>شجرة التكرار (Recursion Tree Method)</b>:</p>
+          <p>$$T(n) = 2T\left(\frac{n}{4}\right) + 1$$</p>
+          <div class="result-pill">النتيجة النهائية: $T(n)=\Theta(\sqrt{n})$</div>
+
+          <div class="tree-wrap" aria-label="رسم شجرة التكرار للمسألة الأولى">
+            <svg viewBox="0 0 640 320" width="640" height="320" role="img">
+              <title>شجرة تكرار متماثلة لـ T(n)=2T(n/4)+1</title>
+              <path class="edge" d="M320 48 L200 120 M320 48 L440 120"/>
+              <path class="edge" d="M200 148 L140 220 M200 148 L260 220 M440 148 L380 220 M440 148 L500 220"/>
+              <g class="anim-node" style="animation: rise .6s ease both">
+                <rect class="node" x="278" y="20" rx="10" width="84" height="36"/>
+                <text class="nlabel" x="320" y="43">T(n)</text>
+                <text class="cost" x="320" y="70">cost 1</text>
+              </g>
+              <g>
+                <rect class="node" x="158" y="120" rx="10" width="84" height="36"/>
+                <text class="nlabel" x="200" y="143">T(n/4)</text>
+                <text class="cost" x="200" y="172">1</text>
+              </g>
+              <g>
+                <rect class="node" x="398" y="120" rx="10" width="84" height="36"/>
+                <text class="nlabel" x="440" y="143">T(n/4)</text>
+                <text class="cost" x="440" y="172">1</text>
+              </g>
+              <g>
+                <rect class="node leaf" x="98" y="220" rx="10" width="84" height="36"/>
+                <text class="nlabel" x="140" y="243">T(n/16)</text>
+              </g>
+              <g>
+                <rect class="node leaf" x="218" y="220" rx="10" width="84" height="36"/>
+                <text class="nlabel" x="260" y="243">T(n/16)</text>
+              </g>
+              <g>
+                <rect class="node leaf" x="338" y="220" rx="10" width="84" height="36"/>
+                <text class="nlabel" x="380" y="243">T(n/16)</text>
+              </g>
+              <g>
+                <rect class="node leaf" x="458" y="220" rx="10" width="84" height="36"/>
+                <text class="nlabel" x="500" y="243">T(n/16)</text>
+              </g>
+              <text class="cost" x="70" y="42">L0: 1</text>
+              <text class="cost" x="70" y="142">L1: 2</text>
+              <text class="cost" x="70" y="242">L2: 4</text>
+              <text class="cost" x="320" y="295">… حتى $n/4^h=1$ → $h=\log_4 n$</text>
+            </svg>
+            <p class="tree-caption">كل مستوى يضاعف عدد العقد ×2، والحجم ينقسم على 4 — شجرة متماثلة ومكتملة.</p>
+          </div>
+
+          <div class="steps">
+            <details class="step" open>
+              <summary>1) رسم الشجرة وحساب تكلفة كل مستوى</summary>
+              <div class="level-grid">
+                <div class="level"><div class="k">المستوى 0</div><div class="v">1 × 1 = 1</div></div>
+                <div class="level"><div class="k">المستوى 1</div><div class="v">2 × 1 = 2</div></div>
+                <div class="level"><div class="k">المستوى 2</div><div class="v">4 × 1 = 4</div></div>
+                <div class="level"><div class="k">المستوى i</div><div class="v">$2^i$ عقد · حجم $n/4^i$</div></div>
+              </div>
+            </details>
+
+            <details class="step" open>
+              <summary>2) ارتفاع الشجرة</summary>
+              <p>تتوقف الشجرة عند الحالة الأساسية:</p>
+              <p>$$\frac{n}{4^h}=1 \implies 4^h=n \implies h=\log_4(n)$$</p>
+            </details>
+
+            <details class="step" open>
+              <summary>3) تكلفة الأوراق</summary>
+              <p>عدد الأوراق عند المستوى $h$:</p>
+              <p>$$2^h=2^{\log_4 n}=n^{\log_4 2}=n^{1/2}=\sqrt{n}$$</p>
+              <p>تكلفة الأوراق $=O(\sqrt{n})$</p>
+            </details>
+
+            <details class="step" open>
+              <summary>4) تجميع التكلفة الكلية</summary>
+              <p>$$T(n)=\sum_{i=0}^{h-1}2^i+\Theta(\sqrt{n})=(2^h-1)+\Theta(\sqrt{n})$$</p>
+              <p>وبما أن $2^h=\sqrt{n}$:</p>
+              <p>$$T(n)=\Theta(\sqrt{n})$$</p>
+            </details>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Problem 2 -->
+    <section class="turn" id="p2">
+      <div class="bubble-user">
+        <span class="label">أنت</span>also this
+<code>t(n) = t(n/4) + t(n/4) + t(n/2) + 1</code>
+      </div>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>المسألة الثانية — شجرة غير متماثلة</h2>
+          <span class="badge warn">حد أعلى $O(n^{\log_2 3})$ · الدقيق $\Theta(n)$</span>
+        </div>
+        <div class="panel-body">
+          <p>$$T(n)=2T\left(\frac{n}{4}\right)+T\left(\frac{n}{2}\right)+1$$</p>
+          <div class="result-pill">النتيجة الدقيقة: $T(n)=\Theta(n)$ &nbsp;|&nbsp; حد شجرة خام: $O(n^{\log_2 3})$</div>
+
+          <div class="tree-wrap" aria-label="رسم شجرة التكرار للمسألة الثانية">
+            <svg viewBox="0 0 720 340" width="720" height="340" role="img">
+              <title>شجرة تكرار غير متماثلة</title>
+              <path class="edge" d="M360 48 L180 120 M360 48 L360 120 M360 48 L540 120"/>
+              <path class="edge" d="M180 148 L110 230 M180 148 L180 230 M180 148 L250 230"/>
+              <path class="edge" d="M360 148 L300 230 M360 148 L360 230 M360 148 L420 230"/>
+              <path class="edge" d="M540 148 L470 230 M540 148 L540 230 M540 148 L610 230"/>
+              <g>
+                <rect class="node" x="318" y="20" rx="10" width="84" height="36"/>
+                <text class="nlabel" x="360" y="43">T(n)</text>
+                <text class="cost" x="360" y="70">cost 1</text>
+              </g>
+              <g>
+                <rect class="node" x="138" y="120" rx="10" width="84" height="36"/>
+                <text class="nlabel" x="180" y="143">T(n/4)</text>
+              </g>
+              <g>
+                <rect class="node" x="318" y="120" rx="10" width="84" height="36"/>
+                <text class="nlabel" x="360" y="143">T(n/4)</text>
+              </g>
+              <g>
+                <rect class="node" x="498" y="120" rx="10" width="84" height="36"/>
+                <text class="nlabel" x="540" y="143">T(n/2)</text>
+              </g>
+              <!-- short branches die earlier visually with leaf color -->
+              <g>
+                <rect class="node leaf" x="68" y="230" rx="8" width="84" height="34"/>
+                <text class="nlabel" x="110" y="252" style="font-size:11px">… أقصر</text>
+              </g>
+              <g>
+                <rect class="node leaf" x="138" y="230" rx="8" width="84" height="34"/>
+                <text class="nlabel" x="180" y="252" style="font-size:11px">n/16</text>
+              </g>
+              <g>
+                <rect class="node leaf" x="208" y="230" rx="8" width="84" height="34"/>
+                <text class="nlabel" x="250" y="252" style="font-size:11px">…</text>
+              </g>
+              <g>
+                <rect class="node" x="268" y="230" rx="8" width="84" height="34"/>
+                <text class="nlabel" x="310" y="252" style="font-size:11px">n/16</text>
+              </g>
+              <g>
+                <rect class="node" x="338" y="230" rx="8" width="84" height="34"/>
+                <text class="nlabel" x="380" y="252" style="font-size:11px">n/8</text>
+              </g>
+              <g>
+                <rect class="node" x="408" y="230" rx="8" width="84" height="34"/>
+                <text class="nlabel" x="450" y="252" style="font-size:11px">…</text>
+              </g>
+              <g>
+                <rect class="node" x="478" y="230" rx="8" width="84" height="34"/>
+                <text class="nlabel" x="520" y="252" style="font-size:11px">n/8</text>
+              </g>
+              <g>
+                <rect class="node" x="548" y="230" rx="8" width="84" height="34"/>
+                <text class="nlabel" x="590" y="252" style="font-size:11px">n/4</text>
+              </g>
+              <text class="cost" x="40" y="42">L0: 1</text>
+              <text class="cost" x="40" y="142">L1: 3</text>
+              <text class="cost" x="40" y="248">L2: 9</text>
+              <text class="cost" x="360" y="310">$h_{\min}=\log_4 n$ &nbsp;|&nbsp; $h_{\max}=\log_2 n$</text>
+            </svg>
+            <p class="tree-caption">تفرع غير متساوٍ: فرعا $n/4$ يموتان أبكر، وفرع $n/2$ يطيل الشجرة.</p>
+          </div>
+
+          <div class="steps">
+            <details class="step" open>
+              <summary>1) تكلفة المستويات</summary>
+              <div class="level-grid">
+                <div class="level"><div class="k">المستوى 0</div><div class="v">1</div></div>
+                <div class="level"><div class="k">المستوى 1</div><div class="v">3</div></div>
+                <div class="level"><div class="k">المستوى 2</div><div class="v">9</div></div>
+                <div class="level"><div class="k">المستوى i</div><div class="v">$3^i$</div></div>
+              </div>
+            </details>
+
+            <details class="step" open>
+              <summary>2) أقصر وأطول مسار</summary>
+              <p>أقصر مسار (فروع $n/4$): $h_{\min}=\log_4(n)$</p>
+              <p>أطول مسار (فروع $n/2$): $h_{\max}=\log_2(n)$</p>
+            </details>
+
+            <details class="step" open>
+              <summary>3) حد أعلى من الشجرة</summary>
+              <p>بافتراض اكتمال المستويات حتى أطول مسار:</p>
+              <p>$$T(n)\le\sum_{i=0}^{\log_2 n}3^i=O(3^{\log_2 n})=O(n^{\log_2 3})\approx O(n^{1.585})$$</p>
+            </details>
+
+            <details class="step" open>
+              <summary>4) الحل الدقيق بـ Akra-Bazzi</summary>
+              <p>نحل $\sum a_i b_i^p=1$:</p>
+              <p>$$2\cdot\left(\frac{1}{4}\right)^p+\left(\frac{1}{2}\right)^p=1$$</p>
+              <p>بفرض $x=(1/2)^p$ نحصل على $2x^2+x-1=0\Rightarrow x=1/2\Rightarrow p=1$</p>
+              <p>إذن: $$T(n)=\Theta(n)$$</p>
+              <div class="note">
+                شجرة التكرار أعطت حداً أعلى مبالغاً فيه لأن بعض الأفرع تتوقف مبكراً؛ Akra-Bazzi يصحّح ذلك.
+              </div>
+            </details>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Why -->
+    <section class="turn" id="why">
+      <div class="bubble-user">
+        <span class="label">أنت</span>طيب انت لية اول مرة حسبت الاوراق وتاني مرة لا ؟
+      </div>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>لماذا حُسبت الأوراق أول مرة ولم تُحسب بنفس الأسلوب ثانية؟</h2>
+          <span class="badge">مقارنة سريعة</span>
+        </div>
+        <div class="panel-body">
+          <p>السبب: <b>اختلاف طبيعة الشجرة</b> بين المسألتين.</p>
+
+          <div class="compare">
+            <div class="compare-col">
+              <h3>① شجرة متماثلة (المسألة 1)</h3>
+              <ul>
+                <li>كل عقدة تنقسم بنفس النسبة $n/4$.</li>
+                <li>كل الأوراق تنتهي عند نفس المستوى $h=\log_4 n$.</li>
+                <li>سهل حساب عدد الأوراق دفعة واحدة: $2^{\log_4 n}=\sqrt{n}$.</li>
+                <li>نجمع: تكلفة المستويات الداخلية + تكلفة الأوراق.</li>
+              </ul>
+            </div>
+            <div class="compare-col">
+              <h3>② شجرة غير متماثلة (المسألة 2)</h3>
+              <ul>
+                <li>فروع بأطوال مختلفة: $n/4$ و $n/2$.</li>
+                <li>الأوراق لا تنتهي في مستوى واحد.</li>
+                <li>لا صيغة بسيطة لعدد الأوراق الكلي دفعة واحدة.</li>
+                <li>نستخدم حدًا أعلى يشمل الأوراق ضمنيًا، ثم نُدقّق بـ Akra-Bazzi.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="note" style="margin-top:1.1rem;">
+            <b>الخلاصة:</b> حساب الأوراق المنفصل يعمل جيدًا عندما تكون الشجرة منتظمة ومكتملة.
+            أما عند عدم التوازن، فالأوراق «تموت» على مستويات مختلفة — فإمّا حد أعلى تقريبي من الشجرة، أو تحليل أدق (Akra-Bazzi / استبدال).
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <footer class="footer">
+      <div>
+        مُعاد صياغته وتحسينه من
+        <a href="https://share.gemini.google/PL8uWPzNTvuW" target="_blank" rel="noopener">مشاركة Gemini</a>
+        · عنوان المحادثة: Solving Recurrence Relation with Trees
+      </div>
+      <div>
+        <a href="index.html">← العودة لـ Road Map</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Soft reveal for panels in view
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.style.animationPlayState = 'running';
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.turn').forEach((el, i) => {
+      el.style.animationDelay = `${0.05 * i}s`;
+      io.observe(el);
+    });
+  </script>
+</body>
+</html>

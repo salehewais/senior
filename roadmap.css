@@ -22,6 +22,8 @@
   --coral2:   #f7987f;
   --blue:     #4a9eff;
   --blue2:    #82beff;
+  --indigo:   #7c9cff;
+  --indigo2:  #a8b8ff;
   --green:    #5ec76a;
   --green2:   #8ad192;
   --pink:     #e879a0;
@@ -689,6 +691,8 @@ body.page-guide .compare-table a:hover { text-decoration: underline; }
 .c-coral  { color: var(--coral2); }
 .c-blue   { color: var(--blue2); }
 .c-pink   { color: var(--pink2); }
+.c-green  { color: var(--green2); }
+.c-indigo { color: var(--indigo2); }
 
 .bg-purple { background: rgba(124,106,247,.12); border-color: rgba(124,106,247,.25); }
 .bg-teal   { background: rgba(45,212,160,.10);  border-color: rgba(45,212,160,.22); }
@@ -697,6 +701,7 @@ body.page-guide .compare-table a:hover { text-decoration: underline; }
 .bg-blue   { background: rgba(74,158,255,.10);  border-color: rgba(74,158,255,.22); }
 .bg-pink   { background: rgba(232,121,160,.10); border-color: rgba(232,121,160,.22); }
 .bg-green  { background: rgba(94,199,106,.10);  border-color: rgba(94,199,106,.22); }
+.bg-indigo { background: rgba(124,156,255,.10); border-color: rgba(124,156,255,.22); }
 
 /* ───── FOOTER ───── */
 body.page-guide footer {
@@ -1584,6 +1589,86 @@ body.page-landing .guide-card--purple { --card-accent: var(--purple); }
 body.page-landing .guide-card--teal   { --card-accent: var(--teal); }
 body.page-landing .guide-card--amber  { --card-accent: var(--amber); }
 body.page-landing .guide-card--blue   { --card-accent: var(--blue); }
+body.page-landing .guide-card--indigo { --card-accent: var(--indigo); }
+body.page-landing .guide-card--coral  { --card-accent: var(--coral); }
+body.page-landing .guide-card--green  { --card-accent: var(--green); }
+
+/* ───── SWE ROADMAP TIERS ───── */
+.tier-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin: 20px 0;
+}
+@media (max-width: 800px) {
+  .tier-grid { grid-template-columns: 1fr; }
+}
+.tier-card {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  padding: 20px 22px;
+}
+.tier-card .tier-label {
+  font-family: var(--eng);
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 14px;
+  letter-spacing: .02em;
+}
+.tier-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tier-list li {
+  font-family: var(--eng);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  background: var(--bg3);
+}
+.tier-card.tier-1 {
+  border-color: rgba(240,106,80,.35);
+  background: rgba(240,106,80,.06);
+}
+.tier-card.tier-1 .tier-label { color: var(--coral2); }
+.tier-card.tier-1 .tier-list li {
+  border-color: rgba(240,106,80,.28);
+  color: var(--coral2);
+}
+.tier-card.tier-2 {
+  border-color: rgba(245,166,35,.35);
+  background: rgba(245,166,35,.06);
+}
+.tier-card.tier-2 .tier-label { color: var(--amber2); }
+.tier-card.tier-2 .tier-list li {
+  border-color: rgba(245,166,35,.28);
+  color: var(--amber2);
+}
+.tier-card.tier-3 {
+  border-color: rgba(229,192,90,.35);
+  background: rgba(229,192,90,.05);
+}
+.tier-card.tier-3 .tier-label { color: #e5c05a; }
+.tier-card.tier-3 .tier-list li {
+  border-color: rgba(229,192,90,.28);
+  color: #e5c05a;
+}
+.tier-card.tier-4 {
+  border-color: rgba(94,199,106,.35);
+  background: rgba(94,199,106,.06);
+}
+.tier-card.tier-4 .tier-label { color: var(--green2); }
+.tier-card.tier-4 .tier-list li {
+  border-color: rgba(94,199,106,.28);
+  color: var(--green2);
+}
 
 body.page-landing .landing-footer {
   text-align: center;

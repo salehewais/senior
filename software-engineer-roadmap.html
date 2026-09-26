@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Software Engineer — Master Roadmap</title>
+<meta name="description" content="خارطة Software Engineer من 17 مستوى — CS و OOD و Backend و System Design، مع Odoo كهدف شركة وليس تخصص.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Tajawal:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Cairo:wght@300;400;600;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="roadmap.css">
+<script src="roadmap.js" defer></script>
+</head>
+<body class="page-guide page-swe-roadmap">
+
+<div class="progress-bar" id="progress"></div>
+
+<button class="nav-toggle" id="navToggle" type="button" aria-label="فتح القائمة" onclick="toggleNav()">☰</button>
+<div class="nav-backdrop" id="navBackdrop" onclick="closeNav()"></div>
+
+<nav class="side-nav" id="sidenav">
+  <div class="nav-logo">SWE Roadmap</div>
+  <a href="index.html" class="nav-link nav-link--hub"><span class="nav-dot"></span>← Road Map</a>
+
+  <div class="nav-section">المقدمة</div>
+  <a href="#intro" class="nav-link"><span class="nav-dot"></span>التموضع</a>
+  <a href="#big-picture" class="nav-link"><span class="nav-dot"></span>الصورة الكبيرة</a>
+  <a href="#target-tree" class="nav-link"><span class="nav-dot"></span>Target Tree</a>
+
+  <div class="nav-section">المستويات</div>
+  <a href="#level-1" class="nav-link"><span class="nav-dot"></span>L1 — Programming</a>
+  <a href="#level-2" class="nav-link"><span class="nav-dot"></span>L2 — DSA</a>
+  <a href="#level-3" class="nav-link"><span class="nav-dot"></span>L3 — OOD</a>
+  <a href="#level-4" class="nav-link"><span class="nav-dot"></span>L4 — Patterns</a>
+  <a href="#level-5" class="nav-link"><span class="nav-dot"></span>L5 — Concurrency</a>
+  <a href="#level-6" class="nav-link"><span class="nav-dot"></span>L6 — OS</a>
+  <a href="#level-7" class="nav-link"><span class="nav-dot"></span>L7 — Networking</a>
+  <a href="#level-8" class="nav-link"><span class="nav-dot"></span>L8 — Databases</a>
+  <a href="#level-9" class="nav-link"><span class="nav-dot"></span>L9 — Backend</a>
+  <a href="#level-10" class="nav-link"><span class="nav-dot"></span>L10 — Quality</a>
+  <a href="#level-11" class="nav-link"><span class="nav-dot"></span>L11 — Linux/Git</a>
+  <a href="#level-12" class="nav-link"><span class="nav-dot"></span>L12 — DevOps</a>
+  <a href="#level-13" class="nav-link"><span class="nav-dot"></span>L13 — Architecture</a>
+  <a href="#level-14" class="nav-link"><span class="nav-dot"></span>L14 — System Design</a>
+  <a href="#level-15" class="nav-link"><span class="nav-dot"></span>L15 — Cloud</a>
+  <a href="#level-16" class="nav-link"><span class="nav-dot"></span>L16 — Security</a>
+  <a href="#level-17" class="nav-link"><span class="nav-dot"></span>L17 — Advanced</a>
+
+  <div class="nav-section">الخطة</div>
+  <a href="#tiers" class="nav-link"><span class="nav-dot"></span>Priority Tiers</a>
+  <a href="#study-loop" class="nav-link"><span class="nav-dot"></span>Study Loop</a>
+  <a href="#odoo-target" class="nav-link"><span class="nav-dot"></span>Odoo كهدف</a>
+  <a href="#suggested-path" class="nav-link"><span class="nav-dot"></span>المسار المقترح</a>
+</nav>
+
+<div class="main-wrapper">
+
+<div class="hero">
+  <div class="hero-badge">Hub Roadmap · Not Odoo-specialist</div>
+  <h1>Software Engineer Master Roadmap</h1>
+  <p>خارطة لـ Software Engineer قوي — وOdoo مجرد <strong>target company</strong> جنب مسارات بمستوى FAANG، مش تخصص ORM/XML.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">17</div><div class="lbl">Levels</div></div>
+    <div class="hero-stat"><div class="num">4</div><div class="lbl">Priority Tiers</div></div>
+    <div class="hero-stat"><div class="num">SWE</div><div class="lbl">→ FAANG + Odoo</div></div>
+  </div>
+</div>
+
+<!-- INTRO -->
+<section class="section" id="intro">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">🎯</div>
+    <div>
+      <div class="section-title c-coral">التموضع</div>
+      <div class="section-subtitle">SWE roadmap · Odoo as employer</div>
+    </div>
+  </div>
+  <p class="lead">
+    أنت مش عايز Roadmap لـ Odoo Developer. أنت عايز Roadmap لـ <strong>Software Engineer</strong>، وOdoo واحدة من الشركات اللي تستهدفها.
+  </p>
+  <div class="info-box note">
+    <div class="info-box-icon">💬</div>
+    <div><strong>الفكرة الكبيرة:</strong> «أنا عايز أبقى Software Engineer قوي، والـOdoo مجرد Target Company مش تخصصي.»</div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-coral">
+      <div class="card-title c-coral">❌ مش المسار ده</div>
+      <p>Odoo Developer → Senior Odoo Developer (ORM / XML / modules أولاً)</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">✅ المسار ده</div>
+      <p>CS + OOD + SWE → System Design → Distributed → strong profile → Odoo R&amp;D أو FAANG</p>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead>
+        <tr><th>المحور</th><th>Odoo Specialist</th><th>Software Engineer</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>التركيز</td><td>Modules, ORM, XML, workflows</td><td>CS, design, backend, systems</td></tr>
+        <tr><td>قابلية النقل</td><td>محدودة برصة Odoo</td><td>تنقل بين شركات ومنتجات</td></tr>
+        <tr><td>Odoo R&amp;D</td><td>مناسب للـ implementation داخل المنتج</td><td>أقرب لتوصيف Software Developer في R&amp;D</td></tr>
+        <tr><td>المقابلات</td><td>خبرة framework</td><td>DSA + OOD + System Design</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- BIG PICTURE -->
+<section class="section" id="big-picture">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:22px;">🗺️</div>
+    <div>
+      <div class="section-title c-purple">الصورة الكبيرة</div>
+      <div class="section-subtitle">Master trees</div>
+    </div>
+  </div>
+  <p class="lead">ثلاث أذرع تحت Software Engineer، وبعدها مسار تقدّم من الأساسيات للإنتاج.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">SOFTWARE ENGINEER</div></div>
+<pre>SOFTWARE ENGINEER
+                                │
+        ┌───────────────────────┼────────────────────────┐
+        │                       │                        │
+   CS FUNDAMENTALS         SOFTWARE DESIGN          ENGINEERING
+        │                       │                        │
+   ┌────┴────┐             ┌────┴─────┐          ┌──────┴──────┐
+   │         │             │          │          │             │
+  DSA       CS            OOD     Architecture  OS          Networking
+            │
+            ├── OS
+            ├── DB
+            ├── Networks
+            └── Concurrency</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Progression</div></div>
+<pre>CS Fundamentals
+       +
+OOD
+       +
+DSA
+       ↓
+Backend / Software Development
+       ↓
+Architecture
+       ↓
+Distributed Systems
+       ↓
+System Design
+       ↓
+Production Engineering</pre>
+  </div>
+  <div class="info-box tip">
+    <div class="info-box-icon">🧠</div>
+    <div><strong>CS Fundamentals</strong> هو أهم جزء في الخريطة كلها — الهدف Software Engineer مش Python Developer فقط.</div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">CS spine</div></div>
+<pre>Python
+   ↓
+OOP
+   ↓
+DSA
+   ↓
+OS
+   ↓
+Networks
+   ↓
+Databases
+   ↓
+Concurrency
+   ↓
+Architecture
+   ↓
+Distributed Systems</pre>
+  </div>
+</section>
+
+<!-- TARGET TREE -->
+<section class="section" id="target-tree">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:22px;">🏁</div>
+    <div>
+      <div class="section-title c-teal">Target Tree</div>
+      <div class="section-subtitle">Odoo R&amp;D · FAANG</div>
+    </div>
+  </div>
+  <p class="lead">نفس الأساس يفتح بابين: Odoo R&amp;D وشركات بمستوى FAANG.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Career target</div></div>
+<pre>SOFTWARE ENGINEER
+                           │
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+       CS                 OOD                SWE
+        │                  │                  │
+      DSA              Patterns           Backend
+      OS               SOLID              Testing
+      DB               Architecture       Git/Linux
+      Network                              DevOps
+      Concurrency
+        │                  │                  │
+        └──────────────────┼──────────────────┘
+                           ↓
+                    SYSTEM DESIGN
+                           ↓
+                 DISTRIBUTED SYSTEMS
+                           ↓
+                 STRONG SWE PROFILE
+                           │
+             ┌─────────────┴─────────────┐
+             ↓                           ↓
+        Odoo R&amp;D                     FAANG</pre>
+  </div>
+</section>
+
+
+<!-- ─── LEVEL 1 ─── -->
+<section class="section" id="level-1">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:18px;font-family:var(--eng);font-weight:700;">1</div>
+    <div>
+      <div class="section-title c-purple">Level 1 — Programming Fundamentals</div>
+      <div class="section-subtitle">أساسيات البرمجة</div>
+    </div>
+  </div>
+  <p class="lead">الأساس اللي المفروض يبقى <strong>automatic</strong> عندك. ركّز على لغة أساسية واحدة بعمق — مش syntax بس، فهم الـ language model نفسه.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python depth</div></div>
+<pre>Syntax
+Functions
+Modules
+Packages
+Exceptions
+Iterators
+Generators
+Decorators
+Context Managers
+Typing
+Dataclasses
+Memory model
+Mutable / Immutable
+References
+Scopes
+Closures</pre>
+  </div>
+  <div class="info-box warn"><div class="info-box-icon">⚠</div><div><strong>الأهم:</strong> مش Python syntax فقط — لازم تفهم اللغة نفسها (memory, mutability, scopes, closures).</div></div>
+</section>
+
+<!-- ─── LEVEL 2 ─── -->
+<section class="section" id="level-2">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:18px;font-family:var(--eng);font-weight:700;">2</div>
+    <div>
+      <div class="section-title c-teal">Level 2 — DSA</div>
+      <div class="section-subtitle">هياكل البيانات والخوارزميات</div>
+    </div>
+  </div>
+  <p class="lead">عندك الأساس بالفعل، لكن اعتبره <strong>ongoing skill</strong> مش مادة خلصتها. Advanced DSA مش أولوية دلوقتي.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">DSA core</div></div>
+<pre>DSA
+│
+├── Complexity
+│
+├── Data Structures
+│   ├── Array
+│   ├── Hash Table
+│   ├── Linked List
+│   ├── Stack
+│   ├── Queue
+│   ├── Tree
+│   ├── BST
+│   ├── Heap
+│   ├── Graph
+│   └── Trie
+│
+└── Algorithms
+    ├── Sorting
+    ├── Binary Search
+    ├── Two Pointers
+    ├── Sliding Window
+    ├── Prefix Sum
+    ├── BFS
+    ├── DFS
+    ├── Backtracking
+    ├── Greedy
+    ├── Divide &amp; Conquer
+    └── Dynamic Programming</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Advanced (later)</div></div>
+<pre>Union Find
+Topological Sort
+Shortest Path
+Minimum Spanning Tree
+Monotonic Stack
+Segment Tree
+Fenwick Tree
+Advanced Graphs
+Advanced DP</pre>
+  </div>
+  <div class="info-box tip"><div class="info-box-icon">📎</div><div><strong>دليل موجود:</strong>
+    <a href="problem-solving-guide.html">Problem Solving</a> ·
+    <a href="recursion-tree-guide.html">Recursion Trees</a>
+  </div></div>
+</section>
+
+<!-- ─── LEVEL 3 ─── -->
+<section class="section" id="level-3">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:18px;font-family:var(--eng);font-weight:700;">3</div>
+    <div>
+      <div class="section-title c-amber">Level 3 — OOD</div>
+      <div class="section-subtitle">التصميم الكائني</div>
+    </div>
+  </div>
+  <p class="lead">من أهم الأجزاء. الهدف مش حفظ التعريفات — الهدف: <strong>Given a problem → design the objects yourself.</strong></p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">OOD path</div></div>
+<pre>OOP
+ │
+ ├── Encapsulation
+ ├── Abstraction
+ ├── Inheritance
+ ├── Polymorphism
+ └── Composition
+       ↓
+Object Relationships
+       ↓
+Coupling / Cohesion
+       ↓
+SOLID
+       ↓
+Design Principles
+       ↓
+Design Patterns
+       ↓
+Object-Oriented Design</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Practice problems</div></div>
+<pre>Parking Lot
+Library
+Elevator
+Chess
+Payment System
+Notification System
+Food Delivery
+Ride Sharing</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">What good looks like</div></div>
+<pre>Objects
+Responsibilities
+Relationships
+Interfaces
+Dependencies
+Extensibility</pre>
+  </div>
+  <div class="info-box note"><div class="info-box-icon">💡</div><div><strong>OOD الحقيقي:</strong> تصميم Parking Lot / Elevator وتحديد objects, responsibilities, interfaces, extensibility — مش بس تعريف الـ pillars.</div></div>
+  <div class="info-box tip"><div class="info-box-icon">📎</div><div><strong>دليل موجود:</strong> <a href="ood-guide.html">Object-Oriented Design</a></div></div>
+</section>
+
+<!-- ─── LEVEL 4 ─── -->
+<section class="section" id="level-4">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:18px;font-family:var(--eng);font-weight:700;">4</div>
+    <div>
+      <div class="section-title c-coral">Level 4 — Design Patterns</div>
+      <div class="section-subtitle">أنماط التصميم</div>
+    </div>
+  </div>
+  <p class="lead">مش هدفنا نحفظ 23 pattern. الهدف: <strong>Recognize → Derive → Implement → Compare</strong>. Enterprise patterns بعد ما GoF + OOD يثبتوا.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">GoF families</div></div>
+<pre>Creational
+Structural
+Behavioral</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Compare pairs</div></div>
+<pre>Strategy
+       ↕
+State
+
+Factory Method
+       ↕
+Abstract Factory
+
+Adapter
+       ↕
+Facade
+       ↕
+Decorator
+       ↕
+Proxy</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">After GoF</div></div>
+<pre>Repository
+Unit of Work
+Data Mapper
+Service Layer
+Specification
+DTO
+Dependency Injection
+Active Record
+Domain Model</pre>
+  </div>
+  <div class="info-box tip"><div class="info-box-icon">📎</div><div><strong>دليل موجود:</strong> <a href="ood-guide.html#patterns">OOD — Design Patterns</a></div></div>
+</section>
+
+<!-- ─── LEVEL 5 ─── -->
+<section class="section" id="level-5">
+  <div class="section-header">
+    <div class="section-icon bg-indigo" style="font-size:18px;font-family:var(--eng);font-weight:700;">5</div>
+    <div>
+      <div class="section-title c-indigo">Level 5 — Concurrency</div>
+      <div class="section-subtitle">التزامن</div>
+    </div>
+  </div>
+  <p class="lead">جزء يستحق رفع أولويته مبكرًا. افهم primitives والمشاكل والـ patterns، وبعدين طبّقها في Python.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Concurrency</div></div>
+<pre>Concurrency
+│
+├── Process
+├── Thread
+├── Concurrency vs Parallelism
+├── Race Condition
+├── Critical Section
+├── Atomicity
+│
+├── Synchronization
+│   ├── Mutex
+│   ├── Semaphore
+│   ├── Condition Variable
+│   └── Read/Write Lock
+│
+├── Problems
+│   ├── Deadlock
+│   ├── Livelock
+│   └── Starvation
+│
+└── Patterns
+    ├── Producer / Consumer
+    ├── Thread Pool
+    └── Worker Pool</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Python</div></div>
+<pre>threading
+multiprocessing
+asyncio
+GIL
+async / await
+I/O Bound
+CPU Bound</pre>
+  </div>
+
+</section>
+
+<!-- ─── LEVEL 6 ─── -->
+<section class="section" id="level-6">
+  <div class="section-header">
+    <div class="section-icon bg-green" style="font-size:18px;font-family:var(--eng);font-weight:700;">6</div>
+    <div>
+      <div class="section-title c-green">Level 6 — Operating Systems</div>
+      <div class="section-subtitle">نظم التشغيل</div>
+    </div>
+  </div>
+  <p class="lead">مش مطلوب تبقى Kernel Developer — لكن Software Engineer لازم يفهم الطبقات دي ويربطها ببعض.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">OS essentials</div></div>
+<pre>OS
+│
+├── Process
+├── Thread
+├── Scheduling
+├── Context Switching
+├── Virtual Memory
+├── Stack
+├── Heap
+├── Paging
+├── File System
+├── System Calls
+├── IPC
+└── Synchronization</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Mental model</div></div>
+<pre>Process
+   ↓
+Thread
+   ↓
+Memory
+   ↓
+CPU
+   ↓
+Scheduling
+   ↓
+Concurrency</pre>
+  </div>
+
+</section>
+
+<!-- ─── LEVEL 7 ─── -->
+<section class="section" id="level-7">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:18px;font-family:var(--eng);font-weight:700;">7</div>
+    <div>
+      <div class="section-title c-purple">Level 7 — Networking</div>
+      <div class="section-subtitle">الشبكات</div>
+    </div>
+  </div>
+  <p class="lead">بروتوكولات الويب + مفاهيم الـ auth. المعيار الذهبي: تقدر تشرح الرحلة من كتابة URL لحد الـ HTTP Response.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Networking</div></div>
+<pre>Networking
+│
+├── OSI / TCP-IP
+├── IP
+├── TCP
+├── UDP
+├── DNS
+├── HTTP
+├── HTTPS
+├── TLS
+│
+├── REST
+├── WebSocket
+├── gRPC
+│
+└── Web concepts
+    ├── Cookie
+    ├── Session
+    ├── JWT
+    ├── Authentication
+    └── Authorization</pre>
+  </div>
+  <div class="info-box note"><div class="info-box-icon">🎯</div><div><strong>What good looks like:</strong> اشرح ماذا يحدث من لحظة كتابة URL لحد وصول HTTP Response — DNS → TCP → TLS → HTTP → response.</div></div>
+</section>
+
+<!-- ─── LEVEL 8 ─── -->
+<section class="section" id="level-8">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:18px;font-family:var(--eng);font-weight:700;">8</div>
+    <div>
+      <div class="section-title c-teal">Level 8 — Databases</div>
+      <div class="section-subtitle">قواعد البيانات</div>
+    </div>
+  </div>
+  <p class="lead">Must. SQL + modeling + indexes + transactions. PostgreSQL اختيار ممتاز للتعمق (ومفيد لو Odoo هدفك).</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Database</div></div>
+<pre>Database
+│
+├── SQL
+│   ├── SELECT
+│   ├── JOIN
+│   ├── GROUP BY
+│   ├── Subqueries
+│   └── Window Functions
+│
+├── Data Modeling
+├── Indexes
+├── Transactions
+│   └── ACID
+├── Isolation Levels
+├── Locks
+├── Deadlocks
+├── Normalization
+├── Denormalization
+└── Query Optimization</pre>
+  </div>
+  <div class="info-box tip"><div class="info-box-icon">📎</div><div><strong>دليل موجود:</strong> <a href="rdbms-guide.html">RDBMS</a></div></div>
+</section>
+
+<!-- ─── LEVEL 9 ─── -->
+<section class="section" id="level-9">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:18px;font-family:var(--eng);font-weight:700;">9</div>
+    <div>
+      <div class="section-title c-amber">Level 9 — Backend Engineering</div>
+      <div class="section-subtitle">هندسة الـ Backend</div>
+    </div>
+  </div>
+  <p class="lead">هنا تتحول من Programmer إلى Software Engineer. Python + Django/FastAPI + PostgreSQL كفاية كأساس قوي — مش لازم الاتنين بنفس العمق.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Backend</div></div>
+<pre>Backend
+│
+├── API Design
+├── REST
+├── Authentication
+├── Authorization
+├── Validation
+├── Error Handling
+├── Logging
+├── Configuration
+├── Dependency Injection
+├── Background Jobs
+├── Caching
+├── Queues
+├── Transactions
+└── Testing</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Framework focus</div></div>
+<pre>Django
+FastAPI
+
+Python + Django/FastAPI + PostgreSQL</pre>
+  </div>
+
+</section>
+
+<!-- ─── LEVEL 10 ─── -->
+<section class="section" id="level-10">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:18px;font-family:var(--eng);font-weight:700;">10</div>
+    <div>
+      <div class="section-title c-coral">Level 10 — Software Quality</div>
+      <div class="section-subtitle">جودة البرمجيات</div>
+    </div>
+  </div>
+  <p class="lead">منطقة ناس كتير تتجاهلها. Testing + Clean Code + Review — جزء من طبيعة شغل R&amp;D الحقيقي.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Testing</div></div>
+<pre>Testing
+│
+├── Unit Test
+├── Integration Test
+├── E2E
+├── Mocking
+├── Fixtures
+├── Test Pyramid
+└── Testability</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Quality practices</div></div>
+<pre>Clean Code
+Refactoring
+Code Review
+Static Analysis
+Linting
+Formatting
+Documentation</pre>
+  </div>
+
+</section>
+
+<!-- ─── LEVEL 11 ─── -->
+<section class="section" id="level-11">
+  <div class="section-header">
+    <div class="section-icon bg-indigo" style="font-size:18px;font-family:var(--eng);font-weight:700;">11</div>
+    <div>
+      <div class="section-title c-indigo">Level 11 — Linux + Git</div>
+      <div class="section-subtitle">لينكس و Git</div>
+    </div>
+  </div>
+  <p class="lead">ارتياح يومي مع Linux و Git أعمق من add/commit/push.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Linux</div></div>
+<pre>Linux
+│
+├── Processes
+├── Files
+├── Permissions
+├── SSH
+├── Networking commands
+├── Environment Variables
+├── Services
+└── Bash</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Git</div></div>
+<pre>clone
+branch
+merge
+rebase
+cherry-pick
+reset
+revert
+stash
+bisect</pre>
+  </div>
+  <div class="info-box warn"><div class="info-box-icon">⚠</div><div>مش بس <code>git add</code> / <code>git commit</code> / <code>git push</code> — فهم history rewriting و debugging بـ bisect.</div></div>
+</section>
+
+<!-- ─── LEVEL 12 ─── -->
+<section class="section" id="level-12">
+  <div class="section-header">
+    <div class="section-icon bg-green" style="font-size:18px;font-family:var(--eng);font-weight:700;">12</div>
+    <div>
+      <div class="section-title c-green">Level 12 — DevOps Basics</div>
+      <div class="section-subtitle">أساسيات DevOps</div>
+    </div>
+  </div>
+  <p class="lead">مش هدفك تبقى DevOps Engineer. Docker + CI/CD أولاً؛ Kubernetes بعدها مش قبل الأساسيات.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">DevOps basics</div></div>
+<pre>Docker
+Docker Compose
+CI/CD
+Containers
+Images
+Volumes
+Networks
+Environment
+Secrets
+Reverse Proxy</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Later</div></div>
+<pre>Kubernetes</pre>
+  </div>
+
+</section>
+
+<!-- ─── LEVEL 13 ─── -->
+<section class="section" id="level-13">
+  <div class="section-header">
+    <div class="section-icon bg-purple" style="font-size:18px;font-family:var(--eng);font-weight:700;">13</div>
+    <div>
+      <div class="section-title c-purple">Level 13 — Application Architecture</div>
+      <div class="section-subtitle">معمارية التطبيقات</div>
+    </div>
+  </div>
+  <p class="lead">افهم ليه بنحط الكود في المكان ده — مش مجرد رسم architecture. Layered / Clean / Hexagonal + أساسيات DDD.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Application Architecture</div></div>
+<pre>Application Architecture
+│
+├── Layered
+├── Clean
+├── Hexagonal
+├── Onion
+│
+└── Presentation
+    ├── MVC
+    ├── MVP
+    └── MVVM</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">DDD building blocks</div></div>
+<pre>DDD
+│
+├── Entity
+├── Value Object
+├── Aggregate
+├── Repository
+├── Domain Service
+├── Application Service
+├── Bounded Context
+└── Domain Events</pre>
+  </div>
+  <div class="info-box tip"><div class="info-box-icon">📎</div><div><strong>دليل موجود:</strong> <a href="architecture-fastapi-guide.html">Clean vs Layered (FastAPI)</a></div></div>
+</section>
+
+<!-- ─── LEVEL 14 ─── -->
+<section class="section" id="level-14">
+  <div class="section-header">
+    <div class="section-icon bg-teal" style="font-size:18px;font-family:var(--eng);font-weight:700;">14</div>
+    <div>
+      <div class="section-title c-teal">Level 14 — System Design</div>
+      <div class="section-subtitle">تصميم الأنظمة</div>
+    </div>
+  </div>
+  <p class="lead">بعد ما الأساس يثبت: requirements → components → trade-offs → scale. ثم Distributed Systems.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">System Design</div></div>
+<pre>System Design
+│
+├── Requirements
+├── API
+├── Database
+├── Caching
+├── Load Balancing
+├── Queues
+├── Storage
+├── Replication
+├── Sharding
+├── Partitioning
+├── Consistency
+├── Availability
+├── CAP
+├── Rate Limiting
+├── Idempotency
+├── Fault Tolerance
+└── Observability</pre>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Next layer</div></div>
+<pre>Distributed Systems</pre>
+  </div>
+  <div class="info-box tip"><div class="info-box-icon">📎</div><div><strong>دليل موجود:</strong> <a href="system-design-guide.html">System Design</a></div></div>
+</section>
+
+<!-- ─── LEVEL 15 ─── -->
+<section class="section" id="level-15">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:18px;font-family:var(--eng);font-weight:700;">15</div>
+    <div>
+      <div class="section-title c-amber">Level 15 — Cloud</div>
+      <div class="section-subtitle">السحابة</div>
+    </div>
+  </div>
+  <p class="lead">مش لازم AWS كلها. افهم primitives، واختار AWS مثلًا كـ implementation.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Cloud primitives</div></div>
+<pre>Compute
+Storage
+Database
+Networking
+Load Balancer
+DNS
+Containers
+Queues
+Caching
+Monitoring
+IAM</pre>
+  </div>
+
+</section>
+
+<!-- ─── LEVEL 16 ─── -->
+<section class="section" id="level-16">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:18px;font-family:var(--eng);font-weight:700;">16</div>
+    <div>
+      <div class="section-title c-coral">Level 16 — Security</div>
+      <div class="section-subtitle">الأمان</div>
+    </div>
+  </div>
+  <p class="lead">Software Engineer لازم يعرف الأساسيات — مش لازم تتحول Security Engineer.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Security essentials</div></div>
+<pre>Authentication
+Authorization
+Sessions
+JWT
+OAuth2
+TLS
+Password Hashing
+SQL Injection
+XSS
+CSRF
+CORS
+SSRF
+Rate Limiting
+Secrets</pre>
+  </div>
+
+</section>
+
+<!-- ─── LEVEL 17 ─── -->
+<section class="section" id="level-17">
+  <div class="section-header">
+    <div class="section-icon bg-indigo" style="font-size:18px;font-family:var(--eng);font-weight:700;">17</div>
+    <div>
+      <div class="section-title c-indigo">Level 17 — Advanced SWE</div>
+      <div class="section-subtitle">هندسة برمجيات متقدمة</div>
+    </div>
+  </div>
+  <p class="lead">مرحلة لاحقة. <strong>مش أولوياتك الآن</strong> — بعد تثبيت Tier 1–3.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Advanced path</div></div>
+<pre>Distributed Systems
+        ↓
+Microservices
+        ↓
+Event-Driven Architecture
+        ↓
+Message Brokers
+        ↓
+Consistency
+        ↓
+Distributed Transactions
+        ↓
+Saga
+        ↓
+CQRS
+        ↓
+Event Sourcing</pre>
+  </div>
+  <div class="info-box warn"><div class="info-box-icon">⏳</div><div>خلي دي للمرحلة اللاحقة — بعد System Design والأساس.</div></div>
+</section>
+
+
+<!-- TIERS -->
+<section class="section" id="tiers">
+  <div class="section-header">
+    <div class="section-icon bg-amber" style="font-size:22px;">🏆</div>
+    <div>
+      <div class="section-title c-amber">Priority Tiers</div>
+      <div class="section-subtitle">وقت محدود؟ ابدأ من فوق</div>
+    </div>
+  </div>
+  <p class="lead">لو الوقت محدود، رتّب المذاكرة حسب الـ tiers — مش حسب رقم المستوى.</p>
+  <div class="tier-grid">
+    <div class="tier-card tier-1">
+      <div class="tier-label">Tier 1 — لازم جدًا</div>
+      <ul class="tier-list">
+        <li>DSA</li><li>Programming</li><li>OOP</li><li>SOLID</li><li>OOD</li>
+        <li>Databases</li><li>SQL</li><li>Operating Systems</li><li>Networking</li>
+        <li>Concurrency</li><li>Testing</li><li>Git</li><li>Linux</li>
+      </ul>
+    </div>
+    <div class="tier-card tier-2">
+      <div class="tier-label">Tier 2 — لازم بعدهم</div>
+      <ul class="tier-list">
+        <li>Design Patterns</li><li>Backend Engineering</li><li>REST/API</li>
+        <li>Django/FastAPI</li><li>Application Architecture</li><li>DDD</li>
+        <li>Docker</li><li>CI/CD</li>
+      </ul>
+    </div>
+    <div class="tier-card tier-3">
+      <div class="tier-label">Tier 3 — بعد تثبيت الأساس</div>
+      <ul class="tier-list">
+        <li>System Design</li><li>Distributed Systems</li><li>Cloud</li>
+        <li>Microservices</li><li>Messaging</li><li>Caching</li>
+        <li>Kubernetes</li><li>Security</li>
+      </ul>
+    </div>
+    <div class="tier-card tier-4">
+      <div class="tier-label">Tier 4 — Advanced / حسب المسار</div>
+      <ul class="tier-list">
+        <li>Advanced Distributed Systems</li><li>Event Sourcing</li><li>CQRS</li>
+        <li>Advanced Kubernetes</li><li>Advanced Cloud</li><li>Compiler</li>
+        <li>OS internals</li><li>Advanced networking</li><li>Advanced databases</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- STUDY LOOP -->
+<section class="section" id="study-loop">
+  <div class="section-header">
+    <div class="section-icon bg-green" style="font-size:22px;">🔄</div>
+    <div>
+      <div class="section-title c-green">Study Loop</div>
+      <div class="section-subtitle">Theory → Engineer</div>
+    </div>
+  </div>
+  <p class="lead">ما تذاكرش الـ 17 Level كنظري فقط. الحلقة دي اللي بتحوّل «أنا عارف المواضيع» إلى «أنا Software Engineer».</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Study loop</div></div>
+<pre>THEORY
+                       ↓
+                  UNDERSTAND
+                       ↓
+                    CODE
+                       ↓
+                 BUILD PROJECT
+                       ↓
+              SOLVE INTERVIEW Qs
+                       ↓
+                  REVIEW</pre>
+  </div>
+  <div class="grid-3" style="margin-top:8px;">
+    <div class="card bg-purple">
+      <div class="card-title c-purple">OOD</div>
+      <p>Design Parking Lot → implement → refactor → apply patterns → tests.</p>
+    </div>
+    <div class="card bg-blue">
+      <div class="card-title c-blue">Database</div>
+      <p>Schema → SQL → indexes → EXPLAIN → transaction → concurrency problem.</p>
+    </div>
+    <div class="card bg-teal">
+      <div class="card-title c-teal">System Design</div>
+      <p>URL Shortener → API → DB → Cache → Scale → failure scenarios.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ODOO TARGET -->
+<section class="section" id="odoo-target">
+  <div class="section-header">
+    <div class="section-icon bg-coral" style="font-size:22px;">🏢</div>
+    <div>
+      <div class="section-title c-coral">Odoo كهدف شركة</div>
+      <div class="section-subtitle">Not ORM/XML-first prep</div>
+    </div>
+  </div>
+  <p class="lead">
+    توصيفات Odoo لـ Software Developer / R&amp;D بتطلب أساس قوي في البرمجة و OOP وقواعد البيانات وحل المشكلات؛ Python/JS و PostgreSQL و Git و Linux مهارات مفيدة — مش شرط إتقان تقنيات Odoo مسبقًا بنفس الدرجة.
+  </p>
+  <div class="info-box tip">
+    <div class="info-box-icon">✅</div>
+    <div>أنت <strong>مش محتاج تحصر نفسك في Odoo ORM/XML</strong> عشان تكون مناسب لـ Odoo R&amp;D. خريطة الـ SWE أقرب لطبيعة الدور من خريطة «Odoo modules».</div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Software Developer (R&amp;D)</div>
+      <p><a href="https://www.odoo.com/jobs/software-developer-1" target="_blank" rel="noopener noreferrer">odoo.com/jobs/software-developer-1</a></p>
+    </div>
+    <div class="card">
+      <div class="card-title">Full Stack Developer</div>
+      <p><a href="https://www.odoo.com/jobs/full-stack-developer-559" target="_blank" rel="noopener noreferrer">odoo.com/jobs/full-stack-developer-559</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- SUGGESTED PATH -->
+<section class="section" id="suggested-path">
+  <div class="section-header">
+    <div class="section-icon bg-indigo" style="font-size:22px;">📍</div>
+    <div>
+      <div class="section-title c-indigo">المسار المقترح</div>
+      <div class="section-subtitle">Gap analysis starting point</div>
+    </div>
+  </div>
+  <p class="lead">ابدأ من وضعك الحالي: DSA + OOP/SOLID معروفين → Gap Analysis سريع، ثم المسار التالي.</p>
+  <div class="code-wrap">
+    <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div><div class="code-lang">Suggested path</div></div>
+<pre>DSA + OOP/SOLID (known)
+       ↓
+      OOD
+       ↓
+Design Patterns
+       ↓
+CS Fundamentals
+  (OS · Networks · Concurrency · DB depth)
+       ↓
+Backend
+       ↓
+Architecture
+       ↓
+System Design</pre>
+  </div>
+  <div class="info-box note">
+    <div class="info-box-icon">🧭</div>
+    <div>كل مرحلة: Theory + Implementation + Problems + Mini Project. للخطة الأسبوعية للمقابلات انظر
+      <a href="index.html#master-roadmap">مسار 32 أسبوع</a> على الصفحة الرئيسية.
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card bg-purple"><div class="card-title c-purple">أدلة جاهزة</div>
+      <p>
+        <a href="ood-guide.html">OOD</a> ·
+        <a href="problem-solving-guide.html">Problem Solving</a> ·
+        <a href="rdbms-guide.html">RDBMS</a> ·
+        <a href="system-design-guide.html">System Design</a> ·
+        <a href="architecture-fastapi-guide.html">Architecture</a> ·
+        <a href="recursion-tree-guide.html">Recursion Trees</a>
+      </p>
+    </div>
+    <div class="card bg-amber"><div class="card-title c-amber">لسه بدون دليل عميق</div>
+      <p>Concurrency · OS · Networking · DevOps · Cloud · Security — موجودين هنا كقوائم مواضيع فقط.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Software Engineer Master Roadmap · 17 levels · Odoo = target company</p>
+  <p style="margin-top:8px;"><a href="index.html">← Road Map</a> · <a href="ood-guide.html">OOD</a> · <a href="system-design-guide.html">System Design</a> · <a href="problem-solving-guide.html">Problem Solving</a></p>
+  <p style="margin-top:8px;">المذاكرة نظرية فقط مش كفاية — Theory → Code → Project → Interview Qs.</p>
+</footer>
+
+</div>
+
+</body>
+</html>
