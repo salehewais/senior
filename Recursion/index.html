@@ -453,8 +453,8 @@
     <header class="top">
       <div>
         <p class="eyebrow">مخطط المفاهيم</p>
-        <h1>العودية وما يتفرع عنها<span>Recursion, Dynamic Programming, Tree, Backtracking, Graph</span></h1>
-        <p class="lede">ترتيب التعلم: العودية، ثم البرمجة الديناميكية، ثم الأشجار، ثم التراجع، ثم الرسوم البيانية. العودية تتفرع يميناً إلى البرمجة الديناميكية ويساراً إلى الأشجار، ومنها أيضاً الرسوم البيانية. ومن الأشجار ينزل التراجع.</p>
+        <h1>العودية وما يتفرع عنها<span>Recursion, Tree, Backtracking, Dynamic Programming, Graph</span></h1>
+        <p class="lede">ترتيب التعلم: العودية، ثم الأشجار، ثم التراجع، ثم البرمجة الديناميكية، ثم الرسوم البيانية. العودية تتفرع يساراً إلى الأشجار ويميناً إلى البرمجة الديناميكية، ومنها أيضاً الرسوم البيانية. ومن الأشجار ينزل التراجع.</p>
       </div>
       <div class="progress" aria-live="polite">
         <strong id="solved">0 / 60</strong>
@@ -468,9 +468,9 @@
 
       <div class="mobile-map">
         <button type="button" data-jump="recursion">1 — Recursion</button>
-        <button type="button" data-jump="dp">2 — Dynamic Programming</button>
-        <button type="button" data-jump="tree">3 — Tree</button>
-        <button type="button" data-jump="backtracking">4 — Backtracking</button>
+        <button type="button" data-jump="tree">2 — Tree</button>
+        <button type="button" data-jump="backtracking">3 — Backtracking</button>
+        <button type="button" data-jump="dp">4 — Dynamic Programming</button>
         <button type="button" data-jump="graph">5 — Graph</button>
       </div>
 
@@ -488,33 +488,33 @@
           <em>10 مسائل</em>
         </button>
         <button class="node tree" type="button" data-jump="tree">
-          <small>3 · يسار العودية</small>
+          <small>2 · يسار العودية</small>
           <strong>Tree</strong>
           <em>الأشجار · 10 مسائل</em>
         </button>
         <button class="node dp" type="button" data-jump="dp">
-          <small>2 · يمين العودية</small>
+          <small>4 · يمين العودية</small>
           <strong>Dynamic Programming</strong>
           <em>10 مسائل</em>
         </button>
         <button class="node back" type="button" data-jump="backtracking">
-          <small>4 · أسفل الشجرة</small>
+          <small>3 · أسفل الشجرة</small>
           <strong>Backtracking</strong>
           <em>التراجع · 20 مسألة</em>
         </button>
       </div>
 
       <div class="relations">
-        <p>العودية في الأعلى. يتفرع منها Dynamic Programming يميناً، و Tree يساراً، و Graph منها مباشرة.</p>
-        <p>من Tree ينزل Backtracking فقط. ترتيب التعلم: 1 Recursion، 2 Dynamic Programming، 3 Tree، 4 Backtracking، 5 Graph.</p>
+        <p>العودية في الأعلى. يتفرع منها Tree يساراً، و Dynamic Programming يميناً، و Graph منها مباشرة.</p>
+        <p>من Tree ينزل Backtracking فقط. ترتيب التعلم: 1 Recursion، 2 Tree، 3 Backtracking، 4 Dynamic Programming، 5 Graph.</p>
       </div>
     </section>
 
     <nav class="nav" aria-label="ترتيب التعلم">
       <a href="#recursion">1 Recursion</a>
-      <a href="#dp">2 Dynamic Programming</a>
-      <a href="#tree">3 Tree</a>
-      <a href="#backtracking">4 Backtracking</a>
+      <a href="#tree">2 Tree</a>
+      <a href="#backtracking">3 Backtracking</a>
+      <a href="#dp">4 Dynamic Programming</a>
       <a href="#graph">5 Graph</a>
     </nav>
 
@@ -550,35 +550,11 @@
         ]
       },
       {
-        id: "dp",
-        step: "2",
-        en: "Dynamic Programming",
-        ar: "البرمجة الديناميكية",
-        note: "الخطوة الثانية. الفرع الأيمن من العودية.",
-        groups: [
-          {
-            label: "مسائل شائعة",
-            items: [
-              ["70", "Climbing Stairs", "Easy", "climbing-stairs"],
-              ["198", "House Robber", "Medium", "house-robber"],
-              ["213", "House Robber II", "Medium", "house-robber-ii"],
-              ["5", "Longest Palindromic Substring", "Medium", "longest-palindromic-substring"],
-              ["322", "Coin Change", "Medium", "coin-change"],
-              ["300", "Longest Increasing Subsequence", "Medium", "longest-increasing-subsequence"],
-              ["416", "Partition Equal Subset Sum", "Medium", "partition-equal-subset-sum"],
-              ["62", "Unique Paths", "Medium", "unique-paths"],
-              ["72", "Edit Distance", "Hard", "edit-distance"],
-              ["1143", "Longest Common Subsequence", "Medium", "longest-common-subsequence"]
-            ]
-          }
-        ]
-      },
-      {
         id: "tree",
-        step: "3",
+        step: "2",
         en: "Tree",
         ar: "الأشجار",
-        note: "الخطوة الثالثة. الفرع الأيسر من العودية، ومنه Backtracking.",
+        note: "الخطوة الثانية. الفرع الأيسر من العودية، ومنه Backtracking.",
         groups: [
           {
             label: "مسائل شائعة",
@@ -599,10 +575,10 @@
       },
       {
         id: "backtracking",
-        step: "4",
+        step: "3",
         en: "Backtracking",
         ar: "التراجع",
-        note: "الخطوة الرابعة. فرع نازل من الأشجار. القائمة الأولى هي مسائل الصورة، والثانية مسائل إضافية.",
+        note: "الخطوة الثالثة. فرع نازل من الأشجار. القائمة الأولى هي مسائل الصورة، والثانية مسائل إضافية.",
         groups: [
           {
             label: "من الصورة",
@@ -632,6 +608,30 @@
               ["491", "Non-decreasing Subsequences", "Medium", "non-decreasing-subsequences"],
               ["526", "Beautiful Arrangement", "Medium", "beautiful-arrangement"],
               ["1849", "Splitting a String Into Descending Consecutive Values", "Medium", "splitting-a-string-into-descending-consecutive-values"]
+            ]
+          }
+        ]
+      },
+      {
+        id: "dp",
+        step: "4",
+        en: "Dynamic Programming",
+        ar: "البرمجة الديناميكية",
+        note: "الخطوة الرابعة. الفرع الأيمن من العودية.",
+        groups: [
+          {
+            label: "مسائل شائعة",
+            items: [
+              ["70", "Climbing Stairs", "Easy", "climbing-stairs"],
+              ["198", "House Robber", "Medium", "house-robber"],
+              ["213", "House Robber II", "Medium", "house-robber-ii"],
+              ["5", "Longest Palindromic Substring", "Medium", "longest-palindromic-substring"],
+              ["322", "Coin Change", "Medium", "coin-change"],
+              ["300", "Longest Increasing Subsequence", "Medium", "longest-increasing-subsequence"],
+              ["416", "Partition Equal Subset Sum", "Medium", "partition-equal-subset-sum"],
+              ["62", "Unique Paths", "Medium", "unique-paths"],
+              ["72", "Edit Distance", "Hard", "edit-distance"],
+              ["1143", "Longest Common Subsequence", "Medium", "longest-common-subsequence"]
             ]
           }
         ]
