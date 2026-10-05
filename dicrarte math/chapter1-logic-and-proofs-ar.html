@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الفصل 1 — المنطق والبراهين | دليل دراسة الرياضيات المتقطعة</title>
+<meta name="description" content="رفيق دراسة تفاعلي أصلي لموضوعات الفصل الأول في الرياضيات المتقطعة: منطق القضايا، المكممات، الاستدلال، والبراهين.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+  };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root {
+  --bg: #f4f7f9;
+  --paper: #fbfcfd;
+  --ink: #1e293b;
+  --muted: #64748b;
+  --line: #cbd5e1;
+  --accent: #0f766e;
+  --accent-soft: #ccfbf1;
+  --accent-ink: #115e59;
+  --warn-bg: #fff7ed;
+  --warn-ink: #9a3412;
+  --warn-line: #fdba74;
+  --ok-bg: #ecfdf5;
+  --ok-ink: #065f46;
+  --bad-bg: #fef2f2;
+  --bad-ink: #991b1b;
+  --nav-w: 280px;
+  --serif: "Noto Naskh Arabic", "Traditional Arabic", serif;
+  --sans: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 1rem; }
+body {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--ink);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+  line-height: 1.8;
+}
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { color: var(--accent-ink); }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--nav-w);
+  min-height: 100vh;
+}
+
+.nav {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: auto;
+  padding: 1.25rem 1rem 2rem;
+  background: rgba(248, 250, 252, 0.96);
+  border-left: 1px solid var(--line);
+  backdrop-filter: blur(6px);
+  order: 2;
+}
+.main { order: 1; }
+
+.nav-brand {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.35;
+  margin: 0 0 0.35rem;
+  color: var(--ink);
+}
+.nav-credit {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+.nav-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  margin: 0.85rem 0 0.4rem;
+}
+.nav a {
+  display: block;
+  padding: 0.4rem 0.55rem;
+  margin: 0.1rem 0;
+  border-radius: 6px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+.nav a:hover { background: var(--accent-soft); color: var(--accent-ink); }
+.nav a.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.main {
+  padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 4rem;
+}
+
+.hero {
+  padding: 0.5rem 0 1.5rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2rem;
+}
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  line-height: 1.35;
+  margin: 0 0 0.6rem;
+  font-weight: 700;
+}
+.hero p { margin: 0; color: var(--muted); max-width: 62ch; }
+.credit {
+  margin-top: 0.85rem;
+  font-size: 0.9rem;
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  border-right: 3px solid var(--accent);
+  padding: 0.65rem 0.85rem;
+}
+.lang-switch {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+
+section.sec {
+  margin: 0 0 2.75rem;
+  padding-top: 0.25rem;
+}
+section.sec > h2 {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--accent);
+  display: inline-block;
+  min-width: 40%;
+}
+h3 {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  margin: 1.35rem 0 0.45rem;
+  color: var(--ink);
+}
+p { margin: 0.55rem 0; }
+ul, ol { margin: 0.4rem 0 0.8rem; padding-right: 1.25rem; padding-left: 0; }
+li { margin: 0.25rem 0; }
+
+.idea {
+  font-size: 1.05rem;
+  border-right: 3px solid var(--accent);
+  padding: 0.55rem 0.85rem;
+  background: rgba(204, 251, 241, 0.35);
+  margin: 0.75rem 0 1rem;
+}
+.idea strong { color: var(--accent-ink); }
+
+.panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin: 0.85rem 0;
+  box-shadow: var(--shadow);
+}
+.panel h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-weight: 700;
+}
+
+.callout {
+  border: 1px solid var(--warn-line);
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  border-radius: 8px;
+  padding: 0.75rem 0.95rem;
+  margin: 0.9rem 0;
+}
+.callout strong { display: block; margin-bottom: 0.2rem; }
+
+.def-list { display: grid; gap: 0.55rem; }
+.def-item {
+  display: grid;
+  grid-template-columns: minmax(7rem, 12rem) 1fr;
+  gap: 0.65rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px dashed var(--line);
+}
+.def-item:last-child { border-bottom: 0; }
+.def-term {
+  font-family: var(--mono);
+  font-size: 0.88rem;
+  color: var(--accent-ink);
+  font-weight: 500;
+  direction: ltr;
+  text-align: right;
+}
+.def-body { font-size: 0.95rem; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  margin: 0.6rem 0;
+  direction: ltr;
+}
+th, td {
+  border: 1px solid var(--line);
+  padding: 0.4rem 0.55rem;
+  text-align: center;
+}
+th { background: #eef2f6; font-weight: 600; }
+td.t { background: #ecfdf5; color: var(--ok-ink); font-weight: 600; }
+td.f { background: #fef2f2; color: var(--bad-ink); font-weight: 600; }
+
+.mono { font-family: var(--mono); font-size: 0.9em; direction: ltr; display: inline-block; }
+.ltr { direction: ltr; unicode-bidi: isolate; }
+.muted { color: var(--muted); }
+.small { font-size: 0.9rem; }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.65rem 0;
+}
+label.ctrl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.35rem 0.55rem;
+}
+select, input[type="text"], button, .btn {
+  font: inherit;
+  font-size: 0.92rem;
+}
+select, input[type="text"] {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.4rem 0.55rem;
+  background: #fff;
+  color: var(--ink);
+}
+input[type="text"] { direction: ltr; text-align: left; }
+button, .btn {
+  appearance: none;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.42rem 0.8rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+button.secondary, .btn.secondary {
+  background: #fff;
+  color: var(--accent-ink);
+}
+button:hover, .btn:hover { filter: brightness(0.96); }
+button:focus-visible, .btn:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+details.reveal {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  margin: 0.75rem 0;
+  padding: 0.15rem 0.85rem 0.55rem;
+}
+details.reveal summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.55rem 0;
+  list-style: none;
+}
+details.reveal summary::-webkit-details-marker { display: none; }
+details.reveal summary::before {
+  content: "◂ ";
+  color: var(--accent);
+}
+details.reveal[open] summary::before { content: "▾ "; }
+
+.try {
+  border: 1px dashed var(--accent);
+  background: rgba(204, 251, 241, 0.25);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin: 0.9rem 0;
+}
+.try h4 {
+  margin: 0 0 0.4rem;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+}
+.feedback {
+  margin-top: 0.55rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.92rem;
+  display: none;
+}
+.feedback.show { display: block; }
+.feedback.ok { background: var(--ok-bg); color: var(--ok-ink); }
+.feedback.bad { background: var(--bad-bg); color: var(--bad-ink); }
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.chip {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  direction: ltr;
+}
+
+.rule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.65rem;
+}
+.rule {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.7rem 0.8rem;
+  background: #fff;
+}
+.rule h5 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-family: var(--serif);
+}
+.rule .prem {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  white-space: pre-line;
+  color: var(--muted);
+  direction: ltr;
+  text-align: left;
+}
+.rule .conc {
+  margin-top: 0.4rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--accent-ink);
+  font-weight: 600;
+  direction: ltr;
+  text-align: left;
+}
+
+.circuit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.75rem 0;
+  direction: ltr;
+}
+.gate {
+  min-width: 4.2rem;
+  text-align: center;
+  padding: 0.55rem 0.7rem;
+  border: 2px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--accent-ink);
+}
+.gate.not { border-radius: 8px 999px 999px 8px; }
+.wire { color: var(--muted); font-family: var(--mono); }
+
+.scope {
+  display: grid;
+  gap: 0.45rem;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  direction: ltr;
+  text-align: left;
+}
+.scope .layer {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  background: #fff;
+}
+.scope .layer.outer { border-color: var(--accent); background: rgba(204,251,241,0.3); }
+.scope .layer.inner { margin-left: 1.2rem; border-color: #0e7490; background: #ecfeff; }
+.scope .muted { font-family: var(--sans); }
+
+.checklist { list-style: none; padding: 0; }
+.checklist li {
+  padding: 0.45rem 1.7rem 0.45rem 0.55rem;
+  position: relative;
+  border-bottom: 1px dashed var(--line);
+}
+.checklist li::before {
+  content: "←";
+  position: absolute;
+  right: 0.35rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.quiz-q {
+  border-top: 1px solid var(--line);
+  padding: 0.9rem 0;
+}
+.quiz-q:first-child { border-top: 0; }
+.quiz-opts { display: grid; gap: 0.35rem; margin: 0.45rem 0; }
+.quiz-opts label {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+.quiz-opts label:hover { border-color: var(--accent); }
+.cheat {
+  columns: 2;
+  column-gap: 1.25rem;
+}
+.cheat h4 { break-after: avoid; margin-top: 0; }
+.cheat ul { break-inside: avoid; }
+
+.map {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+.map .step {
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+.map .step a { text-decoration: none; color: inherit; font-weight: 600; }
+.map .arr { color: var(--muted); }
+
+.stepper-line {
+  padding: 0.45rem 0.6rem;
+  border-right: 3px solid transparent;
+  margin: 0.25rem 0;
+  font-size: 0.92rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.stepper-line.active {
+  border-right: 3px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.domain-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0; direction: ltr; }
+.domain-btns button { min-width: 2.5rem; }
+.domain-btns button.on { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.mobile-nav-toggle {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: rgba(248,250,252,0.97);
+  padding: 0.7rem 1rem;
+  text-align: right;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .mobile-nav-toggle { display: block; }
+  .nav {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(86vw, 300px);
+    transform: translateX(105%);
+    transition: transform 0.2s ease;
+    z-index: 30;
+    box-shadow: -8px 0 30px rgba(15,23,42,0.12);
+    order: unset;
+  }
+  .main { order: unset; margin: 0; }
+  .nav.open { transform: translateX(0); }
+  .nav-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.35);
+    z-index: 25;
+  }
+  .nav-backdrop.show { display: block; }
+  .grid-2, .cheat { grid-template-columns: 1fr; columns: 1; }
+  .def-item { grid-template-columns: 1fr; gap: 0.2rem; }
+}
+
+@media print {
+  .nav, .mobile-nav-toggle, .nav-backdrop, button, .controls, .try, .quiz-opts input, .lang-switch { display: none !important; }
+  .layout { display: block; }
+  .main { padding: 0; }
+  body { background: #fff; }
+  details.reveal { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<button class="mobile-nav-toggle" id="navToggle" aria-expanded="false" aria-controls="sideNav">القائمة · أقسام الفصل</button>
+<div class="nav-backdrop" id="navBackdrop" hidden></div>
+
+<div class="layout">
+<aside class="nav" id="sideNav" aria-label="تنقل الفصل">
+  <p class="nav-brand">المنطق والبراهين</p>
+  <p class="nav-credit">دليل دراسة متوافق مع موضوعات الفصل 1 عند روزن — ملاحظات أصلية للتعلّم، وليست إعادة طبع للكتاب.</p>
+  <p class="nav-label">التنقل</p>
+  <a href="#overview">خريطة عامة</a>
+  <a href="#sec-1-1">1.1 منطق القضايا</a>
+  <a href="#sec-1-2">1.2 تطبيقات منطق القضايا</a>
+  <a href="#sec-1-3">1.3 التكافؤات المنطقية</a>
+  <a href="#sec-1-4">1.4 المحمولات والمكممات</a>
+  <a href="#sec-1-5">1.5 المكممات المتداخلة</a>
+  <a href="#sec-1-6">1.6 قواعد الاستدلال</a>
+  <a href="#sec-1-7">1.7 مقدمة في البراهين</a>
+  <a href="#sec-1-8">1.8 طرائق البرهان والاستراتيجية</a>
+  <a href="#review">مراجعة سريعة + تدريب</a>
+  <p class="nav-label">اللغة</p>
+  <a href="chapter1-logic-and-proofs.html">English version</a>
+</aside>
+
+<main class="main">
+  <header class="hero">
+    <h1>الفصل 1 — الأسس: المنطق والبراهين</h1>
+    <p>رفيق دراسة تفاعلي لمنطق القضايا، المكممات، الاستدلال، واستراتيجيات البرهان. جرّب الأدوات ثم اختبر نفسك بالاختبار في النهاية.</p>
+    <div class="credit">دليل دراسة متوافق مع موضوعات الفصل 1 عند روزن — ملاحظات أصلية للتعلّم، وليست إعادة طبع للكتاب.</div>
+    <a class="lang-switch" href="chapter1-logic-and-proofs.html">English version</a>
+  </header>
+
+  <section class="sec" id="overview">
+    <h2>خريطة عامة</h2>
+    <p class="idea"><strong>الفكرة بجملة واحدة.</strong> الفصل يبني سلّمًا: قضايا ← روابط ← تكافؤ ← دعاوى مكمّمة ← استدلال صحيح ← طرائق برهان.</p>
+    <div class="panel">
+      <h4>مسار التعلّم</h4>
+      <div class="map">
+        <span class="step"><a href="#sec-1-1">القضايا</a></span><span class="arr">←</span>
+        <span class="step"><a href="#sec-1-2">التطبيقات</a></span><span class="arr">←</span>
+        <span class="step"><a href="#sec-1-3">التكافؤات</a></span><span class="arr">←</span>
+        <span class="step"><a href="#sec-1-4">المحمولات</a></span><span class="arr">←</span>
+        <span class="step"><a href="#sec-1-5">تداخل ∀/∃</a></span><span class="arr">←</span>
+        <span class="step"><a href="#sec-1-6">الاستدلال</a></span><span class="arr">←</span>
+        <span class="step"><a href="#sec-1-7">أساسيات البرهان</a></span><span class="arr">←</span>
+        <span class="step"><a href="#sec-1-8">الاستراتيجيات</a></span>
+      </div>
+    </div>
+    <ul>
+      <li><strong>1.1–1.3:</strong> قيم الصدق، الروابط، وإعادة كتابة الصيغ.</li>
+      <li><strong>1.4–1.5:</strong> عبارات عن مجال باستخدام \(\forall\) و \(\exists\).</li>
+      <li><strong>1.6–1.8:</strong> من الحجج الصحيحة إلى اختيار طريقة البرهان.</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="sec-1-1">
+    <h2>1.1 منطق القضايا</h2>
+    <p class="idea"><strong>الفكرة بجملة واحدة.</strong> القضية جملة خبرية تكون صادقة أو كاذبة — لا الاثنين معًا، ولا «ربما».</p>
+
+    <h3>تعريفات أساسية</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">قضية</div><div class="def-body">عبارة لها قيمة صدق محددة (ص أو خ).</div></div>
+      <div class="def-item"><div class="def-term">\(\neg p\)</div><div class="def-body">النفي: صادق تمامًا عندما تكون \(p\) كاذبة.</div></div>
+      <div class="def-item"><div class="def-term">\(p \land q\)</div><div class="def-body">العطف (AND): صادق فقط إذا صدق كلاهما.</div></div>
+      <div class="def-item"><div class="def-term">\(p \lor q\)</div><div class="def-body">الفصل (OR): صادق إذا صدق واحد على الأقل.</div></div>
+      <div class="def-item"><div class="def-term">\(p \oplus q\)</div><div class="def-body">الفصل الحصري (XOR): صادق إذا صدق واحد بالضبط.</div></div>
+      <div class="def-item"><div class="def-term">\(p \to q\)</div><div class="def-body">الشرطية: كاذبة فقط عندما تكون \(p\) صادقة و \(q\) كاذبة.</div></div>
+      <div class="def-item"><div class="def-term">\(p \leftrightarrow q\)</div><div class="def-body">ثنائية الشرط: صادقة عندما تتفق قيمتا \(p\) و \(q\).</div></div>
+    </div>
+
+    <h3>قضايا مقابل غير قضايا</h3>
+    <ul>
+      <li>قضية: «7 عدد أولي.» (صادقة)</li>
+      <li>ليست قضية: «افتح الباب.» (أمر)</li>
+      <li>ليست قضية: «هل \(n\) زوجي؟» (سؤال)</li>
+      <li>ليست قضية بعد: «\(x + 2 = 5\)» حتى يُثبَّت \(x\) أو يُكمَّم.</li>
+    </ul>
+
+    <h3>منشئ جداول الصدق التفاعلي</h3>
+    <div class="panel">
+      <h4>اختر الرابط المنطقي</h4>
+      <div class="controls">
+        <label class="ctrl">الرابط
+          <select id="ttOp" aria-label="الرابط لجدول الصدق">
+            <option value="and">عطف ∧</option>
+            <option value="or">فصل ∨</option>
+            <option value="xor">فصل حصري ⊕</option>
+            <option value="imp">→ استلزام</option>
+            <option value="iff">↔ تكافؤ شرطي</option>
+            <option value="not">نفي ¬ (أحادي)</option>
+          </select>
+        </label>
+        <button type="button" id="ttBuild">ابنِ الجدول</button>
+      </div>
+      <div id="ttOut" aria-live="polite"></div>
+    </div>
+
+    <h3>لغة الشرطية</h3>
+    <div class="grid-2">
+      <div class="panel">
+        <h4>من \(p \to q\)</h4>
+        <ul class="small">
+          <li><strong>العكس:</strong> \(q \to p\)</li>
+          <li><strong>المعكوس:</strong> \(\neg p \to \neg q\)</li>
+          <li><strong>المقابل العكسي:</strong> \(\neg q \to \neg p\) (مكافئ للأصل)</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h4>ضروري / كافٍ</h4>
+        <ul class="small">
+          <li>«\(p\) كافٍ لـ \(q\)» ≈ \(p \to q\)</li>
+          <li>«\(p\) ضروري لـ \(q\)» ≈ \(q \to p\)</li>
+          <li>«\(p\) إذا وفقط إذا \(q\)» ≈ \(p \leftrightarrow q\)</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>مقيّم التعبيرات المركّبة</h3>
+    <div class="panel">
+      <h4>عيّن قيم الصدق ثم احسب</h4>
+      <p class="small muted">استخدم المتغيرات <span class="mono">p</span> و <span class="mono">q</span> و <span class="mono">r</span> والعوامل <span class="mono">!</span> (نفي)، <span class="mono">&amp;</span> (عطف)، <span class="mono">|</span> (فصل)، <span class="mono">-&gt;</span> (استلزام)، <span class="mono">&lt;-&gt;</span> (تكافؤ)، <span class="mono">^</span> (XOR).</p>
+      <div class="controls">
+        <label class="ctrl"><input type="checkbox" id="valP"> p = ص</label>
+        <label class="ctrl"><input type="checkbox" id="valQ"> q = ص</label>
+        <label class="ctrl"><input type="checkbox" id="valR"> r = ص</label>
+      </div>
+      <div class="controls">
+        <input type="text" id="exprInput" value="(p &amp; q) -> r" aria-label="تعبير منطقي" style="min-width:min(100%,320px)">
+        <button type="button" id="evalExpr">احسب</button>
+      </div>
+      <p id="evalOut" class="mono" aria-live="polite"></p>
+    </div>
+
+    <h3>مثال محلول</h3>
+    <div class="panel">
+      <h4>مثال أصلي</h4>
+      <p>لتكن \(p\): «البطارية مشحونة.» و \(q\): «الهاتف يعمل.» اعتبر \(p \to q\).</p>
+      <p>إذا كانت البطارية مشحونة والهاتف <em>لا</em> يعمل، فإن \(p\) صادقة و \(q\) كاذبة، فتكون \(p \to q\) <strong>كاذبة</strong>. كل التعيينات الأخرى تجعل الاستلزام صادقًا — بما فيها حالة البطارية الفارغة (صدق فراغي للاستلزام).</p>
+    </div>
+
+    <div class="callout">
+      <strong>خطأ شائع</strong>
+      معاملة \(p \to q\) كأنّها «\(p\) تُسبّب \(q\)» في اللغة اليومية. في المنطق هي قاعدة جدول صدق فقط: الحالة الكاذبة الوحيدة هي ص→خ.
+    </div>
+
+    <div class="try">
+      <h4>جرّب</h4>
+      <p>متى تكون \(p \oplus q\) صادقة؟</p>
+      <div class="quiz-opts" id="try11">
+        <label><input type="radio" name="try11" value="a"> فقط عندما يصدق كلاهما</label>
+        <label><input type="radio" name="try11" value="b"> عندما يصدق واحد بالضبط من \(p,q\)</label>
+        <label><input type="radio" name="try11" value="c"> كلما صدق واحد على الأقل</label>
+      </div>
+      <button type="button" data-check="try11" data-answer="b">تحقق</button>
+      <div class="feedback" id="fb-try11"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="sec-1-2">
+    <h2>1.2 تطبيقات منطق القضايا</h2>
+    <p class="idea"><strong>الفكرة بجملة واحدة.</strong> الروابط تسمح بترجمة المواصفات والألغاز ومرشّحات البحث إلى بنية صدق دقيقة.</p>
+
+    <h3>تعريفات أساسية</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">الترجمة</div><div class="def-body">حوّل الجمل إلى قضايا ذرية ثم اربطها بالروابط.</div></div>
+      <div class="def-item"><div class="def-term">مواصفات متسقة</div><div class="def-body">مجموعة شروط يمكن أن تصدق معًا لتعيين ما.</div></div>
+      <div class="def-item"><div class="def-term">بحث منطقي</div><div class="def-body">AND يضيّق، OR يوسّع، NOT يستبعد.</div></div>
+    </div>
+
+    <h3>عربي ↔ منطق (جمل أصلية)</h3>
+    <div class="panel">
+      <p>ذرات: \(a\): «واجهة API تعمل.» \(c\): «الذاكرة المؤقتة دافئة.» \(u\): «المستخدمون يستطيعون الدخول.»</p>
+      <ul>
+        <li>«يستطيع المستخدمون الدخول فقط إذا كانت الواجهة تعمل.» → \(u \to a\)</li>
+        <li>«الذاكرة المؤقتة دافئة والواجهة تعمل.» → \(c \land a\)</li>
+        <li>«إما الواجهة تعمل أو المستخدمون لا يستطيعون الدخول (شامل).» → \(a \lor \neg u\)</li>
+      </ul>
+    </div>
+
+    <h3>نموذج ذهني بأسلوب الدارات</h3>
+    <div class="panel">
+      <h4>كتل AND / OR / NOT</h4>
+      <div class="circuit" aria-hidden="true">
+        <span class="wire">p</span>
+        <span class="gate">AND</span>
+        <span class="wire">q</span>
+        <span class="wire">→</span>
+        <span class="gate not">NOT</span>
+        <span class="wire">→</span>
+        <span class="gate">OR</span>
+        <span class="wire">r</span>
+        <span class="wire">=</span>
+        <span class="chip">\( (p \land q) \) ثم \(\neg\) ثم OR مع \(r\)</span>
+      </div>
+      <p class="small muted">تخيّل كل بوابة شريحة جدول صدق. ترتيب التوصيل مهم؛ الأقواس تحدد التوصيل.</p>
+    </div>
+
+    <h3>مثال محلول — لغز قصير</h3>
+    <div class="panel">
+      <h4>لغز أصلي</h4>
+      <p>واحدة بالضبط من هاتين البطاقتين صادقة:</p>
+      <ol>
+        <li>أ: «بطاقة ب صادقة.»</li>
+        <li>ب: «بطاقة أ كاذبة.»</li>
+      </ol>
+      <p>لو كانت أ صادقة لكانت ب صادقة أيضًا — لكن واحدة فقط يمكن أن تصدق. إذن أ كاذبة وب صادقة. متسق: أ تكذب وب تصدق.</p>
+    </div>
+
+    <div class="callout">
+      <strong>خطأ شائع</strong>
+      ترجمة «فقط إذا» إلى \(\leftrightarrow\). «\(u\) فقط إذا \(a\)» هي \(u \to a\) وليست \(u \leftrightarrow a\).
+    </div>
+
+    <div class="try">
+      <h4>جرّب</h4>
+      <p>«تنجح في الامتحان إذا سلّمت المشروع» (تسليم \(s\)، نجاح \(p\)) أقرب إلى:</p>
+      <div class="quiz-opts" id="try12">
+        <label><input type="radio" name="try12" value="a"> \(s \to p\)</label>
+        <label><input type="radio" name="try12" value="b"> \(p \to s\)</label>
+        <label><input type="radio" name="try12" value="c"> \(s \leftrightarrow p\)</label>
+      </div>
+      <button type="button" data-check="try12" data-answer="a">تحقق</button>
+      <div class="feedback" id="fb-try12"></div>
+      <p class="small muted">اللغة اليومية مزلقة؛ كثير من الكتب تعامل «إذا» على أنها مقدّم \(\to\).</p>
+    </div>
+  </section>
+
+  <section class="sec" id="sec-1-3">
+    <h2>1.3 التكافؤات المنطقية</h2>
+    <p class="idea"><strong>الفكرة بجملة واحدة.</strong> صيغتان متكافئتان منطقيًا إذا اتفقتا على كل تعيين صدق — فتقدر تعيد الكتابة دون تغيير المعنى.</p>
+
+    <h3>تعريفات أساسية</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">تحصيل حاصل</div><div class="def-body">دائمًا صادق (مثل \(p \lor \neg p\)).</div></div>
+      <div class="def-item"><div class="def-term">تناقض</div><div class="def-body">دائمًا كاذب (مثل \(p \land \neg p\)).</div></div>
+      <div class="def-item"><div class="def-term">قضية عارضة</div><div class="def-body">صادقة أحيانًا وكاذبة أحيانًا.</div></div>
+      <div class="def-item"><div class="def-term">\(p \equiv q\)</div><div class="def-body">تكافؤ منطقي: \(p \leftrightarrow q\) تحصيل حاصل.</div></div>
+    </div>
+
+    <h3>قوانين أساسية (لوحة مرجعية)</h3>
+    <div class="panel">
+      <h4>عدة إعادة الكتابة</h4>
+      <ul>
+        <li><strong>دي مورغان:</strong> \(\neg(p \land q) \equiv \neg p \lor \neg q\)؛ \(\neg(p \lor q) \equiv \neg p \land \neg q\)</li>
+        <li><strong>الاستلزام:</strong> \(p \to q \equiv \neg p \lor q\)</li>
+        <li><strong>النفي المزدوج:</strong> \(\neg\neg p \equiv p\)</li>
+        <li><strong>التوزيع:</strong> \(p \land (q \lor r) \equiv (p \land q) \lor (p \land r)\)</li>
+        <li><strong>الامتصاص:</strong> \(p \lor (p \land q) \equiv p\)</li>
+        <li><strong>المقابل العكسي:</strong> \(p \to q \equiv \neg q \to \neg p\)</li>
+      </ul>
+    </div>
+
+    <h3>تبسيط جنبًا إلى جنب</h3>
+    <div class="grid-2">
+      <div class="panel">
+        <h4>البداية</h4>
+        <p class="mono">\(\neg(p \to q)\)</p>
+      </div>
+      <div class="panel">
+        <h4>إعادة الكتابة</h4>
+        <ol class="small">
+          <li>\(\neg(\neg p \lor q)\)</li>
+          <li>\(\neg\neg p \land \neg q\)</li>
+          <li>\(p \land \neg q\)</li>
+        </ol>
+        <p class="small">إذن نفي الاستلزام هو «المقدم صادق والتالي كاذب».</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>خطأ شائع</strong>
+      نفي \(p \to q\) على أنه \(\neg p \to \neg q\). هذا هو المعكوس لا النفي. الصحيح: \(p \land \neg q\).
+    </div>
+
+    <div class="try">
+      <h4>جرّب</h4>
+      <p>\(p \lor \neg p\) هي:</p>
+      <div class="quiz-opts" id="try13">
+        <label><input type="radio" name="try13" value="a"> قضية عارضة</label>
+        <label><input type="radio" name="try13" value="b"> تحصيل حاصل</label>
+        <label><input type="radio" name="try13" value="c"> تناقض</label>
+      </div>
+      <button type="button" data-check="try13" data-answer="b">تحقق</button>
+      <div class="feedback" id="fb-try13"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="sec-1-4">
+    <h2>1.4 المحمولات والمكممات</h2>
+    <p class="idea"><strong>الفكرة بجملة واحدة.</strong> المحمول يصبح قضية عندما تعوّض قيمة أو تكمّم على مجال.</p>
+
+    <h3>تعريفات أساسية</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">\(P(x)\)</div><div class="def-body">محمول: خاصية تعتمد على \(x\).</div></div>
+      <div class="def-item"><div class="def-term">المجال</div><div class="def-body">مجموعة القيم المسموحة للمتغير.</div></div>
+      <div class="def-item"><div class="def-term">\(\forall x\, P(x)\)</div><div class="def-body">الكلّي: صادق إذا صح \(P\) لكل عنصر في المجال.</div></div>
+      <div class="def-item"><div class="def-term">\(\exists x\, P(x)\)</div><div class="def-body">الوجودي: صادق إذا صح \(P\) لعنصر واحد على الأقل.</div></div>
+      <div class="def-item"><div class="def-term">النفي</div><div class="def-body">\(\neg\forall x\,P(x)\equiv\exists x\,\neg P(x)\)؛ \(\neg\exists x\,P(x)\equiv\forall x\,\neg P(x)\).</div></div>
+    </div>
+
+    <h3>فاحص مجال تفاعلي</h3>
+    <div class="panel">
+      <h4>المجال \(\{2,3,4,5\}\)، \(P(x)\): «\(x\) أولي»</h4>
+      <p class="small">انقر عنصرًا لتقييم \(P(x)\).</p>
+      <div class="domain-btns" id="domainBtns">
+        <button type="button" data-x="2">2</button>
+        <button type="button" data-x="3">3</button>
+        <button type="button" data-x="4">4</button>
+        <button type="button" data-x="5">5</button>
+      </div>
+      <p id="domainOut" class="mono" aria-live="polite">اختر \(x\).</p>
+      <p class="small muted">إذن \(\forall x\,P(x)\) كاذبة (بسبب 4)، بينما \(\exists x\,P(x)\) صادقة.</p>
+    </div>
+
+    <h3>مثال محلول</h3>
+    <div class="panel">
+      <h4>مثال أصلي</h4>
+      <p>المجال: طلاب في مجموعة دراسة. \(H(x)\): «\(x\) أنهى الواجب.»</p>
+      <p>\(\neg\forall x\, H(x)\) تعني «ليس الجميع أنهوا» ≡ \(\exists x\, \neg H(x)\) «شخص ما لم يُنهِ». هذا <em>لا</em> يعني «لا أحد أنهى».</p>
+    </div>
+
+    <div class="callout">
+      <strong>خطأ شائع</strong>
+      قراءة \(\neg\forall x\,P(x)\) على أنها \(\forall x\,\neg P(x)\). الفرق كبير: «ليس الكل» ≠ «لا أحد».
+    </div>
+
+    <div class="try">
+      <h4>جرّب</h4>
+      <p>نفي \(\exists x\, (x^2 &lt; 0)\) على الأعداد الحقيقية هو:</p>
+      <div class="quiz-opts" id="try14">
+        <label><input type="radio" name="try14" value="a"> \(\exists x\, (x^2 \ge 0)\)</label>
+        <label><input type="radio" name="try14" value="b"> \(\forall x\, (x^2 \ge 0)\)</label>
+        <label><input type="radio" name="try14" value="c"> \(\forall x\, (x^2 &lt; 0)\)</label>
+      </div>
+      <button type="button" data-check="try14" data-answer="b">تحقق</button>
+      <div class="feedback" id="fb-try14"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="sec-1-5">
+    <h2>1.5 المكممات المتداخلة</h2>
+    <p class="idea"><strong>الفكرة بجملة واحدة.</strong> عندما تتداخل المكممات، الترتيب جزء من المعنى — تبديل \(\forall\) و \(\exists\) قد يغيّر الدعوى.</p>
+
+    <h3>تعريفات أساسية</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">\(\forall x\exists y\)</div><div class="def-body">لكل \(x\) يمكنك اختيار \(y\) (قد يختلف).</div></div>
+      <div class="def-item"><div class="def-term">\(\exists y\forall x\)</div><div class="def-body">\(y\) واحد ثابت يجب أن يعمل لكل \(x\).</div></div>
+      <div class="def-item"><div class="def-term">النطاق</div><div class="def-body">الجزء من الصيغة الذي يحكمه المكمم.</div></div>
+    </div>
+
+    <h3>خريطة نطاق المكمم</h3>
+    <div class="panel">
+      <h4>قراءة \(\forall x\, \exists y\, L(x,y)\)</h4>
+      <div class="scope">
+        <div class="layer outer">∀x &nbsp; <span class="muted">// اختر أي شخص x</span>
+          <div class="layer inner" style="margin-top:0.45rem">∃y &nbsp; <span class="muted">// توجد خزانة y لذلك x</span>
+            <div class="layer" style="margin:0.45rem 0 0 1.2rem">L(x,y) &nbsp; <span class="muted">// x مُسند إلى y</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="small">قارن مع \(\exists y\, \forall x\, L(x,y)\): خزانة واحدة للجميع.</p>
+    </div>
+
+    <h3>تدريب الترجمة</h3>
+    <div class="panel">
+      <ul>
+        <li>«لكل عدد صحيح يوجد عدد صحيح أكبر منه.» → \(\forall x \exists y\, (y &gt; x)\) على \(\mathbb{Z}\).</li>
+        <li>«يوجد عدد صحيح أكبر من كل الأعداد الصحيحة.» → \(\exists y \forall x\, (y &gt; x)\) — كاذبة على \(\mathbb{Z}\).</li>
+        <li>«هناك من يُعجَب به الجميع.» → \(\exists y \forall x\, A(x,y)\).</li>
+      </ul>
+    </div>
+
+    <div class="callout">
+      <strong>خطأ شائع</strong>
+      افتراض أن \(\forall x\exists y\, P(x,y)\) تستلزم \(\exists y\forall x\, P(x,y)\). الأولى تسمح لـ \(y\) أن يعتمد على \(x\)؛ الثانية لا.
+    </div>
+
+    <div class="try">
+      <h4>جرّب</h4>
+      <p>على الأعداد الصحيحة الموجبة، أيهما صادق؟</p>
+      <div class="quiz-opts" id="try15">
+        <label><input type="radio" name="try15" value="a"> \(\exists y \forall x\, (x \le y)\)</label>
+        <label><input type="radio" name="try15" value="b"> \(\forall x \exists y\, (x &lt; y)\)</label>
+        <label><input type="radio" name="try15" value="c"> كلاهما أعلاه</label>
+      </div>
+      <button type="button" data-check="try15" data-answer="b">تحقق</button>
+      <div class="feedback" id="fb-try15"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="sec-1-6">
+    <h2>1.6 قواعد الاستدلال</h2>
+    <p class="idea"><strong>الفكرة بجملة واحدة.</strong> الحجة الصحيحة هي التي يجب أن يصدق استنتاجها كلما صدقت كل المقدمات.</p>
+
+    <h3>تعريفات أساسية</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">صحيحة</div><div class="def-body">لا يوجد تعيين مضاد يجعل المقدمات صادقة والاستنتاج كاذبًا.</div></div>
+      <div class="def-item"><div class="def-term">مغالطة</div><div class="def-body">نمط استدلال غير صحيح (مثل إثبات التالي).</div></div>
+    </div>
+
+    <h3>بطاقات قواعد مختصرة</h3>
+    <div class="rule-grid">
+      <div class="rule">
+        <h5>وضع المقدم (Modus ponens)</h5>
+        <div class="prem">p → q
+p</div>
+        <div class="conc">∴ q</div>
+      </div>
+      <div class="rule">
+        <h5>رفع التالي (Modus tollens)</h5>
+        <div class="prem">p → q
+¬q</div>
+        <div class="conc">∴ ¬p</div>
+      </div>
+      <div class="rule">
+        <h5>قياس شرطي</h5>
+        <div class="prem">p → q
+q → r</div>
+        <div class="conc">∴ p → r</div>
+      </div>
+      <div class="rule">
+        <h5>قياس فصلي</h5>
+        <div class="prem">p ∨ q
+¬p</div>
+        <div class="conc">∴ q</div>
+      </div>
+      <div class="rule">
+        <h5>تخصيص كلّي</h5>
+        <div class="prem">∀x P(x)</div>
+        <div class="conc">∴ P(c) لـ c معيّن</div>
+      </div>
+      <div class="rule">
+        <h5>تعميم كلّي</h5>
+        <div class="prem">P(c) لـ c اعتباطي</div>
+        <div class="conc">∴ ∀x P(x)</div>
+      </div>
+    </div>
+
+    <h3>Stepper لحجة صورية</h3>
+    <div class="panel">
+      <h4>أبرز القاعدة المستخدمة</h4>
+      <p class="small">المقدمات: (1) \(p \to q\) &nbsp; (2) \(q \to r\) &nbsp; (3) \(p\)</p>
+      <div id="stepper">
+        <div class="stepper-line" data-step="0">الخطوة 1: من (1) و (3) نحصل على q — وضع المقدم</div>
+        <div class="stepper-line" data-step="1">الخطوة 2: من (2) و q نحصل على r — وضع المقدم</div>
+        <div class="stepper-line" data-step="2">الاستنتاج: r</div>
+      </div>
+      <div class="controls">
+        <button type="button" id="stepPrev" class="secondary">السابق</button>
+        <button type="button" id="stepNext">الخطوة التالية</button>
+        <span class="small muted" id="stepLabel">الخطوة 0 من 3</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>خطأ شائع</strong>
+      إثبات التالي: من \(p\to q\) و \(q\) نستنتج \(p\). غير صحيح — قد تصدق \(q\) لأسباب أخرى.
+    </div>
+
+    <div class="try">
+      <h4>جرّب</h4>
+      <p>من \(p\to q\) و \(\neg q\) نستنتج \(\neg p\). القاعدة؟</p>
+      <div class="quiz-opts" id="try16">
+        <label><input type="radio" name="try16" value="a"> وضع المقدم</label>
+        <label><input type="radio" name="try16" value="b"> رفع التالي</label>
+        <label><input type="radio" name="try16" value="c"> قياس فصلي</label>
+      </div>
+      <button type="button" data-check="try16" data-answer="b">تحقق</button>
+      <div class="feedback" id="fb-try16"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="sec-1-7">
+    <h2>1.7 مقدمة في البراهين</h2>
+    <p class="idea"><strong>الفكرة بجملة واحدة.</strong> البرهان حجة منظّمة تثبت دعوى رياضية انطلاقًا من تعريفات ومسلمات ونتائج مثبتة سابقًا.</p>
+
+    <h3>تعريفات أساسية</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">مبرهنة</div><div class="def-body">عبارة مهمة تم إثباتها.</div></div>
+      <div class="def-item"><div class="def-term">تمهيدية</div><div class="def-body">نتيجة مساعدة في الطريق إلى مبرهنة.</div></div>
+      <div class="def-item"><div class="def-term">لازمة</div><div class="def-body">نتيجة سريعة تترتب على مبرهنة.</div></div>
+      <div class="def-item"><div class="def-term">حدْس / تخمين</div><div class="def-body">دعوى مقترحة لم تُثبت (أو تُدحَض) بعد.</div></div>
+    </div>
+
+    <h3>ثلاثة براهين أصلية محلولة</h3>
+    <div class="panel">
+      <h4>برهان مباشر</h4>
+      <p><strong>الدعوى.</strong> إذا كان \(n\) عددًا صحيحًا فرديًا، فإن \(n^2\) فردي.</p>
+      <p><em>البرهان.</em> الفردي يعني \(n = 2k+1\) لبعض العدد الصحيح \(k\). إذن
+      \[ n^2 = (2k+1)^2 = 4k^2 + 4k + 1 = 2(2k^2+2k) + 1, \]
+      وهو فردي. □</p>
+    </div>
+    <div class="panel">
+      <h4>برهان بالمقابل العكسي</h4>
+      <p><strong>الدعوى.</strong> إذا كان \(n^2\) زوجيًا، فإن \(n\) زوجي.</p>
+      <p><em>البرهان.</em> المقابل العكسي: إذا كان \(n\) فرديًا فإن \(n^2\) فردي — وهذا مثبت أعلاه. □</p>
+    </div>
+    <div class="panel">
+      <h4>برهان بالتناقض</h4>
+      <p><strong>الدعوى.</strong> \(\sqrt{2}\) غير ناطق.</p>
+      <p><em>مخطط.</em> افترض \(\sqrt{2}=a/b\) بأبسط صورة. ثم \(a^2 = 2b^2\)، فـ \(a\) زوجي، اكتب \(a=2c\)، تحصل على أن \(b\) زوجي — تناقض مع أبسط صورة. □</p>
+    </div>
+
+    <h3>حدس البرهان الفراغي والتافه</h3>
+    <ul>
+      <li><strong>فراغي:</strong> \(P\to Q\) صادقة عندما لا تصدق \(P\) أبدًا على المجال.</li>
+      <li><strong>تافه:</strong> \(P\to Q\) عندما تكون \(Q\) دائمًا صادقة بغض النظر عن \(P\).</li>
+    </ul>
+
+    <div class="callout">
+      <strong>خطأ شائع</strong>
+      البدء من الاستنتاج والعمل للخلف دون عكس الخطوات بعناية. فضّل البنية الأمامية، أو علّم خطوات التكافؤ بوضوح.
+    </div>
+
+    <div class="try">
+      <h4>جرّب</h4>
+      <p>لإثبات \(P\to Q\) بالمقابل العكسي تثبت:</p>
+      <div class="quiz-opts" id="try17">
+        <label><input type="radio" name="try17" value="a"> \(Q \to P\)</label>
+        <label><input type="radio" name="try17" value="b"> \(\neg Q \to \neg P\)</label>
+        <label><input type="radio" name="try17" value="c"> \(\neg P \to \neg Q\)</label>
+      </div>
+      <button type="button" data-check="try17" data-answer="b">تحقق</button>
+      <div class="feedback" id="fb-try17"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="sec-1-8">
+    <h2>1.8 طرائق البرهان والاستراتيجية</h2>
+    <p class="idea"><strong>الفكرة بجملة واحدة.</strong> الدعاوى المختلفة تستدعي أدوات مختلفة: حالات، بناء، وحدانية، أو مثال مضاد واحد لهدم دعوى كلّية.</p>
+
+    <h3>تعريفات أساسية</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">استقصاء / حالات</div><div class="def-body">قسّم المجال إلى أجزاء تغطي كل الإمكانات؛ أثبت كل جزء.</div></div>
+      <div class="def-item"><div class="def-term">وجود بنائي</div><div class="def-body">اعرض شاهدًا ملموسًا.</div></div>
+      <div class="def-item"><div class="def-term">وجود غير بنائي</div><div class="def-body">أثبت الوجود دون تسمية العنصر (مثل التناقض أو مبدأ الحمامات).</div></div>
+      <div class="def-item"><div class="def-term">الوحدانية</div><div class="def-body">وجود + «افترض اثنين وأثبت أنهما متساويان.»</div></div>
+      <div class="def-item"><div class="def-term">مثال مضاد</div><div class="def-body">عنصر واحد من المجال يكذّب دعوى كلّية.</div></div>
+    </div>
+
+    <h3>قائمة استراتيجية</h3>
+    <ul class="checklist">
+      <li>دعوى كلّية («لكل…») ← جرّب مباشر / مقابل عكسي / تناقض؛ وابحث عن أمثلة مضادة إن علقت.</li>
+      <li>شرطية فرضها مزعج ← جرّب المقابل العكسي.</li>
+      <li>دعوى وجود ← حاول البناء؛ إن صعب فكّر بطرق غير بنائية.</li>
+      <li>عبارات صحيحة عن الزوجية/الموديولو ← حالات (زوجي/فردي، باقي \(n\)).</li>
+      <li>«واحد بالضبط» ← وجود + وحدانية.</li>
+    </ul>
+
+    <h3>مثال محلول — حالات</h3>
+    <div class="panel">
+      <h4>مثال أصلي</h4>
+      <p><strong>الدعوى.</strong> لكل عدد صحيح \(n\)، يكون \(n(n+1)\) زوجيًا.</p>
+      <p><em>البرهان.</em> الحالة 1: \(n\) زوجي ← الجداء زوجي. الحالة 2: \(n\) فردي ← \(n+1\) زوجي ← الجداء زوجي. □</p>
+    </div>
+
+    <div class="callout">
+      <strong>خطأ شائع</strong>
+      تقديم مثال واحد على أنه «برهان» لدعوى كلّية. الأمثلة تدعم الحدس؛ وحده البرهان العام (أو الفحص الاستقصائي المنتهي) يثبت \(\forall\).
+    </div>
+
+    <div class="try">
+      <h4>جرّب</h4>
+      <p>لدحض «كل عدد أولي فردي» يكفي أن:</p>
+      <div class="quiz-opts" id="try18">
+        <label><input type="radio" name="try18" value="a"> تثبت أن كل فردي أولي</label>
+        <label><input type="radio" name="try18" value="b"> تعطي المثال المضاد 2</label>
+        <label><input type="radio" name="try18" value="c"> تستخدم برهان التناقض فقط</label>
+      </div>
+      <button type="button" data-check="try18" data-answer="b">تحقق</button>
+      <div class="feedback" id="fb-try18"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="review">
+    <h2>مراجعة سريعة + تدريب</h2>
+    <p class="idea"><strong>الفكرة بجملة واحدة.</strong> الرموز والأنماط تثبت عندما تعيد الكتابة، وتكمّم بحذر، وتختار طريقة البرهان بوعي.</p>
+
+    <h3>ورقة غش</h3>
+    <div class="panel cheat">
+      <h4>رموز</h4>
+      <ul class="small">
+        <li>\(\neg\) نفي · \(\land\) عطف · \(\lor\) فصل · \(\oplus\) XOR</li>
+        <li>\(\to\) يستلزم · \(\leftrightarrow\) إذا وفقط إذا</li>
+        <li>\(\forall\) لكل · \(\exists\) يوجد</li>
+        <li>\(\equiv\) متكافئ منطقيًا</li>
+      </ul>
+      <h4>تكافؤات مفيدة</h4>
+      <ul class="small">
+        <li>\(p\to q \equiv \neg p\lor q \equiv \neg q\to\neg p\)</li>
+        <li>\(\neg(p\land q)\equiv\neg p\lor\neg q\)</li>
+        <li>\(\neg\forall x P\equiv\exists x\neg P\)</li>
+      </ul>
+      <h4>أبرز الاستدلال</h4>
+      <ul class="small">
+        <li>MP: \(p\to q,\ p\ \Rightarrow\ q\)</li>
+        <li>MT: \(p\to q,\ \neg q\ \Rightarrow\ \neg p\)</li>
+        <li>تخصيص / تعميم كلّي للمحمولات</li>
+      </ul>
+      <h4>قائمة البرهان</h4>
+      <ul class="small">
+        <li>مباشر · مقابل عكسي · تناقض</li>
+        <li>حالات · وجود · وحدانية · مثال مضاد</li>
+      </ul>
+    </div>
+
+    <h3>اختبار ذاتي (~12 سؤالًا)</h3>
+    <div class="panel" id="quiz">
+      <div class="quiz-q" data-ans="b">
+        <p><strong>1.</strong> أيّها قضية؟</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q1" value="a"> «حلّ من أجل \(x\).»</label>
+          <label><input type="radio" name="q1" value="b"> «15 يقبل القسمة على 3.»</label>
+          <label><input type="radio" name="q1" value="c"> «كم عددًا أوليًا &lt; 10؟»</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="c">
+        <p><strong>2.</strong> \(p\to q\) كاذبة فقط عندما:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q2" value="a"> \(p\) خ، \(q\) ص</label>
+          <label><input type="radio" name="q2" value="b"> \(p\) خ، \(q\) خ</label>
+          <label><input type="radio" name="q2" value="c"> \(p\) ص، \(q\) خ</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="a">
+        <p><strong>3.</strong> المقابل العكسي لـ \(p\to q\):</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q3" value="a"> \(\neg q\to\neg p\)</label>
+          <label><input type="radio" name="q3" value="b"> \(q\to p\)</label>
+          <label><input type="radio" name="q3" value="c"> \(\neg p\to\neg q\)</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="b">
+        <p><strong>4.</strong> \(\neg(p\lor q)\) يساوي:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q4" value="a"> \(\neg p\lor\neg q\)</label>
+          <label><input type="radio" name="q4" value="b"> \(\neg p\land\neg q\)</label>
+          <label><input type="radio" name="q4" value="c"> \(p\land\neg q\)</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="a">
+        <p><strong>5.</strong> \(\neg(p\to q)\) يبسط إلى:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q5" value="a"> \(p\land\neg q\)</label>
+          <label><input type="radio" name="q5" value="b"> \(\neg p\land q\)</label>
+          <label><input type="radio" name="q5" value="c"> \(\neg p\lor\neg q\)</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="c">
+        <p><strong>6.</strong> \(\neg\forall x P(x)\) يكافئ:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q6" value="a"> \(\forall x\neg P(x)\)</label>
+          <label><input type="radio" name="q6" value="b"> \(\neg\exists x P(x)\)</label>
+          <label><input type="radio" name="q6" value="c"> \(\exists x\neg P(x)\)</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="b">
+        <p><strong>7.</strong> على \(\mathbb{Z}\)، \(\forall x\exists y\,(y&gt;x)\) هي:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q7" value="a"> كاذبة</label>
+          <label><input type="radio" name="q7" value="b"> صادقة</label>
+          <label><input type="radio" name="q7" value="c"> ليست قضية</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="a">
+        <p><strong>8.</strong> \(\exists y\forall x\,(y&gt;x)\) على \(\mathbb{Z}\) هي:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q8" value="a"> كاذبة</label>
+          <label><input type="radio" name="q8" value="b"> صادقة</label>
+          <label><input type="radio" name="q8" value="c"> مكافئة للسابقة</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="b">
+        <p><strong>9.</strong> من \(p\to q\) و \(\neg q\) نستنتج \(\neg p\) بـ:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q9" value="a"> وضع المقدم</label>
+          <label><input type="radio" name="q9" value="b"> رفع التالي</label>
+          <label><input type="radio" name="q9" value="c"> الاستبانة فقط</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="c">
+        <p><strong>10.</strong> إثبات التالي هو:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q10" value="a"> صورة صحيحة من MP</label>
+          <label><input type="radio" name="q10" value="b"> مكافئ لـ MT</label>
+          <label><input type="radio" name="q10" value="c"> مغالطة</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="a">
+        <p><strong>11.</strong> أفضل أداة أولى لدحض دعوى \(\forall\):</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q11" value="a"> مثال مضاد</label>
+          <label><input type="radio" name="q11" value="b"> برهان فراغي</label>
+          <label><input type="radio" name="q11" value="c"> تعميم كلّي</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="b">
+        <p><strong>12.</strong> إظهار عنصر يحقق \(P\) يثبت:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q12" value="a"> \(\forall x P(x)\)</label>
+          <label><input type="radio" name="q12" value="b"> \(\exists x P(x)\)</label>
+          <label><input type="radio" name="q12" value="c"> \(\neg\exists x P(x)\)</label>
+        </div>
+      </div>
+      <div class="controls">
+        <button type="button" id="gradeQuiz">صحّح الاختبار</button>
+        <button type="button" id="resetQuiz" class="secondary">إعادة تعيين</button>
+        <span id="quizScore" class="small" aria-live="polite"></span>
+      </div>
+    </div>
+
+    <h3>ترتيب دراسة مقترح / ماذا تتدرّب بعده</h3>
+    <ol>
+      <li>درّب جداول الصدق حتى يصبح \(\to\) و \(\leftrightarrow\) تلقائيين.</li>
+      <li>ترجم 10 جمل في الاتجاهين (خصوصًا «فقط إذا»، «إلا إذا»، «ضروري»).</li>
+      <li>تمرّن على دفع النفي عبر المكممات.</li>
+      <li>اكتب ثلاثة براهين قصيرة: مباشر، مقابل عكسي، حالات.</li>
+      <li>عندما تعلق في واجب، سمِّ الطريقة التي ستجرّبها قبل كتابة الجبر.</li>
+    </ol>
+    <details class="reveal">
+      <summary>مفتاح حلول تمارين «جرّب»</summary>
+      <p class="small">1.1 XOR → واحد بالضبط؛ 1.2 \(s\to p\)؛ 1.3 تحصيل حاصل؛ 1.4 \(\forall x(x^2\ge 0)\)؛ 1.5 \(\forall x\exists y(x&lt;y)\)؛ 1.6 رفع التالي؛ 1.7 \(\neg Q\to\neg P\)؛ 1.8 المثال المضاد 2.</p>
+    </details>
+  </section>
+
+  <footer class="muted small" style="margin-top:2rem;padding-top:1rem;border-top:1px solid var(--line)">
+    رفيق دراسة أصلي لتعلّم موضوعات الفصل 1. غير مرتبط بالكتاب الدراسي ولا يغني عنه.
+  </footer>
+</main>
+</div>
+
+<script>
+(function () {
+  const nav = document.getElementById('sideNav');
+  const toggle = document.getElementById('navToggle');
+  const backdrop = document.getElementById('navBackdrop');
+  const links = [...nav.querySelectorAll('a[href^="#"]')];
+  const sections = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+  function setNavOpen(open) {
+    nav.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    backdrop.hidden = !open;
+    backdrop.classList.toggle('show', open);
+  }
+  toggle.addEventListener('click', () => setNavOpen(!nav.classList.contains('open')));
+  backdrop.addEventListener('click', () => setNavOpen(false));
+  links.forEach(a => a.addEventListener('click', () => setNavOpen(false)));
+
+  const spy = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const id = entry.target.id;
+      links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+    });
+  }, { rootMargin: '-20% 0px -65% 0px', threshold: 0.01 });
+  sections.forEach(s => spy.observe(s));
+
+  document.querySelectorAll('details.reveal').forEach(d => {
+    const sync = () => d.querySelector('summary')?.setAttribute('aria-expanded', d.open ? 'true' : 'false');
+    sync();
+    d.addEventListener('toggle', sync);
+  });
+
+  const ops = {
+    and: { unary: false, label: 'p ∧ q', fn: (p,q) => p && q },
+    or:  { unary: false, label: 'p ∨ q', fn: (p,q) => p || q },
+    xor: { unary: false, label: 'p ⊕ q', fn: (p,q) => p !== q },
+    imp: { unary: false, label: 'p → q', fn: (p,q) => !p || q },
+    iff: { unary: false, label: 'p ↔ q', fn: (p,q) => p === q },
+    not: { unary: true,  label: '¬p', fn: (p) => !p }
+  };
+  function cell(v) { return `<td class="${v ? 't' : 'f'}">${v ? 'ص' : 'خ'}</td>`; }
+  function buildTT() {
+    const key = document.getElementById('ttOp').value;
+    const op = ops[key];
+    let html = '<table><thead><tr>';
+    if (op.unary) {
+      html += '<th>p</th><th>' + op.label + '</th></tr></thead><tbody>';
+      [false, true].forEach(p => {
+        html += '<tr>' + cell(p) + cell(op.fn(p)) + '</tr>';
+      });
+    } else {
+      html += '<th>p</th><th>q</th><th>' + op.label + '</th></tr></thead><tbody>';
+      [false, true].forEach(p => {
+        [false, true].forEach(q => {
+          html += '<tr>' + cell(p) + cell(q) + cell(op.fn(p,q)) + '</tr>';
+        });
+      });
+    }
+    html += '</tbody></table>';
+    document.getElementById('ttOut').innerHTML = html;
+  }
+  document.getElementById('ttBuild').addEventListener('click', buildTT);
+  buildTT();
+
+  function parseExpr(input, env) {
+    let i = 0;
+    const s = input.replace(/\s+/g, '');
+    function eat(ch) { if (s[i] !== ch) throw new Error('متوقع ' + ch); i++; }
+    function parseIff() {
+      let left = parseImp();
+      while (s.startsWith('<->', i) || s[i] === '↔') {
+        if (s[i] === '↔') i++; else i += 3;
+        const right = parseImp();
+        left = left === right;
+      }
+      return left;
+    }
+    function parseImp() {
+      let left = parseOr();
+      while (s.startsWith('->', i) || s[i] === '→') {
+        if (s[i] === '→') i++; else i += 2;
+        const right = parseImp();
+        left = (!left) || right;
+      }
+      return left;
+    }
+    function parseOr() {
+      let left = parseXor();
+      while (s[i] === '|' || s[i] === '∨') { i++; left = left || parseXor(); }
+      return left;
+    }
+    function parseXor() {
+      let left = parseAnd();
+      while (s[i] === '^' || s[i] === '⊕') { i++; const r = parseAnd(); left = left !== r; }
+      return left;
+    }
+    function parseAnd() {
+      let left = parseUnary();
+      while (s[i] === '&' || s[i] === '∧') { i++; left = left && parseUnary(); }
+      return left;
+    }
+    function parseUnary() {
+      if (s[i] === '!' || s[i] === '¬') { i++; return !parseUnary(); }
+      return parseAtom();
+    }
+    function parseAtom() {
+      if (s[i] === '(') { i++; const v = parseIff(); eat(')'); return v; }
+      const ch = s[i];
+      if (ch === 'p' || ch === 'q' || ch === 'r') { i++; return !!env[ch]; }
+      if (ch === 't') { i++; return true; }
+      if (ch === 'f') { i++; return false; }
+      throw new Error('رمز غير صالح عند ' + (ch || 'النهاية'));
+    }
+    const val = parseIff();
+    if (i !== s.length) throw new Error('مدخلات زائدة');
+    return val;
+  }
+
+  document.getElementById('evalExpr').addEventListener('click', () => {
+    const env = {
+      p: document.getElementById('valP').checked,
+      q: document.getElementById('valQ').checked,
+      r: document.getElementById('valR').checked
+    };
+    const out = document.getElementById('evalOut');
+    try {
+      const v = parseExpr(document.getElementById('exprInput').value, env);
+      out.textContent = 'النتيجة: ' + (v ? 'ص' : 'خ');
+    } catch (e) {
+      out.textContent = 'تعذّر التحليل: ' + e.message;
+    }
+  });
+
+  const primes = new Set([2, 3, 5]);
+  document.getElementById('domainBtns').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-x]');
+    if (!btn) return;
+    document.querySelectorAll('#domainBtns button').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    const x = Number(btn.dataset.x);
+    const ok = primes.has(x);
+    document.getElementById('domainOut').textContent =
+      `P(${x}) = ${ok ? 'ص' : 'خ'}  (${x} ${ok ? 'أولي' : 'ليس أوليًا'})`;
+  });
+
+  let step = -1;
+  const lines = [...document.querySelectorAll('#stepper .stepper-line')];
+  function renderStep() {
+    lines.forEach((el, idx) => el.classList.toggle('active', idx === step));
+    document.getElementById('stepLabel').textContent =
+      `الخطوة ${Math.max(step + 1, 0)} من ${lines.length}`;
+  }
+  document.getElementById('stepNext').addEventListener('click', () => {
+    step = Math.min(lines.length - 1, step + 1);
+    renderStep();
+  });
+  document.getElementById('stepPrev').addEventListener('click', () => {
+    step = Math.max(-1, step - 1);
+    renderStep();
+  });
+  renderStep();
+
+  document.querySelectorAll('button[data-check]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.check;
+      const ans = btn.dataset.answer;
+      const picked = document.querySelector(`input[name="${id}"]:checked`);
+      const fb = document.getElementById('fb-' + id);
+      if (!picked) {
+        fb.textContent = 'اختر خيارًا أولًا.';
+        fb.className = 'feedback show bad';
+        return;
+      }
+      const ok = picked.value === ans;
+      fb.textContent = ok ? 'صحيح.' : 'ليس بعد — حاول مرة أخرى، أو افتح مفتاح الحلول في الأسفل.';
+      fb.className = 'feedback show ' + (ok ? 'ok' : 'bad');
+    });
+  });
+
+  const quiz = document.getElementById('quiz');
+  document.getElementById('gradeQuiz').addEventListener('click', () => {
+    const qs = [...quiz.querySelectorAll('.quiz-q')];
+    let score = 0;
+    qs.forEach((q, idx) => {
+      const name = 'q' + (idx + 1);
+      const picked = q.querySelector(`input[name="${name}"]:checked`);
+      const ok = picked && picked.value === q.dataset.ans;
+      if (ok) score++;
+      q.style.outline = ok ? '2px solid #059669' : '2px solid #dc2626';
+      q.style.outlineOffset = '2px';
+    });
+    document.getElementById('quizScore').textContent = `النتيجة: ${score} / ${qs.length}`;
+  });
+  document.getElementById('resetQuiz').addEventListener('click', () => {
+    quiz.querySelectorAll('input[type="radio"]').forEach(r => { r.checked = false; });
+    quiz.querySelectorAll('.quiz-q').forEach(q => { q.style.outline = ''; });
+    document.getElementById('quizScore').textContent = '';
+  });
+})();
+</script>
+</body>
+</html>

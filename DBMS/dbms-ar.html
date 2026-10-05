@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ملاحظات نظم إدارة قواعد البيانات</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,520;8..60,650&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dbms.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <p class="kicker">ملاحظات دراسية</p>
+    <h1>نظم إدارة قواعد البيانات</h1>
+  </div>
+  <div class="tools">
+    <button type="button" class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="drawer">المحتويات</button>
+    <nav class="lang" aria-label="اللغة">
+      <a href="dbms-en.html" hreflang="en">EN</a>
+      <a class="on" href="dbms-ar.html" hreflang="ar">AR</a>
+    </nav>
+  </div>
+  <div class="progress">
+    <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="تحريك الصفحة">
+  </div>
+</header>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <h2>المحتويات</h2>
+    <button type="button" class="drawer-close" id="drawer-close" aria-label="إغلاق">×</button>
+  </div>
+  <nav id="drawer-nav" aria-label="الأقسام"></nav>
+</aside>
+
+<main class="wrap">
+  <p class="lede-page">نسخة للقراءة من ملاحظات نظم إدارة قواعد البيانات: تعريفات، جداول مقارنة، أمثلة محلولة، خمسون استعلامًا على جدول الموظفين، وستة وثلاثون سؤال اختيار. تبقى أوامر SQL وأسماء الجداول ومصطلحات الامتحان بالإنجليزية، والشرح بالعربية.</p>
+
+  <nav class="toc" aria-label="المحتويات">
+    <h2>المحتويات</h2>
+    <ol>
+      <li><a href="#s1">مقدمة DBMS</a></li>
+      <li><a href="#s2">البنية</a></li>
+      <li><a href="#s3">تجريد البيانات</a></li>
+      <li><a href="#s4">نماذج البيانات</a></li>
+      <li><a href="#s5">نموذج ER</a></li>
+      <li><a href="#s6">النموذج العلائقي</a></li>
+      <li><a href="#s7">المفاتيح</a></li>
+      <li><a href="#s8">التطبيع</a></li>
+      <li><a href="#s9">إلغاء التطبيع</a></li>
+      <li><a href="#s10">المعاملات والتزامن</a></li>
+      <li><a href="#s11">أوامر SQL</a></li>
+      <li><a href="#s12">الفهرسة والتحسين والتقسيم</a></li>
+      <li><a href="#s13">تدريب SQL</a></li>
+      <li><a href="#s14">أسئلة الاختيار</a></li>
+    </ol>
+  </nav>
+
+  <section id="s1">
+    <div class="sec-head"><span class="num">01</span><h2>مقدمة DBMS</h2></div>
+    <h3>قاعدة البيانات وDBMS</h3>
+    <p><strong>قاعدة البيانات</strong> هي مخزن البيانات المنظَّم. أما <strong>DBMS</strong> (نظام إدارة قواعد البيانات) فهو البرنامج الذي يتيح إنشاء هذا المخزن والتعامل معه وإدارته: حفظه بأمان، واسترجاعه بسرعة، وتعديله، وإضافة بيانات جديدة عند الحاجة.</p>
+    <aside class="example">
+      <h4>صورة المكتبة</h4>
+      <p>الكتب مرتبة رفًا رفًا حسب الموضوع، فتذهب مباشرة إلى رف البرمجة بلغة C بدل البحث في كل الكومة. فهرس المكتبة يعمل كفهرس DBMS: يجعل البحث سهلًا.</p>
+    </aside>
+    <h3>لماذا نحتاج إلى DBMS؟</h3>
+    <p>يحافظ DBMS على اتساق البيانات، ويسمح لعدة مستخدمين بالعمل معًا، ويفرض سياسات الأمان، ويستطيع استعادة البيانات بعد العطل (النسخ الاحتياطي والاسترجاع).</p>
+    <aside class="example">
+      <h4>جداول منفصلة</h4>
+      <p>لو احتفظ كل قسم في الكلية بملف Excel خاص به، لتكرر اسم الطالب وهاتفه وعنوانه مرات كثيرة. قد يحدّث قسم القبول العنوان بينما تبقى ورقة الرسوم على العنوان القديم، فلا تعود النسخ متطابقة.</p>
+    </aside>
+    <h3>المزايا الأساسية</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>الأمان</h3>
+        <p>تحدد بالضبط من يرى البيانات ومن يعدّلها.</p>
+        <p>موظف الرسوم يرى الأسماء وحالة الرسوم فقط. دخول العميد يظهر الدرجات أيضًا. لا يستطيع غيرهما الاطلاع على كل شيء بهدوء.</p>
+      </article>
+      <article class="card">
+        <h3>بلا نسخ زائدة</h3>
+        <p>تُخزَّن البيانات مرة واحدة بشكل منظم. قد تبقى نسخ مضبوطة (فهارس) من أجل السرعة.</p>
+        <p>عنوان الطالب موجود في جدول <span class="term">Student</span> واحد. القبول والامتحانات والرسوم يقرؤون هذه النسخة، فيرون العنوان نفسه المحدَّث.</p>
+      </article>
+      <article class="card">
+        <h3>الدقة — ACID</h3>
+        <p>كل تحديث يتم كاملًا أو لا يتم، ويبقى صحيحًا.</p>
+        <ul>
+          <li><strong>Atomicity</strong> — الكل أو لا شيء.</li>
+          <li><strong>Consistency</strong> — تبقى البيانات صالحة.</li>
+          <li><strong>Isolation</strong> — الأعمال المتزامنة لا تتداخل.</li>
+          <li><strong>Durability</strong> — التغييرات المثبتة تبقى بعد الانهيار.</li>
+        </ul>
+        <p>إعارة كتاب في المكتبة تكتب «مُعار = نعم» و«النسخ المتاحة = المجموع − 1» معًا. إذا انقطع الكهرباء في منتصف التحديث، يتراجع DBMS عن العملية كلها.</p>
+      </article>
+      <article class="card">
+        <h3>السرعة — الفهرسة</h3>
+        <p>أشجار B-tree تبحث في O(log n) للمجالات. فهارس التجزئة Hash تعطي O(1) للمطابقة التامة.</p>
+        <p>يكتب أمين المكتبة رقم الطالب، فيقفز الفهرس إلى الصف مباشرة بدل مسح آلاف الصفوف.</p>
+      </article>
+      <article class="card">
+        <h3>النمو — قابلية التوسع</h3>
+        <p>التوسع رأسيًا (موارد أكثر على جهاز واحد) أو أفقيًا (خوادم أكثر) مع تغيير قليل في التطبيق.</p>
+        <p>إذا قبلت الكلية خمسة أضعاف الطلاب، تُضاف مساحة تخزين أو قدرة حساب. الاستعلامات الحالية تبقى تعمل.</p>
+      </article>
+    </div>
+    <h3>أنواع قواعد البيانات الشائعة</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>النوع</th><th>التعريف</th><th>الاستخدام</th><th>صورة من الواقع</th></tr></thead>
+        <tbody>
+          <tr><td>علائقية (SQL)</td><td>جداول بمخطط محدد، مربوطة بمفاتيح أولية وأجنبية، مع ضمانات ACID.</td><td>مهام شديدة التنظيم.</td><td>تحويلات UPI: كل تحويل يسجّل الخصم والإضافة ذريًا كمعاملة واحدة.</td></tr>
+          <tr><td>وثائق Document</td><td>وثائق JSON/BSON مرنة المخطط، مع فحص اختياري للحقول.</td><td>قوائم أو ملفات شخصية مرنة.</td><td>قوائم Swiggy: وثيقة المطعم تستطيع إضافة حقل مثل درجة الحرارة دون تغيير المخطط.</td></tr>
+          <tr><td>مفتاح-قيمة</td><td>جداول تجزئة موزعة مع معالجة التصادم. المفتاح يجلب القيمة.</td><td>بحث فائق السرعة.</td><td>جلسات Flipkart: سجل تصفح مؤقت، لا سلة المشتريات المعاملاتية.</td></tr>
+          <tr><td>رسوم Graph</td><td>عقد (أشخاص أو أشياء) وحواف (روابط).</td><td>الصلات والشبكات.</td><td>كشف الاحتيال: حسابات مربوطة بأجهزة أو عناوين IP مشتركة، كحلقة من الحسابات الوهمية.</td></tr>
+          <tr><td>سلاسل زمنية</td><td>بيانات مختومة بالوقت (حساسات، أسعار أسهم) مع مسح سريع لمجال زمني.</td><td>الحساسات وأسعار الأسهم.</td><td>محطة أرصاد IMD تخزن الحرارة كل دقيقة لرصد موجات الحر.</td></tr>
+          <tr><td>كائنية التوجه</td><td>كائنات برمجية تُخزَّن كما هي، الصفات والسلوك معًا.</td><td>تطبيقات مضمّنة أو متخصصة.</td><td>جهاز طبي يحفظ كل كائن حساس مع حالته الحالية، جاهزًا لإعادة التحميل.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul>
+      <li>اختر قاعدة البيانات حسب المشكلة، لا حسب الشهرة.</li>
+      <li>SQL لغة. كثير من قواعد البيانات غير العلائقية تقبل استعلامات شبيهة بها.</li>
+    </ul>
+    <aside class="think">
+      <h4>فكّر</h4>
+      <p>لماذا قد تستخدم Flipkart مخزن مفتاح-قيمة لجلسات المستخدم، بينما يحتاج UPI إلى قاعدة علائقية؟</p>
+    </aside>
+  </section>
+
+  <section id="s2">
+    <div class="sec-head"><span class="num">02</span><h2>البنية</h2></div>
+    <p>تصف بنية نظام قاعدة البيانات مكان كل جزء برمجي وكيف تتحدث الأجزاء بعضها مع بعض. هذا الترتيب يقرر الأداء والأمان ومدى قدرة النظام على النمو.</p>
+    <h3>طبقة واحدة، طبقتان، وثلاث طبقات</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>البنية</th><th>التصميم</th><th>مثال</th><th>ما يلاحظ</th></tr></thead>
+        <tbody>
+          <tr><td>طبقة واحدة</td><td>واجهة المستخدم ومحرك قاعدة البيانات يعملان على الجهاز نفسه.</td><td>طالب يشغّل سكربت Python مع SQLite. التطبيق وقاعدة البيانات في عملية واحدة.</td><td>الإعداد فوري، لكن النظام لمستخدم واحد ويستهلك موارد الجهاز المحلي.</td></tr>
+          <tr><td>طبقتان</td><td>تطبيق العميل يتحدث مباشرة مع خادم قاعدة بيانات مخصص، غالبًا عبر ODBC أو JDBC.</td><td>أجهزة المختبر تشغّل واجهة Java تتصل مباشرة بخادم MySQL مركزي لدرجات المختبر.</td><td>عدة مستخدمين يحصلون على أداء أفضل من الطبقة الواحدة، لكن العملاء يصلون إلى خادم قاعدة البيانات مباشرة.</td></tr>
+          <tr><td>ثلاث طبقات</td><td>العميل يتحدث مع خادم تطبيقات، وهذا يستعلم قاعدة البيانات.</td><td>تطبيق جوال يستدعي REST API (مثل Node.js). الطبقة الوسطى تتحقق من الهوية وتستعلم PostgreSQL.</td><td>منطق العمل والأمان في الوسط. قاعدة البيانات محمية. العملاء خفيفون، وواجهة API تتوسع دون الاحتفاظ بحالة الجلسة.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>قواعد البيانات الموزعة</h3>
+    <p>تخزن قاعدة البيانات الموزعة أجزاء البيانات على خادمين أو أكثر في أماكن مختلفة، وتعرضها كقاعدة منطقية واحدة.</p>
+    <aside class="example">
+      <h4>ثلاثة فروع</h4>
+      <p>مؤسسة تعليمية لها فروع في دلهي ومومباي وبنغالور تبقي حضور كل مدينة على خادم محلي ليبقى البحث سريعًا. تتزامن السجلات إما بشكل غير متزامن (اتساق eventual) أو عبر معاملات موزعة (اتساق قوي)، حسب حاجة المؤسسة.</p>
+    </aside>
+    <h3>نظرية CAP</h3>
+    <p>في النظام الموزع، <strong>تحمّل الانقسام إلزامي</strong>. المقايضة الحقيقية بين الاتساق والتوافر.</p>
+    <div class="cards">
+      <article class="card"><h3>الاتساق Consistency (C)</h3><p>كل عقدة تعرض البيانات نفسها في اللحظة نفسها.</p></article>
+      <article class="card"><h3>التوافر Availability (A)</h3><p>كل طلب يحصل على جواب في الوقت المناسب. قد لا يكون الجواب أحدث البيانات.</p></article>
+      <article class="card"><h3>تحمّل الانقسام Partition tolerance (P)</h3><p>يستمر النظام في العمل عندما لا تستطيع العقد الحديث بعضها مع بعض.</p></article>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>السيناريو</th><th>الخاصيتان</th><th>السبب</th></tr></thead>
+        <tbody>
+          <tr><td>مدفوعات محفظة المقصف عبر UPI</td><td>الاتساق + التوافر</td><td>تحويلات المال يجب ألا تتباعد، حتى لو سبّب الانقسام تأخيرًا قصيرًا. قد يوقف النظام المعاملة أثناء الانقسام لمنع الصرف المزدوج. يمكن تحمّل انقطاع قصير.</td></tr>
+          <tr><td>موقع لوحة الإعلانات</td><td>التوافر + تحمّل الانقسام</td><td>إظهار إعلان أقدم أفضل من أن تظلم اللوحة أثناء انقطاع الواي فاي.</td></tr>
+          <tr><td>لوحة نتائج مسابقة برمجة داخل الكلية</td><td>التوافر + الاتساق</td><td>الانقسامات نادرة على شبكة الكلية المحلية، فيتوقع المشاركون نتائج حالية وظاهرة فورًا.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <aside class="think">
+      <h4>فكّر</h4>
+      <p>أي خاصيتين من CAP مضمونة في التطبيقات المالية مثل Paytm أو PayPal؟</p>
+    </aside>
+  </section>
+
+  <section id="s3">
+    <div class="sec-head"><span class="num">03</span><h2>تجريد البيانات</h2></div>
+    <p>يخفي تجريد البيانات طريقة التخزين (صيغة الملفات، الفهارس، تخطيط الكتل) ويعرض للمستخدم البنى والعمليات التي يحتاجها فقط. فصل <em>كيف</em> تُخزَّن البيانات عن <em>ماذا</em> تعني يحسّن الأمان والمرونة والصيانة.</p>
+    <h3>ثلاثة مستويات</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>المستوى</th><th>التعريف</th><th>مثال من الكلية</th></tr></thead>
+        <tbody>
+          <tr><td>الفيزيائي</td><td>المكان الدقيق بالبايت على القرص: بنية الملفات والفهارس وكتل البيانات.</td><td>سجلات الحضور مخزنة ككتل 8 كيلوبايت على SSD، مع نسخ RAID-1. شجرة B-tree تربط رقم القيد بعناوين الكتل. الطلاب لا يرون هذا.</td></tr>
+          <tr><td>المنطقي</td><td>قاعدة البيانات كلها كجداول وأعمدة وأنواع بيانات وعلاقات.</td><td>جدول <span class="term">Students</span> فيه رقم القيد (مفتاح أولي) والاسم VARCHAR ومفتاح أجنبي إلى <span class="term">Courses</span>. القيود تفرض التكامل المرجعي. هذا ما يقصده الأستاذ حين يكتب SQL.</td></tr>
+          <tr><td>المنظور View</td><td>مجموعة منطقية مخصصة لمستخدم معين.</td><td>مشرف السكن يرى رقم القيد والاسم وحالة الرسوم المحسوبة. قسم الامتحانات يرى رقم القيد والاسم ودرجات الفصل.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>كل مستوى أعلى معزول عن التغييرات في المستوى الذي تحته. السلّم: فيزيائي (الأدنى) ← منطقي ← منظور (الأعلى). المعرفة تصعد إلى الأعلى. والتغييرات ينبغي أن تنزل إلى الأسفل.</p>
+    <h3>استقلال البيانات</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>النوع</th><th>التعريف</th><th>مثال</th></tr></thead>
+        <tbody>
+          <tr><td>الاستقلال المنطقي</td><td>تغيير المخطط المنطقي دون إعادة كتابة برامج التطبيقات.</td><td>الكلية تقسم العنوان إلى شارع ومدينة ورمز بريدي. نظام رسوم السكن وتطبيق الحضور لا يحتاجان إلى تعديل في الكود، لأن منظوراتهما تُضبط.</td></tr>
+          <tr><td>الاستقلال الفيزيائي</td><td>تغيير التخزين دون التأثير في المخطط المنطقي.</td><td>تقنية المعلومات تنقل الحضور من أقراص HDD إلى SSD أسرع وتضيف فهرسًا على التاريخ. استعلامات الأساتذة والطلاب تبقى كما هي.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul>
+      <li>الاستقلال الكامل صعب. حتى الاستقلال الجزئي يخفض تكلفة الصيانة كثيرًا.</li>
+      <li>في حياة الطالب اليومية، تطبيقات الجوال تعرض مستوى المنظور، والمطورون يصممون المستوى المنطقي، والمستوى الفيزيائي يبقى في غرفة الخوادم.</li>
+    </ul>
+    <aside class="think">
+      <h4>فكّر</h4>
+      <p>كيف اضطر المخطط المنطقي والتخزين الفيزيائي في Instagram إلى التغير حين نما المنتج من مشاركة الصور إلى القصص وReels والرسائل الخاصة، وأي تلك التغييرات يمكن أن يبقى مخفيًا عن التطبيق؟</p>
+    </aside>
+  </section>
+
+  <section id="s4">
+    <div class="sec-head"><span class="num">04</span><h2>نماذج البيانات</h2></div>
+    <p>نموذج البيانات هو القواعد الشكلية لتنظيم الحقائق داخل قاعدة البيانات. النموذج الذي تختاره يؤثر في الأداء والمرونة وصعوبة الصيانة.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>النموذج</th><th>البنية الأساسية</th><th>الأنسب لـ</th></tr></thead>
+        <tbody>
+          <tr><td>هرمي</td><td>شجرة أب ← ابن</td><td>سلاسل واحد-إلى-كثير</td></tr>
+          <tr><td>شبكي</td><td>سجلات مربوطة بعدة مجموعات أب-ابن (كثير-إلى-كثير)</td><td>ارتباطات معقدة</td></tr>
+          <tr><td>علائقي</td><td>جداول وصفوف وأعمدة، تُربط بالمفاتيح</td><td>بيانات عامة الأغراض</td></tr>
+          <tr><td>كائني التوجه</td><td>كائنات برمجية دائمة</td><td>بيانات معقدة غنية بالسلوك</td></tr>
+          <tr><td>الكيانات والعلاقات ER</td><td>رسم للكيانات والعلاقات</td><td>مرحلة التصميم المفاهيمي</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cards">
+      <article class="card"><h3>الهرمي</h3><p>شجرة صارمة من الأعلى إلى الأسفل. لكل ابن أب واحد بالضبط.</p><p>جامعة ← كلية ← قسم ← مقرر ← طالب. استعلام «CSE، دفعة 2022» يتبع المسار من الجذر إلى الأوراق.</p></article>
+      <article class="card"><h3>الشبكي</h3><p>قد يكون للسجل عدة آباء، فتكون روابط كثير-إلى-كثير طبيعية.</p><p>طالب يرتبط بعدة أندية. كل نادٍ يرتبط بكثير من الطلاب وبعدة فعاليات. إيجاد كل من حضر ماراثون البرمجة يعني السير على هذه المجموعات المترابطة.</p></article>
+      <article class="card"><h3>العلائقي</h3><p>جداول ثنائية البعد. المفاتيح الأولية والأجنبية تفرض العلاقات. الاستعلامات بلغة SQL.</p><p><span class="term">STUDENT</span> (رقم القيد، الاسم، البرنامج)، <span class="term">COURSE</span> (الرمز، العنوان، الساعات)، <span class="term">MARKS</span> (رقم القيد، الرمز، الدرجة). الربط يتيح لقسم الامتحانات نشر كشوف الدرجات.</p></article>
+      <article class="card"><h3>كائني التوجه</h3><p>تُخزَّن الأصناف كما عُرّفت في لغة كائنية، الصفات والدوال معًا.</p><p>في قاعدة بحث روبوتات، كل كائن Robot يخزن مصفوفات من كائنات Sensor. جلب الروبوت يجلب الكائنات المرتبطة معه.</p></article>
+      <article class="card"><h3>الكيانات والعلاقات</h3><p>خريطة بالصور للواقع إلى كيانات وصفات وعلاقات، تُرسم قبل التنفيذ الفيزيائي.</p><p>يرسم المصممون Student وCourse وInstructor، مع العلاقتين <span class="term">ENROLLED_IN</span> و<span class="term">TAUGHT_BY</span>. هذه الخريطة توجه الجداول العلائقية لاحقًا.</p></article>
+    </div>
+  </section>
+
+  <section id="s5">
+    <div class="sec-head"><span class="num">05</span><h2>نموذج ER</h2></div>
+    <p>نموذج ER مخطط مفاهيمي، لا تنفيذ. يسمّي الكيانات والصفات والعلاقات حتى تتحول حالة من الواقع إلى تصميم قاعدة بيانات.</p>
+    <h3>المصطلحات</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>المصطلح</th><th>التعريف</th><th>مثال</th></tr></thead>
+        <tbody>
+          <tr><td>كيان Entity</td><td>الكيان القوي (Student) له مفتاح فريد خاص. الكيان الضعيف (Dependent) يحتاج إلى كيان قوي ليُعرَّف.</td><td>طالب واحد، أو طرح مقرر بعينه.</td></tr>
+          <tr><td>صفة Attribute</td><td>خاصية للكيان.</td><td>رقم القيد (مفتاح)، اسم الطالب (بسيطة)، ساعات المقرر (مشتقة من الساعات).</td></tr>
+          <tr><td>مجموعة كيانات</td><td>مجموعة كيانات متشابهة.</td><td>كل الطلاب المسجلين في الجامعة.</td></tr>
+          <tr><td>علاقة Relationship</td><td>ارتباط منطقي بين كيانات.</td><td>طالب <span class="term">ENROLLED_IN</span> مقرر.</td></tr>
+          <tr><td>مجموعة علاقات</td><td>كل نسخ العلاقة. ثنائية (مجموعتا كيانات) أو ثلاثية (ثلاث).</td><td>كل تسجيلات الطالب-المقرر، أو Student ↔ Course ↔ Instructor.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>الرموز</h3>
+    <div class="cards">
+      <article class="card"><h3>مستطيل</h3><p>مجموعة كيانات. الكيان القوي مستطيل مفرد. الكيان الضعيف مستطيل مزدوج. المفتاح الجزئي يُخط تحته بخط متقطع (رقم السرير في Occupancy).</p></article>
+      <article class="card"><h3>قطع ناقص</h3><p>صفة. قطع مزدوج: متعددة القيم (أرقام الهاتف). قطع متقطع: مشتقة (العمر). الاسم تحته خط: مفتاح أولي.</p></article>
+      <article class="card"><h3>معين</h3><p>مجموعة علاقات. علاقة التعريف لكيان ضعيف تستخدم معينًا مزدوجًا (Hostel Room ← Occupancy).</p></article>
+      <article class="card"><h3>خط</h3><p>يربط الأشكال. علامات العددية تقع على الخط.</p></article>
+    </div>
+    <ul>
+      <li><strong>1:1</strong> — <span class="term">|──|</span> — الطالب ↔ بطاقة المكتبة.</li>
+      <li><strong>1:N</strong> — <span class="term">|──&lt;</span> — القسم ← الطلاب.</li>
+      <li><strong>M:N</strong> — <span class="term">&gt;──&lt;</span> — الطلاب ↔ المقررات.</li>
+    </ul>
+    <h3>العددية والمشاركة</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الرمز</th><th>المعنى</th><th>مثال</th></tr></thead>
+        <tbody>
+          <tr><td>1:1</td><td>كل كيان يرتبط بكيان واحد بالضبط في الطرف الآخر.</td><td>بطاقة المكتبة يجب أن تخص طالبًا واحدًا (مشاركة كلية من جهة البطاقة). قد لا يملك الطالب بطاقة إذا فُقدت (مشاركة جزئية من جهة الطالب).</td></tr>
+          <tr><td>1:N</td><td>كيان واحد قد يرتبط بكثير في الطرف الآخر.</td><td>أستاذ واحد يدرّس مقررات كثيرة. كل مقرر له أستاذ واحد بالضبط في ذلك الفصل.</td></tr>
+          <tr><td>M:N</td><td>كثير يرتبط بكثير. في التصميم العلائقي تصبح جدولًا ارتباطيًا.</td><td><span class="term">ENROLLMENT</span> بمفتاح مركب (StudentID, CourseID).</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>مشاركة كلية:</strong> كل كيان يجب أن يشارك. كل بطاقة مكتبة مسنَدة إلى طالب.</p>
+    <p><strong>مشاركة جزئية:</strong> بعض الكيانات تبقى خارج العلاقة. ليس كل طالب ينضم إلى نادٍ.</p>
+    <h3>الكيانات الضعيفة</h3>
+    <p>الكيان الضعيف لا يملك مفتاحًا أوليًا خاصًا به. يُعرَّف بمالك قوي ومفتاح جزئي. عند حذف المالك تُحذف الصفوف التابعة أيضًا (حذف متسلسل).</p>
+    <aside class="example">
+      <h4>إشغال السكن</h4>
+      <p>المالك: Hostel Room (<span class="term">room No</span>). الكيان الضعيف: Occupancy، المفتاح الجزئي <span class="term">bed Number</span> (خط متقطع)، وعلاقة التعريف تُرسم بمعين مزدوج.</p>
+    </aside>
+    <h3>التعميم</h3>
+    <p>يبني التعميم هرمية صنف أعلى وأصناف فرعية، ويبقي الصفات المشتركة على الصنف الأعلى. يجمع الكيانات الدنيا في كيان أعلى بجمع ما تشترك فيه («الكثير يصبح واحدًا»).</p>
+<pre class="tree">[PERSON]
+   /    \
+[STUDENT]  [INSTRUCTOR]</pre>
+    <p>يرث STUDENT وINSTRUCTOR الاسم من PERSON. يضيف STUDENT البرنامج ورقم القيد. يضيف INSTRUCTOR القسم والراتب. قائمة بريد الحرم تقرأ PERSON فقط. استعلام البرنامج يقرأ STUDENT فقط.</p>
+    <h3>التخصيص</h3>
+    <p>يقسم التخصيص الصنف الأعلى إلى أصناف فرعية حصرية أو متداخلة. قد يكون <strong>كليًا</strong> (كل كيان ينتمي إلى صنف فرعي) أو <strong>جزئيًا</strong> (بعض الكيانات لا تنتمي إلى أي صنف). الصفات المميزة تُدفع إلى الأسفل («الواحد يصبح كثيرًا»).</p>
+<pre class="tree">[STUDENT]  [INSTRUCTOR]
+       \      /
+       [PERSON]</pre>
+    <p>PERSON يحمل الاسم والعنوان. STUDENT يحمل البرنامج ورقم القيد. INSTRUCTOR يحمل القسم والراتب. قاعدة الاستعلام نفسها: الجميع يستخدم PERSON، والأسئلة الخاصة بالبرنامج تستخدم STUDENT وحده.</p>
+    <h3>التجميع</h3>
+    <p>يعامل التجميع العلاقة، مع الكيانات الداخلة فيها، كوحدة أعلى حتى تستطيع هذه الوحدة نفسها أن تشارك في علاقة أخرى.</p>
+    <aside class="example">
+      <h4>تسليم المشروع</h4>
+      <p>تريد لجنة الامتحان أن تعرف أي المشاريع سُلّمت. التسليم يحتاج إلى طالب ومشروع ومشرف، تجمعهم العلاقة <span class="term">WORKS_ON</span>. بدل ربط الثلاثة كل على حدة بحالة التسليم، تُغلَّف WORKS_ON وكياناتها في صندوق متقطع اسمه Project Submission، ثم يُربط هذا الصندوق بحالة التسليم.</p>
+    </aside>
+    <h3>مخطط Netflix مكتوبًا</h3>
+    <div class="cards">
+      <article class="card"><h3>User_Account</h3><p>الصفات: <span class="term">USER_ID</span> (مفتاح أولي)، Firstname، Lastname، Credit_Card_No. حساب واحد لكل مستخدم.</p><p>User_Account — (1:5) — PROFILE، وقدم الغراب عند PROFILE. خط مزدوج من PROFILE إلى علاقة HAS (مشاركة كلية).</p></article>
+      <article class="card"><h3>Profile</h3><p>الصفات: <span class="term">PROFILE_ID</span> (مفتاح أولي)، PROFILE_NAME، CREATION_DATE. كل حساب يملك من ملف إلى خمسة ملفات.</p><p>للملف تفضيلات أنواع، وQUEUE، وتاريخ استعارة للأفلام.</p></article>
+      <article class="card"><h3>Genre</h3><p>الصفات: <span class="term">GENRE_ID</span> (مفتاح أولي)، GENRE_NAME. أكشن وكوميديا ورعب وغيرها.</p><p>PROFILE — (M:N) — GENRE عبر USER_PREFERENCE (كيان ارتباطي فيه وزن أو أولوية). النوع مرتبط أيضًا بـ MOVIE.</p></article>
+      <article class="card"><h3>Movie</h3><p>الصفات: <span class="term">MOVIE_ID</span> (مفتاح أولي)، MOVIENAME، YEAR، PRODUCER، AVERAGE_RATING، DURATION بالدقائق، STREAMING_QUALITY (HD/4K)، LICENSE_EXPIRY تاريخ.</p><p>يظهر في قائمة الانتظار وتاريخ المشاهدة. مرتبط بـ GENRE. MOVIE — (M:N) — ACTORS عبر STARRED_BY التي تحمل صفة ROLE.</p></article>
+      <article class="card"><h3>Queue</h3><p>علاقة لا كيان مستقل. الصفة: RANKING (الأول للمشاهدة، الثاني، …). تربط PROFILE ↔ MOVIE: ملف واحد وأفلام كثيرة.</p></article>
+      <article class="card"><h3>Rental History</h3><p>علاقة. الصفات: RATING من 1 إلى 5، WATCH_DATE، DEVICE_TYPE (جوال/تلفاز). تربط PROFILE ↔ MOVIE.</p></article>
+      <article class="card"><h3>Actors</h3><p>الصفات: <span class="term">ACTOR_ID</span> (مفتاح أولي)، FIRSTNAME، LASTNAME. ACTOR — (1:N) — AWARD بمشاركة اختيارية. مرتبط بـ MOVIE عبر Starred_by.</p></article>
+      <article class="card"><h3>Starred_by</h3><p>علاقة. الصفة: CHARACTER_NAME (مثل 'Tony Stark'). تربط ACTORS ↔ MOVIE.</p></article>
+    </div>
+  </section>
+
+  <section id="s6">
+    <div class="sec-head"><span class="num">06</span><h2>النموذج العلائقي</h2></div>
+    <p>كل قاعدة علائقية — نظام الكلية أو تطبيق المقصف — تتبع القواعد الأربع نفسها. إذا فهمت الأجزاء والقواعد التي تحميها، استطاعت الجداول أن تحفظ الدرجات والرسوم والحضور دون أن تضيع.</p>
+    <p>احفظ السلّم: <strong>Domain ← Attribute ← Tuple ← Relation</strong>.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>اللبنة</th><th>التعريف</th><th>مثال</th></tr></thead>
+        <tbody>
+          <tr><td>المجال Domain</td><td>مجموعة القيم المسموحة للعمود، بما فيها القيود.</td><td>مجال رقم القيد: أي عدد صحيح من 8 أرقام بين 21000000 و21999999. في SQL: <span class="term">RollNo INT CHECK (RollNo BETWEEN 21000000 AND 21999999)</span>.</td></tr>
+          <tr><td>الصفة Attribute</td><td>عمود واحد. كل قيمة تأتي من مجال واحد.</td><td>RollNo INT، Name VARCHAR(30)، Programme CHAR(10)، MobileNo CHAR(10).</td></tr>
+          <tr><td>الصف Tuple</td><td>صف كامل عن شيء واحد في الواقع. القيم ذرية (1NF): قسّم Name إلى FirstName وLastName بدل حشو الاثنين في خلية.</td><td>رقم قيد طالب واحد واسمه وبرنامجه ورقمه.</td></tr>
+          <tr><td>العلاقة Relation</td><td>الجدول كله: صفوف كثيرة تحت الأعمدة نفسها.</td><td>جدول STUDENT لكل المسجلين هذا العام.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>المخطط والنسخة الحالية</h3>
+    <div class="cards">
+      <article class="card"><h3>المخطط Schema (intention)</h3><p>البنية الثابتة: اسم الجدول والصفات والمجالات والقيود. لا يتغير حين ينضم طالب أو يغادر.</p><p><span class="term">STUDENT (roll_no INT PRIMARY KEY, name VARCHAR(30), programme CHAR(10), mobile_no VARCHAR(10))</span></p><p>فكّر في قالب الورقة الفارغ.</p></article>
+      <article class="card"><h3>النسخة Instance (extension)</h3><p>الصفوف الموجودة في الجدول الآن. نسخة الغد قد تضم طلابًا جددًا، أو أقل إذا انسحب أحد.</p><p>فكّر في الورقة بعد تعبئة الدرجات.</p></article>
+    </div>
+    <h3>علاقة STUDENT نموذجية</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Roll_No</th><th>Name</th><th>Programme</th><th>Mobile_No</th></tr></thead>
+        <tbody>
+          <tr><td>22104567</td><td>Parikshit Sharma</td><td>BTech CSE</td><td>9876543210</td></tr>
+          <tr><td>22104612</td><td>Rajat Mehta</td><td>BTech ECE</td><td>9123456780</td></tr>
+          <tr><td>22104755</td><td>Sakshi Bansal</td><td>MBA</td><td>9001122334</td></tr>
+        </tbody>
+        <caption>كل صف tuple. كل عمود صفة لها مجالها.</caption>
+      </table>
+    </div>
+    <h3>قيود التكامل</h3>
+    <div class="cards">
+      <article class="card"><h3>قيد المفتاح</h3><p>لكل جدول مفتاح مرشح واحد على الأقل: عمود أو مجموعة أعمدة تعرّف كل صف بشكل فريد ولا تتكرر. قد يكون المفتاح عمودًا واحدًا (RollNo) أو مركبًا (StudentID, CourseID).</p><p>رقم القيد فريد. إدخال الرقم نفسه مرتين يُرفض.</p></article>
+      <article class="card"><h3>تكامل الكيان</h3><p>عمود المفتاح الأولي لا يجوز أن يحتوي NULL. رقم قيد فارغ يترك صفًا لا يستطيع أحد تحديد صاحبه.</p></article>
+      <article class="card"><h3>التكامل المرجعي</h3><p>المفتاح الأجنبي يجب أن يطابق مفتاحًا أوليًا موجودًا في الجدول المشار إليه. يُسمح بـ NULL فقط حين تكون العلاقة اختيارية.</p><p>MARKS.Roll No يشير إلى STUDENT.Roll No. رفع درجات الرقم 22109999 يفشل إذا لم يكن هذا الطالب في STUDENT.</p></article>
+    </div>
+  </section>
+
+  <section id="s7">
+    <div class="sec-head"><span class="num">07</span><h2>المفاتيح</h2></div>
+    <p>المفتاح عمود أو أكثر يختار صفًا واحدًا بالضبط. من دونه تتسلل التكرارات، وقد يعيد الاستعلام الطالب الخطأ أو الدرجة الخطأ أو كليهما.</p>
+    <p>كل مفتاح أولي هو مفتاح مرشح، وكل مفتاح مرشح هو مفتاح فوقي. والعكس غير صحيح.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>المفتاح</th><th>التعريف</th><th>مثال</th></tr></thead>
+        <tbody>
+          <tr><td>فوقي Super key</td><td>أي مجموعة أعمدة تعرّف الصفوف بشكل فريد. الأعمدة الزائدة مسموحة.</td><td>{rollNo, mobileNo} و{rollNo} و{email}.</td></tr>
+          <tr><td>مرشح Candidate key</td><td>مفتاح فوقي أصغري. إسقاط أي عمود يفقده التفرد.</td><td>{rollNo} أو {email}. كل منهما يكفي وحده.</td></tr>
+          <tr><td>أولي Primary key</td><td>المفتاح المرشح الذي يختاره مدير القاعدة معرّفًا رسميًا للصف.</td><td>الكلية تختار rollNo لجدول STUDENT.</td></tr>
+          <tr><td>بديل Alternate key</td><td>أي مفتاح مرشح متبقٍ. غالبًا يُفهرس لتسريع البحث.</td><td>البحث بالبريد.</td></tr>
+          <tr><td>مركب Composite key</td><td>مفتاح مبني من عمودين أو أكثر. كمفتاح مرشح يكون أصغريًا.</td><td>MARKS {rollNo, courseCode} يعرّف درجة واحدة.</td></tr>
+          <tr><td>أجنبي Foreign key</td><td>مجموعة أعمدة تشير إلى المفتاح الأولي (أو البديل) في جدول آخر.</td><td>MARKS.rollNo ← STUDENT.rollNo وMARKS.courseCode ← COURSE.code.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>جداول محلولة</h3>
+    <div class="table-wrap">
+      <table>
+        <caption>STUDENT — رقم القيد مفتاح أولي. لا يتكرر ولا يكون NULL أبدًا.</caption>
+        <thead><tr><th>Roll No (PK)</th><th>name</th><th>programme</th><th>email</th></tr></thead>
+        <tbody><tr><td>22104567</td><td>Ananya Sharma</td><td>BTech CSE</td><td>ananya.sharma@college.edu.in</td></tr></tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>MARKS — رقم القيد وحده ليس فريدًا (مواد كثيرة). رمز المقرر وحده ليس فريدًا (طلاب كثيرون يأخذون CS101). معًا يكونان فريدين.</caption>
+        <thead><tr><th>Roll No (FK)</th><th>Course Code (FK)</th><th>grade</th></tr></thead>
+        <tbody><tr><td>22104567</td><td>CS101</td><td>8.5</td></tr></tbody>
+      </table>
+    </div>
+    <aside class="example"><h4>فحص المفتاح الأجنبي</h4><p>إدخال الرقم 22109999 في MARKS يفشل إذا كان هذا الرقم غائبًا من STUDENT.</p></aside>
+    <h3>فحوص الامتحان</h3>
+    <ul>
+      <li><strong>الأصغرية.</strong> أسقط عمودًا واحدًا من المفتاح. إذا لم تعد البقية تعرّف الصف، كان المفتاح أصغريًا.</li>
+      <li><strong>قاعدة NULL.</strong> في مفتاح أولي مركب لا يجوز أن يكون أي عمود NULL. المفتاح الأجنبي قد يكون NULL إذا كانت العلاقة اختيارية.</li>
+      <li><strong>المركب مقابل الفوقي.</strong> المفتاح المرشح المركب مفتاح متعدد الأعمدة وأصغري. المفتاح الفوقي أي مجموعة فريدة، وقد تضم أعمدة لا تلزم للتفرد.</li>
+    </ul>
+  </section>
+
+  <section id="s8">
+    <div class="sec-head"><span class="num">08</span><h2>التطبيع</h2></div>
+    <p>يقسم التطبيع الجداول الكبيرة غير المنظمة إلى جداول أصغر مترابطة حتى لا تُخزَّن الحقيقة نفسها مرات كثيرة. بذلك تزول شذوذات التحديث ويبقى الاتساق.</p>
+    <h3>الاعتماد الدالي</h3>
+    <p>X → Y تعني: إذا اتفق صفان على مجموعة الصفات X فيجب أن يتفقا على مجموعة الصفات Y. يقال إن Y تعتمد داليًا على X.</p>
+    <p>مثال: Roll No → Student Name. رقم القيد نفسه لا يخص اسمين مختلفين أبدًا.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الاعتماد</th><th>العلاقة</th><th>مثال</th></tr></thead>
+        <tbody>
+          <tr><td>تام</td><td>X → Y، وY تعتمد على كل صفة في X. أي مجموعة جزئية حقيقية A من X لا تحدد Y.</td><td>الدرجة تحتاج رقم القيد ورمز المقرر (CS101) معًا. لا يكفي أحدهما.</td></tr>
+          <tr><td>جزئي</td><td>X → Y حيث X مفتاح مركب AZ، ومجموعة جزئية حقيقية A تحدد Y أصلًا.</td><td>اسم الطالب يعتمد على رقم القيد فقط، لا على رمز المقرر. الاعتماد الجزئي يخالف 2NF، فينتقل الاسم إلى جدول STUDENT.</td></tr>
+          <tr><td>بديهي</td><td>X → Y حيث Y مجموعة جزئية من X.</td><td>Roll No, Name → Name. إذا كنت تعرف الاسم فأنت تعرفه.</td></tr>
+          <tr><td>غير بديهي</td><td>X → Y حيث Y ليست مجموعة جزئية من X.</td><td>Roll No → Dept_Name. القسم يتحدد برقم القيد، وهو ليس جزءًا من الرقم نفسه.</td></tr>
+          <tr><td>متعدٍ</td><td>A → C متعدٍ حين يأتي من A → B وB → C.</td><td>رقم القيد يحدد القسم، والقسم يحدد المبنى. تغيير مبنى القسم كان سيعني تحديث كل صف طالب.</td></tr>
+          <tr><td>متعدد القيم</td><td>A →→ B وA →→ C، وB وC مستقلان أحدهما عن الآخر.</td><td>Roll No →→ Hobbies وRoll No →→ Sports. الهوايات والرياضات تتغير كل على حدة.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>من 1NF إلى BCNF</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الصيغة</th><th>باختصار</th><th>القاعدة</th><th>صورة من الكلية</th></tr></thead>
+        <tbody>
+          <tr><td>1NF</td><td class="short">قيمة واحدة في الخلية</td><td>كل خلية تحمل قيمة ذرية واحدة. لا مجموعات متكررة.</td><td>ضع كل مقرر في صفه. لا تكتب «CS101, MA102» في خلية واحدة.</td></tr>
+          <tr><td>2NF</td><td class="short">المفتاح كله لا جزءه</td><td>1NF، ومن دون اعتماد جزئي على مفتاح مركب.</td><td>إذا كان المفتاح {roll No, course Code}، فاسم الطالب (يعتمد على رقم القيد فقط) يجب أن ينتقل إلى جدول آخر.</td></tr>
+          <tr><td>3NF</td><td class="short">بلا سلسلة متعدية</td><td>2NF، ومن دون اعتماد متعدٍ. كل صفة غير أولية تعتمد فقط على مفتاح فوقي.</td><td>في COURSE: course Code → instructor ID وinstructor ID → instructor Name. أخرج بيانات المدرس.</td></tr>
+          <tr><td>BCNF</td><td class="short">الطرف الأيسر مفتاح</td><td>في كل اعتماد X → Y يجب أن يكون X مفتاحًا فوقيًا. أقوى من 3NF.</td><td>إذا صح أيضًا instructor ID → course Code، اصنع جدول TEACHES حتى يصبح الطرفان مفتاحين: TEACHES(Instructor ID, Course Code).</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>الربط دون فقد وحفظ الاعتماد</h3>
+    <div class="cards">
+      <article class="card"><h3>ربط دون فقد</h3><p>بعد تقسيم الجدول، يجب أن يعيد ربط الأجزاء الصفوف الأصلية بالضبط: لا صفوف زائدة ولا صفوف ناقصة.</p></article>
+      <article class="card"><h3>حفظ الاعتماد</h3><p>كل اعتماد دالي أصلي يمكن فرضه دون إعادة ربط الجداول.</p></article>
+    </div>
+    <p>تفكيكات الكتب تهدف إلى الاثنين معًا. BCNF أحيانًا يفرض اختيارًا: أبقِ الربط دون فقد، وتخلَّ عن الحفظ الكامل للاعتماد.</p>
+    <h3>مسار محلول: من الجدول إلى BCNF</h3>
+    <div class="table-wrap">
+      <table>
+        <caption>كل خطوة بكلمات قصيرة</caption>
+        <thead><tr><th>الخطوة</th><th>باختصار</th><th>ما الذي يتغير</th></tr></thead>
+        <tbody>
+          <tr><td>UNF</td><td class="short">قوائم داخل الخلية</td><td>جدول واحد. المقررات والدرجات محشورة في خلايا مفردة.</td></tr>
+          <tr><td>1NF</td><td class="short">افصل القوائم</td><td>مقرر واحد ودرجة واحدة في كل صف. حقائق الطالب تبدأ بالتكرار.</td></tr>
+          <tr><td>اكتب الاعتمادات</td><td class="short">من يحدد من</td><td>اكتب FD1 إلى FD4 قبل نقل أي عمود.</td></tr>
+          <tr><td>2NF</td><td class="short">اقطع الاعتماد الجزئي</td><td>الاسم والبرنامج يتبعان رقم القيد فقط، فينتقلان إلى STUDENT. الدرجة تبقى في RESULT.</td></tr>
+          <tr><td>3NF</td><td class="short">اقطع السلسلة</td><td>اسم المدرس يتبع معرّف المدرس، لا رمز المقرر مباشرة. انقله إلى INSTRUCTOR.</td></tr>
+          <tr><td>BCNF</td><td class="short">كل محدِّد مفتاح</td><td>يتحقق أصلًا إذا درّس المدرس مقررات كثيرة. إذا درّس مقررًا واحدًا، افصل TEACHES.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>نبدأ بجدول واحد كتبه أستاذ على عجل. صفّا Ananya وFarah يخزنان عدة قيم في خلية واحدة، فالخلايا ليست ذرية. إدراج مقرر جديد مربك، وتحديث درجة واحدة فيه مخاطرة.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>الصيغة غير المطبَّعة</caption>
+        <thead><tr><th>Roll No</th><th>Student Name</th><th>programme</th><th>Course List</th><th>Grade List</th></tr></thead>
+        <tbody>
+          <tr><td>22104567</td><td>Ananya Sharma</td><td>BTech CSE</td><td>CS101, MA102</td><td>8.5, 7.0</td></tr>
+          <tr><td>22104612</td><td>Rajat Mehta</td><td>BTech ECE</td><td>EC101</td><td>8.0</td></tr>
+          <tr><td>22104755</td><td>Farah Khan</td><td>MBA</td><td>MG201, MG202, MG203</td><td>7.5, 8.2, 7.9</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h4>الصيغة النظامية الأولى</h4>
+    <p>قيمة واحدة في كل خلية. بيانات الطالب نفسها تتكرر الآن في كل صف مقرر.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Roll No</th><th>Student Name</th><th>programme</th><th>Course Code</th><th>grade</th></tr></thead>
+        <tbody>
+          <tr><td>22104567</td><td>Ananya Sharma</td><td>BTech CSE</td><td>CS101</td><td>8.5</td></tr>
+          <tr><td>22104567</td><td>Ananya Sharma</td><td>BTech CSE</td><td>MA102</td><td>7.0</td></tr>
+          <tr><td>22104612</td><td>Rajat Mehta</td><td>BTech ECE</td><td>EC101</td><td>8.0</td></tr>
+          <tr><td>22104755</td><td>Farah Khan</td><td>MBA</td><td>MG201</td><td>7.5</td></tr>
+          <tr><td>22104755</td><td>Farah Khan</td><td>MBA</td><td>MG202</td><td>8.2</td></tr>
+          <tr><td>22104755</td><td>Farah Khan</td><td>MBA</td><td>MG203</td><td>7.9</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h4>الاعتمادات الدالية</h4>
+    <ul>
+      <li>FD1: roll No → student Name, programme.</li>
+      <li>FD2: course Code → course Name, credits, instructor ID.</li>
+      <li>FD3: instructor ID → instructor Name.</li>
+      <li>FD4: (roll No, course Code) → grade.</li>
+    </ul>
+    <h4>الصيغة النظامية الثانية</h4>
+    <p>(roll No, course Code) هو المفتاح المركب. الأعمدة التي تعتمد على جزء منه فقط تخرج.</p>
+    <ul>
+      <li><span class="term">STUDENT (roll No PK, student Name, programme)</span> — FD1.</li>
+      <li><span class="term">COURSE (course Code PK, course Name, credits, instructor ID)</span> — FD2.</li>
+      <li><span class="term">RESULT (roll No FK, course Code FK, grade)</span> — FD4. رقم القيد يشير إلى STUDENT. رمز المقرر يشير إلى COURSE.</li>
+    </ul>
+    <div class="table-wrap">
+      <table>
+        <caption>STUDENT</caption>
+        <thead><tr><th>Roll No</th><th>Student Name</th><th>programme</th></tr></thead>
+        <tbody>
+          <tr><td>22104567</td><td>Ananya Sharma</td><td>BTech CSE</td></tr>
+          <tr><td>22104612</td><td>Rajat Mehta</td><td>BTech ECE</td></tr>
+          <tr><td>22104755</td><td>Farah Khan</td><td>MBA</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>COURSE قبل إزالة اسم المدرس</caption>
+        <thead><tr><th>Course Code</th><th>Course Name</th><th>credits</th><th>Instructor ID</th></tr></thead>
+        <tbody>
+          <tr><td>CS101</td><td>Intro to CS</td><td>4</td><td>I01</td></tr>
+          <tr><td>MA102</td><td>Calculus I</td><td>3</td><td>I02</td></tr>
+          <tr><td>EC101</td><td>Basic Electronics</td><td>4</td><td>I03</td></tr>
+          <tr><td>MG201</td><td>Management 101</td><td>3</td><td>I04</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>INSTRUCTOR</caption>
+        <thead><tr><th>Instructor ID</th><th>Instructor Name</th></tr></thead>
+        <tbody>
+          <tr><td>I01</td><td>Dr Rao</td></tr>
+          <tr><td>I02</td><td>Prof Gupta</td></tr>
+          <tr><td>I03</td><td>Dr Khan</td></tr>
+          <tr><td>I04</td><td>Dr Sen</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>RESULT — الملاحظات تعرض صفوف الدرجات الأربعة الأولى بعد التقسيم</caption>
+        <thead><tr><th>Roll No</th><th>Course Code</th><th>grade</th></tr></thead>
+        <tbody>
+          <tr><td>22104567</td><td>CS101</td><td>8.5</td></tr>
+          <tr><td>22104567</td><td>MA102</td><td>7.0</td></tr>
+          <tr><td>22104612</td><td>EC101</td><td>8.0</td></tr>
+          <tr><td>22104755</td><td>MG201</td><td>7.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>بعد وجود INSTRUCTOR، كل عمود غير مفتاح في كل جدول يعتمد على المفتاح الأولي كله لذلك الجدول. مقررا Farah اللاحقان (MG202 وMG203) يتبعان نمط RESULT نفسه مثل MG201.</p>
+    <h4>الصيغة النظامية الثالثة</h4>
+    <p>FD3 متعدٍ: instructor ID → instructor Name، والاثنان موجودان في COURSE، فاسم المدرس يعتمد على رمز المقرر عن طريق معرّف المدرس فقط. أزل الاعتماد المتعدي.</p>
+    <ul>
+      <li><span class="term">INSTRUCTOR (instructor ID PK, instructor Name)</span></li>
+      <li>COURSE يسقط اسم المدرس ويبقي instructor ID مفتاحًا أجنبيًا.</li>
+    </ul>
+    <div class="table-wrap">
+      <table>
+        <caption>COURSE في 3NF</caption>
+        <thead><tr><th>Course Code</th><th>Course Name</th><th>credits</th><th>Instructor ID</th></tr></thead>
+        <tbody>
+          <tr><td>CS101</td><td>Intro to CS</td><td>4</td><td>I01</td></tr>
+          <tr><td>MA102</td><td>Calculus I</td><td>3</td><td>I02</td></tr>
+          <tr><td>EC101</td><td>Basic Electronics</td><td>4</td><td>I03</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>الجداول الأربعة الآن في 3NF. MG201 يبقى على شكل COURSE نفسه، مع المدرس I04.</p>
+    <h4>صيغة Boyce–Codd</h4>
+    <p>القاعدة: في كل اعتماد دالي X → Y يجب أن يكون X نفسه مفتاحًا مرشحًا.</p>
+    <p>تحت قاعدة الكلية المعتادة — مدرس واحد يدرّس مقررات كثيرة — كل اعتماد يساره مفتاح مرشح أصلًا، فالمخطط في BCNF.</p>
+    <p>لو اشترطت الكلية أن «المدرس يدرّس مقررًا واحدًا بالضبط» (instructor ID → course Code) لانكسر BCNF. الحل جدول ارتباطي <span class="term">TEACHES (instructor ID, course Code)</span> حتى يحقق الجدولان الناتجان BCNF.</p>
+    <p>مجموعة BCNF النهائية لقاعدة «مدرس واحد، مقررات كثيرة»:</p>
+    <ul>
+      <li><span class="term">STUDENT (roll No PK, student Name, programme)</span></li>
+      <li><span class="term">INSTRUCTOR (instructor ID PK, instructor Name)</span></li>
+      <li><span class="term">COURSE (course Code PK, course Name, credits, instructor ID FK)</span></li>
+      <li><span class="term">RESULT (roll No FK, course Code FK, grade)</span> والمفتاح الأولي هو roll No + course Code</li>
+    </ul>
+    <p>الربط دون فقد. الدرجة تبقى مربوطة بالطالب والمقرر، والمدرس يبقى مربوطًا بالمقرر، من دون إعادة خياطة الجداول عند كل تحديث.</p>
+  </section>
+
+  <section id="s9">
+    <div class="sec-head"><span class="num">09</span><h2>إلغاء التطبيع</h2></div>
+    <p>يضيف إلغاء التطبيع تكرارًا مضبوطًا عن قصد حتى تتجاوز الاستعلامات الشائعة الربط المكلف. الجداول المطبَّعة تبقى مصدر الحقيقة.</p>
+    <ol class="plain">
+      <li>دمج الجداول المطبَّعة رأسيًا (جداول أقل).</li>
+      <li>إضافة أعمدة مشتقة أفقيًا (قيم محسوبة مسبقًا).</li>
+      <li>إنشاء منظورات مادية (نتائج استعلام محفوظة).</li>
+    </ol>
+    <h3>متى يفيد</h3>
+    <div class="cards">
+      <article class="card"><h3>قراءة كثيفة وكتابة خفيفة</h3><p>لوحة التوظيف تعرض المعدل الحالي كثيرًا، وتحدّثه مرة في الفصل. تخطي ربط STUDENT وRESULT عند كل تحميل صفحة يستحق نسخة مخزنة.</p></article>
+      <article class="card"><h3>تجميعات تُستخدم مرارًا</h3><p>المقصف يطبع فاتورة شهرية من تمريرات يومية، ثم يعيد استخدام المجموع طوال الشهر. تخزين المجموع مسبقًا يوفر ثلاثين عملية جمع يومية.</p></article>
+      <article class="card"><h3>مخطط نجمي للتقارير</h3><p>تقرير NAAC السنوي يريد الطالب والمقرر والبرنامج في استعلام واحد. جدول أعرض يجعل استعلام التحليل أبسط وأسرع.</p></article>
+    </div>
+    <p>الدوافع المعتادة: السرعة، وكود أبسط، وتحليل أسهل، أو شبكة بطيئة بين الخوادم.</p>
+    <h3>أرقام المقايضة</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>المقياس</th><th>مطبَّع</th><th>غير مطبَّع</th><th>الأثر</th></tr></thead>
+        <tbody>
+          <tr><td>أداء القراءة</td><td>100 مللي ثانية لكل ربط</td><td>10 مللي ثانية لجدول مسطح</td><td>أسرع 10 مرات</td></tr>
+          <tr><td>أداء الكتابة</td><td>5 مللي ثانية</td><td>20 مللي ثانية مع المزامنة</td><td>أبطأ 4 مرات</td></tr>
+          <tr><td>التخزين</td><td>100 جيجابايت</td><td>150–300 جيجابايت</td><td>+50–200%</td></tr>
+          <tr><td>الاتساق</td><td>فوري</td><td>لاحق (دفعة)</td><td>خطر نسخ قديمة</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>المزايا:</strong> ربط أقل، وSELECT أسرع، واستعلامات تقارير أبسط، واستهلاك معالج أقل على خادم مشغول.</p>
+    <p><strong>العيوب:</strong> البيانات المكررة تستهلك التخزين، والأعمدة الزائدة قد تتقادم (شذوذات تحديث)، والمشغلات أو مهام الدفعات يجب أن تبقي النسخ متزامنة.</p>
+    <p>لا تلغِ التطبيع إلا بعد أن تقيس وتجد أن الربط هو عنق الزجاجة فعلًا.</p>
+    <h3>من BCNF إلى RESULT_FLAT</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الجدول</th><th>المفتاح</th></tr></thead>
+        <tbody>
+          <tr><td>STUDENT</td><td>Roll No PK</td></tr>
+          <tr><td>COURSE</td><td>Course Code PK</td></tr>
+          <tr><td>INSTRUCTOR</td><td>Instructor ID PK</td></tr>
+          <tr><td>RESULT</td><td>Roll No + course Code PK</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>في موسم النتائج يجب أن يعرض قسم الامتحان رقم القيد والاسم والبرنامج واسم المقرر والساعات واسم المدرس والدرجة لخمسة آلاف طالب كل ساعة.</p>
+    <aside class="example"><h4>نقطة الألم</h4><p>التقرير يربط STUDENT × RESULT × COURSE × INSTRUCTOR. بنحو 20 مللي ثانية للصف × 5000 صف، يصبح ذلك 100 ثانية.</p></aside>
+    <p>أُنشئ <span class="term">RESULT_FLAT</span> ويُحدَّث ليلًا. الحقول المكررة: اسم الطالب والبرنامج واسم المقرر والساعات واسم المدرس. التقرير الساعي يصبح مسحًا لجدول واحد.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Roll No</th><th>Student Name</th><th>programme</th><th>Course Code</th><th>Course Name</th><th>credits</th><th>Instructor Name</th><th>grade</th></tr></thead>
+        <tbody><tr><td>22104567</td><td>Ananya Sharma</td><td>BTech CSE</td><td>CS101</td><td>Intro to CS</td><td>4</td><td>Dr Rao</td><td>8.5</td></tr></tbody>
+      </table>
+    </div>
+    <h3>رصيد المقصف المحسوب مسبقًا</h3>
+    <p>المجموعة المطبَّعة: <span class="term">SWIPE (student ID, date, amount)</span> — آلاف الصفوف في الشهر — و<span class="term">STUDENT (student ID, name, programme)</span>.</p>
+    <p>جدول مساعد: <span class="term">MESS_BALANCE (student ID PK, month, total amount)</span>. الكشك يقرأ الرصيد بدل جمع كل تمريرة في اللحظة.</p>
+    <h3>استخدام آمن</h3>
+    <ul>
+      <li>قِس أولًا. استخدم EXPLAIN وانظر إلى أزمنة الاستعلام الحقيقية.</li>
+      <li>المس المسارات الساخنة فقط. أبقِ الباقي مطبَّعًا.</li>
+      <li>حدّث تلقائيًا: مشغلات، أو منظورات مادية، أو مزامنة ليلية.</li>
+      <li>وثّق أي الحقول نسخ وأي جدول يملك الحقيقة.</li>
+      <li>أبقِ خطة تراجع إذا خرج التخزين أو تكلفة التحديث عن السيطرة.</li>
+    </ul>
+  </section>
+
+  <section id="s10">
+    <div class="sec-head"><span class="num">10</span><h2>المعاملات والتزامن</h2></div>
+    <p>المعاملة عمل صغير مكتمل تعامله قاعدة البيانات كطرد واحد. مثل طرد مسجّل: المندوب يسلّم الطرد كله أو يعيده، ولا يسلّم نصفه.</p>
+    <aside class="example"><h4>نشر النتيجة</h4><p>ثلاث خطوات تنتمي معًا: إدراج الدرجة الجديدة لكل مادة، وإعادة حساب كل معدل، وضبط «النتيجة منشورة = نعم». إذا انقطع الكهرباء بعد الخطوة 1، تتراجع القاعدة عن الخطوة 1 أيضًا، فلا تتناقض الدرجات مع المعدل.</p></aside>
+    <h3>ACID</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الخاصية</th><th>الوعد</th><th>ما تغطيه</th><th>سيناريو</th></tr></thead>
+        <tbody>
+          <tr><td>Atomicity</td><td>الكل أو لا شيء.</td><td>المعاملة كلها تنجح أو تفشل معًا، بما في ذلك الانهيار ومخالفة القيود والإقفال المميت.</td><td>ينقطع الكهرباء أثناء دفع الرسوم. لا يُحدَّث أي حساب. السجل يظهر المحاولة.</td></tr>
+          <tr><td>Consistency</td><td>قواعد القاعدة تبقى صحيحة.</td><td>المفاتيح الأولية والأجنبية وقيود CHECK صالحة قبل وبعد، حتى لو عملت عدة معاملات معًا أو فشل النظام في المنتصف.</td><td>نقل الطالب يحفظ حصص الأقسام. لا يوجد طالب بلا قسم.</td></tr>
+          <tr><td>Isolation</td><td>المعاملات لا تتداخل.</td><td>مستويات عزل من Read Uncommitted حتى Serializable، وكل مستوى يمنع مجموعة معروفة من الشذوذات.</td><td>أستاذان يصححان الورقة نفسها. Serializable يجعل أحدهما ينتظر. Read Committed قد يُظهر حالة وسطى.</td></tr>
+          <tr><td>Durability</td><td>العمل المثبت يبقى بعد الانهيار.</td><td>تسجيل الكتابة المسبقة WAL، والنسخ المتزامن، والتحقق بالمجموع الاختباري.</td><td>بعد الانهيار تُسترجع الدرجات من WAL. لا تضيع أي تسليمة.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>المزايا:</strong> تبقى البيانات صحيحة، والاسترجاع يصل إلى آخر تثبيت، ويستطيع مستخدمون كثيرون تشغيل المعاملات معًا بأمان.</p>
+    <p><strong>العيوب:</strong> التسجيل والإقفال يضيفان تكلفة، والمحرك أصعب في البناء، وACID الصارم عبر خوادم كثيرة يحتاج إلى إجماع موزع.</p>
+    <h3>دورة الحياة</h3>
+    <div class="steps">
+      <div class="step"><span class="tag">ACTIVE</span><p>جمل SQL تعمل.</p></div>
+      <div class="step"><span class="tag">PARTIALLY COMMITTED</span><p>انتهت الجملة الأخيرة. القاعدة تفرغ سجلات السجل.</p></div>
+      <div class="step"><span class="tag">COMMITTED</span><p>وصلت رسالة النجاح إلى المستخدم. العمل دائم.</p></div>
+      <div class="step"><span class="tag">ABORTED</span><p>حدث خطأ. تتراجع القاعدة عن كل تغيير وتعود إلى الحالة الأصلية.</p></div>
+    </div>
+    <h3>الجداول الزمنية</h3>
+    <div class="cards">
+      <article class="card"><h3>تسلسلي</h3><p>تُشغَّل المعاملة 1 كاملة ثم المعاملة 2. آمن دائمًا. المستخدمون ينتظرون أطول لأن لا شيء يتداخل.</p></article>
+      <article class="card"><h3>متداخل</h3><p>تُخلط الخطوات: T1 ثم T2 ثم T1 وهكذا. استخدام أفضل للمعالج، وأسرع لكثير من المستخدمين. تلزم قواعد حتى تبقى النتيجة مطابقة لترتيب تسلسلي ما.</p></article>
+    </div>
+    <p>الجدول <strong>القابل للتسلسل</strong> تداخل آمن: النتيجة النهائية تطابق تنفيذًا تسلسليًا ما.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>النوع</th><th>الاختبار</th><th>مثال</th></tr></thead>
+        <tbody>
+          <tr><td>قابل للتسلسل بالتعارض</td><td>ابنِ بيان أسبقية لمن يستخدم البيانات نفسها. غياب الدورة يعني أن الجدول آمن.</td><td>T1 يكتب معدلًا وT2 يقرأه لاحقًا. الحافة T1 ← T2. غياب الحلقة يعني الأمان.</td></tr>
+          <tr><td>قابل للتسلسل بالمنظور</td><td>القيم النهائية نفسها وبيانات «أول قراءة» نفسها كما في تشغيل تسلسلي. هذا أوسع من تسلسل التعارض. الكتابة العمياء (كتابة من دون قراءة سابقة) قد تنجح هنا.</td><td>الدرجات والحضور ينتهيان مطابقين لتشغيل تسلسلي ما، حتى لو كانت العمليات المفردة غير تبادلية.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>سلّم قابلية الاسترجاع</h3>
+    <p>القابلية للتسلسل تقرر الترتيب. قابلية الاسترجاع تقرر متى يجوز للمعاملة أن تُثبَّت. الصرامة تعني «لا تلمس بياناتي حتى أنتهي».</p>
+    <ul>
+      <li><strong>قابل للاسترجاع.</strong> إذا قرأ T2 بيانات كتبها T1، فلا يجوز لـ T2 أن يُثبَّت إلا بعد تثبيت T1. وإلا اعتمد T2 على بيانات قد تتراجع.</li>
+      <li><strong>متسلسل الإلغاء.</strong> قراءة البيانات غير المثبتة مسموحة. إذا أُلغي T1، وجب إلغاء كل T2 وT3 لمس كتابة T1 القذرة — أثر الدومينو.</li>
+      <li><strong>بلا تسلسل إلغاء (ACA).</strong> لا تقرأ المعاملة إلا بيانات مثبتة. لا دومينو إلغاءات، لكن معاملة أخرى قد تكتب فوق بيانات غير مثبتة.</li>
+      <li><strong>صارم.</strong> لا أحد يقرأ أو يكتب قيمة غيّرها T1 حتى يُثبَّت T1 أو يُلغى. لا قراءات قذرة ولا كتابات قذرة. معظم الأنظمة الحقيقية تحصل على هذا من الإقفال ثنائي الطور الصارم S2PL.</li>
+      <li><strong>غير قابل للاسترجاع — تجنّبه.</strong> يقرأ T2 قيمة T1 غير المثبتة ثم يُثبَّت قبل T1. إذا أُلغي T1 لاحقًا علقت بيانات T2 السيئة. كلمة الامتحان: تثبيت قذر.</li>
+    </ul>
+    <h3>مستويات العزل</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>المستوى</th><th>الآلية</th><th>نطاق القفل</th><th>ما يُمنع</th></tr></thead>
+        <tbody>
+          <tr><td>Read Uncommitted</td><td>بلا أقفال قراءة</td><td>مستوى الصف</td><td>لا شيء</td></tr>
+          <tr><td>Read Committed</td><td>أقفال مشتركة عند القراءة</td><td>مستوى الصف</td><td>القراءة القذرة</td></tr>
+          <tr><td>Repeatable Read</td><td>أقفال مشتركة تُمسك</td><td>الصف والفهرس</td><td>القراءة القذرة والقراءة غير المتكررة</td></tr>
+          <tr><td>Serializable</td><td>أقفال مجال</td><td>المحمول</td><td>تلك، مع القراءة الشبحية</td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre class="sql">-- Set per-transaction isolation
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+UPDATE grades SET score = 85 WHERE student_id = 101;
+COMMIT;</pre>
+    <p>العزل الأقوى يعني أمانًا أكثر وإقفالًا أكثر وكتابة أبطأ.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الاختيار</th><th>السبب</th><th>الصورة</th></tr></thead>
+        <tbody>
+          <tr><td>أعلى (Serializable)</td><td>تبقى البيانات صحيحة، لكن الأقفال تُمسك أطول.</td><td>يُخدم طالب واحد في كل مرة، فيتحرك الطابور ببطء.</td></tr>
+          <tr><td>أدنى (Read Committed)</td><td>الجميع يعمل أسرع، مع احتمال تناقضات صغيرة.</td><td>يفتح المقصف منفذين. الطعام أسرع، وقد تُحسب السمبوسة نفسها على شخصين قبل أن يلاحظ الموظفون.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>المزايا:</strong> يعمل أشخاص أكثر معًا، والتطبيقات الحرجة تختار قواعد أصرم، ويسهل تجنب القراءات القذرة وغير المتكررة والشبحية، ويمكن ضبط المستوى لكل معاملة.</p>
+    <p><strong>العيوب:</strong> معالج إضافي للأقفال والنسخ، وتزامن أقل عند Serializable، وبعض قواعد السحابة تتخطى Repeatable Read، وعلى المطور أن يختار المستوى لكل وحدة.</p>
+    <h3>ثلاثة شذوذات، بنسخة السكن</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الظاهرة</th><th>ما يحدث</th><th>لفتة السكن</th></tr></thead>
+        <tbody>
+          <tr><td>قراءة قذرة</td><td>يغيّر T1 الرسوم ولم يُثبَّت بعد. يقرأ T2 التغيير. إذا تراجع T1 فقد رأى T2 بيانات زائفة.</td><td>يضبط طالب أكبر فاتورة المقصف = 0 أثناء الاختبار. تنظر قبل التراجع وتغادر وأنت تظن أنك لا تدين بشيء.</td></tr>
+          <tr><td>قراءة غير متكررة</td><td>يقرأ T1 صفًا مرتين. يثبّت T2 تحديثًا بين القراءتين، فتختلف القيمة.</td><td>في العاشرة صباحًا تظهر القائمة الغرفة 101. بعد الغداء ينقلك المشرف إلى 202. في الثانية تظهر القائمة 202.</td></tr>
+          <tr><td>قراءة شبحية</td><td>يختار T1 صفوفًا بشرط. يدرج T2 صفًا جديدًا يطابق الشرط ويثبّته. إعادة تشغيل T1 تظهر صفًا زائدًا.</td><td>تسرد الطلاب ذوي حضور 85% فأكثر لتخطيط رحلة. وأنت تحجز الحافلة، يُكمل صديقان المتأخرات فيظهران عند التحديث.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>اختبار التسلسل بالتعارض</h3>
+    <p>القابلية للتسلسل تعني أن المعاملات المتزامنة تترك القاعدة كما لو أنها نُفذت واحدة بعد الأخرى بترتيب ما.</p>
+    <ol class="plain">
+      <li>ارسم عقدة لكل معاملة.</li>
+      <li>ارسم سهمًا Ti → Tj حين يكتب Ti صفًا ويقرأ Tj أو يكتب الصف نفسه لاحقًا.</li>
+      <li>إذا خلا البيان من الحلقات فالجدول آمن.</li>
+    </ol>
+    <aside class="example"><h4>درجة Ananya</h4><p>T1 يكتب الدرجة. T2 يقرأها لاحقًا. سهم من T1 إلى T2 من دون مسار عائد يعني أنه لا توجد حلقة.</p></aside>
+    <h3>لماذا نضبط التزامن</h3>
+    <p>يوم النتائج يضرب الأساتذة والطلاب وموظفو التوظيف القاعدة معًا. من دون ضبط قد يقرؤون بيانات نصف محدَّثة، أو يكتب بعضهم فوق بعض، أو يقع إقفال مميت. القواعد تبقي البيانات آمنة والنظام سريعًا.</p>
+    <ul>
+      <li>المصارف: الإيداع والسحب يبقيان دقيقين مع الوصول المتزامن.</li>
+      <li>التجارة الإلكترونية: لا حجز مزدوج ولا أخطاء مخزون.</li>
+      <li>التواصل الاجتماعي: بيانات متسقة بينما يتفاعل كثيرون معًا.</li>
+      <li>الحجوزات: التوافر يبقى دقيقًا ويُمنع الحجز الزائد.</li>
+    </ul>
+    <h3>التقنيات</h3>
+    <div class="cards">
+      <article class="card"><h3>الإقفال</h3><p>القفل المشترك S يتيح لكثير من المعاملات القراءة، ويمنع الكتابة. القفل الحصري X يتيح لمعاملة واحدة القراءة والكتابة، والباقون ينتظرون.</p></article>
+      <article class="card"><h3>الإقفال ثنائي الطور 2PL</h3><p>طور النمو: خذ كل قفل تحتاجه. طور الانكماش: أطلق الأقفال ولا تأخذ قفلًا جديدًا. عدم أخذ قفل بعد إطلاق قفل يضمن القابلية للتسلسل. 2PL الصارم يمسك الأقفال حتى التثبيت أو الإلغاء.</p><p>يأخذ الأستاذ T1 قفلًا حصريًا على (القيد 22104567، CS101) ليغيّر الدرجة. يطلب مكتب التوظيف T2 قفلًا مشتركًا على الصف نفسه وينتظر حتى يثبّت T1، ثم يقرأ الدرجة النهائية.</p></article>
+      <article class="card"><h3>ترتيب الطوابع الزمنية</h3><p>كل معاملة تحصل على طابع زمني عند البدء. إذا تنازعت معاملتان على صف، يفوز الطابع الأقدم، والأحدث ينتظر أو يتراجع. هذا يناسب قراءات كثيرة وكتابات قليلة، مثل طلاب يحدّثون RESULT_FLAT بينما نادرًا ما يحدّث الأساتذة الدرجات.</p></article>
+      <article class="card"><h3>التحكم المتفائل</h3><p>افترض أن التصادم نادر. المعاملات تقرأ بلا أقفال. عند التثبيت تفحص القاعدة التعارض، وإذا وجدته تتراجع معاملة لتعيد التشغيل. يناسب التقارير كثيفة القراءة التي تتغير نادرًا.</p></article>
+    </div>
+    <h3>سباق البيانات والإقفال المميت وlock_timeout</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>سباق البيانات</h3>
+        <p>معاملتان تلمسان البيانات نفسها، والنتيجة النهائية تعتمد على أيهما حدث أولًا. من دون قفل أو فحص للنسخة، قد يمسح تحديث التحديث الآخر.</p>
+        <p>موظفا رسوم يقرأان رصيدًا قدره 1000 ويطرح كل منهما 200. كل واحد يكتب 800. تضيع دفعة. القفل يجعل الثاني ينتظر، ثم يطرح من 800.</p>
+      </article>
+      <article class="card">
+        <h3>الإقفال المميت</h3>
+        <p>حلقة انتظار. T1 يمسك صف درجة Ananya وينتظر صف رسومها. T2 يمسك صف الرسوم وينتظر صف الدرجة. لا يتحرك أي منهما.</p>
+        <p>يبحث DBMS عن هذه الحلقة. بعد <span class="term">deadlock_timeout</span> (غالبًا نحو ثانية) يلغي معاملة واحدة، الضحية، ويترك الأخرى تكمل. يمكن إعادة محاولة المعاملة الملغاة.</p>
+      </article>
+      <article class="card">
+        <h3>lock_timeout</h3>
+        <p>كم تنتظر جملة واحدة حتى تحصل على قفل قبل أن تستسلم. الانتظار قد يطول حتى من دون حلقة، لأن المعاملة الأخرى ما زالت تعمل.</p>
+        <p><span class="term">deadlock_timeout</span> يقرر متى نبحث عن حلقة انتظار. <span class="term">lock_timeout</span> يقرر متى نتوقف عن الانتظار أصلًا. مهلة القفل قد تنطلق بينما معاملة واحدة فقط تمسك الصف.</p>
+      </article>
+    </div>
+<pre class="sql">SET lock_timeout = '2s';
+UPDATE marks
+SET grade = 9.1
+WHERE roll_no = 22104567;</pre>
+    <p>إذا بقي صف الدرجة مقفلًا بعد ثانيتين، يتوقف UPDATE بخطأ مهلة قفل بدل أن يظل منتظرًا.</p>
+    <h3>الاسترجاع</h3>
+    <p>يعيد الاسترجاع القاعدة بعد انهيار أو عطل برمجي أو خطأ بشري، حتى يعمل القبول ونتائج الامتحان من جديد.</p>
+    <p>أنواع الفشل: معاملة واحدة (خطأ منطقي أو قيد)، أو النظام كله، أو وسيط التخزين، أو كارثة طبيعية.</p>
+    <div class="cards">
+      <article class="card"><h3>النسخ والاستعادة</h3><p>نسخ منتظمة من القاعدة. يمكن تحميل نسخ الحضور اليومية إذا انهار النظام الحي.</p></article>
+      <article class="card"><h3>الاسترجاع بالسجل</h3><p>سجل لكل عملية. سجل بوابة الرسوم إما يُكمل الدفعة أو يلغيها، فلا يتكرر شيء ولا يضيع.</p></article>
+      <article class="card"><h3>صفحات الظل</h3><p>توجد صفحة احتياطية بينما تُكتب الصفحة الجديدة. تحديث الملف الشخصي يبقي النسخة المتسقة القديمة حتى تُحفظ الجديدة.</p></article>
+      <article class="card"><h3>نقطة التحقق</h3><p>لقطة في وقت معروف. تسجيل المقررات المحفوظ كل 15 دقيقة لا يعيد إلا آخر 15 دقيقة بعد الانهيار.</p></article>
+      <article class="card"><h3>التراجع والإعادة للأمام</h3><p>التراجع يلغي العمل غير المثبت. الإعادة للأمام تعيد تطبيق العمليات المثبتة من السجل. استمارة منحة تفشل في المنتصف تُتراجع، وبعد الإصلاح تُعاد الطلبات الناجحة إلى الأمام.</p></article>
+    </div>
+    <ul>
+      <li>انسخ كثيرًا، واحفظ نسخة خارج الموقع (بيانات القبول على خادم سحابي خارج الحرم).</li>
+      <li>تدرّب على الاستعادة حتى تعرف أنها تعمل.</li>
+      <li>اجعل الاسترجاع آليًا حتى تقل الخطوات التي تعتمد على شخص.</li>
+    </ul>
+    <aside class="note"><p>كثير من أنظمة DBMS تقدم أيضًا <strong>عزل اللقطة</strong> snapshot isolation و<strong>MVCC</strong> (التحكم بالتزامن متعدد النسخ). كل قارئ يرى لقطة متسقة، فيقل إيقاف القراء والكتّاب بعضهم لبعض.</p></aside>
+  </section>
+
+  <section id="s11">
+    <div class="sec-head"><span class="num">11</span><h2>أوامر SQL</h2></div>
+    <h3>أربع عائلات</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>العائلة</th><th>العمل</th><th>تشمل أيضًا</th></tr></thead>
+        <tbody>
+          <tr><td>DDL — تعريف البيانات</td><td>تشكيل الجداول. تغيير المخطط بأمان المعاملات.</td><td>TRUNCATE وRENAME وCOMMENT</td></tr>
+          <tr><td>DML — معالجة البيانات</td><td>إضافة الصفوف أو تغييرها. بعض اللهجات تعيد الصفوف المتأثرة.</td><td>MERGE وRETURNING</td></tr>
+          <tr><td>DCL — التحكم في البيانات</td><td>منح الوصول وسحبه، بما فيه الصلاحيات الدقيقة.</td><td>DENY في SQL Server</td></tr>
+          <tr><td>TCL — التحكم في المعاملات</td><td>حفظ العمل أو التراجع عنه، وضبط حدود المعاملة.</td><td>SAVEPOINT وSET TRANSACTION</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>INSERT وUPDATE وDELETE وSELECT وALTER</h3>
+<pre class="sql">INSERT INTO STUDENT (roll_no, name, programme)
+VALUES (22105123, 'Nisha Verma', 'BTech ECE');</pre>
+<pre class="sql">UPDATE MARKS
+SET grade = 9.1
+WHERE rollNo = 22104567 AND courseCode = 'CS101';</pre>
+<pre class="sql">DELETE FROM STUDENT
+WHERE roll_no = 22109999;
+-- Student left the college</pre>
+<pre class="sql">SELECT rollNo, name
+FROM STUDENT
+WHERE programme = 'MBA';</pre>
+<pre class="sql">ALTER TABLE STUDENT
+ADD COLUMN phoneNo CHAR(10);</pre>
+    <h3>العوامل والتجميعات</h3>
+    <p>العوامل تعمل صفًا صفًا: تقارن أو تحسب أو تجمع الشروط. التجميعات تمسح صفوفًا كثيرة وتعيد رقمًا ملخصًا واحدًا.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الفئة</th><th>العوامل</th><th>وأيضًا</th><th>التعامل مع NULL</th></tr></thead>
+        <tbody>
+          <tr><td>حسابية</td><td>+ − * /</td><td>% (باقي) و^ (أس)</td><td>COALESCE(mark, 0) + 5</td></tr>
+          <tr><td>مقارنة</td><td>= &lt;&gt; &gt; &lt;</td><td>&lt;=&gt; (مساواة آمنة مع NULL) وIS DISTINCT FROM</td><td>WHERE grade IS NOT NULL</td></tr>
+          <tr><td>منطقية</td><td>AND OR NOT</td><td>ANY وALL وBETWEEN</td><td>WHERE COALESCE(attendance, 0) &gt; 75</td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre class="sql">SELECT score + 5 AS new_score
+FROM EXAM
+WHERE rollNo = 22104567;</pre>
+<pre class="sql">SELECT rollNo, name
+FROM EXAM
+WHERE score &gt; 90 AND programme = 'CSE';</pre>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الدالة</th><th>تعيد</th><th>السؤال الذي تجيب عنه</th></tr></thead>
+        <tbody>
+          <tr><td>COUNT(*)</td><td>عدد الصفوف</td><td>كم طالبًا أدى الامتحان؟</td></tr>
+          <tr><td>SUM(col)</td><td>مجموع عمود</td><td>ما مجموع فاتورة المقصف هذا الشهر؟</td></tr>
+          <tr><td>AVG(col)</td><td>المتوسط</td><td>ما متوسط المعدل في تقنية المعلومات؟</td></tr>
+          <tr><td>MAX(col)</td><td>أعلى قيمة</td><td>من صاحب أعلى معدل؟</td></tr>
+          <tr><td>MIN(col)</td><td>أدنى قيمة</td><td>ما أدنى نسبة حضور؟</td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre class="sql">SELECT COUNT(*) AS total_students FROM STUDENT;</pre>
+<pre class="sql">SELECT SUM(amount) AS total_sales
+FROM CANTEEN_SALES
+WHERE saleDate &gt;= '2025-05-01' AND saleDate &lt;= '2025-05-31';</pre>
+<pre class="sql">SELECT AVG(CGPA) AS avg_IT_cgpa
+FROM STUDENT
+WHERE programme = 'IT';</pre>
+<pre class="sql">SELECT MAX(totalFee) AS max_fee, MIN(totalFee) AS min_fee
+FROM HOSTEL_ACCOUNTS;</pre>
+    <p>استخدم عوامل الصف للترشيح (<span class="term">WHERE salary &gt; 5000</span>)، أو للحساب داخل الصف (<span class="term">price * quantity AS lineTotal</span>)، أو لجمع الشروط. استخدم التجميع لرقم واحد: مجموع الطلاب، أو متوسط الدرجات حسب المقرر (<span class="term">GROUP BY courseCode</span>)، أو أعلى معدل.</p>
+    <h3>ترتيب الجمل</h3>
+<pre class="sql">SELECT column_list
+FROM table_name
+WHERE filter_condition          -- row filter
+GROUP BY grouping_columns       -- group rows
+HAVING group_filter             -- filter groups
+ORDER BY column_list [ASC|DESC] -- sort
+LIMIT count OFFSET start;       -- MySQL / PostgreSQL</pre>
+<pre class="sql">SELECT courseCode, AVG(grade) AS avgGrade
+FROM MARKS
+WHERE semester = 6
+GROUP BY courseCode
+HAVING AVG(grade) &gt;= 8
+ORDER BY avgGrade ASC
+LIMIT 5;</pre>
+    <h3>الربط</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الربط</th><th>الصفوف المبقاة</th><th>نصيحة</th><th>الصيغة</th></tr></thead>
+        <tbody>
+          <tr><td>INNER</td><td>الصفوف المتطابقة فقط</td><td>فهرس الأعمدة في ON.</td><td>ANSI: A JOIN B ON … — الأسلوب الأقدم: FROM A, B WHERE …</td></tr>
+          <tr><td>LEFT</td><td>كل صفوف اليسار مع المطابقات</td><td>WHERE B.key IS NOT NULL يحوّله إلى ربط داخلي.</td><td>LEFT OUTER JOIN</td></tr>
+          <tr><td>RIGHT</td><td>كل صفوف اليمين مع المطابقات</td><td>نادر. أعد كتابته كربط LEFT.</td><td>RIGHT OUTER JOIN</td></tr>
+          <tr><td>FULL</td><td>كل الصفوف من الطرفين</td><td>مكلف. فكّر في UNION ALL لربطين خارجيين.</td><td>FULL OUTER JOIN</td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre class="sql">SELECT s.rollNo, s.name, m.grade
+FROM STUDENT AS s
+INNER JOIN MARKS AS m
+ON s.rollNo = m.rollNo;</pre>
+    <h3>UNION</h3>
+    <p>UNION يكدّس استعلامي SELECT يشتركان في قائمة الأعمدة ويحذف الصفوف المكررة. UNION ALL يبقي التكرار.</p>
+<pre class="sql">-- Girls or MBA students
+SELECT rollNo FROM STUDENT WHERE gender = 'F'
+UNION
+SELECT rollNo FROM STUDENT WHERE programme = 'MBA';</pre>
+    <h3>المنظورات</h3>
+    <p>المنظور جدول افتراضي تأتي صفوفه من استعلام. يخفي ربطًا معقدًا خلف اسم، ويمكن أن يمنح قراءة فقط ضمن RBAC، ويعمل مساعد قراءة غير مطبَّع دون تخزين نسخة ثانية.</p>
+<pre class="sql">CREATE VIEW V_TOPPERS
+AS
+SELECT rollNo, name, CGPA
+FROM STUDENT
+WHERE CGPA &gt;= 9.0;</pre>
+    <h3>الاستعلامات الفرعية</h3>
+    <p><strong>قياسي</strong> — قيمة واحدة. الطلاب الذين يشاركون أعلى معدل:</p>
+<pre class="sql">SELECT name
+FROM STUDENT
+WHERE CGPA = (SELECT MAX(CGPA) FROM STUDENT);</pre>
+    <p><strong>مرتبط</strong> — الاستعلام الداخلي يستخدم عمودًا من الصف الخارجي. الطلاب فوق متوسط مقررهم. MySQL وPostgreSQL يدعمان هذا.</p>
+<pre class="sql">SELECT rollNo, grade
+FROM MARKS AS m
+WHERE grade &gt; (
+  SELECT AVG(grade)
+  FROM MARKS
+  WHERE courseCode = m.courseCode
+);</pre>
+    <p><strong>EXISTS / NOT EXISTS</strong> — اختبار انتماء. <span class="term">SELECT 1</span> يفحص الوجود ولا يعيد بيانات حمولة. الطلاب الذين ليس لهم صف ABSENT:</p>
+<pre class="sql">SELECT rollNo, name
+FROM STUDENT s
+WHERE NOT EXISTS (
+  SELECT 1 FROM ATTENDANCE
+  WHERE rollNo = s.rollNo
+    AND status = 'ABSENT'
+);</pre>
+  </section>
+
+  <section id="s12">
+    <div class="sec-head"><span class="num">12</span><h2>الفهرسة والتحسين والتقسيم</h2></div>
+    <p>الاستعلامات البطيئة تجعل الموقع كله يبدو متلعثمًا. SQL الأسرع يعني صفحات تُفتح أبكر، وخادمًا يعمل أقل، وفاتورة سحابة أصغر.</p>
+    <h3>تقنيات عملية لتسريع SQL</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>النصيحة</th><th>الفكرة</th><th>مثال</th></tr></thead>
+        <tbody>
+          <tr><td>اختر الأعمدة اللازمة فقط</td><td>تجنّب SELECT *.</td><td>كشف التفوق يحتاج رقم القيد والاسم والمعدل، لا أرقام الجوال.</td></tr>
+          <tr><td>رشّح مبكرًا واربط لاحقًا</td><td>ضع WHERE قبل الربط الكبير.</td><td>أبقِ دفعة CSE 2023 أولًا، ثم اربط جدول التوظيف.</td></tr>
+          <tr><td>استخدم الفهارس في الشروط</td><td>ضع الأعمدة المفهرسة في WHERE أو JOIN ON.</td><td>WHERE roll_no = 22104567 يستخدم فهرس المفتاح الأولي. WHERE LOWER(name) لا يستطيع.</td></tr>
+          <tr><td>تجنّب الدوال على الأعمدة المفهرسة</td><td>الدالة تخفي الفهرس.</td><td>WHERE name = 'Ananya' سريع. WHERE UPPER(name) = 'ANANYA' يمسح الجدول.</td></tr>
+          <tr><td>LIMIT / TOP</td><td>اجلب ما تعرضه الشاشة فقط.</td><td>أعلى 10 معدلات: ORDER BY cgpa DESC LIMIT 10.</td></tr>
+          <tr><td>اقرأ الخطة</td><td>دع القاعدة تسمّي الخطوة البطيئة بـ EXPLAIN، أو EXPLAIN ANALYZE إذا احتجت الأزمنة الحقيقية.</td><td>«Seq Scan» إشارة إلى إضافة فهرس أو إصلاحه.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>ANALYZE وEXPLAIN وEXPLAIN ANALYZE</h3>
+    <p>هذه الأوامر الثلاثة هي طريقتك في الحديث مع المخطِّط. أمر <span class="term">ANALYZE</span> ليس مرحلة المحلِّل داخل المحرك. الكلمة واحدة والعملان مختلفان.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الأمر</th><th>ماذا يفعل</th><th>هل يشغّل استعلامك؟</th></tr></thead>
+        <tbody>
+          <tr><td><span class="term">ANALYZE</span></td><td>يعيّن عينة من الجدول ويخزن الإحصاءات: عدد الصفوف، والقيم المميزة، والقيم الأكثر شيوعًا. يقرأ المحسِّن هذه الأرقام حين يحسب تكلفة الخطة.</td><td>يمسح الجدول من أجل الإحصاءات. لا يشغّل SELECT الذي تضبطه.</td></tr>
+          <tr><td><span class="term">EXPLAIN</span></td><td>يطبع الخطة التي اختارها المحسِّن: نوع المسح، ونوع الربط، والتكلفة التقديرية، وعدد الصفوف التقديري. لا يُنفَّذ شيء.</td><td>لا.</td></tr>
+          <tr><td><span class="term">EXPLAIN ANALYZE</span></td><td>يشغّل الاستعلام، ثم يطبع الخطة ومعها الصفوف التقديرية إلى جانب الزمن الفعلي والصفوف الفعلية. استخدمه حين يختلف التقدير عن الواقع.</td><td>نعم. الجملة التي تغيّر البيانات تغيّرها فعلًا إلا إذا لففتها في معاملة ثم تراجعت.</td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre class="sql">ANALYZE staff;
+
+EXPLAIN
+SELECT * FROM staff WHERE division = 'Finance';
+
+EXPLAIN ANALYZE
+SELECT * FROM staff WHERE division = 'Finance';</pre>
+    <h3>محسِّن الاستعلام</h3>
+    <p>المحسِّن هو المخطِّط. لا يشغّل الاستعلام. يحوّل شجرة الاستعلام إلى شجرة خطة واحدة: سلسلة المسوح والروابط التي يظنها الأرخص. إحصاءات قديمة أو فهرس مخفي ينتجان خطة واثقة وبطيئة.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>طريق الجملة قبل أن يعود أي صف</caption>
+        <thead><tr><th>المكوّن</th><th>ماذا يفعل</th></tr></thead>
+        <tbody>
+          <tr><td>المحلِّل النحوي Parser</td><td>يقرأ نص SQL، ويرفض الصيغة الخاطئة، ويبني شجرة إعراب.</td></tr>
+          <tr><td>المحلِّل Analyzer</td><td>يحل أسماء الجداول والأعمدة، ويفحص الأنواع، ويبني شجرة استعلام. هذه المرحلة ليست أمر ANALYZE.</td></tr>
+          <tr><td>معيد الكتابة Rewriter</td><td>يفك المنظورات والقواعد إلى الجداول الحقيقية، فيرى المخطِّط العلاقات الفعلية.</td></tr>
+          <tr><td>المحسِّن Optimizer</td><td>يبني خططًا مرشحة، يحسب تكلفتها، ويبقي شجرة الخطة الأرخص.</td></tr>
+          <tr><td>المنفِّذ Executor</td><td>يشغّل تلك الخطة ويعيد الصفوف. EXPLAIN يتوقف قبل هذه الخطوة. EXPLAIN ANALYZE يدعه يعمل ثم يبلّغ عما حدث.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>داخل المحسِّن</caption>
+        <thead><tr><th>القطعة</th><th>ماذا تفعل</th></tr></thead>
+        <tbody>
+          <tr><td>الإحصاءات</td><td>تعطيه عدد الصفوف والقيم المميزة والقيم الشائعة من آخر ANALYZE. رقم قديم يجعل كل تكلفة بعده خاطئة.</td></tr>
+          <tr><td>نموذج التكلفة</td><td>يحوّل كل مسار إلى رقم: صفحات تُقرأ من القرص، وقراءة عشوائية مقابل متسلسلة، ومعالج لكل صف.</td></tr>
+          <tr><td>مسارات الوصول</td><td>لكل جدول يدرس المسح المتسلسل، ومسح الفهرس، والمسح النقطي، والمسح بالفهرس فقط، ثم يبقي الرخيص منها.</td></tr>
+          <tr><td>مخطِّط الربط</td><td>يختار ترتيب الربط وطريقته: حلقة متداخلة، أو ربط تجزئة، أو ربط دمج.</td></tr>
+          <tr><td>مختار الخطة</td><td>يقارن التكلفة الكلية ويُخرج خطة واحدة. حين تكثر الروابط قد ينتقل إلى بحث جيني (GEQO) بدل تجربة كل ترتيب.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>ما الفهرس ولماذا</h3>
+    <p>الفهرس نسخة صغيرة مرتبة من عمود أو أكثر. تقفز القاعدة إلى الصف بدل مسح الجدول كله، مثل فهرس الكتاب الذي يقفز إلى رقم الصفحة.</p>
+    <h3>أنواع الفهارس</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>النوع</th><th>الفكرة</th><th>مثال</th></tr></thead>
+        <tbody>
+          <tr><td>أولي (عنقودي)</td><td>الجدول نفسه مخزَّن بترتيب المفتاح الأولي.</td><td>STUDENT مخزَّن حسب rollNo.</td></tr>
+          <tr><td>ثانوي (غير عنقودي)</td><td>ملف فهرس منفصل يشير إلى الصفوف. ترتيب الجدول يبقى.</td><td>فهرس على mobileNo ليجد الإداري الطالب بالهاتف.</td></tr>
+          <tr><td>فهرس التجميع</td><td>يقرر الترتيب الفيزيائي للصفوف، وعادة هو المفتاح الأولي. الفهارس الأخرى تشير إلى الصفوف دون إعادة ترتيب الجدول.</td><td>STUDENT بترتيب rollNo، وإلى جانبه فهارس ثانوية.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>طرق فهرسة إضافية</h3>
+    <p>PostgreSQL يختار الطريقة بـ <span class="term">USING</span>. إذا حذفتها فالفهرس B-tree. الفهرس المركب وفهرس التعبير والفهرس الجزئي طرق لبناء الفهرس. أما B-tree وHash وGiST وGIN وBRIN فهي البنى التي تخزنه.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الطريقة</th><th>باختصار</th><th>استخدمها حين</th></tr></thead>
+        <tbody>
+          <tr><td>B-tree</td><td class="short">شجرة مرتبة</td><td>الافتراضي. المساواة والمجالات وORDER BY وLIKE 'Finan%'. معظم المفاتيح الأولية والأجنبية.</td></tr>
+          <tr><td>Hash</td><td class="short">مساواة فقط</td><td>سؤالك فقط «هل هذه القيمة مساوية؟». لا مسح مجال مفيد. B-tree يكفي عادة.</td></tr>
+          <tr><td>GiST</td><td class="short">شجرة لأي نوع</td><td>قيم ليست ترتيبًا بسيطًا: مجالات، وهندسة، ونص كامل. «هل يتداخل هذا الحجز مع تلك الفترة؟»</td></tr>
+          <tr><td>GIN</td><td class="short">فهرس معكوس</td><td>قيم كثيرة داخل صف واحد: مصفوفات، أو مفاتيح jsonb، أو كلمات وثيقة. «أي الصفوف تحتوي هذه الكلمة؟»</td></tr>
+          <tr><td>BRIN</td><td class="short">ملخصات كتل</td><td>جدول ضخم مخزَّن أصلًا بالترتيب، مثل hire_date أو طابع سجل. الفهرس صغير، ويضعف إذا كان العمود عشوائيًا.</td></tr>
+          <tr><td>مركب Composite</td><td class="short">عدة أعمدة</td><td>المرشحات التي تستخدم بادئة من اليسار إلى اليمين. فهرس (division, pay) يساعد WHERE division = 'Finance'، وأيضًا القسم مع الراتب. لا يساعد الراتب وحده.</td></tr>
+          <tr><td>تعبير Expression</td><td class="short">فهرس على الحساب</td><td>الاستعلام يرشّح بدالة. فهرس lower(given_name) حتى يستطيع WHERE lower(given_name) = 'ananya' استخدامه. فهرس عادي على given_name لا يستطيع.</td></tr>
+          <tr><td>جزئي Partial</td><td class="short">بعض الصفوف فقط</td><td>تبحث دائمًا تقريبًا في مجموعة جزئية. فهرس الرسوم غير المدفوعة فقط. يبقى الفهرس صغيرًا، ويُستخدم حين يطابق WHERE في الاستعلام شرط الفهرس.</td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre class="sql">CREATE INDEX idx_roll ON student USING btree (roll_no);
+CREATE INDEX idx_email ON student USING hash (email);
+CREATE INDEX idx_slot ON booking USING gist (period);
+CREATE INDEX idx_tags ON article USING gin (tags);
+CREATE INDEX idx_hired ON staff USING brin (hire_date);
+CREATE INDEX idx_div_pay ON staff (division, pay);
+CREATE INDEX idx_lower_name ON staff (lower(given_name));
+CREATE INDEX idx_unpaid ON fees (student_id) WHERE status = 'UNPAID';</pre>
+    <h3>B-tree وB+-tree</h3>
+    <ul>
+      <li><strong>B-tree:</strong> المفاتيح في العقد الداخلية توجه البحث. الأوراق تحمل المفاتيح ومؤشرات الصفوف.</li>
+      <li><strong>B+-tree</strong> (ما تستخدمه معظم أنظمة DBMS): كل مفتاح يُنسخ إلى الأوراق، والأوراق مربوطة من اليسار إلى اليمين. مجال مثل CGPA BETWEEN 8 AND 9 مشي قصير على هذه السلسلة.</li>
+    </ul>
+    <p>العقد الداخلية كدليل المكتبة الذي يشير إلى الدرج الصحيح. الدرج هو الورقة التي تحمل السجل.</p>
+<pre class="tree">B-tree:                         B+-tree:
+      [Internal]                      [Internal]
+     /    |    \                    /    |    \
+ [Leaf] [Leaf] [Leaf]        [Leaf]→[Leaf]→[Leaf]</pre>
+    <h3>التوسع الرأسي والأفقي</h3>
+    <div class="cards">
+      <article class="card"><h3>رأسي (scale-up)</h3><p>جهاز أكبر: ذاكرة أكثر، وأقراص SSD أسرع، ومعالجات أكثر. مثل إضافة شرائح ذاكرة إلى حاسوب المكتبة.</p></article>
+      <article class="card"><h3>أفقي (scale-out)</h3><p>أجهزة أكثر، والبيانات مقسومة أو منسوخة بينها. مثل فتح ثلاثة مكاتب لدفع الرسوم بدل مكتب واحد.</p></article>
+    </div>
+    <h3>التقسيم Sharding</h3>
+    <p>يقسم sharding قاعدة كبيرة إلى قطع مستقلة أصغر، كل قطعة على مضيفها. البحث يبقى محليًا. سلسلة جامعية تبقي دلهي على Server-A ومومباي على Server-B. استعلام عابر للفروع فقط يلمس الاثنين.</p>
+    <ul>
+      <li><strong>القطعة Shard:</strong> قسم مستقل، مثل سجلات طلاب قسم واحد.</li>
+      <li><strong>مفتاح القطعة:</strong> العمود الذي يقرر الوجهة، مثل Branch.</li>
+      <li><strong>لا شيء مشترك:</strong> كل قطعة تعمل وحدها، بلا قرص أو ذاكرة مشتركة.</li>
+    </ul>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الطريقة</th><th>كيف</th><th>المقايضة</th></tr></thead>
+        <tbody>
+          <tr><td>بالمدى</td><td>أرقام القيد 1–1000 تذهب إلى القطعة 1.</td><td>بسيطة. قد تتراكم البيانات بشكل غير متساوٍ.</td></tr>
+          <tr><td>بالتجزئة</td><td>تجزئة Admission ID تختار الخادم.</td><td>انتشار متساوٍ. إضافة قطعة أو إزالتها تعني نقل بيانات، والتجزئة المتسقة تحد من الكمية.</td></tr>
+          <tr><td>بالدليل</td><td>جدول بحث يربط Course ID بخادم القسم.</td><td>مرن. خريطة خاطئة أو قديمة ترسل الصفوف إلى القطعة الخطأ.</td></tr>
+          <tr><td>جغرافي</td><td>طلاب دلهي يذهبون إلى خادم دلهي، مع تحويل إلى مومباي عند العطل.</td><td>كمون منخفض للقريب. المدن الكثيفة قد تُثقل قطعة واحدة.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>اختر مفتاح قطعة له قيم مميزة كثيرة (cardinality)، وتجنّب مفاتيح قليلة شديدة الشعبية (نقاط ساخنة)، وتجنّب مفتاحًا ينمو في اتجاه واحد فقط، مثل طابع زمني متسلسل، لأن الكتابات الجديدة كلها تهبط على أحدث قطعة.</p>
+    <aside class="example"><h4>مفتاح قطعة سيئ</h4><p>تقسيم التغذية الراجعة حسب «المقررات المنجزة» (11 مقررًا أو أكثر ← القطعة C) يثقل القطعة C كلما تقدم الطلاب.</p></aside>
+    <h3>RBAC</h3>
+    <p>التحكم في الوصول حسب الدور يربط الصلاحيات بالأدوار لا بالأشخاص.</p>
+    <ul>
+      <li>الطالب ← SELECT للدرجات ودفع الرسوم.</li>
+      <li>الأستاذ ← INSERT وUPDATE لدرجات مقرراته.</li>
+      <li>المدير ← كل الصلاحيات.</li>
+    </ul>
+    <p>رقم القيد 22104567 يرث صلاحيات الطالب عند أول دخول. تبقى القواعد قصيرة وسهلة المراجعة.</p>
+    <h3>التشفير</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الطبقة</th><th>ما يُحمى</th><th>مثال</th></tr></thead>
+        <tbody>
+          <tr><td>في السكون</td><td>الملفات على القرص مشفّرة.</td><td>قرص مسروق لا يكشف أرقام الهوية.</td></tr>
+          <tr><td>أثناء النقل</td><td>البيانات مشفّرة على الشبكة.</td><td>بوابة الطالب تستخدم HTTPS، فلا يستطيع المتصنت على الواي فاي قراءة كلمات السر.</td></tr>
+          <tr><td>مستوى العمود</td><td>الأعمدة الحساسة فقط، مثل الحساب البنكي أو رقم الهوية.</td><td>أرقام الحساب مخزنة بـ AES. الاستعلام يفك التشفير عند الحاجة.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>الإخفاء</h3>
+    <p>يستبدل الإخفاء القيم الحساسة ببدائل واقعية ويبقي الصيغة، حتى تكون نسخ الاختبار والتدريب آمنة. هو لنسخ غير الإنتاج.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الأسلوب</th><th>ماذا يفعل</th><th>مثال</th></tr></thead>
+        <tbody>
+          <tr><td>ثابت SDM</td><td>يغيّر النسخة بشكل دائم.</td><td>الأسماء وأرقام الجوال تُخفى في قاعدة الاختبار لبوابة قبول جديدة.</td></tr>
+          <tr><td>ديناميكي DDM</td><td>يخفي في الطريق إلى الخارج. القيمة المخزنة تبقى.</td><td>مكتب المساعدة يرى آخر أربعة أرقام فقط من الحساب البنكي في سجل الرسوم.</td></tr>
+          <tr><td>حتمي</td><td>المدخل نفسه يصبح القناع نفسه دائمًا.</td><td>rollno123@college.edu يُخفى دائمًا إلى masked.student1@college.edu.</td></tr>
+          <tr><td>غير حتمي</td><td>المدخل نفسه قد يصبح قناعًا مختلفًا في كل مرة.</td><td>هاتف ولي الأمر يبدو مختلفًا في كل تقرير داخلي، فيصعب ربط الصفوف. لا تستخدم هذا على أعمدة المفاتيح الأجنبية.</td></tr>
+          <tr><td>حافظ للصيغة</td><td>القناع يبقي الشكل الأصلي.</td><td>رقم الجامعة AB1234567 يبقي حرفين وسبعة أرقام.</td></tr>
+          <tr><td>خلط</td><td>قيم العمود تُعاد ترتيبها.</td><td>درجات الامتحان تنتقل بين الطلاب في مستخرج بحث. تبقى واقعية، ولا تعود تحدد شخصًا.</td></tr>
+          <tr><td>حجب</td><td>يُزال الجزء الحساس من العرض، بخلاف القناع الذي يبقي البنية.</td><td>التاريخ الطبي يُسوَّد قبل أن يفتح المرشد الأكاديمي الملف.</td></tr>
+          <tr><td>تفريغ</td><td>تصبح القيمة SQL NULL.</td><td>الأسماء والعناوين تصبح NULL قبل مشاركة استبيان الرضا مع محللين خارجيين.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>قائمة السرعة والأمان</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>الهدف</th><th>الأداة</th></tr></thead>
+        <tbody>
+          <tr><td>SELECT سريع بالمفتاح الأولي</td><td>فهرس أولي B+-tree</td></tr>
+          <tr><td>مجال سريع من المعدلات</td><td>B+-tree ثانوي على CGPA</td></tr>
+          <tr><td>قراءة عالية وقت النتائج</td><td>RESULT_FLAT غير مطبَّع مع فهارس</td></tr>
+          <tr><td>تدفق مفاجئ للمستخدمين</td><td>نسخة قراءة فقط ثانية (توسع أفقي)</td></tr>
+          <tr><td>فروع مختلفة</td><td>تقسيم على campusID</td></tr>
+          <tr><td>حماية البيانات الحساسة</td><td>أدوار RBAC، وتشفير الأعمدة، وإخفاء في نسخ الاختبار</td></tr>
+          <tr><td>إنتاج كتابة عالٍ</td><td>تجزيء وإدراج بالدفعات</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="s13">
+    <div class="sec-head"><span class="num">13</span><h2>تدريب SQL</h2></div>
+    <p>خمسون استعلامًا بأسلوب المقابلات على مخطط موظفين صغير. كل مهمة هي الطلب بلغة واضحة، وتحته استعلام SQL كما في الملاحظات، مع تنظيف انقطاعات الأسطر حتى يمكن تشغيل الجملة. الكتل تبقى من اليسار إلى اليمين.</p>
+    <div class="schema">
+      <article class="card">
+        <h3><span class="term">staff</span></h3>
+        <p><code>staff_id</code>، <code>given_name</code>، <code>family_name</code>، <code>division</code>، <code>pay</code>، <code>hire_date</code></p>
+      </article>
+      <article class="card">
+        <h3><span class="term">role</span></h3>
+        <p><code>staff_ref_id</code> يشير إلى <code>staff.staff_id</code>، و<code>role_name</code></p>
+      </article>
+      <article class="card">
+        <h3><span class="term">incentive</span></h3>
+        <p><code>staff_ref_id</code> — وجود صف يعني أن هذا الشخص يتلقى مكافأة</p>
+      </article>
+    </div>
+    <div class="query"><p class="task"><b>01.</b> أظهر الاسم الأول لكل موظف، وسمِّ عمود النتيجة EMPLOYEE_NAME.</p>
+<pre class="sql">SELECT given_name AS EMPLOYEE_NAME
+FROM staff;</pre></div>
+    <div class="query"><p class="task"><b>02.</b> أعد الأسماء الأولى بحروف كبيرة.</p>
+<pre class="sql">SELECT UPPER(given_name) FROM staff;</pre></div>
+    <div class="query"><p class="task"><b>03.</b> اسرد كل قسم مميز موجود في جدول الموظفين.</p>
+<pre class="sql">SELECT DISTINCT division FROM staff;</pre></div>
+    <div class="query"><p class="task"><b>04.</b> خذ أول ثلاثة أحرف من كل اسم أول.</p>
+<pre class="sql">SELECT SUBSTRING(given_name, 1, 3) FROM staff;</pre></div>
+    <div class="query"><p class="task"><b>05.</b> جد موضع الحرف B في الاسم Siddarth.</p>
+<pre class="sql">SELECT INSTR(given_name, 'B')
+FROM staff
+WHERE given_name = 'Siddharth';</pre></div>
+    <div class="query"><p class="task"><b>06.</b> أزل المسافات من يمين الأسماء الأولى.</p>
+<pre class="sql">SELECT RTRIM(given_name) FROM staff;</pre></div>
+    <div class="query"><p class="task"><b>07.</b> أزل المسافات من يسار أسماء الأقسام.</p>
+<pre class="sql">SELECT LTRIM(division) FROM staff;</pre></div>
+    <div class="query"><p class="task"><b>08.</b> أظهر كل قسم فريد مع طوله.</p>
+<pre class="sql">SELECT division, LENGTH(division)
+FROM staff
+GROUP BY division;</pre></div>
+    <div class="query"><p class="task"><b>09.</b> استبدل كل حرف a صغير بحرف A كبير في الأسماء الأولى.</p>
+<pre class="sql">SELECT REPLACE(given_name, 'a', 'A') FROM staff;</pre></div>
+    <div class="query"><p class="task"><b>10.</b> ادمج الاسم الأول واسم العائلة في عمود واحد FULL_NAME.</p>
+<pre class="sql">SELECT CONCAT(given_name, ' ', family_name) AS FULL_NAME
+FROM staff;</pre></div>
+    <div class="query"><p class="task"><b>11.</b> اعرض كل تفاصيل الموظفين مرتبة بالاسم الأول من الألف إلى الياء.</p>
+<pre class="sql">SELECT * FROM staff ORDER BY given_name ASC;</pre></div>
+    <div class="query"><p class="task"><b>12.</b> اعرض كل الموظفين مرتبين بالاسم الأول تصاعديًا وبالقسم تنازليًا.</p>
+<pre class="sql">SELECT * FROM staff
+ORDER BY given_name ASC, division DESC;</pre></div>
+    <div class="query"><p class="task"><b>13.</b> اجلب سجلات الموظفين الذين اسمهم Arjun أو Rohan.</p>
+<pre class="sql">SELECT * FROM staff
+WHERE given_name IN ('Arjun', 'Rohan');</pre></div>
+    <div class="query"><p class="task"><b>14.</b> أعد الجميع ما عدا Arjun وRohan.</p>
+<pre class="sql">SELECT * FROM staff
+WHERE given_name NOT IN ('Arjun', 'Rohan');</pre></div>
+    <div class="query"><p class="task"><b>15.</b> أظهر العاملين الذين يبدأ اسم قسمهم بـ Finan.</p>
+<pre class="sql">SELECT * FROM staff WHERE division LIKE 'Finan%';</pre></div>
+    <div class="query"><p class="task"><b>16.</b> اجلب الموظفين الذين يحتوي اسمهم الأول الحرف a في أي موضع.</p>
+<pre class="sql">SELECT * FROM staff
+WHERE LOWER(given_name) LIKE '%a%';</pre></div>
+    <div class="query"><p class="task"><b>17.</b> اجلب الموظفين الذين ينتهي اسمهم الأول بالحرف a.</p>
+<pre class="sql">SELECT * FROM staff
+WHERE LOWER(given_name) LIKE '%a';</pre></div>
+    <div class="query"><p class="task"><b>18.</b> اجلب الموظفين الذين اسمهم الأول من ستة أحرف وينتهي بـ h.</p>
+<pre class="sql">SELECT * FROM staff
+WHERE given_name LIKE '_____h'
+  AND LENGTH(given_name) = 6;</pre></div>
+    <div class="query"><p class="task"><b>19.</b> أظهر الموظفين الذين راتبهم بين 100000 و500000 شاملًا الطرفين.</p>
+<pre class="sql">SELECT * FROM staff
+WHERE pay BETWEEN 100000 AND 500000;</pre></div>
+    <div class="query"><p class="task"><b>20.</b> اسرد الموظفين الذين التحقوا في فبراير 2014.</p>
+<pre class="sql">SELECT * FROM staff
+WHERE YEAR(hire_date) = 2014 AND MONTH(hire_date) = 2;</pre></div>
+    <div class="query"><p class="task"><b>21.</b> عدّ كم شخصًا يعمل في قسم Finance.</p>
+<pre class="sql">SELECT division, COUNT(*)
+FROM staff
+WHERE division = 'Finance';</pre></div>
+    <div class="query"><p class="task"><b>22.</b> أعد الأسماء الكاملة لمن تتراوح رواتبهم بين 50000 و100000.</p>
+<pre class="sql">SELECT CONCAT(given_name, ' ', family_name)
+FROM staff
+WHERE pay BETWEEN 50000 AND 100000;</pre></div>
+    <div class="query"><p class="task"><b>23.</b> أظهر كل قسم مع عدد أفراده، والأعلى أولًا.</p>
+<pre class="sql">SELECT division, COUNT(staff_id) AS total_staff
+FROM staff
+GROUP BY division
+ORDER BY total_staff DESC;</pre></div>
+    <div class="query"><p class="task"><b>24.</b> اسرد الموظفين الذين يظهرون بدور Supervisor في جدول role.</p>
+<pre class="sql">SELECT * FROM staff AS s
+INNER JOIN role AS r ON s.staff_id = r.staff_ref_id
+WHERE r.role_name = 'Supervisor';</pre></div>
+    <div class="query"><p class="task"><b>25.</b> جد أسماء الأدوار التي يحملها أكثر من شخص.</p>
+<pre class="sql">SELECT role_name, COUNT(*) AS cnt
+FROM role
+GROUP BY role_name
+HAVING cnt &gt; 1;</pre></div>
+    <div class="query"><p class="task"><b>26.</b> أعد الصفوف ذات staff_id الفردي فقط.</p>
+<pre class="sql">SELECT * FROM staff WHERE MOD(staff_id, 2) != 0;</pre></div>
+    <div class="query"><p class="task"><b>27.</b> أعد الصفوف ذات staff_id الزوجي فقط.</p>
+<pre class="sql">SELECT * FROM staff WHERE MOD(staff_id, 2) = 0;</pre></div>
+    <div class="query"><p class="task"><b>28.</b> انسخ جدول staff كله إلى staff_copy.</p>
+<pre class="sql">CREATE TABLE staff_copy LIKE staff;
+INSERT INTO staff_copy SELECT * FROM staff;</pre></div>
+    <div class="query"><p class="task"><b>29.</b> أظهر الصفوف المشتركة بين staff ونسخته حسب المعرّف.</p>
+<pre class="sql">SELECT s.* FROM staff s
+INNER JOIN staff_copy USING (staff_id);</pre></div>
+    <div class="query"><p class="task"><b>30.</b> أظهر سجلات staff غير الموجودة في النسخة.</p>
+<pre class="sql">SELECT s.* FROM staff s
+LEFT JOIN staff_copy USING (staff_id)
+WHERE staff_copy.staff_id IS NULL;</pre></div>
+    <div class="query"><p class="task"><b>31.</b> اعرض تاريخ اليوم والطابع الزمني الحالي.</p>
+<pre class="sql">SELECT CURDATE();
+SELECT NOW();</pre></div>
+    <div class="query"><p class="task"><b>32.</b> اجلب أعلى خمسة موظفين راتبًا.</p>
+<pre class="sql">SELECT * FROM staff ORDER BY pay DESC LIMIT 5;</pre></div>
+    <div class="query"><p class="task"><b>33.</b> اجلب خامس أعلى راتب باستخدام LIMIT.</p>
+<pre class="sql">SELECT * FROM staff ORDER BY pay DESC LIMIT 1 OFFSET 4;</pre></div>
+    <div class="query"><p class="task"><b>34.</b> جد خامس أعلى راتب من دون LIMIT.</p>
+<pre class="sql">SELECT pay FROM staff s1
+WHERE 4 = (
+  SELECT COUNT(DISTINCT s2.pay)
+  FROM staff s2
+  WHERE s2.pay &gt;= s1.pay
+);</pre></div>
+    <div class="query"><p class="task"><b>35.</b> اسرد الموظفين الذين يشاركون الراتب نفسه مع شخص آخر.</p>
+<pre class="sql">SELECT s1.* FROM staff s1
+JOIN staff s2 ON s1.pay = s2.pay AND s1.staff_id &lt;&gt; s2.staff_id;</pre></div>
+    <div class="query"><p class="task"><b>36.</b> أعد ثاني أعلى راتب على الإطلاق.</p>
+<pre class="sql">SELECT MAX(pay) FROM staff
+WHERE pay NOT IN (SELECT MAX(pay) FROM staff);</pre></div>
+    <div class="query"><p class="task"><b>37.</b> أظهر كل صف مرتين.</p>
+<pre class="sql">SELECT * FROM (
+  SELECT * FROM staff
+  UNION ALL
+  SELECT * FROM staff
+) AS dup
+ORDER BY staff_id;</pre></div>
+    <div class="query"><p class="task"><b>38.</b> اسرد معرّفات الموظفين الذين لا يتلقون مكافآت.</p>
+<pre class="sql">SELECT staff_id FROM staff
+WHERE staff_id NOT IN (SELECT staff_ref_id FROM incentive);</pre></div>
+    <div class="query"><p class="task"><b>39.</b> اختر أول 50٪ من الصفوف حسب ترتيب المعرّف.</p>
+<pre class="sql">SELECT * FROM staff
+ORDER BY staff_id
+LIMIT (SELECT COUNT(*) / 2 FROM staff);</pre></div>
+    <div class="query"><p class="task"><b>40.</b> أعد الأقسام التي فيها أقل من أربعة موظفين.</p>
+<pre class="sql">SELECT division, COUNT(*) AS headcount
+FROM staff
+GROUP BY division
+HAVING headcount &lt; 4;</pre></div>
+    <div class="query"><p class="task"><b>41.</b> أظهر كل قسم مع عدد موظفيه.</p>
+<pre class="sql">SELECT division, COUNT(*) AS headcount
+FROM staff
+GROUP BY division;</pre></div>
+    <div class="query"><p class="task"><b>42.</b> اجلب آخر صف في الجدول (أكبر معرّف).</p>
+<pre class="sql">SELECT * FROM staff
+WHERE staff_id = (SELECT MAX(staff_id) FROM staff);</pre></div>
+    <div class="query"><p class="task"><b>43.</b> اجلب أول صف في الجدول (أصغر معرّف).</p>
+<pre class="sql">SELECT * FROM staff
+WHERE staff_id = (SELECT MIN(staff_id) FROM staff);</pre></div>
+    <div class="query"><p class="task"><b>44.</b> اعرض آخر خمسة صفوف مرتبة ترتيبًا طبيعيًا.</p>
+<pre class="sql">(SELECT * FROM staff ORDER BY staff_id DESC LIMIT 5)
+ORDER BY staff_id;</pre></div>
+    <div class="query"><p class="task"><b>45.</b> لكل قسم، اسرد الموظف أو الموظفين ذوي أعلى راتب.</p>
+<pre class="sql">SELECT s.division, s.given_name, s.pay
+FROM (
+  SELECT division, MAX(pay) AS top_pay
+  FROM staff
+  GROUP BY division
+) t
+JOIN staff s ON t.division = s.division AND t.top_pay = s.pay;</pre></div>
+    <div class="query"><p class="task"><b>46.</b> اجلب أعلى ثلاثة رواتب مميزة باستعلام فرعي مرتبط.</p>
+<pre class="sql">SELECT DISTINCT pay FROM staff s1
+WHERE 3 &gt;= (
+  SELECT COUNT(DISTINCT pay)
+  FROM staff s2
+  WHERE s2.pay &gt; s1.pay
+)
+ORDER BY pay DESC;</pre></div>
+    <div class="query"><p class="task"><b>47.</b> اجلب أدنى ثلاثة رواتب مميزة باستعلام فرعي مرتبط.</p>
+<pre class="sql">SELECT DISTINCT pay FROM staff s1
+WHERE 3 &gt;= (
+  SELECT COUNT(DISTINCT pay)
+  FROM staff s2
+  WHERE s2.pay &lt; s1.pay
+)
+ORDER BY pay;</pre></div>
+    <div class="query"><p class="task"><b>48.</b> الصيغة العامة للراتب ذي الترتيب n. استبدل :n بالترتيب الذي تريده.</p>
+<pre class="sql">SELECT DISTINCT pay FROM staff s1
+WHERE :n &gt;= (
+  SELECT COUNT(DISTINCT pay)
+  FROM staff s2
+  WHERE s1.pay &lt;= s2.pay
+)
+ORDER BY s1.pay DESC;</pre></div>
+    <div class="query"><p class="task"><b>49.</b> أظهر إجمالي الرواتب لكل قسم، والأعلى أولًا.</p>
+<pre class="sql">SELECT division, SUM(pay) AS total_pay
+FROM staff
+GROUP BY division
+ORDER BY total_pay DESC;</pre></div>
+    <div class="query"><p class="task"><b>50.</b> اسرد أسماء الموظف أو الموظفين الذين يتقاضون أعلى راتب مطلق.</p>
+<pre class="sql">SELECT given_name, family_name, pay
+FROM staff
+WHERE pay = (SELECT MAX(pay) FROM staff);</pre></div>
+  </section>
+  <section id="s14">
+    <div class="sec-head"><span class="num">14</span><h2>أسئلة الاختيار</h2></div>
+    <p>اختر خيارًا ليُعلَّم. إظهار المفتاح يقارن اختيارك بالإجابة. مفتاح السؤال 17 المطبوع يقول A. هذه الملاحظات تعرّف المخطط بأنه البنية الثابتة والنسخة الحالية بأنها الصفوف الحاضرة، لذلك تعلّم هذه الصفحة <strong>B</strong>. بقية المفاتيح تطابق الورقة المطبوعة.</p>
+    <div class="mcq-bar">
+      <button type="button" class="reveal" id="reveal">أظهر مفتاح الإجابات</button>
+      <button type="button" class="reset" id="reset">امسح الاختيارات</button>
+    </div>
+
+    <article class="q" data-key="B">
+      <p><span class="qn">1.</span> أي مزية في DBMS تظهر حين يرى موظف الرسوم حالة الرسوم فقط، بينما يرى العميد الدرجات أيضًا؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> النمو (قابلية التوسع)</button>
+        <button type="button" data-opt="B"><b>B.</b> الأمان</button>
+        <button type="button" data-opt="C"><b>C.</b> السرعة (الفهرسة)</button>
+        <button type="button" data-opt="D"><b>D.</b> بلا نسخ زائدة</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">2.</span> تخزن Flipkart سلة كل زبون في قاعدة مفتاح-قيمة أساسًا لأن أنظمة المفتاح-القيمة تقدم أي مزية؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> تكامل مرجعي على مستوى الجدول</button>
+        <button type="button" data-opt="B"><b>B.</b> بحث فائق السرعة عبر بنية مفتاح-قيمة بسيطة</button>
+        <button type="button" data-opt="C"><b>C.</b> معاملات ACID مدمجة للربط المعقد</button>
+        <button type="button" data-opt="D"><b>D.</b> بيانات سلاسل زمنية للتحليل</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">3.</span> ترتيب رفوف المكتبة حسب الموضوع يشبه كيف تسرّع ______ في DBMS البحث بإبقاء مراجع مرتبة إلى مواقع البيانات.</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> المسح الكامل للجدول</button>
+        <button type="button" data-opt="B"><b>B.</b> الفهارس العنقودية (تعيد ترتيب البيانات فيزيائيًا)</button>
+        <button type="button" data-opt="C"><b>C.</b> الفهارس غير العنقودية (مراجع مرتبة منفصلة)</button>
+        <button type="button" data-opt="D"><b>D.</b> سجلات المعاملات</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">4.</span> في بنية DBMS من ثلاث طبقات، أي مكوّن يصدر استعلامات SQL إلى خادم قاعدة البيانات؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> تطبيق الجوال العميل</button>
+        <button type="button" data-opt="B"><b>B.</b> خادم التطبيقات (الطبقة الوسطى)</button>
+        <button type="button" data-opt="C"><b>C.</b> بيئة JavaScript في المتصفح</button>
+        <button type="button" data-opt="D"><b>D.</b> موزع الحمل</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">5.</span> نظام جرد شخصي مبني كله في Microsoft Access على حاسوب محمول واحد يمثل أي أسلوب بنية؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> طبقتان</button>
+        <button type="button" data-opt="B"><b>B.</b> ثلاث طبقات</button>
+        <button type="button" data-opt="C"><b>C.</b> طبقة واحدة</button>
+        <button type="button" data-opt="D"><b>D.</b> موزعة</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">6.</span> حسب أمثلة نظرية CAP، أي ضمانين تفضلهما مدفوعات محفظة UPI أثناء انقسام الشبكة؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> التوافر + الاتساق</button>
+        <button type="button" data-opt="B"><b>B.</b> الاتساق + تحمّل الانقسام</button>
+        <button type="button" data-opt="C"><b>C.</b> التوافر + تحمّل الانقسام</button>
+        <button type="button" data-opt="D"><b>D.</b> الديمومة + الاتساق</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">7.</span> بوابة مشرف السكن، التي تعرض رقم القيد والاسم وحالة رسوم السكن فقط، تعمل عند أي مستوى تجريد؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> المستوى الفيزيائي</button>
+        <button type="button" data-opt="B"><b>B.</b> المستوى المنطقي</button>
+        <button type="button" data-opt="C"><b>C.</b> مستوى المنظور</button>
+        <button type="button" data-opt="D"><b>D.</b> مستوى نظام الملفات</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">8.</span> أي سيناريو يوضّح استقلال البيانات الفيزيائي أفضل توضيح؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> تقسيم عمود العنوان إلى شارع ومدينة ورمز بريدي من دون تحديث كود التطبيق</button>
+        <button type="button" data-opt="B"><b>B.</b> نقل ملفات الحضور من HDD إلى SSD أسرع وإضافة فهرس B-tree، من دون تغيير استعلامات SQL</button>
+        <button type="button" data-opt="C"><b>C.</b> إنشاء جدول Faculty جديد مربوط بالطلاب عبر رقم القيد</button>
+        <button type="button" data-opt="D"><b>D.</b> منح قسم الامتحانات الوصول إلى الدرجات عبر منظور إضافي</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">9.</span> تغيير المخطط المنطقي (مثل تقسيم العنوان إلى ثلاثة أعمدة) من دون إعادة كتابة الوحدات الأخرى يبيّن:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> الاستقلال الفيزيائي</button>
+        <button type="button" data-opt="B"><b>B.</b> الاستقلال المنطقي</button>
+        <button type="button" data-opt="C"><b>C.</b> لا استقلال</button>
+        <button type="button" data-opt="D"><b>D.</b> تخزينًا مؤقتًا على مستوى المنظور</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">10.</span> أي نموذج بيانات ينظّم السجلات في شجرة أب-ابن من الأعلى إلى الأسفل حيث لكل ابن أب واحد بالضبط؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> النموذج كائني التوجه</button>
+        <button type="button" data-opt="B"><b>B.</b> النموذج الهرمي</button>
+        <button type="button" data-opt="C"><b>C.</b> النموذج الشبكي</button>
+        <button type="button" data-opt="D"><b>D.</b> نموذج الكيانات والعلاقات</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">11.</span> طالب ينتمي إلى عدة أندية، وكل نادٍ مرتبط بكثير من الطلاب، يبيّن الحاجة إلى نموذج بيانات معين.</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> علائقي</button>
+        <button type="button" data-opt="B"><b>B.</b> هرمي</button>
+        <button type="button" data-opt="C"><b>C.</b> شبكي</button>
+        <button type="button" data-opt="D"><b>D.</b> سلاسل زمنية</button>
+      </div>
+    </article>
+    <article class="q" data-key="A">
+      <p><span class="qn">12.</span> أثناء التصميم المفاهيمي يرسم المهندسون كيانات مثل Student وCourse مربوطة بـ ENROLLED_IN. أي نموذج بيانات يُستخدم؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> الكيانات والعلاقات (ER)</button>
+        <button type="button" data-opt="B"><b>B.</b> كائني التوجه</button>
+        <button type="button" data-opt="C"><b>C.</b> علائقي</button>
+        <button type="button" data-opt="D"><b>D.</b> مفتاح-قيمة</button>
+      </div>
+    </article>
+    <article class="q" data-key="D">
+      <p><span class="qn">13.</span> الكيان الضعيف في نموذج ER يجب أن يملك:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> علاقة كثير-إلى-كثير</button>
+        <button type="button" data-opt="B"><b>B.</b> مشاركة كلية في علاقة التعريف</button>
+        <button type="button" data-opt="C"><b>C.</b> معين علاقة بخط مزدوج</button>
+        <button type="button" data-opt="D"><b>D.</b> كلًا من B وC</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">14.</span> علاقة يرتبط فيها A واحد بكثير من B، وكل B بـ A واحد بالضبط، تُصنَّف:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> M : N</button>
+        <button type="button" data-opt="B"><b>B.</b> 1 : N</button>
+        <button type="button" data-opt="C"><b>C.</b> 1 : 1</button>
+        <button type="button" data-opt="D"><b>D.</b> M : 1</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">15.</span> معاملة مجموعة علاقات والكيانات المشاركة فيها كوحدة أعلى حتى تشارك في علاقة أخرى تسمى:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> التخصيص</button>
+        <button type="button" data-opt="B"><b>B.</b> التعميم</button>
+        <button type="button" data-opt="C"><b>C.</b> التجميع</button>
+        <button type="button" data-opt="D"><b>D.</b> التركيب</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">16.</span> في النموذج العلائقي، العمود الواحد الذي تأتي قيمه من مجال واحد يسمى:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> مجالًا Domain</button>
+        <button type="button" data-opt="B"><b>B.</b> صفة Attribute</button>
+        <button type="button" data-opt="C"><b>C.</b> صفًا Tuple</button>
+        <button type="button" data-opt="D"><b>D.</b> علاقة Relation</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">17.</span> أي عبارة تميّز المخطط من النسخة الحالية تمييزًا صحيحًا؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> المخطط يتغير مع كل إدراج أو حذف، والنسخة الحالية ثابتة</button>
+        <button type="button" data-opt="B"><b>B.</b> المخطط هو البنية الدائمة، والنسخة الحالية هي الصفوف الحاضرة</button>
+        <button type="button" data-opt="C"><b>C.</b> المخطط يسرد قيم المفتاح الأولي الحالية، والنسخة تسرد أنواع البيانات</button>
+        <button type="button" data-opt="D"><b>D.</b> المخطط يفرض التكامل المرجعي، والنسخة تفرض تكامل الكيان</button>
+      </div>
+      <p class="fix">المفتاح المطبوع: A. المُعلَّم هنا B، بما يطابق تعريف المخطط والنسخة في الملاحظات.</p>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">18.</span> قاعدة التكامل التي تمنع قيم NULL في عمود المفتاح الأولي تسمى:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> قيد المفتاح</button>
+        <button type="button" data-opt="B"><b>B.</b> التكامل المرجعي</button>
+        <button type="button" data-opt="C"><b>C.</b> تكامل الكيان</button>
+        <button type="button" data-opt="D"><b>D.</b> قيد المجال</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">19.</span> يُعرَّف المفتاح المرشح بأنه:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> أي مجموعة صفات فريدة، حتى مع زيادات</button>
+        <button type="button" data-opt="B"><b>B.</b> مفتاح فوقي أصغري: أزل صفة واحدة فينكسر التفرد</button>
+        <button type="button" data-opt="C"><b>C.</b> المعرّف الرسمي المختار للجدول</button>
+        <button type="button" data-opt="D"><b>D.</b> مرجع مفتاح أجنبي إلى جدول آخر</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">20.</span> أي قاعدة إلزامية لعمود المفتاح الأولي (أو مجموعته)؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> يجب أن يشير إلى مفتاح علاقة أخرى</button>
+        <button type="button" data-opt="B"><b>B.</b> يجب أن يسمح بـ NULL للصفوف الاختيارية</button>
+        <button type="button" data-opt="C"><b>C.</b> يجب أن يكون فريدًا وليس NULL</button>
+        <button type="button" data-opt="D"><b>D.</b> يجب أن يضم أكثر من صفة</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">21.</span> أي عبارة صحيحة عن المفاتيح الفوقية والمرشحة والأولية؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> كل مفتاح مركب هو مفتاح مرشح</button>
+        <button type="button" data-opt="B"><b>B.</b> كل مفتاح مرشح هو أيضًا مفتاح فوقي</button>
+        <button type="button" data-opt="C"><b>C.</b> كل مفتاح مرشح أصغري بالتعريف</button>
+        <button type="button" data-opt="D"><b>D.</b> قد يحتوي المفتاح الأولي تكرارًا إذا لم يستخدمه مفتاح أجنبي</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">22.</span> أي مخطط يخالف 2NF؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> STUDENT(rollNo PK, name)</button>
+        <button type="button" data-opt="B"><b>B.</b> MARKS(rollNo PK, courseCode PK, grade, studentName)</button>
+        <button type="button" data-opt="C"><b>C.</b> COURSE(code PK, title, credits)</button>
+        <button type="button" data-opt="D"><b>D.</b> كلها ملتزمة</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">23.</span> في BCNF، لكل اعتماد دالي X → Y يجب أن يكون X:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> مفتاحًا فوقيًا غير أصغري</button>
+        <button type="button" data-opt="B"><b>B.</b> مفتاحًا أجنبيًا</button>
+        <button type="button" data-opt="C"><b>C.</b> مفتاحًا مرشحًا</button>
+        <button type="button" data-opt="D"><b>D.</b> مجموعة جزئية من Y</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">24.</span> القدرة على إعادة بناء العلاقة الأصلية بعد التفكيك من دون فقد بيانات تسمى خاصية _______.</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> حفظ الاعتماد</button>
+        <button type="button" data-opt="B"><b>B.</b> الربط دون فقد (غير الإضافي)</button>
+        <button type="button" data-opt="C"><b>C.</b> إزالة الاعتماد الجزئي</button>
+        <button type="button" data-opt="D"><b>D.</b> التكامل المرجعي</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">25.</span> يشير إلغاء التطبيع إلى:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> تقسيم جدول عريض إلى جداول أصغر</button>
+        <button type="button" data-opt="B"><b>B.</b> دمج جداول مطبَّعة أو تضمين بيانات مكررة لتقليل الربط المكلف</button>
+        <button type="button" data-opt="C"><b>C.</b> تشفير البيانات حتى يراها مديرو القاعدة فقط</button>
+        <button type="button" data-opt="D"><b>D.</b> تطبيق BCNF على كل العلاقات</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">26.</span> يُبرَّر إلغاء التطبيع حين يكون العبء أساسًا:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> ثقيل الكتابة خفيف القراءة</button>
+        <button type="button" data-opt="B"><b>B.</b> يُكتب مرة ولا يُقرأ أبدًا</button>
+        <button type="button" data-opt="C"><b>C.</b> كثيف القراءة مع تحديثات قليلة</button>
+        <button type="button" data-opt="D"><b>D.</b> مقيدًا بالمعالج بسبب المشغلات</button>
+      </div>
+    </article>
+    <article class="q" data-key="A">
+      <p><span class="qn">27.</span> العيب الرئيس لإلغاء تطبيع المخطط هو:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> خطر أعلى لشذوذات التحديث بسبب الحقائق المكررة</button>
+        <button type="button" data-opt="B"><b>B.</b> فقدان فرض المفتاح الأولي</button>
+        <button type="button" data-opt="C"><b>C.</b> معاملات موزعة إلزامية لكل كتابة</button>
+        <button type="button" data-opt="D"><b>D.</b> فقدان خاصية الربط دون فقد بين الجداول الباقية</button>
+      </div>
+    </article>
+    <article class="q" data-key="A">
+      <p><span class="qn">28.</span> تتحقق الديمومة عبر:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> تسجيل الكتابة المسبقة (WAL)</button>
+        <button type="button" data-opt="B"><b>B.</b> الإقفال ثنائي الطور</button>
+        <button type="button" data-opt="C"><b>C.</b> عزل اللقطة</button>
+        <button type="button" data-opt="D"><b>D.</b> كل ما سبق</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">29.</span> مستوى العزل الذي يمنع القراءات القذرة وما زال يسمح بالقراءات غير المتكررة هو:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Read Uncommitted</button>
+        <button type="button" data-opt="B"><b>B.</b> Read Committed</button>
+        <button type="button" data-opt="C"><b>C.</b> Repeatable Read</button>
+        <button type="button" data-opt="D"><b>D.</b> Serializable</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">30.</span> يحسّن 2PL الصارم الإقفال ثنائي الطور الأساسي بأنه:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> يطلق الأقفال فور الاستخدام</button>
+        <button type="button" data-opt="B"><b>B.</b> يمسك كل الأقفال حتى التثبيت أو الإلغاء</button>
+        <button type="button" data-opt="C"><b>C.</b> يستخدم ترتيب الطوابع الزمنية</button>
+        <button type="button" data-opt="D"><b>D.</b> يلغي طور الانكماش</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">31.</span> عائلة SQL المستخدمة لمنح الصلاحيات أو سحبها هي:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> DML</button>
+        <button type="button" data-opt="B"><b>B.</b> DDL</button>
+        <button type="button" data-opt="C"><b>C.</b> DCL</button>
+        <button type="button" data-opt="D"><b>D.</b> TCL</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">32.</span> بعد تجميع الصفوف، أي جملة ترشّح المجموعات كلها بناءً على التجميع؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> WHERE</button>
+        <button type="button" data-opt="B"><b>B.</b> HAVING</button>
+        <button type="button" data-opt="C"><b>C.</b> ORDER BY</button>
+        <button type="button" data-opt="D"><b>D.</b> LIMIT</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">33.</span> أي تجميع يعدّ كل الصفوف، بما فيها التي فيها NULL؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> COUNT(column_name)</button>
+        <button type="button" data-opt="B"><b>B.</b> COUNT(*)</button>
+        <button type="button" data-opt="C"><b>C.</b> AVG(column_name)</button>
+        <button type="button" data-opt="D"><b>D.</b> SUM(column_name)</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">34.</span> أي نوع فهرس يرتب صفوف الجدول فيزيائيًا حسب المفتاح نفسه؟</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> ثانوي (غير عنقودي)</button>
+        <button type="button" data-opt="B"><b>B.</b> أولي (عنقودي)</button>
+        <button type="button" data-opt="C"><b>C.</b> نقطي Bitmap</button>
+        <button type="button" data-opt="D"><b>D.</b> تجزئة Hash</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">35.</span> إضافة أجهزة أكثر وتوزيع البيانات عليها لتحمل العبء يسمى:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> توسعًا رأسيًا (scale-up)</button>
+        <button type="button" data-opt="B"><b>B.</b> توسعًا أفقيًا (scale-out)</button>
+        <button type="button" data-opt="C"><b>C.</b> توازي الاستعلام</button>
+        <button type="button" data-opt="D"><b>D.</b> عزل اللقطة</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">36.</span> في RBAC تُربط الصلاحيات أولًا بـ:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> المستخدمين أفرادًا</button>
+        <button type="button" data-opt="B"><b>B.</b> مشغلات قاعدة البيانات</button>
+        <button type="button" data-opt="C"><b>C.</b> الأدوار</button>
+        <button type="button" data-opt="D"><b>D.</b> الإجراءات المخزنة</button>
+      </div>
+    </article>
+    <div class="mcq-bar">
+      <button type="button" class="reveal" id="reveal2">أظهر مفتاح الإجابات</button>
+    </div>
+  </section>
+
+  <footer class="colophon">
+    <p>ملاحظات دراسية في نظم إدارة قواعد البيانات. أوامر SQL وأسماء الجداول ومصطلحات الامتحان تبقى بالإنجليزية.</p>
+  </footer>
+
+</main>
+<script>
+(function () {
+  var scrub = document.getElementById("scrub");
+  var dragging = false;
+  function maxScroll() {
+    var h = document.documentElement;
+    return Math.max(0, h.scrollHeight - h.clientHeight);
+  }
+  function paintScrub(pct) {
+    scrub.value = String(Math.round(pct));
+    scrub.parentElement.style.setProperty("--pct", (pct / 10) + "%");
+  }
+  function onScroll() {
+    if (dragging) return;
+    var max = maxScroll();
+    paintScrub(max > 0 ? (document.documentElement.scrollTop / max) * 1000 : 0);
+  }
+  document.addEventListener("scroll", onScroll, { passive: true });
+  scrub.addEventListener("pointerdown", function () { dragging = true; });
+  window.addEventListener("pointerup", function () { dragging = false; onScroll(); });
+  scrub.addEventListener("input", function () {
+    var root = document.documentElement;
+    root.style.scrollBehavior = "auto";
+    window.scrollTo(0, maxScroll() * (Number(scrub.value) / 1000));
+    root.style.scrollBehavior = "";
+    scrub.parentElement.style.setProperty("--pct", (Number(scrub.value) / 10) + "%");
+  });
+  onScroll();
+
+  var menuBtn = document.getElementById("menu-btn");
+  var drawer = document.getElementById("drawer");
+  var scrim = document.getElementById("scrim");
+  var slot = document.getElementById("drawer-nav");
+  var toc = document.querySelector(".toc");
+  if (toc && slot) {
+    var clone = toc.cloneNode(true);
+    clone.classList.add("drawer-list");
+    var heading = clone.querySelector("h2");
+    if (heading) heading.remove();
+    slot.appendChild(clone);
+  }
+  function setDrawer(open) {
+    document.body.classList.toggle("drawer-open", open);
+    menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    drawer.setAttribute("aria-hidden", open ? "false" : "true");
+  }
+  menuBtn.addEventListener("click", function () {
+    setDrawer(!document.body.classList.contains("drawer-open"));
+  });
+  document.getElementById("drawer-close").addEventListener("click", function () { setDrawer(false); });
+  scrim.addEventListener("click", function () { setDrawer(false); });
+  drawer.addEventListener("click", function (event) {
+    if (event.target.closest("a")) setDrawer(false);
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") setDrawer(false);
+  });
+  function markHere(id) {
+    document.querySelectorAll(".toc a, .drawer a").forEach(function (a) {
+      a.classList.toggle("here", a.getAttribute("href") === "#" + id);
+    });
+  }
+  if ("IntersectionObserver" in window) {
+    var seen = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) markHere(entry.target.id);
+      });
+    }, { rootMargin: "-15% 0px -75% 0px", threshold: 0 });
+    document.querySelectorAll("main section[id]").forEach(function (section) { seen.observe(section); });
+  }
+
+  var KW = {};
+  "SELECT FROM WHERE INSERT INTO VALUES UPDATE SET DELETE ALTER TABLE ADD COLUMN CREATE VIEW AS AND OR NOT NULL IS IN LIKE BETWEEN GROUP BY HAVING ORDER ASC DESC LIMIT OFFSET JOIN INNER LEFT RIGHT FULL OUTER ON UNION ALL EXISTS DISTINCT PRIMARY KEY INT VARCHAR CHAR CHECK TRUNCATE RENAME BEGIN COMMIT TRANSACTION ISOLATION LEVEL EXPLAIN ANALYZE INDEX USING".split(" ").forEach(function (w) { KW[w] = true; });
+  var FN = {};
+  "COALESCE COUNT SUM AVG MAX MIN UPPER LOWER SUBSTRING INSTR RTRIM LTRIM LENGTH REPLACE CONCAT MOD YEAR MONTH CURDATE NOW".split(" ").forEach(function (w) { FN[w] = true; });
+
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function highlight(src) {
+    var i = 0, out = "";
+    while (i < src.length) {
+      if (src[i] === "-" && src[i + 1] === "-") {
+        var j = i;
+        while (j < src.length && src[j] !== "\n") j++;
+        out += '<span class="cmt">' + esc(src.slice(i, j)) + "</span>";
+        i = j;
+        continue;
+      }
+      if (src[i] === "'") {
+        var j2 = i + 1;
+        while (j2 < src.length && src[j2] !== "'") j2++;
+        if (j2 < src.length) j2++;
+        out += '<span class="str">' + esc(src.slice(i, j2)) + "</span>";
+        i = j2;
+        continue;
+      }
+      var prev = i === 0 ? "" : src[i - 1];
+      if (/[0-9]/.test(src[i]) && !/[A-Za-z_]/.test(prev)) {
+        var j3 = i;
+        while (j3 < src.length && /[0-9.]/.test(src[j3])) j3++;
+        out += '<span class="num">' + esc(src.slice(i, j3)) + "</span>";
+        i = j3;
+        continue;
+      }
+      if (/[A-Za-z_]/.test(src[i])) {
+        var j4 = i;
+        while (j4 < src.length && /[A-Za-z0-9_]/.test(src[j4])) j4++;
+        var word = src.slice(i, j4);
+        var up = word.toUpperCase();
+        var k = j4;
+        while (k < src.length && src[k] === " ") k++;
+        if (FN[up] && src[k] === "(") out += '<span class="fn">' + esc(word) + "</span>";
+        else if (KW[up]) out += '<span class="kw">' + esc(word) + "</span>";
+        else out += esc(word);
+        i = j4;
+        continue;
+      }
+      out += esc(src[i]);
+      i++;
+    }
+    return out;
+  }
+  document.querySelectorAll("pre.sql").forEach(function (pre) {
+    pre.innerHTML = highlight(pre.textContent);
+  });
+
+  var ar = document.documentElement.lang === "ar";
+  var showLabel = ar ? "أظهر مفتاح الإجابات" : "Show answer key";
+  var hideLabel = ar ? "أخفِ مفتاح الإجابات" : "Hide answer key";
+
+  function mark() {
+    document.querySelectorAll(".q").forEach(function (q) {
+      var key = q.getAttribute("data-key");
+      q.querySelectorAll("button[data-opt]").forEach(function (b) {
+        var picked = b.classList.contains("picked");
+        b.classList.toggle("right", b.getAttribute("data-opt") === key);
+        b.classList.toggle("wrong", picked && b.getAttribute("data-opt") !== key);
+      });
+    });
+  }
+  document.querySelectorAll(".q").forEach(function (q) {
+    q.querySelectorAll("button[data-opt]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        q.querySelectorAll("button[data-opt]").forEach(function (x) { x.classList.remove("picked"); });
+        b.classList.add("picked");
+        if (document.body.classList.contains("show-key")) mark();
+      });
+    });
+  });
+  document.querySelectorAll(".reveal").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var on = document.body.classList.toggle("show-key");
+      document.querySelectorAll(".reveal").forEach(function (b) {
+        b.textContent = on ? hideLabel : showLabel;
+      });
+      if (on) mark();
+      else document.querySelectorAll(".q button").forEach(function (b) {
+        b.classList.remove("right", "wrong");
+      });
+    });
+  });
+  var reset = document.getElementById("reset");
+  if (reset) reset.addEventListener("click", function () {
+    document.querySelectorAll(".q button").forEach(function (b) {
+      b.classList.remove("picked", "right", "wrong");
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 1 — Logic and Proofs | Discrete Math Study Guide</title>
+<meta name="description" content="Original interactive study companion for Discrete Mathematics Chapter 1 topics: propositional logic, quantifiers, inference, and proofs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+  };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root {
+  --bg: #f4f7f9;
+  --paper: #fbfcfd;
+  --ink: #1e293b;
+  --muted: #64748b;
+  --line: #cbd5e1;
+  --accent: #0f766e;
+  --accent-soft: #ccfbf1;
+  --accent-ink: #115e59;
+  --warn-bg: #fff7ed;
+  --warn-ink: #9a3412;
+  --warn-line: #fdba74;
+  --ok-bg: #ecfdf5;
+  --ok-ink: #065f46;
+  --bad-bg: #fef2f2;
+  --bad-ink: #991b1b;
+  --nav-w: 260px;
+  --serif: "Literata", Georgia, "Times New Roman", serif;
+  --sans: "Source Sans 3", "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 1rem; }
+body {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--ink);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+  line-height: 1.65;
+}
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { color: var(--accent-ink); }
+
+.layout {
+  display: grid;
+  grid-template-columns: var(--nav-w) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.nav {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: auto;
+  padding: 1.25rem 1rem 2rem;
+  background: rgba(248, 250, 252, 0.96);
+  border-right: 1px solid var(--line);
+  backdrop-filter: blur(6px);
+}
+
+.nav-brand {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1.3;
+  margin: 0 0 0.35rem;
+  color: var(--ink);
+}
+.nav-credit {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0 0 1rem;
+  line-height: 1.4;
+}
+.nav-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0.85rem 0 0.4rem;
+}
+.nav a {
+  display: block;
+  padding: 0.35rem 0.55rem;
+  margin: 0.1rem 0;
+  border-radius: 6px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+.nav a:hover { background: var(--accent-soft); color: var(--accent-ink); }
+.nav a.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.main {
+  padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 4rem;
+}
+
+.hero {
+  padding: 0.5rem 0 1.5rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2rem;
+}
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  line-height: 1.2;
+  margin: 0 0 0.6rem;
+  font-weight: 700;
+}
+.hero p { margin: 0; color: var(--muted); max-width: 62ch; }
+.credit {
+  margin-top: 0.85rem;
+  font-size: 0.88rem;
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  padding: 0.65rem 0.85rem;
+}
+
+section.sec {
+  margin: 0 0 2.75rem;
+  padding-top: 0.25rem;
+}
+section.sec > h2 {
+  font-family: var(--serif);
+  font-size: 1.65rem;
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--accent);
+  display: inline-block;
+  min-width: 40%;
+}
+h3 {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  margin: 1.35rem 0 0.45rem;
+  color: var(--ink);
+}
+p { margin: 0.55rem 0; }
+ul, ol { margin: 0.4rem 0 0.8rem; padding-left: 1.25rem; }
+li { margin: 0.25rem 0; }
+
+.idea {
+  font-size: 1.05rem;
+  border-left: 3px solid var(--accent);
+  padding: 0.55rem 0.85rem;
+  background: rgba(204, 251, 241, 0.35);
+  margin: 0.75rem 0 1rem;
+}
+.idea strong { color: var(--accent-ink); }
+
+.panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin: 0.85rem 0;
+  box-shadow: var(--shadow);
+}
+.panel h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-weight: 700;
+}
+
+.callout {
+  border: 1px solid var(--warn-line);
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  border-radius: 8px;
+  padding: 0.75rem 0.95rem;
+  margin: 0.9rem 0;
+}
+.callout strong { display: block; margin-bottom: 0.2rem; }
+
+.def-list { display: grid; gap: 0.55rem; }
+.def-item {
+  display: grid;
+  grid-template-columns: minmax(7rem, 11rem) 1fr;
+  gap: 0.65rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px dashed var(--line);
+}
+.def-item:last-child { border-bottom: 0; }
+.def-term {
+  font-family: var(--mono);
+  font-size: 0.88rem;
+  color: var(--accent-ink);
+  font-weight: 500;
+}
+.def-body { font-size: 0.95rem; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  margin: 0.6rem 0;
+}
+th, td {
+  border: 1px solid var(--line);
+  padding: 0.4rem 0.55rem;
+  text-align: center;
+}
+th { background: #eef2f6; font-weight: 600; }
+td.t { background: #ecfdf5; color: var(--ok-ink); font-weight: 600; }
+td.f { background: #fef2f2; color: var(--bad-ink); font-weight: 600; }
+
+.mono { font-family: var(--mono); font-size: 0.9em; }
+.muted { color: var(--muted); }
+.small { font-size: 0.9rem; }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.65rem 0;
+}
+label.ctrl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.35rem 0.55rem;
+}
+select, input[type="text"], button, .btn {
+  font: inherit;
+  font-size: 0.92rem;
+}
+select, input[type="text"] {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.4rem 0.55rem;
+  background: #fff;
+  color: var(--ink);
+}
+button, .btn {
+  appearance: none;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.42rem 0.8rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+button.secondary, .btn.secondary {
+  background: #fff;
+  color: var(--accent-ink);
+}
+button:hover, .btn:hover { filter: brightness(0.96); }
+button:focus-visible, .btn:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+details.reveal {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  margin: 0.75rem 0;
+  padding: 0.15rem 0.85rem 0.55rem;
+}
+details.reveal summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.55rem 0;
+  list-style: none;
+}
+details.reveal summary::-webkit-details-marker { display: none; }
+details.reveal summary::before {
+  content: "▸ ";
+  color: var(--accent);
+}
+details.reveal[open] summary::before { content: "▾ "; }
+
+.try {
+  border: 1px dashed var(--accent);
+  background: rgba(204, 251, 241, 0.25);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin: 0.9rem 0;
+}
+.try h4 {
+  margin: 0 0 0.4rem;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+}
+.feedback {
+  margin-top: 0.55rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.92rem;
+  display: none;
+}
+.feedback.show { display: block; }
+.feedback.ok { background: var(--ok-bg); color: var(--ok-ink); }
+.feedback.bad { background: var(--bad-bg); color: var(--bad-ink); }
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  margin: 0.7rem 0;
+}
+.chip {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+}
+.chip.arrow { border: 0; background: transparent; color: var(--muted); padding: 0 0.1rem; }
+
+.rule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.65rem;
+}
+.rule {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.7rem 0.8rem;
+  background: #fff;
+}
+.rule h5 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-family: var(--serif);
+}
+.rule .prem { font-family: var(--mono); font-size: 0.82rem; white-space: pre-line; color: var(--muted); }
+.rule .conc {
+  margin-top: 0.4rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.circuit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.75rem 0;
+}
+.gate {
+  min-width: 4.2rem;
+  text-align: center;
+  padding: 0.55rem 0.7rem;
+  border: 2px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--accent-ink);
+}
+.gate.not { border-radius: 8px 999px 999px 8px; }
+.wire { color: var(--muted); font-family: var(--mono); }
+
+.scope {
+  display: grid;
+  gap: 0.45rem;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+}
+.scope .layer {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  background: #fff;
+}
+.scope .layer.outer { border-color: var(--accent); background: rgba(204,251,241,0.3); }
+.scope .layer.inner { margin-left: 1.2rem; border-color: #0e7490; background: #ecfeff; }
+
+.checklist { list-style: none; padding: 0; }
+.checklist li {
+  padding: 0.45rem 0.55rem 0.45rem 1.7rem;
+  position: relative;
+  border-bottom: 1px dashed var(--line);
+}
+.checklist li::before {
+  content: "→";
+  position: absolute;
+  left: 0.35rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.quiz-q {
+  border-top: 1px solid var(--line);
+  padding: 0.9rem 0;
+}
+.quiz-q:first-child { border-top: 0; }
+.quiz-opts { display: grid; gap: 0.35rem; margin: 0.45rem 0; }
+.quiz-opts label {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+.quiz-opts label:hover { border-color: var(--accent); }
+.cheat {
+  columns: 2;
+  column-gap: 1.25rem;
+}
+.cheat h4 { break-after: avoid; margin-top: 0; }
+.cheat ul { break-inside: avoid; }
+
+.map {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+.map .step {
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+.map .step a { text-decoration: none; color: inherit; font-weight: 600; }
+.map .arr { color: var(--muted); }
+
+.stepper-line {
+  padding: 0.45rem 0.6rem;
+  border-left: 3px solid transparent;
+  margin: 0.25rem 0;
+  font-family: var(--mono);
+  font-size: 0.88rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.stepper-line.active {
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.domain-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0; }
+.domain-btns button { min-width: 2.5rem; }
+.domain-btns button.on { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.mobile-nav-toggle {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: rgba(248,250,252,0.97);
+  padding: 0.7rem 1rem;
+  text-align: left;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .mobile-nav-toggle { display: block; }
+  .nav {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(86vw, 300px);
+    transform: translateX(-105%);
+    transition: transform 0.2s ease;
+    z-index: 30;
+    box-shadow: 8px 0 30px rgba(15,23,42,0.12);
+  }
+  .nav.open { transform: translateX(0); }
+  .nav-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.35);
+    z-index: 25;
+  }
+  .nav-backdrop.show { display: block; }
+  .grid-2, .cheat { grid-template-columns: 1fr; columns: 1; }
+  .def-item { grid-template-columns: 1fr; gap: 0.2rem; }
+}
+
+@media print {
+  .nav, .mobile-nav-toggle, .nav-backdrop, button, .controls, .try, .quiz-opts input { display: none !important; }
+  .layout { display: block; }
+  .main { padding: 0; }
+  body { background: #fff; }
+  details.reveal { break-inside: avoid; }
+  details.reveal[open] summary, details.reveal summary { display: block; }
+}
+</style>
+</head>
+<body>
+<button class="mobile-nav-toggle" id="navToggle" aria-expanded="false" aria-controls="sideNav">Menu · Chapter sections</button>
+<div class="nav-backdrop" id="navBackdrop" hidden></div>
+
+<div class="layout">
+<aside class="nav" id="sideNav" aria-label="Chapter navigation">
+  <p class="nav-brand">Logic &amp; Proofs</p>
+  <p class="nav-credit">Study guide aligned with Rosen Ch.1 topics — original notes for learning, not a reprint of the textbook.</p>
+  <p class="nav-label">Navigate</p>
+  <a href="#overview">Overview map</a>
+  <a href="#sec-1-1">1.1 Propositional Logic</a>
+  <a href="#sec-1-2">1.2 Applications</a>
+  <a href="#sec-1-3">1.3 Equivalences</a>
+  <a href="#sec-1-4">1.4 Predicates &amp; Quantifiers</a>
+  <a href="#sec-1-5">1.5 Nested Quantifiers</a>
+  <a href="#sec-1-6">1.6 Rules of Inference</a>
+  <a href="#sec-1-7">1.7 Introduction to Proofs</a>
+  <a href="#sec-1-8">1.8 Proof Methods &amp; Strategy</a>
+  <a href="#review">Quick review + practice</a>
+  <p class="nav-label">Language</p>
+  <a href="chapter1-logic-and-proofs-ar.html">النسخة العربية</a>
+</aside>
+
+<main class="main">
+  <header class="hero">
+    <h1>Chapter 1 — The Foundations: Logic and Proofs</h1>
+    <p>An interactive study companion for propositional logic, quantifiers, inference, and proof strategy. Work the tools, then check yourself with the end quiz.</p>
+    <div class="credit">Study guide aligned with Rosen Ch.1 topics — original notes for learning, not a reprint of the textbook.</div>
+    <p style="margin-top:0.75rem"><a href="chapter1-logic-and-proofs-ar.html">النسخة العربية</a></p>
+  </header>
+
+  <!-- OVERVIEW -->
+  <section class="sec" id="overview">
+    <h2>Overview map</h2>
+    <p class="idea"><strong>Idea in one sentence.</strong> Chapter 1 builds a ladder: statements → connectives → equivalence → quantified claims → valid inference → proof methods.</p>
+    <div class="panel">
+      <h4>Learning path</h4>
+      <div class="map">
+        <span class="step"><a href="#sec-1-1">Propositions</a></span><span class="arr">→</span>
+        <span class="step"><a href="#sec-1-2">Applications</a></span><span class="arr">→</span>
+        <span class="step"><a href="#sec-1-3">Equivalences</a></span><span class="arr">→</span>
+        <span class="step"><a href="#sec-1-4">Predicates</a></span><span class="arr">→</span>
+        <span class="step"><a href="#sec-1-5">Nested ∀/∃</a></span><span class="arr">→</span>
+        <span class="step"><a href="#sec-1-6">Inference</a></span><span class="arr">→</span>
+        <span class="step"><a href="#sec-1-7">Proof basics</a></span><span class="arr">→</span>
+        <span class="step"><a href="#sec-1-8">Strategies</a></span>
+      </div>
+    </div>
+    <ul>
+      <li><strong>1.1–1.3:</strong> truth values, connectives, rewriting formulas.</li>
+      <li><strong>1.4–1.5:</strong> statements about domains with \(\forall\) and \(\exists\).</li>
+      <li><strong>1.6–1.8:</strong> from valid arguments to choosing a proof method.</li>
+    </ul>
+  </section>
+
+  <!-- 1.1 -->
+  <section class="sec" id="sec-1-1">
+    <h2>1.1 Propositional Logic</h2>
+    <p class="idea"><strong>Idea in one sentence.</strong> A proposition is a declarative sentence that is either true or false — never both, never “maybe.”</p>
+
+    <h3>Key definitions</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">Proposition</div><div class="def-body">A statement with a definite truth value (T or F).</div></div>
+      <div class="def-item"><div class="def-term">\(\neg p\)</div><div class="def-body">Negation: true exactly when \(p\) is false.</div></div>
+      <div class="def-item"><div class="def-term">\(p \land q\)</div><div class="def-body">Conjunction (AND): true only if both are true.</div></div>
+      <div class="def-item"><div class="def-term">\(p \lor q\)</div><div class="def-body">Disjunction (OR): true if at least one is true.</div></div>
+      <div class="def-item"><div class="def-term">\(p \oplus q\)</div><div class="def-body">Exclusive or (XOR): true if exactly one is true.</div></div>
+      <div class="def-item"><div class="def-term">\(p \to q\)</div><div class="def-body">Conditional: false only when \(p\) is true and \(q\) is false.</div></div>
+      <div class="def-item"><div class="def-term">\(p \leftrightarrow q\)</div><div class="def-body">Biconditional: true when \(p\) and \(q\) match.</div></div>
+    </div>
+
+    <h3>Propositions vs non-propositions</h3>
+    <ul>
+      <li>Proposition: “7 is prime.” (true)</li>
+      <li>Not a proposition: “Open the door.” (command)</li>
+      <li>Not a proposition: “Is \(n\) even?” (question)</li>
+      <li>Not (yet) a proposition: “\(x + 2 = 5\)” until \(x\) is fixed or quantified.</li>
+    </ul>
+
+    <h3>Interactive truth-table builder</h3>
+    <div class="panel">
+      <h4>Choose a connective</h4>
+      <div class="controls">
+        <label class="ctrl">Connective
+          <select id="ttOp" aria-label="Connective for truth table">
+            <option value="and">AND ∧</option>
+            <option value="or">OR ∨</option>
+            <option value="xor">XOR ⊕</option>
+            <option value="imp">→ implication</option>
+            <option value="iff">↔ biconditional</option>
+            <option value="not">NOT ¬ (unary)</option>
+          </select>
+        </label>
+        <button type="button" id="ttBuild">Build table</button>
+      </div>
+      <div id="ttOut" aria-live="polite"></div>
+    </div>
+
+    <h3>Conditional language</h3>
+    <div class="grid-2">
+      <div class="panel">
+        <h4>From \(p \to q\)</h4>
+        <ul class="small">
+          <li><strong>Converse:</strong> \(q \to p\)</li>
+          <li><strong>Inverse:</strong> \(\neg p \to \neg q\)</li>
+          <li><strong>Contrapositive:</strong> \(\neg q \to \neg p\) (equivalent to original)</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h4>Necessary / sufficient</h4>
+        <ul class="small">
+          <li>“\(p\) is <em>sufficient</em> for \(q\)” ≈ \(p \to q\)</li>
+          <li>“\(p\) is <em>necessary</em> for \(q\)” ≈ \(q \to p\)</li>
+          <li>“\(p\) iff \(q\)” ≈ \(p \leftrightarrow q\)</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Compound expression evaluator</h3>
+    <div class="panel">
+      <h4>Assign truth values, evaluate</h4>
+      <p class="small muted">Use variables <span class="mono">p</span>, <span class="mono">q</span>, <span class="mono">r</span> and operators <span class="mono">!</span> (not), <span class="mono">&amp;</span> (and), <span class="mono">|</span> (or), <span class="mono">-&gt;</span> (implies), <span class="mono">&lt;-&gt;</span> (iff), <span class="mono">^</span> (xor).</p>
+      <div class="controls">
+        <label class="ctrl"><input type="checkbox" id="valP"> p = T</label>
+        <label class="ctrl"><input type="checkbox" id="valQ"> q = T</label>
+        <label class="ctrl"><input type="checkbox" id="valR"> r = T</label>
+      </div>
+      <div class="controls">
+        <input type="text" id="exprInput" value="(p &amp; q) -> r" aria-label="Logical expression" style="min-width:min(100%,320px)">
+        <button type="button" id="evalExpr">Evaluate</button>
+      </div>
+      <p id="evalOut" class="mono" aria-live="polite"></p>
+    </div>
+
+    <h3>Worked example</h3>
+    <div class="panel">
+      <h4>Original example</h4>
+      <p>Let \(p\): “The battery is charged.” Let \(q\): “The phone turns on.” Consider \(p \to q\).</p>
+      <p>If the battery is charged and the phone does <em>not</em> turn on, then \(p\) is T, \(q\) is F, so \(p \to q\) is <strong>false</strong>. Every other combination makes the implication true — including when the battery is dead (vacuous truth of the implication).</p>
+    </div>
+
+    <div class="callout">
+      <strong>Common mistake</strong>
+      Treating \(p \to q\) like “\(p\) causes \(q\)” in everyday English. In logic it is only a truth-table rule: the single F-case is T→F.
+    </div>
+
+    <div class="try">
+      <h4>Try it</h4>
+      <p>When is \(p \oplus q\) true?</p>
+      <div class="quiz-opts" id="try11">
+        <label><input type="radio" name="try11" value="a"> Only when both are true</label>
+        <label><input type="radio" name="try11" value="b"> When exactly one of \(p,q\) is true</label>
+        <label><input type="radio" name="try11" value="c"> Whenever at least one is true</label>
+      </div>
+      <button type="button" data-check="try11" data-answer="b">Check</button>
+      <div class="feedback" id="fb-try11"></div>
+    </div>
+  </section>
+
+  <!-- 1.2 -->
+  <section class="sec" id="sec-1-2">
+    <h2>1.2 Applications of Propositional Logic</h2>
+    <p class="idea"><strong>Idea in one sentence.</strong> Connectives let you translate specs, puzzles, and search filters into precise T/F structure.</p>
+
+    <h3>Key definitions</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">Translation</div><div class="def-body">Map English clauses to atomic propositions, then wire them with connectives.</div></div>
+      <div class="def-item"><div class="def-term">Consistent specs</div><div class="def-body">A set of requirements that can be true together for some assignment.</div></div>
+      <div class="def-item"><div class="def-term">Boolean search</div><div class="def-body">AND narrows, OR widens, NOT excludes.</div></div>
+    </div>
+
+    <h3>English ↔ logic (original sentences)</h3>
+    <div class="panel">
+      <p>Atoms: \(a\): “API is up.” \(c\): “Cache is warm.” \(u\): “Users can log in.”</p>
+      <ul>
+        <li>“Users can log in only if the API is up.” → \(u \to a\)</li>
+        <li>“The cache is warm and the API is up.” → \(c \land a\)</li>
+        <li>“Either the API is up or users cannot log in (inclusive).” → \(a \lor \neg u\)</li>
+      </ul>
+    </div>
+
+    <h3>Circuit-style mental model</h3>
+    <div class="panel">
+      <h4>AND / OR / NOT blocks</h4>
+      <div class="circuit" aria-hidden="true">
+        <span class="wire">p</span>
+        <span class="gate">AND</span>
+        <span class="wire">q</span>
+        <span class="wire">→</span>
+        <span class="gate not">NOT</span>
+        <span class="wire">→</span>
+        <span class="gate">OR</span>
+        <span class="wire">r</span>
+        <span class="wire">=</span>
+        <span class="chip">\( (p \land q) \) then \(\neg\), then OR with \(r\)</span>
+      </div>
+      <p class="small muted">Think of each gate as a truth-table chip. Wiring order matters; parentheses decide the wiring.</p>
+    </div>
+
+    <h3>Worked example — short puzzle</h3>
+    <div class="panel">
+      <h4>Original puzzle</h4>
+      <p>Exactly one of these name tags is truthful:</p>
+      <ol>
+        <li>A: “B’s tag is true.”</li>
+        <li>B: “A’s tag is false.”</li>
+      </ol>
+      <p>If A were true, B would also be true — but exactly one can be true. So A is false and B is true. Consistent: A lies, B tells the truth.</p>
+    </div>
+
+    <div class="callout">
+      <strong>Common mistake</strong>
+      Translating “only if” as \(\leftrightarrow\). “\(u\) only if \(a\)” is \(u \to a\), not \(u \leftrightarrow a\).
+    </div>
+
+    <div class="try">
+      <h4>Try it</h4>
+      <p>“Pass the exam if you submit the project” (submit \(s\), pass \(p\)) is closest to:</p>
+      <div class="quiz-opts" id="try12">
+        <label><input type="radio" name="try12" value="a"> \(s \to p\)</label>
+        <label><input type="radio" name="try12" value="b"> \(p \to s\)</label>
+        <label><input type="radio" name="try12" value="c"> \(s \leftrightarrow p\)</label>
+      </div>
+      <button type="button" data-check="try12" data-answer="a">Check</button>
+      <div class="feedback" id="fb-try12"></div>
+      <p class="small muted">Everyday English is slippery; many textbooks treat “if” as the antecedent of \(\to\).</p>
+    </div>
+  </section>
+
+  <!-- 1.3 -->
+  <section class="sec" id="sec-1-3">
+    <h2>1.3 Propositional Equivalences</h2>
+    <p class="idea"><strong>Idea in one sentence.</strong> Two formulas are logically equivalent when they agree on every truth assignment — so you can rewrite without changing meaning.</p>
+
+    <h3>Key definitions</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">Tautology</div><div class="def-body">Always true (e.g. \(p \lor \neg p\)).</div></div>
+      <div class="def-item"><div class="def-term">Contradiction</div><div class="def-body">Always false (e.g. \(p \land \neg p\)).</div></div>
+      <div class="def-item"><div class="def-term">Contingency</div><div class="def-body">Sometimes true, sometimes false.</div></div>
+      <div class="def-item"><div class="def-term">\(p \equiv q\)</div><div class="def-body">Logical equivalence: \(p \leftrightarrow q\) is a tautology.</div></div>
+    </div>
+
+    <h3>Core laws (reference panel)</h3>
+    <div class="panel">
+      <h4>Rewrite toolkit</h4>
+      <ul>
+        <li><strong>De Morgan:</strong> \(\neg(p \land q) \equiv \neg p \lor \neg q\); \(\neg(p \lor q) \equiv \neg p \land \neg q\)</li>
+        <li><strong>Implication:</strong> \(p \to q \equiv \neg p \lor q\)</li>
+        <li><strong>Double negation:</strong> \(\neg\neg p \equiv p\)</li>
+        <li><strong>Distributive:</strong> \(p \land (q \lor r) \equiv (p \land q) \lor (p \land r)\)</li>
+        <li><strong>Absorption:</strong> \(p \lor (p \land q) \equiv p\)</li>
+        <li><strong>Contrpositive:</strong> \(p \to q \equiv \neg q \to \neg p\)</li>
+      </ul>
+    </div>
+
+    <h3>Side-by-side simplification</h3>
+    <div class="grid-2">
+      <div class="panel">
+        <h4>Start</h4>
+        <p class="mono">\(\neg(p \to q)\)</p>
+      </div>
+      <div class="panel">
+        <h4>Rewrite</h4>
+        <ol class="small">
+          <li>\(\neg(\neg p \lor q)\)</li>
+          <li>\(\neg\neg p \land \neg q\)</li>
+          <li>\(p \land \neg q\)</li>
+        </ol>
+        <p class="small">So the negation of an implication is “antecedent true and consequent false.”</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Common mistake</strong>
+      Negating \(p \to q\) as \(\neg p \to \neg q\). That is the inverse, not the negation. Correct: \(p \land \neg q\).
+    </div>
+
+    <div class="try">
+      <h4>Try it</h4>
+      <p>\(p \lor \neg p\) is a:</p>
+      <div class="quiz-opts" id="try13">
+        <label><input type="radio" name="try13" value="a"> Contingency</label>
+        <label><input type="radio" name="try13" value="b"> Tautology</label>
+        <label><input type="radio" name="try13" value="c"> Contradiction</label>
+      </div>
+      <button type="button" data-check="try13" data-answer="b">Check</button>
+      <div class="feedback" id="fb-try13"></div>
+    </div>
+  </section>
+
+  <!-- 1.4 -->
+  <section class="sec" id="sec-1-4">
+    <h2>1.4 Predicates and Quantifiers</h2>
+    <p class="idea"><strong>Idea in one sentence.</strong> Predicates become propositions once you plug in a value or quantify over a domain.</p>
+
+    <h3>Key definitions</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">\(P(x)\)</div><div class="def-body">Predicate: a property that depends on \(x\).</div></div>
+      <div class="def-item"><div class="def-term">Domain</div><div class="def-body">The set of allowed values for the variable.</div></div>
+      <div class="def-item"><div class="def-term">\(\forall x\, P(x)\)</div><div class="def-body">Universal: true if \(P\) holds for every domain element.</div></div>
+      <div class="def-item"><div class="def-term">\(\exists x\, P(x)\)</div><div class="def-body">Existential: true if \(P\) holds for at least one element.</div></div>
+      <div class="def-item"><div class="def-term">Negation</div><div class="def-body">\(\neg\forall x\,P(x)\equiv\exists x\,\neg P(x)\); \(\neg\exists x\,P(x)\equiv\forall x\,\neg P(x)\).</div></div>
+    </div>
+
+    <h3>Interactive domain checker</h3>
+    <div class="panel">
+      <h4>Domain \(\{2,3,4,5\}\), \(P(x)\): “\(x\) is prime”</h4>
+      <p class="small">Click an element to evaluate \(P(x)\).</p>
+      <div class="domain-btns" id="domainBtns">
+        <button type="button" data-x="2">2</button>
+        <button type="button" data-x="3">3</button>
+        <button type="button" data-x="4">4</button>
+        <button type="button" data-x="5">5</button>
+      </div>
+      <p id="domainOut" class="mono" aria-live="polite">Pick an \(x\).</p>
+      <p class="small muted">Then \(\forall x\,P(x)\) is false (because of 4), while \(\exists x\,P(x)\) is true.</p>
+    </div>
+
+    <h3>Worked example</h3>
+    <div class="panel">
+      <h4>Original example</h4>
+      <p>Domain: students in a study group. \(H(x)\): “\(x\) finished the homework.”</p>
+      <p>\(\neg\forall x\, H(x)\) means “not everyone finished” ≡ \(\exists x\, \neg H(x)\) “someone did not finish.” It does <em>not</em> force “nobody finished.”</p>
+    </div>
+
+    <div class="callout">
+      <strong>Common mistake</strong>
+      Reading \(\neg\forall x\,P(x)\) as \(\forall x\,\neg P(x)\). Those differ: “not all” ≠ “none.”
+    </div>
+
+    <div class="try">
+      <h4>Try it</h4>
+      <p>Negation of \(\exists x\, (x^2 &lt; 0)\) over the reals is:</p>
+      <div class="quiz-opts" id="try14">
+        <label><input type="radio" name="try14" value="a"> \(\exists x\, (x^2 \ge 0)\)</label>
+        <label><input type="radio" name="try14" value="b"> \(\forall x\, (x^2 \ge 0)\)</label>
+        <label><input type="radio" name="try14" value="c"> \(\forall x\, (x^2 &lt; 0)\)</label>
+      </div>
+      <button type="button" data-check="try14" data-answer="b">Check</button>
+      <div class="feedback" id="fb-try14"></div>
+    </div>
+  </section>
+
+  <!-- 1.5 -->
+  <section class="sec" id="sec-1-5">
+    <h2>1.5 Nested Quantifiers</h2>
+    <p class="idea"><strong>Idea in one sentence.</strong> When quantifiers nest, order is part of the meaning — swapping \(\forall\) and \(\exists\) can change the claim.</p>
+
+    <h3>Key definitions</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">\(\forall x\exists y\)</div><div class="def-body">For each \(x\), you may pick a (possibly different) \(y\).</div></div>
+      <div class="def-item"><div class="def-term">\(\exists y\forall x\)</div><div class="def-body">One fixed \(y\) must work for every \(x\).</div></div>
+      <div class="def-item"><div class="def-term">Scope</div><div class="def-body">The portion of the formula a quantifier governs.</div></div>
+    </div>
+
+    <h3>Quantifier scope map</h3>
+    <div class="panel">
+      <h4>Reading \(\forall x\, \exists y\, L(x,y)\)</h4>
+      <div class="scope">
+        <div class="layer outer">∀x &nbsp; <span class="muted">// choose any person x</span>
+          <div class="layer inner" style="margin-top:0.45rem">∃y &nbsp; <span class="muted">// there is a locker y for that x</span>
+            <div class="layer" style="margin:0.45rem 0 0 1.2rem">L(x,y) &nbsp; <span class="muted">// x is assigned y</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="small">Compare with \(\exists y\, \forall x\, L(x,y)\): one locker shared by everyone.</p>
+    </div>
+
+    <h3>Translation drill</h3>
+    <div class="panel">
+      <ul>
+        <li>“Every integer has a larger integer.” → \(\forall x \exists y\, (y &gt; x)\) on \(\mathbb{Z}\).</li>
+        <li>“There is an integer larger than every integer.” → \(\exists y \forall x\, (y &gt; x)\) — false on \(\mathbb{Z}\).</li>
+        <li>“Someone is admired by everyone.” → \(\exists y \forall x\, A(x,y)\).</li>
+      </ul>
+    </div>
+
+    <div class="callout">
+      <strong>Common mistake</strong>
+      Assuming \(\forall x\exists y\, P(x,y)\) implies \(\exists y\forall x\, P(x,y)\). The first allows \(y\) to depend on \(x\); the second does not.
+    </div>
+
+    <div class="try">
+      <h4>Try it</h4>
+      <p>On positive integers, which is true?</p>
+      <div class="quiz-opts" id="try15">
+        <label><input type="radio" name="try15" value="a"> \(\exists y \forall x\, (x \le y)\)</label>
+        <label><input type="radio" name="try15" value="b"> \(\forall x \exists y\, (x &lt; y)\)</label>
+        <label><input type="radio" name="try15" value="c"> Both of the above</label>
+      </div>
+      <button type="button" data-check="try15" data-answer="b">Check</button>
+      <div class="feedback" id="fb-try15"></div>
+    </div>
+  </section>
+
+  <!-- 1.6 -->
+  <section class="sec" id="sec-1-6">
+    <h2>1.6 Rules of Inference</h2>
+    <p class="idea"><strong>Idea in one sentence.</strong> A valid argument is one where the conclusion must be true whenever all premises are true.</p>
+
+    <h3>Key definitions</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">Valid</div><div class="def-body">No counterexample assignment makes premises true and conclusion false.</div></div>
+      <div class="def-item"><div class="def-term">Fallacy</div><div class="def-body">An invalid inference pattern (e.g. affirming the consequent).</div></div>
+    </div>
+
+    <h3>Compact rule cards</h3>
+    <div class="rule-grid">
+      <div class="rule">
+        <h5>Modus ponens</h5>
+        <div class="prem">p → q
+p</div>
+        <div class="conc">∴ q</div>
+      </div>
+      <div class="rule">
+        <h5>Modus tollens</h5>
+        <div class="prem">p → q
+¬q</div>
+        <div class="conc">∴ ¬p</div>
+      </div>
+      <div class="rule">
+        <h5>Hypothetical syllogism</h5>
+        <div class="prem">p → q
+q → r</div>
+        <div class="conc">∴ p → r</div>
+      </div>
+      <div class="rule">
+        <h5>Disjunctive syllogism</h5>
+        <div class="prem">p ∨ q
+¬p</div>
+        <div class="conc">∴ q</div>
+      </div>
+      <div class="rule">
+        <h5>Universal instantiation</h5>
+        <div class="prem">∀x P(x)</div>
+        <div class="conc">∴ P(c) for particular c</div>
+      </div>
+      <div class="rule">
+        <h5>Universal generalization</h5>
+        <div class="prem">P(c) for arbitrary c</div>
+        <div class="conc">∴ ∀x P(x)</div>
+      </div>
+    </div>
+
+    <h3>Formal-argument stepper</h3>
+    <div class="panel">
+      <h4>Highlight which rule applies</h4>
+      <p class="small">Premises: (1) \(p \to q\) &nbsp; (2) \(q \to r\) &nbsp; (3) \(p\)</p>
+      <div id="stepper">
+        <div class="stepper-line" data-step="0">Step 1: From (1) and (3) get q &nbsp;— modus ponens</div>
+        <div class="stepper-line" data-step="1">Step 2: From (2) and q get r &nbsp;— modus ponens</div>
+        <div class="stepper-line" data-step="2">Conclusion: r</div>
+      </div>
+      <div class="controls">
+        <button type="button" id="stepPrev" class="secondary">Previous</button>
+        <button type="button" id="stepNext">Next step</button>
+        <span class="small muted" id="stepLabel">Step 0 of 3</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Common mistake</strong>
+      Affirming the consequent: from \(p\to q\) and \(q\), conclude \(p\). Invalid — \(q\) might hold for other reasons.
+    </div>
+
+    <div class="try">
+      <h4>Try it</h4>
+      <p>From \(p\to q\) and \(\neg q\), conclude \(\neg p\). Rule?</p>
+      <div class="quiz-opts" id="try16">
+        <label><input type="radio" name="try16" value="a"> Modus ponens</label>
+        <label><input type="radio" name="try16" value="b"> Modus tollens</label>
+        <label><input type="radio" name="try16" value="c"> Disjunctive syllogism</label>
+      </div>
+      <button type="button" data-check="try16" data-answer="b">Check</button>
+      <div class="feedback" id="fb-try16"></div>
+    </div>
+  </section>
+
+  <!-- 1.7 -->
+  <section class="sec" id="sec-1-7">
+    <h2>1.7 Introduction to Proofs</h2>
+    <p class="idea"><strong>Idea in one sentence.</strong> A proof is a reasoned argument that establishes a mathematical claim from definitions, axioms, and already-proved results.</p>
+
+    <h3>Key definitions</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">Theorem</div><div class="def-body">A major statement that has been proved.</div></div>
+      <div class="def-item"><div class="def-term">Lemma</div><div class="def-body">A helper result used on the way to a theorem.</div></div>
+      <div class="def-item"><div class="def-term">Corollary</div><div class="def-body">A quick consequence of a theorem.</div></div>
+      <div class="def-item"><div class="def-term">Conjecture</div><div class="def-body">A proposed claim not yet proved (or disproved).</div></div>
+    </div>
+
+    <h3>Three original worked proofs</h3>
+    <div class="panel">
+      <h4>Direct proof</h4>
+      <p><strong>Claim.</strong> If \(n\) is an odd integer, then \(n^2\) is odd.</p>
+      <p><em>Proof.</em> Odd means \(n = 2k+1\) for some integer \(k\). Then
+      \[ n^2 = (2k+1)^2 = 4k^2 + 4k + 1 = 2(2k^2+2k) + 1, \]
+      which is odd. □</p>
+    </div>
+    <div class="panel">
+      <h4>Proof by contrapositive</h4>
+      <p><strong>Claim.</strong> If \(n^2\) is even, then \(n\) is even.</p>
+      <p><em>Proof.</em> Contrapositive: if \(n\) is odd, then \(n^2\) is odd — already shown above. □</p>
+    </div>
+    <div class="panel">
+      <h4>Proof by contradiction</h4>
+      <p><strong>Claim.</strong> \(\sqrt{2}\) is irrational.</p>
+      <p><em>Sketch.</em> Assume \(\sqrt{2}=a/b\) in lowest terms. Then \(a^2 = 2b^2\), so \(a\) is even, write \(a=2c\), get \(b\) even — contradicting lowest terms. □</p>
+    </div>
+
+    <h3>Vacuous and trivial proof intuition</h3>
+    <ul>
+      <li><strong>Vacuous:</strong> \(P\to Q\) is true when \(P\) is never true on the domain (e.g. “if \(n&lt;0\) and \(n\) is a square of an integer…” on nonnegatives).</li>
+      <li><strong>Trivial:</strong> \(P\to Q\) when \(Q\) is always true, regardless of \(P\).</li>
+    </ul>
+
+    <div class="callout">
+      <strong>Common mistake</strong>
+      Starting a “proof” with the conclusion and working backwards without reversing the steps carefully. Prefer forward structure, or clearly mark equivalence steps.
+    </div>
+
+    <div class="try">
+      <h4>Try it</h4>
+      <p>To prove \(P\to Q\) by contrapositive, you prove:</p>
+      <div class="quiz-opts" id="try17">
+        <label><input type="radio" name="try17" value="a"> \(Q \to P\)</label>
+        <label><input type="radio" name="try17" value="b"> \(\neg Q \to \neg P\)</label>
+        <label><input type="radio" name="try17" value="c"> \(\neg P \to \neg Q\)</label>
+      </div>
+      <button type="button" data-check="try17" data-answer="b">Check</button>
+      <div class="feedback" id="fb-try17"></div>
+    </div>
+  </section>
+
+  <!-- 1.8 -->
+  <section class="sec" id="sec-1-8">
+    <h2>1.8 Proof Methods and Strategy</h2>
+    <p class="idea"><strong>Idea in one sentence.</strong> Different claims invite different tools: cases, construction, uniqueness arguments, or a single counterexample to kill a universal claim.</p>
+
+    <h3>Key definitions</h3>
+    <div class="panel def-list">
+      <div class="def-item"><div class="def-term">Exhaustive / cases</div><div class="def-body">Split the domain into pieces that cover all possibilities; prove each piece.</div></div>
+      <div class="def-item"><div class="def-term">Constructive existence</div><div class="def-body">Exhibit a concrete witness.</div></div>
+      <div class="def-item"><div class="def-term">Nonconstructive</div><div class="def-body">Show existence without naming the object (e.g. via contradiction or pigeonhole).</div></div>
+      <div class="def-item"><div class="def-term">Uniqueness</div><div class="def-body">Existence + “suppose two, show they are equal.”</div></div>
+      <div class="def-item"><div class="def-term">Counterexample</div><div class="def-body">One domain element that falsifies a universal claim.</div></div>
+    </div>
+
+    <h3>Strategy checklist</h3>
+    <ul class="checklist">
+      <li>Universal claim (“for all…”) → try direct / contrap / contradiction; hunt counterexamples if stuck.</li>
+      <li>Conditional with awkward hypothesis → try contraposive.</li>
+      <li>Existence claim → try to construct; if hard, consider nonconstructive routes.</li>
+      <li>Integer statements with parity/mod → cases (even/odd, mod \(n\)).</li>
+      <li>“Exactly one” → existence + uniqueness.</li>
+    </ul>
+
+    <h3>Worked example — cases</h3>
+    <div class="panel">
+      <h4>Original example</h4>
+      <p><strong>Claim.</strong> For every integer \(n\), \(n(n+1)\) is even.</p>
+      <p><em>Proof.</em> Case 1: \(n\) even → product even. Case 2: \(n\) odd → \(n+1\) even → product even. □</p>
+    </div>
+
+    <div class="callout">
+      <strong>Common mistake</strong>
+      Offering one example as a “proof” of a universal claim. Examples support intuition; only a general argument (or exhaustive finite check) proves \(\forall\).
+    </div>
+
+    <div class="try">
+      <h4>Try it</h4>
+      <p>To disprove “every prime is odd,” it suffices to:</p>
+      <div class="quiz-opts" id="try18">
+        <label><input type="radio" name="try18" value="a"> Prove all odds are prime</label>
+        <label><input type="radio" name="try18" value="b"> Give the counterexample 2</label>
+        <label><input type="radio" name="try18" value="c"> Use proof by contradiction only</label>
+      </div>
+      <button type="button" data-check="try18" data-answer="b">Check</button>
+      <div class="feedback" id="fb-try18"></div>
+    </div>
+  </section>
+
+  <!-- REVIEW -->
+  <section class="sec" id="review">
+    <h2>Quick review + practice</h2>
+    <p class="idea"><strong>Idea in one sentence.</strong> Symbols and patterns stick when you rewrite, quantify carefully, and pick proof methods on purpose.</p>
+
+    <h3>Cheat sheet</h3>
+    <div class="panel cheat">
+      <h4>Symbols</h4>
+      <ul class="small">
+        <li>\(\neg\) not · \(\land\) and · \(\lor\) or · \(\oplus\) xor</li>
+        <li>\(\to\) implies · \(\leftrightarrow\) iff</li>
+        <li>\(\forall\) for all · \(\exists\) there exists</li>
+        <li>\(\equiv\) logically equivalent</li>
+      </ul>
+      <h4>Handy equivalences</h4>
+      <ul class="small">
+        <li>\(p\to q \equiv \neg p\lor q \equiv \neg q\to\neg p\)</li>
+        <li>\(\neg(p\land q)\equiv\neg p\lor\neg q\)</li>
+        <li>\(\neg\forall x P\equiv\exists x\neg P\)</li>
+      </ul>
+      <h4>Inference highlights</h4>
+      <ul class="small">
+        <li>MP: \(p\to q,\ p\ \Rightarrow\ q\)</li>
+        <li>MT: \(p\to q,\ \neg q\ \Rightarrow\ \neg p\)</li>
+        <li>UI / UG for predicates</li>
+      </ul>
+      <h4>Proof menu</h4>
+      <ul class="small">
+        <li>Direct · Contrapositive · Contradiction</li>
+        <li>Cases · Existence · Uniqueness · Counterexample</li>
+      </ul>
+    </div>
+
+    <h3>Self-check quiz (~12 questions)</h3>
+    <div class="panel" id="quiz">
+      <div class="quiz-q" data-ans="b">
+        <p><strong>1.</strong> Which is a proposition?</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q1" value="a"> “Solve for \(x\).”</label>
+          <label><input type="radio" name="q1" value="b"> “15 is divisible by 3.”</label>
+          <label><input type="radio" name="q1" value="c"> “How many primes &lt; 10?”</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="c">
+        <p><strong>2.</strong> \(p\to q\) is false only when:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q2" value="a"> \(p\) F, \(q\) T</label>
+          <label><input type="radio" name="q2" value="b"> \(p\) F, \(q\) F</label>
+          <label><input type="radio" name="q2" value="c"> \(p\) T, \(q\) F</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="a">
+        <p><strong>3.</strong> Contrapositive of \(p\to q\):</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q3" value="a"> \(\neg q\to\neg p\)</label>
+          <label><input type="radio" name="q3" value="b"> \(q\to p\)</label>
+          <label><input type="radio" name="q3" value="c"> \(\neg p\to\neg q\)</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="b">
+        <p><strong>4.</strong> \(\neg(p\lor q)\) equals:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q4" value="a"> \(\neg p\lor\neg q\)</label>
+          <label><input type="radio" name="q4" value="b"> \(\neg p\land\neg q\)</label>
+          <label><input type="radio" name="q4" value="c"> \(p\land\neg q\)</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="a">
+        <p><strong>5.</strong> \(\neg(p\to q)\) simplifies to:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q5" value="a"> \(p\land\neg q\)</label>
+          <label><input type="radio" name="q5" value="b"> \(\neg p\land q\)</label>
+          <label><input type="radio" name="q5" value="c"> \(\neg p\lor\neg q\)</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="c">
+        <p><strong>6.</strong> \(\neg\forall x P(x)\) is equivalent to:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q6" value="a"> \(\forall x\neg P(x)\)</label>
+          <label><input type="radio" name="q6" value="b"> \(\neg\exists x P(x)\)</label>
+          <label><input type="radio" name="q6" value="c"> \(\exists x\neg P(x)\)</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="b">
+        <p><strong>7.</strong> On \(\mathbb{Z}\), \(\forall x\exists y\,(y&gt;x)\) is:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q7" value="a"> False</label>
+          <label><input type="radio" name="q7" value="b"> True</label>
+          <label><input type="radio" name="q7" value="c"> Not a proposition</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="a">
+        <p><strong>8.</strong> \(\exists y\forall x\,(y&gt;x)\) on \(\mathbb{Z}\) is:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q8" value="a"> False</label>
+          <label><input type="radio" name="q8" value="b"> True</label>
+          <label><input type="radio" name="q8" value="c"> Equivalent to the previous</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="b">
+        <p><strong>9.</strong> From \(p\to q\) and \(\neg q\), infer \(\neg p\) by:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q9" value="a"> Modus ponens</label>
+          <label><input type="radio" name="q9" value="b"> Modus tollens</label>
+          <label><input type="radio" name="q9" value="c"> Resolution only</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="c">
+        <p><strong>10.</strong> Affirming the consequent is:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q10" value="a"> A valid form of MP</label>
+          <label><input type="radio" name="q10" value="b"> Equivalent to MT</label>
+          <label><input type="radio" name="q10" value="c"> A fallacy</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="a">
+        <p><strong>11.</strong> Best first tool to disprove a \(\forall\) claim:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q11" value="a"> Counterexample</label>
+          <label><input type="radio" name="q11" value="b"> Vacuous proof</label>
+          <label><input type="radio" name="q11" value="c"> Universal generalization</label>
+        </div>
+      </div>
+      <div class="quiz-q" data-ans="b">
+        <p><strong>12.</strong> Showing an object that satisfies \(P\) proves:</p>
+        <div class="quiz-opts">
+          <label><input type="radio" name="q12" value="a"> \(\forall x P(x)\)</label>
+          <label><input type="radio" name="q12" value="b"> \(\exists x P(x)\)</label>
+          <label><input type="radio" name="q12" value="c"> \(\neg\exists x P(x)\)</label>
+        </div>
+      </div>
+      <div class="controls">
+        <button type="button" id="gradeQuiz">Grade quiz</button>
+        <button type="button" id="resetQuiz" class="secondary">Reset</button>
+        <span id="quizScore" class="small" aria-live="polite"></span>
+      </div>
+    </div>
+
+    <h3>Suggested study order / what to practice next</h3>
+    <ol>
+      <li>Drill truth tables until \(\to\) and \(\leftrightarrow\) feel automatic.</li>
+      <li>Translate 10 English sentences each way (especially “only if,” “unless,” “necessary”).</li>
+      <li>Practice pushing negations through quantifiers.</li>
+      <li>Write three short proofs: one direct, one contraposive, one by cases.</li>
+      <li>When stuck on homework, name the method you’re trying before writing algebra.</li>
+    </ol>
+    <details class="reveal">
+      <summary>Solution key for mini “Try it” checks</summary>
+      <p class="small">1.1 XOR → exactly one; 1.2 \(s\to p\); 1.3 tautology; 1.4 \(\forall x(x^2\ge 0)\); 1.5 \(\forall x\exists y(x&lt;y)\); 1.6 modus tollens; 1.7 \(\neg Q\to\neg P\); 1.8 counterexample 2.</p>
+    </details>
+  </section>
+
+  <footer class="muted small" style="margin-top:2rem;padding-top:1rem;border-top:1px solid var(--line)">
+    Original study companion for learning Chapter 1 topics. Not affiliated with or a substitute for the textbook.
+  </footer>
+</main>
+</div>
+
+<script>
+(function () {
+  const nav = document.getElementById('sideNav');
+  const toggle = document.getElementById('navToggle');
+  const backdrop = document.getElementById('navBackdrop');
+  const links = [...nav.querySelectorAll('a[href^="#"]')];
+  const sections = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+  function setNavOpen(open) {
+    nav.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    backdrop.hidden = !open;
+    backdrop.classList.toggle('show', open);
+  }
+  toggle.addEventListener('click', () => setNavOpen(!nav.classList.contains('open')));
+  backdrop.addEventListener('click', () => setNavOpen(false));
+  links.forEach(a => a.addEventListener('click', () => setNavOpen(false)));
+
+  const spy = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const id = entry.target.id;
+      links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+    });
+  }, { rootMargin: '-20% 0px -65% 0px', threshold: 0.01 });
+  sections.forEach(s => spy.observe(s));
+
+  document.querySelectorAll('details.reveal').forEach(d => {
+    const sync = () => d.querySelector('summary')?.setAttribute('aria-expanded', d.open ? 'true' : 'false');
+    sync();
+    d.addEventListener('toggle', sync);
+  });
+
+  // Truth table
+  const ops = {
+    and: { unary: false, label: 'p ∧ q', fn: (p,q) => p && q },
+    or:  { unary: false, label: 'p ∨ q', fn: (p,q) => p || q },
+    xor: { unary: false, label: 'p ⊕ q', fn: (p,q) => p !== q },
+    imp: { unary: false, label: 'p → q', fn: (p,q) => !p || q },
+    iff: { unary: false, label: 'p ↔ q', fn: (p,q) => p === q },
+    not: { unary: true,  label: '¬p', fn: (p) => !p }
+  };
+  function cell(v) { return `<td class="${v ? 't' : 'f'}">${v ? 'T' : 'F'}</td>`; }
+  function buildTT() {
+    const key = document.getElementById('ttOp').value;
+    const op = ops[key];
+    let html = '<table><thead><tr>';
+    if (op.unary) {
+      html += '<th>p</th><th>' + op.label + '</th></tr></thead><tbody>';
+      [false, true].forEach(p => {
+        html += '<tr>' + cell(p) + cell(op.fn(p)) + '</tr>';
+      });
+    } else {
+      html += '<th>p</th><th>q</th><th>' + op.label + '</th></tr></thead><tbody>';
+      [false, true].forEach(p => {
+        [false, true].forEach(q => {
+          html += '<tr>' + cell(p) + cell(q) + cell(op.fn(p,q)) + '</tr>';
+        });
+      });
+    }
+    html += '</tbody></table>';
+    document.getElementById('ttOut').innerHTML = html;
+  }
+  document.getElementById('ttBuild').addEventListener('click', buildTT);
+  buildTT();
+
+  // Expression evaluator (recursive descent)
+  function parseExpr(input, env) {
+    let i = 0;
+    const s = input.replace(/\s+/g, '');
+    function peek() { return s[i]; }
+    function eat(ch) { if (s[i] !== ch) throw new Error('Expected ' + ch); i++; }
+    function parseIff() {
+      let left = parseImp();
+      while (s.startsWith('<->', i) || s[i] === '↔') {
+        if (s[i] === '↔') i++; else i += 3;
+        const right = parseImp();
+        left = left === right;
+      }
+      return left;
+    }
+    function parseImp() {
+      let left = parseOr();
+      while (s.startsWith('->', i) || s[i] === '→') {
+        if (s[i] === '→') i++; else i += 2;
+        const right = parseImp(); // right-assoc
+        left = (!left) || right;
+      }
+      return left;
+    }
+    function parseOr() {
+      let left = parseXor();
+      while (s[i] === '|' || s[i] === '∨') { i++; left = left || parseXor(); }
+      return left;
+    }
+    function parseXor() {
+      let left = parseAnd();
+      while (s[i] === '^' || s[i] === '⊕') { i++; const r = parseAnd(); left = left !== r; }
+      return left;
+    }
+    function parseAnd() {
+      let left = parseUnary();
+      while (s[i] === '&' || s[i] === '∧') { i++; left = left && parseUnary(); }
+      return left;
+    }
+    function parseUnary() {
+      if (s[i] === '!' || s[i] === '¬') { i++; return !parseUnary(); }
+      return parseAtom();
+    }
+    function parseAtom() {
+      if (s[i] === '(') { i++; const v = parseIff(); eat(')'); return v; }
+      const ch = s[i];
+      if (ch === 'p' || ch === 'q' || ch === 'r') { i++; return !!env[ch]; }
+      if (ch === 't') { i++; return true; }
+      if (ch === 'f') { i++; return false; }
+      throw new Error('Bad atom at ' + (ch || 'EOF'));
+    }
+    const val = parseIff();
+    if (i !== s.length) throw new Error('Trailing input');
+    return val;
+  }
+
+  document.getElementById('evalExpr').addEventListener('click', () => {
+    const env = {
+      p: document.getElementById('valP').checked,
+      q: document.getElementById('valQ').checked,
+      r: document.getElementById('valR').checked
+    };
+    const out = document.getElementById('evalOut');
+    try {
+      const v = parseExpr(document.getElementById('exprInput').value, env);
+      out.textContent = 'Result: ' + (v ? 'T' : 'F');
+    } catch (e) {
+      out.textContent = 'Could not parse: ' + e.message;
+    }
+  });
+
+  // Domain interactive
+  const primes = new Set([2, 3, 5]);
+  document.getElementById('domainBtns').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-x]');
+    if (!btn) return;
+    document.querySelectorAll('#domainBtns button').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    const x = Number(btn.dataset.x);
+    const ok = primes.has(x);
+    document.getElementById('domainOut').textContent = `P(${x}) = ${ok ? 'T' : 'F'}  (${x} is ${ok ? '' : 'not '}prime)`;
+  });
+
+  // Inference stepper
+  let step = -1;
+  const lines = [...document.querySelectorAll('#stepper .stepper-line')];
+  function renderStep() {
+    lines.forEach((el, idx) => el.classList.toggle('active', idx === step));
+    document.getElementById('stepLabel').textContent = `Step ${Math.max(step + 1, 0)} of ${lines.length}`;
+  }
+  document.getElementById('stepNext').addEventListener('click', () => {
+    step = Math.min(lines.length - 1, step + 1);
+    renderStep();
+  });
+  document.getElementById('stepPrev').addEventListener('click', () => {
+    step = Math.max(-1, step - 1);
+    renderStep();
+  });
+  renderStep();
+
+  // Mini checks
+  document.querySelectorAll('button[data-check]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.check;
+      const ans = btn.dataset.answer;
+      const picked = document.querySelector(`input[name="${id}"]:checked`);
+      const fb = document.getElementById('fb-' + id);
+      if (!picked) {
+        fb.textContent = 'Pick an option first.';
+        fb.className = 'feedback show bad';
+        return;
+      }
+      const ok = picked.value === ans;
+      fb.textContent = ok ? 'Correct.' : 'Not quite — try again, or open the solution key at the bottom.';
+      fb.className = 'feedback show ' + (ok ? 'ok' : 'bad');
+    });
+  });
+
+  // Quiz
+  const quiz = document.getElementById('quiz');
+  document.getElementById('gradeQuiz').addEventListener('click', () => {
+    const qs = [...quiz.querySelectorAll('.quiz-q')];
+    let score = 0;
+    qs.forEach((q, idx) => {
+      const name = 'q' + (idx + 1);
+      const picked = q.querySelector(`input[name="${name}"]:checked`);
+      const ok = picked && picked.value === q.dataset.ans;
+      if (ok) score++;
+      q.style.outline = ok ? '2px solid #059669' : '2px solid #dc2626';
+      q.style.outlineOffset = '2px';
+    });
+    document.getElementById('quizScore').textContent = `Score: ${score} / ${qs.length}`;
+  });
+  document.getElementById('resetQuiz').addEventListener('click', () => {
+    quiz.querySelectorAll('input[type="radio"]').forEach(r => { r.checked = false; });
+    quiz.querySelectorAll('.quiz-q').forEach(q => { q.style.outline = ''; });
+    document.getElementById('quizScore').textContent = '';
+  });
+})();
+</script>
+</body>
+</html>

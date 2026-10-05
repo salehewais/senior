@@ -1,0 +1,2252 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DBMS notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,520;8..60,650&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dbms.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <p class="kicker">Study notes</p>
+    <h1>Database Management Systems</h1>
+  </div>
+  <div class="tools">
+    <button type="button" class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="drawer">Contents</button>
+    <nav class="lang" aria-label="Language">
+      <a class="on" href="dbms-en.html" hreflang="en">EN</a>
+      <a href="dbms-ar.html" hreflang="ar">AR</a>
+    </nav>
+  </div>
+  <div class="progress">
+    <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Move through the page">
+  </div>
+</header>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <h2>Contents</h2>
+    <button type="button" class="drawer-close" id="drawer-close" aria-label="Close">×</button>
+  </div>
+  <nav id="drawer-nav" aria-label="Sections"></nav>
+</aside>
+
+<main class="wrap">
+  <p class="lede-page">A reading version of the DBMS notes: definitions, comparison tables, worked examples, the 50 staff queries, and 36 clickable MCQs. SQL, table names, and exam terms stay in English.</p>
+
+  <nav class="toc" aria-label="Contents">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#s1">DBMS introduction</a></li>
+      <li><a href="#s2">Architecture</a></li>
+      <li><a href="#s3">Data abstraction</a></li>
+      <li><a href="#s4">Data models</a></li>
+      <li><a href="#s5">ER model</a></li>
+      <li><a href="#s6">Relational model</a></li>
+      <li><a href="#s7">Keys</a></li>
+      <li><a href="#s8">Normalisation</a></li>
+      <li><a href="#s9">Denormalisation</a></li>
+      <li><a href="#s10">Transactions and concurrency</a></li>
+      <li><a href="#s11">SQL commands</a></li>
+      <li><a href="#s12">Indexing, optimisation, sharding</a></li>
+      <li><a href="#s13">SQL practice</a></li>
+      <li><a href="#s14">MCQs</a></li>
+    </ol>
+  </nav>
+
+  <section id="s1">
+    <div class="sec-head"><span class="num">01</span><h2>DBMS introduction</h2></div>
+
+    <h3>Database and DBMS</h3>
+    <p>A <strong>database</strong> is the organised store of data. A <strong>DBMS</strong> (Database Management System) is the software that lets users create, manipulate, and administer that store: keep it secure, retrieve it quickly, change it, and add new data when needed.</p>
+    <aside class="example">
+      <h4>Library picture</h4>
+      <p>Books sit shelf-by-shelf by subject, so you walk straight to the C-Programming rack instead of digging through every pile. The library catalog works like a DBMS index: it makes searching easy.</p>
+    </aside>
+
+    <h3>Why a DBMS is needed</h3>
+    <p>A DBMS keeps data consistent, lets many users work at once, enforces security, and can restore data after a failure (backups and recovery).</p>
+    <aside class="example">
+      <h4>Separate spreadsheets</h4>
+      <p>If every college department kept its own Excel file, the same student’s name, phone, and address would be copied again and again. Admissions might update the address while the Fees sheet still has the old one, so the copies no longer match.</p>
+    </aside>
+
+    <h3>Main advantages</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>Security</h3>
+        <p>Decide exactly who can view or change which data.</p>
+        <p>A fee clerk sees only names and fee status. The principal’s login also shows marks. Nobody else can quietly peek at everything.</p>
+      </article>
+      <article class="card">
+        <h3>No extra copies</h3>
+        <p>Store data once, in a structured way. Controlled copies (indexes) may still exist for speed.</p>
+        <p>A student’s address lives in one <span class="term">Student</span> table. Admissions, Exams, and Fees all read that copy, so they see the same up-to-date address.</p>
+      </article>
+      <article class="card">
+        <h3>Accuracy — ACID</h3>
+        <p>Every update is all-or-nothing and stays valid.</p>
+        <ul>
+          <li><strong>Atomicity</strong> — all or nothing.</li>
+          <li><strong>Consistency</strong> — data stays valid.</li>
+          <li><strong>Isolation</strong> — concurrent work does not interfere.</li>
+          <li><strong>Durability</strong> — committed changes survive crashes.</li>
+        </ul>
+        <p>Issuing a library book writes “Issued = Yes” and “Available copies = total − 1” together. If power fails mid-update, the DBMS rolls the whole action back.</p>
+      </article>
+      <article class="card">
+        <h3>Speed — indexing</h3>
+        <p>B-trees give O(log n) search for ranges. Hash indexes give O(1) for exact matches.</p>
+        <p>A librarian types a student ID and the index jumps to that row instead of scanning thousands of rows.</p>
+      </article>
+      <article class="card">
+        <h3>Growth — scalability</h3>
+        <p>Grow vertically (more resources on one machine) or horizontally (more servers) with little change to the application.</p>
+        <p>If the college admits five times as many students, attach more storage or compute. Existing queries keep working.</p>
+      </article>
+    </div>
+
+    <h3>Popular database types</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Type</th><th>Definition</th><th>Use case</th><th>Real-life picture</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Relational (SQL)</td>
+            <td>Tables with a defined schema, linked by primary and foreign keys, with ACID guarantees.</td>
+            <td>Highly structured tasks.</td>
+            <td>UPI transfers: each transfer records debit and credit atomically as one transaction.</td>
+          </tr>
+          <tr>
+            <td>Document</td>
+            <td>Schema-flexible JSON/BSON documents, with optional field checks.</td>
+            <td>Flexible menus or profiles.</td>
+            <td>Swiggy menus: a restaurant’s JSON can add a field such as spice level without a schema change.</td>
+          </tr>
+          <tr>
+            <td>Key-value</td>
+            <td>Distributed hash tables with collision handling. A key retrieves a value.</td>
+            <td>Ultra-fast look-ups.</td>
+            <td>Flipkart session storage: temporary browsing history, not the transactional cart.</td>
+          </tr>
+          <tr>
+            <td>Graph</td>
+            <td>Nodes (people or things) and edges (links).</td>
+            <td>Connections and networks.</td>
+            <td>Fraud detection: accounts linked by shared devices or IPs, such as a ring of fake profiles.</td>
+          </tr>
+          <tr>
+            <td>Time-series</td>
+            <td>Time-stamped data (sensor logs, stock ticks) with fast time-range scans.</td>
+            <td>Sensors and stock prices.</td>
+            <td>An IMD weather station stores temperature every minute to spot heat waves.</td>
+          </tr>
+          <tr>
+            <td>Object-oriented</td>
+            <td>Software objects stored as they are, attributes and behaviour together.</td>
+            <td>Embedded or niche apps.</td>
+            <td>A medical device saves each sensor object with its current status, ready to reload.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ul>
+      <li>Choose the database for the problem, not for popularity.</li>
+      <li>SQL is a language. Many non-relational databases also accept SQL-like queries.</li>
+    </ul>
+    <aside class="think">
+      <h4>Think about it</h4>
+      <p>Why might Flipkart use a key-value store for user sessions, while UPI requires a relational database?</p>
+    </aside>
+  </section>
+
+  <section id="s2">
+    <div class="sec-head"><span class="num">02</span><h2>Architecture</h2></div>
+    <p>The architecture of a database system describes where each software piece lives and how the pieces talk to each other. That layout decides performance, security, and how far the system can grow.</p>
+
+    <h3>One-tier, two-tier, and three-tier</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Architecture</th><th>Design</th><th>Example</th><th>What to notice</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>One-tier</td>
+            <td>The user interface and the database engine run on the same machine.</td>
+            <td>A student runs a Python script with SQLite. The app and the database share one process.</td>
+            <td>Setup is instant, but the system is single-user and uses a lot of local resources.</td>
+          </tr>
+          <tr>
+            <td>Two-tier</td>
+            <td>A client application talks directly to a dedicated database server, often through ODBC or JDBC.</td>
+            <td>Lab PCs run a Java GUI that connects straight to a central MySQL server for lab grades.</td>
+            <td>Many users get better performance than one-tier, but clients reach the database server directly.</td>
+          </tr>
+          <tr>
+            <td>Three-tier</td>
+            <td>The client talks to an application server, which queries the database.</td>
+            <td>A mobile app calls a REST API (for example Node.js). That middle tier authenticates and queries PostgreSQL.</td>
+            <td>Business logic and security sit in the middle. The database stays shielded. Clients stay light, and the API can scale without holding session state.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Distributed databases</h3>
+    <p>A distributed database stores pieces of the data on two or more servers in different places, yet presents them as one logical database.</p>
+    <aside class="example">
+      <h4>Three campuses</h4>
+      <p>An educational trust with campuses in Delhi, Mumbai, and Bengaluru keeps each city’s attendance on a local server so lookups stay fast. Records sync either asynchronously (eventual consistency) or through distributed transactions (strong consistency), depending on what the trust needs.</p>
+    </aside>
+
+    <h3>CAP theorem</h3>
+    <p>In a distributed system, <strong>partition tolerance is mandatory</strong>. The real trade-off is between consistency and availability.</p>
+    <div class="cards">
+      <article class="card"><h3>Consistency (C)</h3><p>Every node shows the same data at a given moment.</p></article>
+      <article class="card"><h3>Availability (A)</h3><p>Every request gets a timely answer. That answer might not be the newest data.</p></article>
+      <article class="card"><h3>Partition tolerance (P)</h3><p>The system keeps working when nodes cannot talk to each other.</p></article>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Scenario</th><th>Two properties</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>UPI mess-wallet payments</td>
+            <td>Consistency + Availability</td>
+            <td>Money transfers must never diverge, even if a partition causes a short delay. The system may block a transaction during a partition to prevent double-spending. A brief outage can be tolerated.</td>
+          </tr>
+          <tr>
+            <td>Digital notice-board website</td>
+            <td>Availability + Partition tolerance</td>
+            <td>Showing an older notice is better than the board going dark during a Wi-Fi outage.</td>
+          </tr>
+          <tr>
+            <td>Intra-college coding-contest scoreboard</td>
+            <td>Availability + Consistency</td>
+            <td>Partitions are rare on the campus LAN, so participants expect scores that are both current and instantly visible.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <aside class="think">
+      <h4>Think about it</h4>
+      <p>Which two CAP properties are guaranteed for financial applications such as Paytm or PayPal?</p>
+    </aside>
+  </section>
+
+  <section id="s3">
+    <div class="sec-head"><span class="num">03</span><h2>Data abstraction</h2></div>
+    <p>Data abstraction hides how data is stored (file formats, indexes, block layout) and shows users only the structures and operations they need. Separating <em>how</em> data is stored from <em>what</em> it means improves security, flexibility, and maintenance.</p>
+
+    <h3>Three levels</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Level</th><th>Definition</th><th>College example</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Physical</td>
+            <td>Exact location in bytes on disk: file structures, indexes, and data blocks.</td>
+            <td>Attendance is stored as 8 KB blocks on SSD, with RAID-1 mirroring. A B-tree maps roll number to block addresses. Students never see this.</td>
+          </tr>
+          <tr>
+            <td>Logical</td>
+            <td>The whole database as tables, columns, data types, and relationships.</td>
+            <td>A <span class="term">Students</span> table has Roll No (primary key), Name (VARCHAR), and a foreign key to <span class="term">Courses</span>. Constraints enforce referential integrity. This is what faculty mean when they write SQL.</td>
+          </tr>
+          <tr>
+            <td>View</td>
+            <td>A custom logical subset for a particular user.</td>
+            <td>The warden sees Roll No, Name, and a computed FeeStatus. The examination branch sees Roll No, Name, and semester marks.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Each higher level is insulated from changes at the level beneath it. The ladder runs physical (lowest) → logical → view (highest). Knowledge flows upward. Changes should flow downward.</p>
+
+    <h3>Data independence</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Type</th><th>Definition</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Logical independence</td>
+            <td>Change the logical schema without rewriting application programs.</td>
+            <td>The college splits Address into Street, City, and Pin Code. The hostel fee system and the attendance app need no code changes, because their views are adjusted.</td>
+          </tr>
+          <tr>
+            <td>Physical independence</td>
+            <td>Change storage without affecting the logical schema.</td>
+            <td>IT moves attendance from HDDs to faster SSDs and adds an index on Date. Faculty and student SQL stays the same.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ul>
+      <li>Full data independence is hard. Even partial independence cuts maintenance cost a lot.</li>
+      <li>In daily student life, mobile apps show the view level, developers design the logical level, and the physical level stays in the server room.</li>
+    </ul>
+    <aside class="think">
+      <h4>Think about it</h4>
+      <p>How did Instagram’s logical schema and physical storage have to change as the product grew from photo sharing to Stories, Reels, and DMs — and which of those changes could stay hidden from the app?</p>
+    </aside>
+  </section>
+
+  <section id="s4">
+    <div class="sec-head"><span class="num">04</span><h2>Data models</h2></div>
+    <p>A data model is the formal grammar for how facts are organised inside a database. The model you pick affects performance, flexibility, and how hard the system is to maintain.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Model</th><th>Core structure</th><th>Ideal for</th></tr></thead>
+        <tbody>
+          <tr><td>Hierarchical</td><td>Parent → child tree</td><td>One-to-many chains</td></tr>
+          <tr><td>Network</td><td>Records linked by several parent–child sets (many-to-many)</td><td>Complex associations</td></tr>
+          <tr><td>Relational</td><td>Tables, rows, and columns, joined by keys</td><td>General-purpose data</td></tr>
+          <tr><td>Object-oriented</td><td>Persistent programming objects</td><td>Complex, behaviour-rich data</td></tr>
+          <tr><td>Entity–relationship (ER)</td><td>A diagram of entities and relationships</td><td>The conceptual design stage</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cards">
+      <article class="card">
+        <h3>Hierarchical</h3>
+        <p>A strict top-down tree. Each child has exactly one parent.</p>
+        <p>University → College → Department → Course → Student. A query for “CSE, 2022 batch” follows the path from the root to the leaves.</p>
+      </article>
+      <article class="card">
+        <h3>Network</h3>
+        <p>A record may have several parents, so many-to-many links are natural.</p>
+        <p>A student links to several clubs. Each club links to many students and to several events. Finding everyone at a coding marathon means walking those linked sets.</p>
+      </article>
+      <article class="card">
+        <h3>Relational</h3>
+        <p>Two-dimensional tables. Primary and foreign keys enforce relationships. Queries use SQL.</p>
+        <p><span class="term">STUDENT</span> (roll no, name, programme), <span class="term">COURSE</span> (code, title, credits), <span class="term">MARKS</span> (roll no, code, grade). Joins let the exam section publish marksheets.</p>
+      </article>
+      <article class="card">
+        <h3>Object-oriented</h3>
+        <p>Classes are stored as defined in an object-oriented language, attributes and methods together.</p>
+        <p>In a robotics database, each Robot object stores arrays of Sensor objects. Fetching a robot brings the associated objects with it.</p>
+      </article>
+      <article class="card">
+        <h3>Entity–relationship</h3>
+        <p>A picture-first map of reality into entities, attributes, and relationships, drawn before physical implementation.</p>
+        <p>Designers draw Student, Course, and Instructor, with relationships <span class="term">ENROLLED_IN</span> and <span class="term">TAUGHT_BY</span>. That map later guides the relational tables.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="s5">
+    <div class="sec-head"><span class="num">05</span><h2>ER model</h2></div>
+    <p>The ER model is a conceptual blueprint, not an implementation. It names entities, attributes, and relationships so a real-world situation can become a database design.</p>
+
+    <h3>Terms</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Term</th><th>Definition</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Entity</td><td>A strong entity (Student) has its own unique key. A weak entity (Dependent) needs a strong entity to be identified.</td><td>One student, or one particular course offering.</td></tr>
+          <tr><td>Attribute</td><td>A property of an entity.</td><td>Roll number (key), student name (simple), course credits (derived from hours).</td></tr>
+          <tr><td>Entity set</td><td>A collection of similar entities.</td><td>Every student enrolled in the university.</td></tr>
+          <tr><td>Relationship</td><td>A logical association among entities.</td><td>A student <span class="term">ENROLLED_IN</span> a course.</td></tr>
+          <tr><td>Relationship set</td><td>All instances of a relationship. Binary (two entity sets) or ternary (three).</td><td>All student–course enrolments, or Student ↔ Course ↔ Instructor.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Notation</h3>
+    <div class="cards">
+      <article class="card"><h3>Rectangle</h3><p>Entity set. A strong entity is a single rectangle. A weak entity is a double rectangle. The partial key uses a dashed underline (bed number in Occupancy).</p></article>
+      <article class="card"><h3>Ellipse</h3><p>Attribute. Double ellipse: multivalued (phone numbers). Dashed ellipse: derived (age). Underlined name: primary key.</p></article>
+      <article class="card"><h3>Diamond</h3><p>Relationship set. An identifying relationship of a weak entity uses a double diamond (Hostel Room → Occupancy).</p></article>
+      <article class="card"><h3>Line</h3><p>Connects the shapes. Cardinality marks sit on the line.</p></article>
+    </div>
+    <ul>
+      <li><strong>1:1</strong> — <span class="term">|──|</span> — Student ↔ Library Card.</li>
+      <li><strong>1:N</strong> — <span class="term">|──&lt;</span> — Department → Students.</li>
+      <li><strong>M:N</strong> — <span class="term">&gt;──&lt;</span> — Students ↔ Courses.</li>
+    </ul>
+
+    <h3>Cardinality and participation</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>1:1</td><td>Each entity links to exactly one on the other side.</td><td>A library card must belong to one student (total on the card side). A student might have no card if it was lost (partial on the student side).</td></tr>
+          <tr><td>1:N</td><td>One entity may relate to many on the other side.</td><td>One instructor teaches many courses. Each course has exactly one instructor that semester.</td></tr>
+          <tr><td>M:N</td><td>Many relate to many. In a relational design this becomes an associative table.</td><td><span class="term">ENROLLMENT</span> with composite key (StudentID, CourseID).</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Total participation:</strong> every entity must take part. Every library card is assigned to a student.</p>
+    <p><strong>Partial participation:</strong> some entities stay out. Not every student joins a club.</p>
+
+    <h3>Weak entities</h3>
+    <p>A weak entity has no primary key of its own. It is identified by a strong owner plus a partial key. When the owner is deleted, the dependent rows should be deleted too (cascading delete).</p>
+    <aside class="example">
+      <h4>Hostel occupancy</h4>
+      <p>Owner: Hostel Room (<span class="term">room No</span>). Weak entity: Occupancy, partial key <span class="term">bed Number</span> (dashed underline), identifying relationship drawn as a double diamond.</p>
+    </aside>
+
+    <h3>Generalization</h3>
+    <p>Generalization builds a superclass–subclass hierarchy and keeps shared attributes on the superclass. It combines lower-level entities into a higher one by collecting what they have in common (“many become one”).</p>
+    <pre class="tree">[PERSON]
+   /    \
+[STUDENT]  [INSTRUCTOR]</pre>
+    <p>STUDENT and INSTRUCTOR inherit name from PERSON. STUDENT adds programme and roll number. INSTRUCTOR adds department and salary. A campus email list reads only PERSON. A programme query reads only STUDENT.</p>
+
+    <h3>Specialization</h3>
+    <p>Specialization splits a superclass into subclasses that are exclusive or overlapping. It may be <strong>total</strong> (every entity belongs to a subclass) or <strong>partial</strong> (some entities belong to none). Distinct features are pushed downward (“one becomes many”).</p>
+    <pre class="tree">[STUDENT]  [INSTRUCTOR]
+       \      /
+       [PERSON]</pre>
+    <p>PERSON holds name and address. STUDENT holds programme and roll number. INSTRUCTOR holds department and salary. The same query rule applies: everyone uses PERSON; programme-specific questions use STUDENT alone.</p>
+
+    <h3>Aggregation</h3>
+    <p>Aggregation treats a relationship, together with the entities in it, as one higher-level unit so that unit can itself take part in another relationship.</p>
+    <aside class="example">
+      <h4>Project submission</h4>
+      <p>The exam cell wants to know which projects were submitted. A submission needs a student, a project, and a faculty guide, joined by <span class="term">WORKS_ON</span>. Instead of linking all three separately to Submission Status, wrap WORKS_ON and its entities in a dashed box labelled Project Submission, then link that box to Submission Status.</p>
+    </aside>
+
+    <h3>Netflix diagram, written out</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>User_Account</h3>
+        <p>Attributes: <span class="term">USER_ID</span> (primary key), Firstname, Lastname, Credit_Card_No. One account per user.</p>
+        <p>User_Account — (1:5) — PROFILE, crow’s foot at PROFILE. A double line from PROFILE into the HAS relationship (total participation).</p>
+      </article>
+      <article class="card">
+        <h3>Profile</h3>
+        <p>Attributes: <span class="term">PROFILE_ID</span> (primary key), PROFILE_NAME, CREATION_DATE. Each account owns 1 to 5 profiles.</p>
+        <p>A profile has genre preferences, a QUEUE, and a rental history of movies.</p>
+      </article>
+      <article class="card">
+        <h3>Genre</h3>
+        <p>Attributes: <span class="term">GENRE_ID</span> (primary key), GENRE_NAME. Action, comedy, horror, and so on.</p>
+        <p>PROFILE — (M:N) — GENRE through USER_PREFERENCE (associative entity with weight or priority). Genre is also linked to MOVIE.</p>
+      </article>
+      <article class="card">
+        <h3>Movie</h3>
+        <p>Attributes: <span class="term">MOVIE_ID</span> (primary key), MOVIENAME, YEAR, PRODUCER, AVERAGE_RATING, DURATION (minutes), STREAMING_QUALITY (HD/4K), LICENSE_EXPIRY (date).</p>
+        <p>Appears in a profile’s queue and rental history. Linked to GENRE. MOVIE — (M:N) — ACTORS via STARRED_BY, which carries a ROLE attribute.</p>
+      </article>
+      <article class="card">
+        <h3>Queue</h3>
+        <p>A relationship, not a standalone entity. Attribute: RANKING (1st to watch, 2nd, …). Connects PROFILE ↔ MOVIE: one profile, many movies.</p>
+      </article>
+      <article class="card">
+        <h3>Rental History</h3>
+        <p>A relationship. Attributes: RATING (1 to 5), WATCH_DATE, DEVICE_TYPE (mobile/TV). Connects PROFILE ↔ MOVIE.</p>
+      </article>
+      <article class="card">
+        <h3>Actors</h3>
+        <p>Attributes: <span class="term">ACTOR_ID</span> (primary key), FIRSTNAME, LASTNAME. ACTOR — (1:N) — AWARD, with optional participation. Connected to MOVIE by Starred_by.</p>
+      </article>
+      <article class="card">
+        <h3>Starred_by</h3>
+        <p>A relationship. Attribute: CHARACTER_NAME (for example 'Tony Stark'). Connects ACTORS ↔ MOVIE.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="s6">
+    <div class="sec-head"><span class="num">06</span><h2>Relational model</h2></div>
+    <p>Every relational database — a college ERP or a canteen app — follows the same four-part grammar. Understand the parts and the rules that protect them, and the tables can hold marks, fees, and attendance without losing them.</p>
+    <p>Keep the ladder in mind: <strong>Domain → Attribute → Tuple → Relation</strong>.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Building block</th><th>Definition</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Domain</td>
+            <td>The set of legal values for a column, including constraints.</td>
+            <td>Roll-number domain: any 8-digit integer from 21000000 to 21999999. In SQL: <span class="term">RollNo INT CHECK (RollNo BETWEEN 21000000 AND 21999999)</span>.</td>
+          </tr>
+          <tr>
+            <td>Attribute</td>
+            <td>One column. Every value comes from one domain.</td>
+            <td>RollNo INT, Name VARCHAR(30), Programme CHAR(10), MobileNo CHAR(10).</td>
+          </tr>
+          <tr>
+            <td>Tuple</td>
+            <td>One complete row about exactly one real-world item. Values are atomic (1NF): split Name into FirstName and LastName rather than packing both into one cell.</td>
+            <td>One student’s roll number, name, programme, and mobile number.</td>
+          </tr>
+          <tr>
+            <td>Relation</td>
+            <td>The whole table: many tuples under the same columns.</td>
+            <td>The STUDENT table of everyone enrolled this year.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Schema and instance</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>Schema (intention)</h3>
+        <p>The stable structure: table name, attributes, domains, and constraints. It does not change when a student joins or leaves.</p>
+        <p><span class="term">STUDENT (roll_no INT PRIMARY KEY, name VARCHAR(30), programme CHAR(10), mobile_no VARCHAR(10))</span></p>
+        <p>Think of the empty worksheet template.</p>
+      </article>
+      <article class="card">
+        <h3>Instance (extension)</h3>
+        <p>The rows sitting in the table right now. Tomorrow’s instance may have new students, or fewer if someone drops out.</p>
+        <p>Think of the worksheet after the marks have been filled in.</p>
+      </article>
+    </div>
+
+    <h3>Sample STUDENT relation</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Roll_No</th><th>Name</th><th>Programme</th><th>Mobile_No</th></tr></thead>
+        <tbody>
+          <tr><td>22104567</td><td>Parikshit Sharma</td><td>BTech CSE</td><td>9876543210</td></tr>
+          <tr><td>22104612</td><td>Rajat Mehta</td><td>BTech ECE</td><td>9123456780</td></tr>
+          <tr><td>22104755</td><td>Sakshi Bansal</td><td>MBA</td><td>9001122334</td></tr>
+        </tbody>
+        <caption>Each row is a tuple. Each column is an attribute with its own domain.</caption>
+      </table>
+    </div>
+
+    <h3>Integrity constraints</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>Key constraint</h3>
+        <p>Every table has at least one candidate key: a column or column set that uniquely identifies each row and never repeats. A key may be one column (RollNo) or composite (StudentID, CourseID).</p>
+        <p>Roll number is unique. Inserting the same roll number twice is rejected.</p>
+      </article>
+      <article class="card">
+        <h3>Entity integrity</h3>
+        <p>A primary-key column cannot contain NULL. An empty roll number would leave a row that nobody can identify.</p>
+      </article>
+      <article class="card">
+        <h3>Referential integrity</h3>
+        <p>A foreign key must match an existing primary key in the referenced table. NULL is allowed only when the relationship is optional.</p>
+        <p>MARKS.Roll No references STUDENT.Roll No. Uploading marks for roll number 22109999 fails if that student is not in STUDENT.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="s7">
+    <div class="sec-head"><span class="num">07</span><h2>Keys</h2></div>
+    <p>A key is one or more columns that pick out a single exact row. Without keys, duplicates creep in and a query can return the wrong student, the wrong mark, or both.</p>
+    <p>Every primary key is a candidate key, and every candidate key is a super key. The reverse is not true.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Key</th><th>Definition</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Super key</td><td>Any column set that uniquely identifies rows. Extra columns are allowed.</td><td>{rollNo, mobileNo}, {rollNo}, {email}.</td></tr>
+          <tr><td>Candidate key</td><td>A minimal super key. Drop any column and it stops being unique.</td><td>{rollNo} or {email}. Each stands alone.</td></tr>
+          <tr><td>Primary key</td><td>The one candidate key the DBA chooses as the official row identifier.</td><td>The college chooses rollNo for STUDENT.</td></tr>
+          <tr><td>Alternate key</td><td>Any remaining candidate key. Often indexed for faster lookup.</td><td>Search by email.</td></tr>
+          <tr><td>Composite key</td><td>A key built from two or more columns. As a candidate key it is minimal.</td><td>MARKS {rollNo, courseCode} identifies one grade.</td></tr>
+          <tr><td>Foreign key</td><td>A column set that points at the primary (or alternate) key of another table.</td><td>MARKS.rollNo → STUDENT.rollNo and MARKS.courseCode → COURSE.code.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Worked tables</h3>
+    <div class="table-wrap">
+      <table>
+        <caption>STUDENT — Roll No is the primary key. It never repeats and is never NULL.</caption>
+        <thead><tr><th>Roll No (PK)</th><th>name</th><th>programme</th><th>email</th></tr></thead>
+        <tbody>
+          <tr><td>22104567</td><td>Ananya Sharma</td><td>BTech CSE</td><td>ananya.sharma@college.edu.in</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>MARKS — Roll No alone is not unique (many subjects). Course Code alone is not unique (many students take CS101). Together they are unique.</caption>
+        <thead><tr><th>Roll No (FK)</th><th>Course Code (FK)</th><th>grade</th></tr></thead>
+        <tbody>
+          <tr><td>22104567</td><td>CS101</td><td>8.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <aside class="example">
+      <h4>Foreign-key check</h4>
+      <p>Inserting roll number 22109999 into MARKS fails when that roll number is missing from STUDENT.</p>
+    </aside>
+
+    <h3>Checks used in exams</h3>
+    <ul>
+      <li><strong>Minimality.</strong> Drop one column from the key. If the rest no longer identifies the row, the key was minimal.</li>
+      <li><strong>NULL rule.</strong> In a composite primary key, no column may be NULL. A foreign key may be NULL when the relationship is optional.</li>
+      <li><strong>Composite vs super.</strong> A composite candidate key is a minimal multi-column key. A super key is any unique column set, and it may include columns that are not needed for uniqueness.</li>
+    </ul>
+  </section>
+  <section id="s8">
+    <div class="sec-head"><span class="num">08</span><h2>Normalisation</h2></div>
+    <p>Normalisation splits large, unstructured tables into smaller related tables so the same fact is not stored over and over. That removes update anomalies and keeps the data consistent.</p>
+
+    <h3>Functional dependency</h3>
+    <p>X → Y means: if two tuples agree on attribute set X, they must agree on attribute set Y. Y is functionally dependent on X.</p>
+    <p>Example: Roll No → Student Name. The same roll number never belongs to two different names.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Dependency</th><th>Relation</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Full</td>
+            <td>X → Y, and Y depends on every attribute in X. For any proper subset A of X, A does not determine Y.</td>
+            <td>Grade needs both Roll No and Course ID (CS101). Neither alone is enough.</td>
+          </tr>
+          <tr>
+            <td>Partial</td>
+            <td>X → Y where X is a composite key AZ, and a proper subset A already determines Y.</td>
+            <td>Student Name depends only on Roll No, not on Course ID. Partial dependencies violate 2NF, so Student Name moves to a STUDENT table.</td>
+          </tr>
+          <tr>
+            <td>Trivial</td>
+            <td>X → Y where Y is a subset of X.</td>
+            <td>Roll No, Name → Name. If you already know the name, you know the name.</td>
+          </tr>
+          <tr>
+            <td>Non-trivial</td>
+            <td>X → Y where Y is not a subset of X.</td>
+            <td>Roll No → Dept_Name. The department is determined by the roll number, and it is not part of the roll number itself.</td>
+          </tr>
+          <tr>
+            <td>Transitive</td>
+            <td>A → C is transitive when it comes from A → B and B → C.</td>
+            <td>Roll number determines department, and department determines building. Changing a department’s building would otherwise mean updating every student row.</td>
+          </tr>
+          <tr>
+            <td>Multivalued</td>
+            <td>A →→ B and A →→ C, with B and C independent of each other.</td>
+            <td>Roll No →→ Hobbies and Roll No →→ Sports. Hobbies and sports vary independently.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>1NF through BCNF</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Form</th><th>In short</th><th>Rule</th><th>College illustration</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1NF</td>
+            <td class="short">One value per cell</td>
+            <td>Every cell holds one atomic value. No repeating groups.</td>
+            <td>Store each course on its own row. Do not put “CS101, MA102” in one cell.</td>
+          </tr>
+          <tr>
+            <td>2NF</td>
+            <td class="short">Whole key, not a part</td>
+            <td>1NF, and no partial dependency on a composite key.</td>
+            <td>If the key is {roll No, course Code}, student Name (depends only on roll No) must move to another table.</td>
+          </tr>
+          <tr>
+            <td>3NF</td>
+            <td class="short">No transitive chain</td>
+            <td>2NF, and no transitive dependency. Every non-prime attribute depends only on a super key.</td>
+            <td>In COURSE, course Code → instructor ID and instructor ID → instructor Name. Move instructor details out.</td>
+          </tr>
+          <tr>
+            <td>BCNF</td>
+            <td class="short">Left side must be a key</td>
+            <td>For every FD X → Y, X must be a super key. Stronger than 3NF.</td>
+            <td>If instructor ID → course Code also holds, make a TEACHES table so both sides are keys: TEACHES(Instructor ID, Course Code).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Lossless join and dependency preservation</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>Lossless join</h3>
+        <p>After you split a table, joining the pieces must recreate the original rows exactly: no extras, no missing rows.</p>
+      </article>
+      <article class="card">
+        <h3>Dependency preservation</h3>
+        <p>Every original functional dependency can still be enforced without joining the tables back together.</p>
+      </article>
+    </div>
+    <p>Textbook decompositions aim for both. BCNF sometimes forces a choice: keep the lossless join, and give up perfect dependency preservation.</p>
+
+    <h3>Walk-through: spreadsheet to BCNF</h3>
+    <div class="table-wrap">
+      <table>
+        <caption>Each step in a few words</caption>
+        <thead><tr><th>Step</th><th>In short</th><th>What changes</th></tr></thead>
+        <tbody>
+          <tr><td>UNF</td><td class="short">Lists inside cells</td><td>One spreadsheet. Courses and grades are packed into single cells.</td></tr>
+          <tr><td>1NF</td><td class="short">Split the lists</td><td>One course and one grade on each row. Student facts start to repeat.</td></tr>
+          <tr><td>Find FDs</td><td class="short">Who decides whom</td><td>Write FD1–FD4 before moving any column.</td></tr>
+          <tr><td>2NF</td><td class="short">Cut partial facts</td><td>Name and programme follow roll No only, so they move to STUDENT. Grade stays in RESULT.</td></tr>
+          <tr><td>3NF</td><td class="short">Cut the chain</td><td>Instructor name follows instructor ID, not the course code directly. Move it to INSTRUCTOR.</td></tr>
+          <tr><td>BCNF</td><td class="short">Every determiner is a key</td><td>Already true if one instructor teaches many courses. If each instructor teaches one course, split TEACHES.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Start with one hurried spreadsheet. Ananya’s and Farah’s rows store several values in a single cell, so the cells are not atomic. Inserting a new course is awkward, and updating one grade is risky.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>Un-normalised form</caption>
+        <thead><tr><th>Roll No</th><th>Student Name</th><th>programme</th><th>Course List</th><th>Grade List</th></tr></thead>
+        <tbody>
+          <tr><td>22104567</td><td>Ananya Sharma</td><td>BTech CSE</td><td>CS101, MA102</td><td>8.5, 7.0</td></tr>
+          <tr><td>22104612</td><td>Rajat Mehta</td><td>BTech ECE</td><td>EC101</td><td>8.0</td></tr>
+          <tr><td>22104755</td><td>Farah Khan</td><td>MBA</td><td>MG201, MG202, MG203</td><td>7.5, 8.2, 7.9</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>First normal form</h4>
+    <p>One value per cell. The same student data now repeats on every course row.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Roll No</th><th>Student Name</th><th>programme</th><th>Course Code</th><th>grade</th></tr></thead>
+        <tbody>
+          <tr><td>22104567</td><td>Ananya Sharma</td><td>BTech CSE</td><td>CS101</td><td>8.5</td></tr>
+          <tr><td>22104567</td><td>Ananya Sharma</td><td>BTech CSE</td><td>MA102</td><td>7.0</td></tr>
+          <tr><td>22104612</td><td>Rajat Mehta</td><td>BTech ECE</td><td>EC101</td><td>8.0</td></tr>
+          <tr><td>22104755</td><td>Farah Khan</td><td>MBA</td><td>MG201</td><td>7.5</td></tr>
+          <tr><td>22104755</td><td>Farah Khan</td><td>MBA</td><td>MG202</td><td>8.2</td></tr>
+          <tr><td>22104755</td><td>Farah Khan</td><td>MBA</td><td>MG203</td><td>7.9</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>The functional dependencies</h4>
+    <ul>
+      <li>FD1: roll No → student Name, programme.</li>
+      <li>FD2: course Code → course Name, credits, instructor ID.</li>
+      <li>FD3: instructor ID → instructor Name.</li>
+      <li>FD4: (roll No, course Code) → grade.</li>
+    </ul>
+
+    <h4>Second normal form</h4>
+    <p>(roll No, course Code) is the composite key. Columns that depend on only part of it move out.</p>
+    <ul>
+      <li><span class="term">STUDENT (roll No PK, student Name, programme)</span> — FD1.</li>
+      <li><span class="term">COURSE (course Code PK, course Name, credits, instructor ID)</span> — FD2.</li>
+      <li><span class="term">RESULT (roll No FK, course Code FK, grade)</span> — FD4. Roll No references STUDENT. Course Code references COURSE.</li>
+    </ul>
+    <div class="table-wrap">
+      <table>
+        <caption>STUDENT</caption>
+        <thead><tr><th>Roll No</th><th>Student Name</th><th>programme</th></tr></thead>
+        <tbody>
+          <tr><td>22104567</td><td>Ananya Sharma</td><td>BTech CSE</td></tr>
+          <tr><td>22104612</td><td>Rajat Mehta</td><td>BTech ECE</td></tr>
+          <tr><td>22104755</td><td>Farah Khan</td><td>MBA</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>COURSE, before instructor name is removed</caption>
+        <thead><tr><th>Course Code</th><th>Course Name</th><th>credits</th><th>Instructor ID</th></tr></thead>
+        <tbody>
+          <tr><td>CS101</td><td>Intro to CS</td><td>4</td><td>I01</td></tr>
+          <tr><td>MA102</td><td>Calculus I</td><td>3</td><td>I02</td></tr>
+          <tr><td>EC101</td><td>Basic Electronics</td><td>4</td><td>I03</td></tr>
+          <tr><td>MG201</td><td>Management 101</td><td>3</td><td>I04</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>INSTRUCTOR</caption>
+        <thead><tr><th>Instructor ID</th><th>Instructor Name</th></tr></thead>
+        <tbody>
+          <tr><td>I01</td><td>Dr Rao</td></tr>
+          <tr><td>I02</td><td>Prof Gupta</td></tr>
+          <tr><td>I03</td><td>Dr Khan</td></tr>
+          <tr><td>I04</td><td>Dr Sen</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>RESULT — the notes list the first four grade rows after the split</caption>
+        <thead><tr><th>Roll No</th><th>Course Code</th><th>grade</th></tr></thead>
+        <tbody>
+          <tr><td>22104567</td><td>CS101</td><td>8.5</td></tr>
+          <tr><td>22104567</td><td>MA102</td><td>7.0</td></tr>
+          <tr><td>22104612</td><td>EC101</td><td>8.0</td></tr>
+          <tr><td>22104755</td><td>MG201</td><td>7.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>After INSTRUCTOR exists, every non-key column in each table depends on the whole primary key of that table. Farah’s later courses (MG202, MG203) follow the same RESULT pattern as MG201.</p>
+
+    <h4>Third normal form</h4>
+    <p>FD3 is transitive: instructor ID → instructor Name, and both sit in COURSE, so instructor Name depends on course Code only by way of instructor ID. Remove the transitive dependency.</p>
+    <ul>
+      <li><span class="term">INSTRUCTOR (instructor ID PK, instructor Name)</span></li>
+      <li>COURSE drops instructor Name and keeps instructor ID as a foreign key.</li>
+    </ul>
+    <div class="table-wrap">
+      <table>
+        <caption>COURSE in 3NF</caption>
+        <thead><tr><th>Course Code</th><th>Course Name</th><th>credits</th><th>Instructor ID</th></tr></thead>
+        <tbody>
+          <tr><td>CS101</td><td>Intro to CS</td><td>4</td><td>I01</td></tr>
+          <tr><td>MA102</td><td>Calculus I</td><td>3</td><td>I02</td></tr>
+          <tr><td>EC101</td><td>Basic Electronics</td><td>4</td><td>I03</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>All four tables are now in 3NF. MG201 stays on the same COURSE shape, with instructor I04.</p>
+
+    <h4>Boyce–Codd normal form</h4>
+    <p>Rule: in every functional dependency X → Y, X itself must be a candidate key.</p>
+    <p>Under the usual college rule — one instructor teaches many courses — every dependency already has a candidate key on the left, so the schema is in BCNF.</p>
+    <p>If the college instead required “an instructor teaches exactly one course” (instructor ID → course Code), BCNF would break. The fix is an associative table <span class="term">TEACHES (instructor ID, course Code)</span> so both resulting tables satisfy BCNF.</p>
+    <p>Final BCNF set for the common “one instructor, many courses” rule:</p>
+    <ul>
+      <li><span class="term">STUDENT (roll No PK, student Name, programme)</span></li>
+      <li><span class="term">INSTRUCTOR (instructor ID PK, instructor Name)</span></li>
+      <li><span class="term">COURSE (course Code PK, course Name, credits, instructor ID FK)</span></li>
+      <li><span class="term">RESULT (roll No FK, course Code FK, grade)</span> with primary key roll No + course Code</li>
+    </ul>
+    <p>Joins are lossless. Grade stays tied to student plus course, and instructor stays tied to course, without stitching the tables back together on every update.</p>
+  </section>
+
+  <section id="s9">
+    <div class="sec-head"><span class="num">09</span><h2>Denormalisation</h2></div>
+    <p>Denormalisation deliberately adds controlled redundancy so common queries can skip expensive joins. The normalised tables remain the source of truth.</p>
+    <ol class="plain">
+      <li>Combine normalised tables vertically (fewer tables).</li>
+      <li>Add derived columns horizontally (pre-computed values).</li>
+      <li>Create materialised views (saved query results).</li>
+    </ol>
+
+    <h3>When it helps</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>Heavy read, light write</h3>
+        <p>The placement dashboard shows current CGPA often, and updates it once a semester. Skipping the join of STUDENT and RESULT on every page load is worth a stored copy.</p>
+      </article>
+      <article class="card">
+        <h3>Aggregates used again and again</h3>
+        <p>The canteen prints a monthly mess bill from daily swipes, then reuses that total all month. Pre-storing the total saves thirty daily sums.</p>
+      </article>
+      <article class="card">
+        <h3>Star schema for reports</h3>
+        <p>The annual NAAC report wants student, course, and programme in one query. A wider table makes the analytics query simpler and faster.</p>
+      </article>
+    </div>
+    <p>Usual motives: speed, simpler code, easier analytics, or a slow network between servers.</p>
+
+    <h3>Trade-off numbers</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>Normalised</th><th>Denormalised</th><th>Impact</th></tr></thead>
+        <tbody>
+          <tr><td>Read performance</td><td>100 ms per join</td><td>10 ms flat</td><td>10× faster</td></tr>
+          <tr><td>Write performance</td><td>5 ms</td><td>20 ms, plus sync</td><td>4× slower</td></tr>
+          <tr><td>Storage</td><td>100 GB</td><td>150–300 GB</td><td>+50–200%</td></tr>
+          <tr><td>Consistency</td><td>Immediate</td><td>Eventual (batch)</td><td>Risk of stale copies</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Pros:</strong> fewer joins, faster SELECTs, simpler BI queries, lower CPU on a busy server.</p>
+    <p><strong>Cons:</strong> repeated data uses storage, extra columns can go stale (update anomalies), and triggers or batch jobs must keep the copies in sync.</p>
+    <p>Denormalise only after measuring that joins are the real bottleneck.</p>
+
+    <h3>From BCNF to RESULT_FLAT</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Table</th><th>Key</th></tr></thead>
+        <tbody>
+          <tr><td>STUDENT</td><td>Roll No PK</td></tr>
+          <tr><td>COURSE</td><td>Course Code PK</td></tr>
+          <tr><td>INSTRUCTOR</td><td>Instructor ID PK</td></tr>
+          <tr><td>RESULT</td><td>Roll No + course Code PK</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>During result season the exam branch must list roll number, name, programme, course name, credits, instructor name, and grade for 5,000 students every hour.</p>
+    <aside class="example">
+      <h4>Pain point</h4>
+      <p>The report joins STUDENT × RESULT × COURSE × INSTRUCTOR. At about 20 ms per row × 5,000 rows, that is 100 seconds.</p>
+    </aside>
+    <p>Create <span class="term">RESULT_FLAT</span>, refreshed nightly. Redundant fields: student name, programme, course name, credits, instructor name. The hourly report becomes a single-table scan.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Roll No</th><th>Student Name</th><th>programme</th><th>Course Code</th><th>Course Name</th><th>credits</th><th>Instructor Name</th><th>grade</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>22104567</td><td>Ananya Sharma</td><td>BTech CSE</td><td>CS101</td><td>Intro to CS</td><td>4</td><td>Dr Rao</td><td>8.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Pre-computed mess balance</h3>
+    <p>Normalised set: <span class="term">SWIPE (student ID, date, amount)</span> — thousands of rows a month — and <span class="term">STUDENT (student ID, name, programme)</span>.</p>
+    <p>Helper table: <span class="term">MESS_BALANCE (student ID PK, month, total amount)</span>. The kiosk reads the balance instead of summing every swipe on the spot.</p>
+
+    <h3>Safe use</h3>
+    <ul>
+      <li>Measure first. Use EXPLAIN and look at real query times.</li>
+      <li>Touch only the hot paths. Leave the rest normalised.</li>
+      <li>Refresh automatically: triggers, materialised views, or a nightly sync.</li>
+      <li>Document which fields are copies and which table owns the truth.</li>
+      <li>Keep a rollback plan if storage or update cost gets out of hand.</li>
+    </ul>
+  </section>
+
+  <section id="s10">
+    <div class="sec-head"><span class="num">10</span><h2>Transactions and concurrency</h2></div>
+    <p>A transaction is a small, complete job the database treats as one package. Like a registered parcel: the courier delivers the whole parcel or brings it back, never half of it.</p>
+    <aside class="example">
+      <h4>Publish Result</h4>
+      <p>Three steps belong together: insert the new grade for every subject, recalculate each CGPA, and set “Result Published = YES”. If power fails after step 1, the database also undoes step 1, so grades and CGPA cannot clash.</p>
+    </aside>
+
+    <h3>ACID</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Property</th><th>Promise</th><th>What it covers</th><th>Scenario</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Atomicity</td>
+            <td>All or nothing.</td>
+            <td>The whole transaction succeeds or fails together, including crashes, constraint violations, and deadlocks.</td>
+            <td>Power fails during a fee payment. Neither account is updated. The log shows the attempt.</td>
+          </tr>
+          <tr>
+            <td>Consistency</td>
+            <td>Database rules hold.</td>
+            <td>Primary keys, foreign keys, and CHECK constraints are valid before and after, even if several transactions run together or the system fails mid-way.</td>
+            <td>A student transfer keeps department quotas valid. No student exists without a department.</td>
+          </tr>
+          <tr>
+            <td>Isolation</td>
+            <td>Transactions do not interfere.</td>
+            <td>Isolation levels from Read Uncommitted up to Serializable, each blocking a known set of anomalies.</td>
+            <td>Two teachers grade the same paper. Serializable makes one wait. Read Committed may show an intermediate state.</td>
+          </tr>
+          <tr>
+            <td>Durability</td>
+            <td>Committed work survives crashes.</td>
+            <td>Write-ahead logging (WAL), synchronous replication, and checksum verification.</td>
+            <td>After a crash, grades are recovered from the WAL. No submission is lost.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Pros:</strong> data stays correct, recovery reaches the last commit, and many users can run transactions together safely.</p>
+    <p><strong>Cons:</strong> logging and locking add overhead, the engine is harder to build, and strict ACID across many servers needs distributed consensus.</p>
+
+    <h3>Life cycle</h3>
+    <div class="steps">
+      <div class="step"><span class="tag">ACTIVE</span><p>SQL statements are running.</p></div>
+      <div class="step"><span class="tag">PARTIALLY COMMITTED</span><p>The last statement has finished. The database is flushing log records.</p></div>
+      <div class="step"><span class="tag">COMMITTED</span><p>The success message has gone to the user. The job is permanent.</p></div>
+      <div class="step"><span class="tag">ABORTED</span><p>An error happened. The database undoes every change and returns to the original state.</p></div>
+    </div>
+
+    <h3>Schedules</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>Serial</h3>
+        <p>Run transaction 1 completely, then transaction 2. Always safe. Users wait longer because nothing overlaps.</p>
+      </article>
+      <article class="card">
+        <h3>Interleaved</h3>
+        <p>Mix the steps: T1, T2, T1, and so on. Better CPU use, faster for many users. Rules are required so the result still matches some serial order.</p>
+      </article>
+    </div>
+    <p>A <strong>serializable</strong> schedule is a safe interleaving: the final result matches some serial execution.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Flavour</th><th>Test</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Conflict-serializable</td>
+            <td>Build a precedence graph of who uses the same data. No cycle means the schedule is safe.</td>
+            <td>T1 writes a CGPA and T2 later reads it. The edge is T1 → T2. No loop means the schedule is safe.</td>
+          </tr>
+          <tr>
+            <td>View-serializable</td>
+            <td>Same final values and the same “first read” data as some serial run. It is a superset of conflict-serializability. Blind writes (a write without a prior read) can still pass.</td>
+            <td>Marks and attendance end up identical to some serial run, even if individual operations would not commute.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recoverability ladder</h3>
+    <p>Serializable decides order. Recoverability decides when a transaction may commit. Strict means “hands off my data until I am done.”</p>
+    <ul>
+      <li><strong>Recoverable.</strong> If T2 read data written by T1, T2 may commit only after T1 commits. Otherwise T2 would depend on data that might roll back.</li>
+      <li><strong>Cascading.</strong> Reading uncommitted data is allowed. If T1 aborts, every T2 and T3 that touched T1’s dirty writes must abort too — a domino effect.</li>
+      <li><strong>Cascadeless (ACA).</strong> A transaction may read only committed data. No domino of aborts, but another transaction may still overwrite uncommitted data.</li>
+      <li><strong>Strict.</strong> Nobody may read or write a value T1 changed until T1 commits or aborts. No dirty reads and no dirty writes. Most real systems get this from Strict Two-Phase Locking (S2PL).</li>
+      <li><strong>Non-recoverable — avoid it.</strong> T2 reads T1’s uncommitted value and commits before T1. If T1 later aborts, T2’s bad data is stuck. Exam keyword: dirty commit.</li>
+    </ul>
+
+    <h3>Isolation levels</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Level</th><th>How</th><th>Lock scope</th><th>Anomalies prevented</th></tr></thead>
+        <tbody>
+          <tr><td>Read Uncommitted</td><td>No read locks</td><td>Row-level</td><td>None</td></tr>
+          <tr><td>Read Committed</td><td>Shared locks on reads</td><td>Row-level</td><td>Dirty reads</td></tr>
+          <tr><td>Repeatable Read</td><td>Shared locks held</td><td>Row and index</td><td>Dirty reads and non-repeatable reads</td></tr>
+          <tr><td>Serializable</td><td>Range locks</td><td>Predicate</td><td>Those, plus phantoms</td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre class="sql">-- Set per-transaction isolation
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+UPDATE grades SET score = 85 WHERE student_id = 101;
+COMMIT;</pre>
+    <p>Stronger isolation means more safety, more locking, and slower writes.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Choice</th><th>Why</th><th>Picture</th></tr></thead>
+        <tbody>
+          <tr><td>Higher (Serializable)</td><td>Data stays correct, but locks are held longer.</td><td>Only one student is served at a time, so the queue moves slowly.</td></tr>
+          <tr><td>Lower (Read Committed)</td><td>Everyone works faster, with small inconsistencies possible.</td><td>The canteen opens two counters. Food is quicker, yet the same samosa might be billed twice before staff notice.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Advantages:</strong> more people work at once, critical apps can choose stricter rules, dirty / non-repeatable / phantom reads are easier to avoid, and the level can be set per transaction.</p>
+    <p><strong>Disadvantages:</strong> extra CPU for locks and versions, less concurrency at Serializable, some cloud databases skip Repeatable Read, and developers must pick the level per module.</p>
+
+    <h3>Three anomalies, hostel version</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Phenomenon</th><th>What happens</th><th>Hostel twist</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Dirty read</td>
+            <td>T1 changes fees and has not committed. T2 reads the change. If T1 rolls back, T2 saw fake data.</td>
+            <td>A senior sets Mess Bill = ₹0 while testing. You look before Undo and leave thinking you owe nothing.</td>
+          </tr>
+          <tr>
+            <td>Non-repeatable read</td>
+            <td>T1 reads a row twice. T2 commits an update between the reads, so the value differs.</td>
+            <td>At 10 AM the list shows Room 101. After lunch the warden moves you to Room 202. At 2 PM the list says 202.</td>
+          </tr>
+          <tr>
+            <td>Phantom read</td>
+            <td>T1 selects rows matching a condition. T2 inserts a new qualifying row and commits. T1’s rerun shows an extra row.</td>
+            <td>You list students with 85%+ attendance to plan a trip. While you book the bus, two friends clear their backlog and appear when you refresh.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Conflict-serializability test</h3>
+    <p>Serializability means concurrent transactions leave the database as if they had run one after another, in some order.</p>
+    <ol class="plain">
+      <li>Draw a node for each transaction.</li>
+      <li>Draw an arrow Ti → Tj when Ti writes a row and Tj later reads or writes that same row.</li>
+      <li>If the graph has no loops, the schedule is safe.</li>
+    </ol>
+    <aside class="example">
+      <h4>Ananya’s grade</h4>
+      <p>T1 writes the grade. T2 later reads it. An arrow from T1 to T2, with no path back, means there is no loop.</p>
+    </aside>
+
+    <h3>Why concurrency control</h3>
+    <p>On result day, teachers, students, and placement staff hit the database together. Without control they can read half-updated data, overwrite each other, or deadlock. The rules keep the data safe and the system quick.</p>
+    <ul>
+      <li>Banking: deposits and withdrawals stay accurate under simultaneous access.</li>
+      <li>E-commerce: no double booking and no inventory mistakes.</li>
+      <li>Social media: consistent data while many people interact at once.</li>
+      <li>Reservations: availability stays accurate and overbooking is prevented.</li>
+    </ul>
+
+    <h3>Techniques</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>Locking</h3>
+        <p>A shared (S) lock lets many transactions read, and nobody write. An exclusive (X) lock lets one transaction read and write; everyone else waits.</p>
+      </article>
+      <article class="card">
+        <h3>Two-phase locking (2PL)</h3>
+        <p>Growing phase: take every lock you need. Shrinking phase: release locks, and take no new ones. No lock after a release guarantees serializability. Strict 2PL holds locks until commit or abort.</p>
+        <p>Teacher T1 takes an X-lock on (roll 22104567, CS101) to change the grade. Placement office T2 asks for an S-lock on the same row and waits until T1 commits, then reads the final mark.</p>
+      </article>
+      <article class="card">
+        <h3>Timestamp ordering</h3>
+        <p>Each transaction gets a timestamp at the start. If two fight over a row, the older timestamp wins; the newer one waits or rolls back. This suits many reads and few writes, such as students refreshing RESULT_FLAT while teachers rarely update grades.</p>
+      </article>
+      <article class="card">
+        <h3>Optimistic control</h3>
+        <p>Assume clashes are rare. Transactions read without locks. At commit the database checks for conflicts and, if it finds one, rolls a transaction back to restart. Suitable for read-heavy reports that change infrequently.</p>
+      </article>
+    </div>
+
+    <h3>Race conditions, deadlocks, and lock_timeout</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>Race condition</h3>
+        <p>Two transactions touch the same data, and the final result depends on which one happens to run first. Without a lock or a version check, one update can erase the other.</p>
+        <p>Two fee clerks both read a balance of 1000 and both subtract 200. Each writes 800. One payment disappears. A lock makes the second clerk wait, then subtract from 800.</p>
+      </article>
+      <article class="card">
+        <h3>Deadlock</h3>
+        <p>A cycle of waits. T1 holds Ananya’s grade row and waits for her fee row. T2 holds the fee row and waits for the grade row. Neither can move.</p>
+        <p>The DBMS searches for that cycle. After <span class="term">deadlock_timeout</span> (often about one second) it aborts one transaction, the victim, and lets the other continue. The aborted transaction can be retried.</p>
+      </article>
+      <article class="card">
+        <h3>lock_timeout</h3>
+        <p>How long one statement will wait to obtain a lock before it gives up. A wait can be long even when there is no cycle, because the other transaction is simply still working.</p>
+        <p><span class="term">deadlock_timeout</span> decides when to look for a wait cycle. <span class="term">lock_timeout</span> decides when to stop waiting at all. A lock timeout can fire while only one other transaction holds the row.</p>
+      </article>
+    </div>
+<pre class="sql">SET lock_timeout = '2s';
+UPDATE marks
+SET grade = 9.1
+WHERE roll_no = 22104567;</pre>
+    <p>If that grade row is still locked after two seconds, the UPDATE stops with a lock-timeout error instead of waiting.</p>
+
+    <h3>Recovery</h3>
+    <p>Recovery puts the database back after a crash, a software fault, or a human error, so admissions and exam results can run again.</p>
+    <p>Failures: a single transaction (logic error or constraint), the whole system, the storage media, or a natural disaster.</p>
+    <div class="cards">
+      <article class="card"><h3>Backup and restore</h3><p>Regular copies of the database. Daily attendance backups can be loaded if the live system crashes.</p></article>
+      <article class="card"><h3>Log-based recovery</h3><p>A log of every operation. The fee portal’s log either finishes a payment or cancels it, so nothing is duplicated or lost.</p></article>
+      <article class="card"><h3>Shadow paging</h3><p>A backup page exists while the new page is written. A profile update keeps the old consistent copy until the new one is saved.</p></article>
+      <article class="card"><h3>Checkpoint</h3><p>A snapshot at a known time. Course registration saved every 15 minutes only has to replay the last 15 minutes after a crash.</p></article>
+      <article class="card"><h3>Rollback and rollforward</h3><p>Rollback undoes uncommitted work. Rollforward reapplies committed operations from the log. A scholarship form that fails mid-way is rolled back; once fixed, successful applications are rolled forward.</p></article>
+    </div>
+    <ul>
+      <li>Back up often, and keep a copy off site (admission data on a cloud server outside campus).</li>
+      <li>Practice a restore so you know it works.</li>
+      <li>Automate recovery so fewer steps depend on a person.</li>
+    </ul>
+    <aside class="note">
+      <p>Many DBMSs also offer <strong>snapshot isolation</strong> and <strong>MVCC</strong> (multi-version concurrency control). Each reader sees a consistent snapshot, so readers and writers block each other less.</p>
+    </aside>
+  </section>
+
+  <section id="s11">
+    <div class="sec-head"><span class="num">11</span><h2>SQL commands</h2></div>
+    <h3>Four families</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Family</th><th>Job</th><th>Also includes</th></tr></thead>
+        <tbody>
+          <tr><td>DDL — Data Definition</td><td>Shape the tables. Schema changes with transactional safety.</td><td>TRUNCATE, RENAME, COMMENT</td></tr>
+          <tr><td>DML — Data Manipulation</td><td>Add or change rows. Some dialects can return the affected rows.</td><td>MERGE, RETURNING</td></tr>
+          <tr><td>DCL — Data Control</td><td>Grant and revoke access, including fine-grained permissions.</td><td>DENY (SQL Server)</td></tr>
+          <tr><td>TCL — Transaction Control</td><td>Save or undo work, and set transaction boundaries.</td><td>SAVEPOINT, SET TRANSACTION</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>INSERT, UPDATE, DELETE, SELECT, ALTER</h3>
+<pre class="sql">INSERT INTO STUDENT (roll_no, name, programme)
+VALUES (22105123, 'Nisha Verma', 'BTech ECE');</pre>
+<pre class="sql">UPDATE MARKS
+SET grade = 9.1
+WHERE rollNo = 22104567 AND courseCode = 'CS101';</pre>
+<pre class="sql">DELETE FROM STUDENT
+WHERE roll_no = 22109999;
+-- Student left the college</pre>
+<pre class="sql">SELECT rollNo, name
+FROM STUDENT
+WHERE programme = 'MBA';</pre>
+<pre class="sql">ALTER TABLE STUDENT
+ADD COLUMN phoneNo CHAR(10);</pre>
+
+    <h3>Operators and aggregates</h3>
+    <p>Operators work row by row: compare, calculate, or combine conditions. Aggregates scan many rows and return one summary number.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Category</th><th>Operators</th><th>Also</th><th>NULL handling</th></tr></thead>
+        <tbody>
+          <tr><td>Arithmetic</td><td>+ − * /</td><td>% (mod), ^ (power)</td><td>COALESCE(mark, 0) + 5</td></tr>
+          <tr><td>Comparison</td><td>= &lt;&gt; &gt; &lt;</td><td>&lt;=&gt; (NULL-safe equal), IS DISTINCT FROM</td><td>WHERE grade IS NOT NULL</td></tr>
+          <tr><td>Logical</td><td>AND OR NOT</td><td>ANY, ALL, BETWEEN</td><td>WHERE COALESCE(attendance, 0) &gt; 75</td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre class="sql">SELECT score + 5 AS new_score
+FROM EXAM
+WHERE rollNo = 22104567;</pre>
+<pre class="sql">SELECT rollNo, name
+FROM EXAM
+WHERE score &gt; 90 AND programme = 'CSE';</pre>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Function</th><th>Returns</th><th>Question it answers</th></tr></thead>
+        <tbody>
+          <tr><td>COUNT(*)</td><td>Number of rows</td><td>How many students wrote the exam?</td></tr>
+          <tr><td>SUM(col)</td><td>Total of a column</td><td>What is the total mess bill this month?</td></tr>
+          <tr><td>AVG(col)</td><td>Average</td><td>What is the average CGPA in IT?</td></tr>
+          <tr><td>MAX(col)</td><td>Highest value</td><td>Who has the highest CGPA?</td></tr>
+          <tr><td>MIN(col)</td><td>Lowest value</td><td>What is the lowest attendance percent?</td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre class="sql">SELECT COUNT(*) AS total_students FROM STUDENT;</pre>
+<pre class="sql">SELECT SUM(amount) AS total_sales
+FROM CANTEEN_SALES
+WHERE saleDate &gt;= '2025-05-01' AND saleDate &lt;= '2025-05-31';</pre>
+<pre class="sql">SELECT AVG(CGPA) AS avg_IT_cgpa
+FROM STUDENT
+WHERE programme = 'IT';</pre>
+<pre class="sql">SELECT MAX(totalFee) AS max_fee, MIN(totalFee) AS min_fee
+FROM HOSTEL_ACCOUNTS;</pre>
+    <p>Use row operators to filter (<span class="term">WHERE salary &gt; 5000</span>), to calculate inside a row (<span class="term">price * quantity AS lineTotal</span>), or to combine conditions. Use aggregates for one summary: total students, average marks by course (<span class="term">GROUP BY courseCode</span>), or the highest CGPA.</p>
+
+    <h3>Clause order</h3>
+<pre class="sql">SELECT column_list
+FROM table_name
+WHERE filter_condition          -- row filter
+GROUP BY grouping_columns       -- group rows
+HAVING group_filter             -- filter groups
+ORDER BY column_list [ASC|DESC] -- sort
+LIMIT count OFFSET start;       -- MySQL / PostgreSQL</pre>
+<pre class="sql">SELECT courseCode, AVG(grade) AS avgGrade
+FROM MARKS
+WHERE semester = 6
+GROUP BY courseCode
+HAVING AVG(grade) &gt;= 8
+ORDER BY avgGrade ASC
+LIMIT 5;</pre>
+
+    <h3>Joins</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Join</th><th>Rows kept</th><th>Tip</th><th>Syntax</th></tr></thead>
+        <tbody>
+          <tr><td>INNER</td><td>Matching rows only</td><td>Index the columns in ON.</td><td>ANSI: A JOIN B ON … — older style: FROM A, B WHERE …</td></tr>
+          <tr><td>LEFT</td><td>All left rows, plus matches</td><td>WHERE B.key IS NOT NULL turns it into an inner join.</td><td>LEFT OUTER JOIN</td></tr>
+          <tr><td>RIGHT</td><td>All right rows, plus matches</td><td>Rare. Rewrite it as a LEFT join.</td><td>RIGHT OUTER JOIN</td></tr>
+          <tr><td>FULL</td><td>All rows from both sides</td><td>Expensive. Consider UNION ALL of two outer joins.</td><td>FULL OUTER JOIN</td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre class="sql">SELECT s.rollNo, s.name, m.grade
+FROM STUDENT AS s
+INNER JOIN MARKS AS m
+ON s.rollNo = m.rollNo;</pre>
+
+    <h3>UNION</h3>
+    <p>UNION stacks two SELECTs that share a column list and drops duplicate rows. UNION ALL keeps duplicates.</p>
+<pre class="sql">-- Girls or MBA students
+SELECT rollNo FROM STUDENT WHERE gender = 'F'
+UNION
+SELECT rollNo FROM STUDENT WHERE programme = 'MBA';</pre>
+
+    <h3>Views</h3>
+    <p>A view is a virtual table whose rows come from a query. It hides a complex join behind a name, can grant read-only access under RBAC, and can act as a denormalised reading helper without storing a second copy.</p>
+<pre class="sql">CREATE VIEW V_TOPPERS
+AS
+SELECT rollNo, name, CGPA
+FROM STUDENT
+WHERE CGPA &gt;= 9.0;</pre>
+
+    <h3>Subqueries</h3>
+    <p><strong>Scalar</strong> — one value. Students who share the maximum CGPA:</p>
+<pre class="sql">SELECT name
+FROM STUDENT
+WHERE CGPA = (SELECT MAX(CGPA) FROM STUDENT);</pre>
+    <p><strong>Correlated</strong> — the inner query uses a column from the outer row. Students above their own course average. MySQL and PostgreSQL both support this.</p>
+<pre class="sql">SELECT rollNo, grade
+FROM MARKS AS m
+WHERE grade &gt; (
+  SELECT AVG(grade)
+  FROM MARKS
+  WHERE courseCode = m.courseCode
+);</pre>
+    <p><strong>EXISTS / NOT EXISTS</strong> — a membership test. <span class="term">SELECT 1</span> checks existence and does not return payload data. Students with no ABSENT row:</p>
+<pre class="sql">SELECT rollNo, name
+FROM STUDENT s
+WHERE NOT EXISTS (
+  SELECT 1 FROM ATTENDANCE
+  WHERE rollNo = s.rollNo
+    AND status = 'ABSENT'
+);</pre>
+  </section>
+
+  <section id="s12">
+    <div class="sec-head"><span class="num">12</span><h2>Indexing, optimisation, sharding</h2></div>
+    <p>Slow queries make the whole site feel laggy. Faster SQL means pages open sooner, the server works less, and the cloud bill shrinks.</p>
+
+    <h3>Practical techniques to speed up SQL</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tip</th><th>Idea</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Select only needed columns</td><td>Avoid SELECT *.</td><td>A merit list needs roll number, name, and CGPA, not mobile numbers.</td></tr>
+          <tr><td>Filter early, join later</td><td>Put WHERE before a big join.</td><td>Keep the CSE 2023 batch first, then join placements.</td></tr>
+          <tr><td>Use indexes in predicates</td><td>Put indexed columns in WHERE or JOIN ON.</td><td>WHERE roll_no = 22104567 uses the primary-key index. WHERE LOWER(name) cannot.</td></tr>
+          <tr><td>Avoid functions on indexed columns</td><td>A function hides the index.</td><td>WHERE name = 'Ananya' is fast. WHERE UPPER(name) = 'ANANYA' scans the table.</td></tr>
+          <tr><td>LIMIT / TOP</td><td>Fetch only what the screen shows.</td><td>Top 10 CGPAs: ORDER BY cgpa DESC LIMIT 10.</td></tr>
+          <tr><td>Read the plan</td><td>Let the database name the slow step with EXPLAIN, or EXPLAIN ANALYZE if you need real timings.</td><td>A “Seq Scan” is a hint to add or fix an index.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>ANALYZE, EXPLAIN, and EXPLAIN ANALYZE</h3>
+    <p>These three commands are how you talk to the planner. <span class="term">ANALYZE</span> the command is not the analyzer stage inside the engine. Same word, two jobs.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Command</th><th>What it does</th><th>Runs your query?</th></tr></thead>
+        <tbody>
+          <tr><td><span class="term">ANALYZE</span></td><td>Samples the table and stores statistics: row count, distinct values, most common values. The optimizer reads those numbers when it costs a plan.</td><td>It scans the table for statistics. It does not run the SELECT you are tuning.</td></tr>
+          <tr><td><span class="term">EXPLAIN</span></td><td>Prints the plan the optimizer chose: scan type, join type, estimated cost, estimated rows. Nothing is executed.</td><td>No.</td></tr>
+          <tr><td><span class="term">EXPLAIN ANALYZE</span></td><td>Runs the query, then prints the plan with estimated rows beside actual time and actual rows. Use it when the estimate and reality disagree.</td><td>Yes. A data-changing statement really changes data unless you wrap it in a transaction and roll it back.</td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre class="sql">ANALYZE staff;
+
+EXPLAIN
+SELECT * FROM staff WHERE division = 'Finance';
+
+EXPLAIN ANALYZE
+SELECT * FROM staff WHERE division = 'Finance';</pre>
+
+    <h3>Query optimizer</h3>
+    <p>The optimizer is the planner. It does not run the query. It turns a query tree into one plan tree: the sequence of scans and joins it believes is cheapest. Bad statistics or a hidden index produce a confident, slow plan.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>The path a statement takes before any row comes back</caption>
+        <thead><tr><th>Component</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>Parser</td><td>Reads the SQL text, rejects bad syntax, and builds a parse tree.</td></tr>
+          <tr><td>Analyzer</td><td>Resolves table and column names, checks types, and builds a query tree. This stage is not the ANALYZE command.</td></tr>
+          <tr><td>Rewriter</td><td>Expands views and rules into the underlying tables, so the planner sees real relations.</td></tr>
+          <tr><td>Optimizer</td><td>Builds candidate plans, costs them, and keeps the cheapest plan tree.</td></tr>
+          <tr><td>Executor</td><td>Runs that plan and returns rows. EXPLAIN stops before this step. EXPLAIN ANALYZE lets it run, then reports what happened.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>Inside the optimizer</caption>
+        <thead><tr><th>Piece</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>Statistics</td><td>Supplies row counts, distinct values, and most common values from the last ANALYZE. A stale number makes every later cost wrong.</td></tr>
+          <tr><td>Cost model</td><td>Turns each path into a number: pages read from disk, random versus sequential I/O, and CPU per row.</td></tr>
+          <tr><td>Access paths</td><td>For each table, considers a sequential scan, an index scan, a bitmap scan, and an index-only scan, then keeps the cheap ones.</td></tr>
+          <tr><td>Join planner</td><td>Chooses the join order and the method: nested loop, hash join, or merge join.</td></tr>
+          <tr><td>Plan selector</td><td>Compares total cost and emits one plan. When there are many joins it may switch to a genetic search (GEQO) instead of trying every order.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Index types</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Type</th><th>Idea</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Primary (clustered)</td><td>The table itself is stored in primary-key order.</td><td>STUDENT stored by rollNo.</td></tr>
+          <tr><td>Secondary (non-clustered)</td><td>A separate index points back at rows. Table order stays the same.</td><td>An index on mobileNo so an admin can find a student by phone.</td></tr>
+          <tr><td>Clustering index</td><td>Decides the physical order of rows, usually the primary key. Other indexes point at rows without reordering the table.</td><td>STUDENT in rollNo order, with secondary indexes beside it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>More index methods</h3>
+    <p>PostgreSQL picks a method with <span class="term">USING</span>. If you omit it, the index is a B-tree. Composite, expression, and partial indexes are ways of building an index. B-tree, hash, GiST, GIN, and BRIN are the structures that store it.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>In short</th><th>Use it when</th></tr></thead>
+        <tbody>
+          <tr><td>B-tree</td><td class="short">Sorted tree</td><td>The default. Equality, ranges, ORDER BY, and LIKE 'Finan%'. Most primary keys and foreign keys.</td></tr>
+          <tr><td>Hash</td><td class="short">Equality only</td><td>You only ask “is this value equal?”. No useful range scan. A B-tree is usually enough.</td></tr>
+          <tr><td>GiST</td><td class="short">Balanced tree of any type</td><td>Values that are not a simple order: ranges, geometry, full text. “Does this booking overlap that slot?”</td></tr>
+          <tr><td>GIN</td><td class="short">Inverted index</td><td>Many values inside one row: arrays, jsonb keys, or a document’s words. “Which rows contain this tag?”</td></tr>
+          <tr><td>BRIN</td><td class="short">Block summaries</td><td>A huge table that is already stored in order, such as hire_date or a log timestamp. Tiny index, weak if the column is random.</td></tr>
+          <tr><td>Composite</td><td class="short">Several columns</td><td>Filters that use a left-to-right prefix. An index on (division, pay) helps WHERE division = 'Finance', and also division plus pay. It does not help pay alone.</td></tr>
+          <tr><td>Expression</td><td class="short">Index the calculation</td><td>The query filters on a function. Index lower(given_name) so WHERE lower(given_name) = 'ananya' can use it. A plain index on given_name cannot.</td></tr>
+          <tr><td>Partial</td><td class="short">Only some rows</td><td>You almost always search a subset. Index unpaid fees only. The index stays small, and it is used when the query’s WHERE matches the index predicate.</td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre class="sql">CREATE INDEX idx_roll ON student USING btree (roll_no);
+CREATE INDEX idx_email ON student USING hash (email);
+CREATE INDEX idx_slot ON booking USING gist (period);
+CREATE INDEX idx_tags ON article USING gin (tags);
+CREATE INDEX idx_hired ON staff USING brin (hire_date);
+CREATE INDEX idx_div_pay ON staff (division, pay);
+CREATE INDEX idx_lower_name ON staff (lower(given_name));
+CREATE INDEX idx_unpaid ON fees (student_id) WHERE status = 'UNPAID';</pre>
+
+    <h3>B-tree and B+-tree</h3>
+    <ul>
+      <li><strong>B-tree:</strong> keys in internal nodes guide the search. Leaves hold keys and row pointers.</li>
+      <li><strong>B+-tree</strong> (what most DBMSs use): every key is copied into the leaves, and the leaves are linked left to right. A range such as CGPA BETWEEN 8 AND 9 is a short walk along that chain.</li>
+    </ul>
+    <p>Internal nodes are like a library guide that points at the right drawer. The drawer is the leaf that holds the record.</p>
+<pre class="tree">B-tree:                         B+-tree:
+      [Internal]                      [Internal]
+     /    |    \                    /    |    \
+ [Leaf] [Leaf] [Leaf]        [Leaf]→[Leaf]→[Leaf]</pre>
+
+    <h3>Scale up and scale out</h3>
+    <div class="cards">
+      <article class="card"><h3>Vertical (scale-up)</h3><p>A bigger machine: more RAM, faster SSDs, more CPUs. Like adding RAM sticks to the library PC.</p></article>
+      <article class="card"><h3>Horizontal (scale-out)</h3><p>More machines, with data split or copied across them. Like opening three fee-payment desks instead of one.</p></article>
+    </div>
+
+    <h3>Sharding</h3>
+    <p>Sharding splits a large database into smaller independent pieces, each on its own host. Lookups stay local. A university chain keeps Delhi on Server-A and Mumbai on Server-B. Only a cross-campus query touches both.</p>
+    <ul>
+      <li><strong>Shard:</strong> one independent partition, such as one department’s student records.</li>
+      <li><strong>Shard key:</strong> the column that decides the destination, such as Branch.</li>
+      <li><strong>Shared-nothing:</strong> each shard runs on its own, without sharing disk or memory.</li>
+    </ul>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>How</th><th>Trade-off</th></tr></thead>
+        <tbody>
+          <tr><td>Range</td><td>Roll numbers 1–1000 go to shard 1.</td><td>Simple. Data can pile up unevenly.</td></tr>
+          <tr><td>Hash</td><td>A hash of Admission ID picks the server.</td><td>Even spread. Adding or removing a shard means moving data, though consistent hashing limits how much.</td></tr>
+          <tr><td>Directory</td><td>A lookup table maps Course ID to a department server.</td><td>Flexible. A wrong or stale map sends rows to the wrong shard.</td></tr>
+          <tr><td>Geo</td><td>Delhi students go to the Delhi server, with failover to Mumbai.</td><td>Low latency for nearby users. Dense cities can still overload one shard.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Choose a shard key with many distinct values (cardinality), avoid a few extremely popular keys (hotspots), and avoid a key that only grows in one direction, such as a sequential timestamp, because new writes all land on the latest shard.</p>
+    <aside class="example">
+      <h4>A poor shard key</h4>
+      <p>Sharding feedback by “courses completed” (11 or more courses → shard C) overloads shard C as students progress.</p>
+    </aside>
+
+    <h3>RBAC</h3>
+    <p>Role-based access control attaches permissions to roles, not to individual people.</p>
+    <ul>
+      <li>Student → SELECT marks, pay fees.</li>
+      <li>Faculty → INSERT and UPDATE marks for their own courses.</li>
+      <li>Admin → full rights.</li>
+    </ul>
+    <p>Roll number 22104567 inherits Student rights on first login. The rules stay short and easy to audit.</p>
+
+    <h3>Encryption</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Layer</th><th>What is protected</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>At rest</td><td>Files on disk are scrambled.</td><td>A stolen disk does not reveal Aadhaar numbers.</td></tr>
+          <tr><td>In transit</td><td>Data is encrypted on the network.</td><td>The student portal uses HTTPS, so Wi-Fi snoopers cannot read passwords.</td></tr>
+          <tr><td>Column-level</td><td>Only sensitive columns, such as bank account or Aadhaar.</td><td>Account numbers are stored with AES. A query decrypts them when needed.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Masking</h3>
+    <p>Masking replaces sensitive values with realistic stand-ins and keeps the format, so test and training copies are safe to use. It is for non-production copies.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Technique</th><th>What it does</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Static (SDM)</td><td>Changes a copy permanently.</td><td>Names and mobile numbers are masked in the test database for a new admissions portal.</td></tr>
+          <tr><td>Dynamic (DDM)</td><td>Masks on the way out. The stored value stays.</td><td>The helpdesk sees only the last four digits of a bank account on a fee record.</td></tr>
+          <tr><td>Deterministic</td><td>The same input always becomes the same mask.</td><td>rollno123@college.edu is always masked.student1@college.edu.</td></tr>
+          <tr><td>Non-deterministic</td><td>The same input can become a different mask each time.</td><td>A parent’s phone looks different on each internal report, so rows are harder to link. Do not use this on foreign-key columns.</td></tr>
+          <tr><td>Format-preserving</td><td>The mask keeps the original shape.</td><td>University ID AB1234567 keeps two letters and seven digits.</td></tr>
+          <tr><td>Shuffling</td><td>Values in a column are rearranged.</td><td>Exam scores move between students in a research extract. They still look real, and they no longer identify a person.</td></tr>
+          <tr><td>Redaction</td><td>The sensitive part is removed from view, unlike a mask that keeps structure.</td><td>Medical history is blacked out before an academic advisor opens the file.</td></tr>
+          <tr><td>Nulling out</td><td>The value becomes SQL NULL.</td><td>Names and addresses become NULL before a satisfaction survey is shared with outside analysts.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Speed and safety checklist</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Goal</th><th>Tool</th></tr></thead>
+        <tbody>
+          <tr><td>Fast SELECT by primary key</td><td>B+-tree primary index</td></tr>
+          <tr><td>Fast range of CGPAs</td><td>Secondary B+-tree on CGPA</td></tr>
+          <tr><td>High read traffic at result time</td><td>Denormalised RESULT_FLAT plus indexes</td></tr>
+          <tr><td>Sudden user surge</td><td>A second read-only replica (horizontal scaling)</td></tr>
+          <tr><td>Different campuses</td><td>Shard on campusID</td></tr>
+          <tr><td>Protect sensitive data</td><td>RBAC roles, column encryption, and masking in test dumps</td></tr>
+          <tr><td>High write throughput</td><td>Partitioning and batch inserts</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+
+  <section id="s13">
+    <div class="sec-head"><span class="num">13</span><h2>SQL practice</h2></div>
+    <p>Fifty interview-style queries on a small staff schema. Each task is the plain-language request from the notes. The SQL underneath is the query as given there, with line-break artefacts cleaned so the statement runs.</p>
+    <div class="schema">
+      <article class="card">
+        <h3><span class="term">staff</span></h3>
+        <p><code>staff_id</code>, <code>given_name</code>, <code>family_name</code>, <code>division</code>, <code>pay</code>, <code>hire_date</code></p>
+      </article>
+      <article class="card">
+        <h3><span class="term">role</span></h3>
+        <p><code>staff_ref_id</code> → <code>staff.staff_id</code>, <code>role_name</code></p>
+      </article>
+      <article class="card">
+        <h3><span class="term">incentive</span></h3>
+        <p><code>staff_ref_id</code> — a row means that person receives a bonus</p>
+      </article>
+    </div>
+
+    <div class="query"><p class="task"><b>01.</b> Show every staff member’s first name, naming the result column EMPLOYEE_NAME.</p>
+<pre class="sql">SELECT given_name AS EMPLOYEE_NAME
+FROM staff;</pre></div>
+
+    <div class="query"><p class="task"><b>02.</b> Return first names in UPPER-case.</p>
+<pre class="sql">SELECT UPPER(given_name) FROM staff;</pre></div>
+
+    <div class="query"><p class="task"><b>03.</b> List every distinct division represented in the staff table.</p>
+<pre class="sql">SELECT DISTINCT division FROM staff;</pre></div>
+
+    <div class="query"><p class="task"><b>04.</b> Grab the first three characters of each given name.</p>
+<pre class="sql">SELECT SUBSTRING(given_name, 1, 3) FROM staff;</pre></div>
+
+    <div class="query"><p class="task"><b>05.</b> Find where the letter B occurs in the name Siddarth.</p>
+<pre class="sql">SELECT INSTR(given_name, 'B')
+FROM staff
+WHERE given_name = 'Siddharth';</pre></div>
+
+    <div class="query"><p class="task"><b>06.</b> Trim spaces on the right of first names.</p>
+<pre class="sql">SELECT RTRIM(given_name) FROM staff;</pre></div>
+
+    <div class="query"><p class="task"><b>07.</b> Trim spaces on the left of division names.</p>
+<pre class="sql">SELECT LTRIM(division) FROM staff;</pre></div>
+
+    <div class="query"><p class="task"><b>08.</b> Show each unique division together with its length.</p>
+<pre class="sql">SELECT division, LENGTH(division)
+FROM staff
+GROUP BY division;</pre></div>
+
+    <div class="query"><p class="task"><b>09.</b> Replace every lowercase a with uppercase A in first names.</p>
+<pre class="sql">SELECT REPLACE(given_name, 'a', 'A') FROM staff;</pre></div>
+
+    <div class="query"><p class="task"><b>10.</b> Combine first and last names into a single column FULL_NAME.</p>
+<pre class="sql">SELECT CONCAT(given_name, ' ', family_name) AS FULL_NAME
+FROM staff;</pre></div>
+
+    <div class="query"><p class="task"><b>11.</b> Display all staff details, ordered by first name A→Z.</p>
+<pre class="sql">SELECT * FROM staff ORDER BY given_name ASC;</pre></div>
+
+    <div class="query"><p class="task"><b>12.</b> Display all staff, ordered by first name A→Z and division Z→A.</p>
+<pre class="sql">SELECT * FROM staff
+ORDER BY given_name ASC, division DESC;</pre></div>
+
+    <div class="query"><p class="task"><b>13.</b> Pull the records for employees named Arjun or Rohan.</p>
+<pre class="sql">SELECT * FROM staff
+WHERE given_name IN ('Arjun', 'Rohan');</pre></div>
+
+    <div class="query"><p class="task"><b>14.</b> Return everyone except Arjun and Rohan.</p>
+<pre class="sql">SELECT * FROM staff
+WHERE given_name NOT IN ('Arjun', 'Rohan');</pre></div>
+
+    <div class="query"><p class="task"><b>15.</b> Show workers whose division starts with “Finan”.</p>
+<pre class="sql">SELECT * FROM staff WHERE division LIKE 'Finan%';</pre></div>
+
+    <div class="query"><p class="task"><b>16.</b> Get staff whose first name contains the letter a anywhere.</p>
+<pre class="sql">SELECT * FROM staff
+WHERE LOWER(given_name) LIKE '%a%';</pre></div>
+
+    <div class="query"><p class="task"><b>17.</b> Fetch staff whose first name ends with a.</p>
+<pre class="sql">SELECT * FROM staff
+WHERE LOWER(given_name) LIKE '%a';</pre></div>
+
+    <div class="query"><p class="task"><b>18.</b> Fetch staff whose six-letter first name ends with h.</p>
+<pre class="sql">SELECT * FROM staff
+WHERE given_name LIKE '_____h'
+  AND LENGTH(given_name) = 6;</pre></div>
+
+    <div class="query"><p class="task"><b>19.</b> Show employees with pay between 100 000 and 500 000 (inclusive).</p>
+<pre class="sql">SELECT * FROM staff
+WHERE pay BETWEEN 100000 AND 500000;</pre></div>
+
+    <div class="query"><p class="task"><b>20.</b> List staff who joined in February 2014.</p>
+<pre class="sql">SELECT * FROM staff
+WHERE YEAR(hire_date) = 2014 AND MONTH(hire_date) = 2;</pre></div>
+
+    <div class="query"><p class="task"><b>21.</b> Count how many people work in the Finance division.</p>
+<pre class="sql">SELECT division, COUNT(*)
+FROM staff
+WHERE division = 'Finance';</pre></div>
+
+    <div class="query"><p class="task"><b>22.</b> Return full names of staff earning 50 000 – 100 000.</p>
+<pre class="sql">SELECT CONCAT(given_name, ' ', family_name)
+FROM staff
+WHERE pay BETWEEN 50000 AND 100000;</pre></div>
+
+    <div class="query"><p class="task"><b>23.</b> Show each division with its head-count, highest first.</p>
+<pre class="sql">SELECT division, COUNT(staff_id) AS total_staff
+FROM staff
+GROUP BY division
+ORDER BY total_staff DESC;</pre></div>
+
+    <div class="query"><p class="task"><b>24.</b> List employees who also appear as Supervisor in the role table.</p>
+<pre class="sql">SELECT * FROM staff AS s
+INNER JOIN role AS r ON s.staff_id = r.staff_ref_id
+WHERE r.role_name = 'Supervisor';</pre></div>
+
+    <div class="query"><p class="task"><b>25.</b> Find role titles held by more than one person.</p>
+<pre class="sql">SELECT role_name, COUNT(*) AS cnt
+FROM role
+GROUP BY role_name
+HAVING cnt &gt; 1;</pre></div>
+
+    <div class="query"><p class="task"><b>26.</b> Return only rows with odd staff_ids.</p>
+<pre class="sql">SELECT * FROM staff WHERE MOD(staff_id, 2) != 0;</pre></div>
+
+    <div class="query"><p class="task"><b>27.</b> Return only rows with even staff_ids.</p>
+<pre class="sql">SELECT * FROM staff WHERE MOD(staff_id, 2) = 0;</pre></div>
+
+    <div class="query"><p class="task"><b>28.</b> Clone the entire staff table into staff_copy.</p>
+<pre class="sql">CREATE TABLE staff_copy LIKE staff;
+INSERT INTO staff_copy SELECT * FROM staff;</pre></div>
+
+    <div class="query"><p class="task"><b>29.</b> Show rows common to both staff and its copy (by id).</p>
+<pre class="sql">SELECT s.* FROM staff s
+INNER JOIN staff_copy USING (staff_id);</pre></div>
+
+    <div class="query"><p class="task"><b>30.</b> Show staff records that are not in the copy.</p>
+<pre class="sql">SELECT s.* FROM staff s
+LEFT JOIN staff_copy USING (staff_id)
+WHERE staff_copy.staff_id IS NULL;</pre></div>
+
+    <div class="query"><p class="task"><b>31.</b> Display today’s date and the current timestamp.</p>
+<pre class="sql">SELECT CURDATE();
+SELECT NOW();</pre></div>
+
+    <div class="query"><p class="task"><b>32.</b> Fetch the top 5 highest-paid employees.</p>
+<pre class="sql">SELECT * FROM staff ORDER BY pay DESC LIMIT 5;</pre></div>
+
+    <div class="query"><p class="task"><b>33.</b> Get the 5th-highest salary using LIMIT.</p>
+<pre class="sql">SELECT * FROM staff ORDER BY pay DESC LIMIT 1 OFFSET 4;</pre></div>
+
+    <div class="query"><p class="task"><b>34.</b> Find the 5th-highest salary without LIMIT.</p>
+<pre class="sql">SELECT pay FROM staff s1
+WHERE 4 = (
+  SELECT COUNT(DISTINCT s2.pay)
+  FROM staff s2
+  WHERE s2.pay &gt;= s1.pay
+);</pre></div>
+
+    <div class="query"><p class="task"><b>35.</b> List employees who share the same salary with someone else.</p>
+<pre class="sql">SELECT s1.* FROM staff s1
+JOIN staff s2 ON s1.pay = s2.pay AND s1.staff_id &lt;&gt; s2.staff_id;</pre></div>
+
+    <div class="query"><p class="task"><b>36.</b> Return the second-highest salary overall.</p>
+<pre class="sql">SELECT MAX(pay) FROM staff
+WHERE pay NOT IN (SELECT MAX(pay) FROM staff);</pre></div>
+
+    <div class="query"><p class="task"><b>37.</b> Show every row twice (duplicate output).</p>
+<pre class="sql">SELECT * FROM (
+  SELECT * FROM staff
+  UNION ALL
+  SELECT * FROM staff
+) AS dup
+ORDER BY staff_id;</pre></div>
+
+    <div class="query"><p class="task"><b>38.</b> List staff IDs that do not receive bonuses.</p>
+<pre class="sql">SELECT staff_id FROM staff
+WHERE staff_id NOT IN (SELECT staff_ref_id FROM incentive);</pre></div>
+
+    <div class="query"><p class="task"><b>39.</b> Select the first 50% of rows (by id order).</p>
+<pre class="sql">SELECT * FROM staff
+ORDER BY staff_id
+LIMIT (SELECT COUNT(*) / 2 FROM staff);</pre></div>
+
+    <div class="query"><p class="task"><b>40.</b> Return divisions that have fewer than four employees.</p>
+<pre class="sql">SELECT division, COUNT(*) AS headcount
+FROM staff
+GROUP BY division
+HAVING headcount &lt; 4;</pre></div>
+
+    <div class="query"><p class="task"><b>41.</b> Show every division with its employee count.</p>
+<pre class="sql">SELECT division, COUNT(*) AS headcount
+FROM staff
+GROUP BY division;</pre></div>
+
+    <div class="query"><p class="task"><b>42.</b> Fetch the very last row in the table (largest id).</p>
+<pre class="sql">SELECT * FROM staff
+WHERE staff_id = (SELECT MAX(staff_id) FROM staff);</pre></div>
+
+    <div class="query"><p class="task"><b>43.</b> Fetch the very first row in the table (smallest id).</p>
+<pre class="sql">SELECT * FROM staff
+WHERE staff_id = (SELECT MIN(staff_id) FROM staff);</pre></div>
+
+    <div class="query"><p class="task"><b>44.</b> Display the last five rows, ordered naturally.</p>
+<pre class="sql">(SELECT * FROM staff ORDER BY staff_id DESC LIMIT 5)
+ORDER BY staff_id;</pre></div>
+
+    <div class="query"><p class="task"><b>45.</b> For each division, list the employee(s) with the top salary.</p>
+<pre class="sql">SELECT s.division, s.given_name, s.pay
+FROM (
+  SELECT division, MAX(pay) AS top_pay
+  FROM staff
+  GROUP BY division
+) t
+JOIN staff s ON t.division = s.division AND t.top_pay = s.pay;</pre></div>
+
+    <div class="query"><p class="task"><b>46.</b> Pull the three highest distinct salaries via a correlated sub-query.</p>
+<pre class="sql">SELECT DISTINCT pay FROM staff s1
+WHERE 3 &gt;= (
+  SELECT COUNT(DISTINCT pay)
+  FROM staff s2
+  WHERE s2.pay &gt; s1.pay
+)
+ORDER BY pay DESC;</pre></div>
+
+    <div class="query"><p class="task"><b>47.</b> Pull the three lowest distinct salaries via a correlated sub-query.</p>
+<pre class="sql">SELECT DISTINCT pay FROM staff s1
+WHERE 3 &gt;= (
+  SELECT COUNT(DISTINCT pay)
+  FROM staff s2
+  WHERE s2.pay &lt; s1.pay
+)
+ORDER BY pay;</pre></div>
+
+    <div class="query"><p class="task"><b>48.</b> Generic formula for the n-th highest salary. Replace :n with the rank you want.</p>
+<pre class="sql">SELECT DISTINCT pay FROM staff s1
+WHERE :n &gt;= (
+  SELECT COUNT(DISTINCT pay)
+  FROM staff s2
+  WHERE s1.pay &lt;= s2.pay
+)
+ORDER BY s1.pay DESC;</pre></div>
+
+    <div class="query"><p class="task"><b>49.</b> Show total payroll cost per division, highest first.</p>
+<pre class="sql">SELECT division, SUM(pay) AS total_pay
+FROM staff
+GROUP BY division
+ORDER BY total_pay DESC;</pre></div>
+
+    <div class="query"><p class="task"><b>50.</b> List names of the employee(s) earning the absolute max salary.</p>
+<pre class="sql">SELECT given_name, family_name, pay
+FROM staff
+WHERE pay = (SELECT MAX(pay) FROM staff);</pre></div>
+  </section>
+
+  <section id="s14">
+    <div class="sec-head"><span class="num">14</span><h2>MCQs</h2></div>
+    <p>Pick an option to mark it. Reveal checks your choice against the key. Question 17’s printed key says A. These notes define the schema as the stable structure and the instance as the current rows, so this page marks <strong>B</strong>. Every other key matches the printed sheet.</p>
+    <div class="mcq-bar">
+      <button type="button" class="reveal" id="reveal">Show answer key</button>
+      <button type="button" class="reset" id="reset">Clear choices</button>
+    </div>
+
+    <article class="q" data-key="B">
+      <p><span class="qn">1.</span> Which benefit of a DBMS is illustrated when a fee clerk can view only the fee status, whereas the principal can also view marks?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Growth (Scalability)</button>
+        <button type="button" data-opt="B"><b>B.</b> Security</button>
+        <button type="button" data-opt="C"><b>C.</b> Speed (Indexing)</button>
+        <button type="button" data-opt="D"><b>D.</b> No Extra Copies</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">2.</span> Flipkart stores every customer’s shopping cart in a key-value database primarily because key-value systems offer what advantage?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Table-level referential integrity</button>
+        <button type="button" data-opt="B"><b>B.</b> Ultra-fast look-ups via a simple key-value structure</button>
+        <button type="button" data-opt="C"><b>C.</b> Built-in ACID transactions for complex joins</button>
+        <button type="button" data-opt="D"><b>D.</b> Time-series data for analytics</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">3.</span> The library's subject-based shelf organization mirrors how DBMS ______ accelerate searches by maintaining sorted references to data locations.</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Full-table scans</button>
+        <button type="button" data-opt="B"><b>B.</b> Clustered indexes (physically reorder data)</button>
+        <button type="button" data-opt="C"><b>C.</b> Non-clustered indexes (separate sorted references)</button>
+        <button type="button" data-opt="D"><b>D.</b> Transaction logs</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">4.</span> In a three-tier DBMS architecture, which component issues SQL queries to the database server?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Mobile client app</button>
+        <button type="button" data-opt="B"><b>B.</b> Application (middle) server</button>
+        <button type="button" data-opt="C"><b>C.</b> Web browser’s JavaScript runtime</button>
+        <button type="button" data-opt="D"><b>D.</b> Load balancer</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">5.</span> A personal inventory system built entirely in Microsoft Access on a single laptop exemplifies which architectural style?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Two-tier</button>
+        <button type="button" data-opt="B"><b>B.</b> Three-tier</button>
+        <button type="button" data-opt="C"><b>C.</b> One-tier</button>
+        <button type="button" data-opt="D"><b>D.</b> Distributed</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">6.</span> According to the CAP-theorem examples, UPI wallet payments favor which two guarantees during a network partition?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Availability + Consistency</button>
+        <button type="button" data-opt="B"><b>B.</b> Consistency + Partition Tolerance</button>
+        <button type="button" data-opt="C"><b>C.</b> Availability + Partition Tolerance</button>
+        <button type="button" data-opt="D"><b>D.</b> Durability + Consistency</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">7.</span> The hostel-warden portal, which displays only Roll No., Name, and Hostel Fee Status, operates at what level of abstraction?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Physical level</button>
+        <button type="button" data-opt="B"><b>B.</b> Logical level</button>
+        <button type="button" data-opt="C"><b>C.</b> View level</button>
+        <button type="button" data-opt="D"><b>D.</b> File-system level</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">8.</span> Which scenario best illustrates physical data independence?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Splitting an Address column into Street, City, and Pin Code without updating the application code</button>
+        <button type="button" data-opt="B"><b>B.</b> Moving attendance files from HDDs to faster SSDs and adding a B-tree index, with no change to SQL queries</button>
+        <button type="button" data-opt="C"><b>C.</b> Creating a new Faculty table linked to Students by Roll No.</button>
+        <button type="button" data-opt="D"><b>D.</b> Granting the examination branch access to marks via an additional view</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">9.</span> Altering the logical schema (e.g., breaking address into three columns) without rewriting other modules demonstrates:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Physical independence</button>
+        <button type="button" data-opt="B"><b>B.</b> Logical independence</button>
+        <button type="button" data-opt="C"><b>C.</b> No independence</button>
+        <button type="button" data-opt="D"><b>D.</b> View-level caching</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">10.</span> Which data model organises records strictly in a top-down parent-child tree where each child has exactly one parent?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Object-Oriented Model</button>
+        <button type="button" data-opt="B"><b>B.</b> Hierarchical Model</button>
+        <button type="button" data-opt="C"><b>C.</b> Network Model</button>
+        <button type="button" data-opt="D"><b>D.</b> Entity–Relationship Model</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">11.</span> A student belonging to several clubs, with each club linked back to many students, illustrates the need for a specific data model.</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Relational</button>
+        <button type="button" data-opt="B"><b>B.</b> Hierarchical</button>
+        <button type="button" data-opt="C"><b>C.</b> Network</button>
+        <button type="button" data-opt="D"><b>D.</b> Time-Series</button>
+      </div>
+    </article>
+    <article class="q" data-key="A">
+      <p><span class="qn">12.</span> During conceptual design, engineers draw entities like Student and Course connected by ENROLLED_IN. Which data model is being used?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Entity–Relationship (ER)</button>
+        <button type="button" data-opt="B"><b>B.</b> Object-Oriented</button>
+        <button type="button" data-opt="C"><b>C.</b> Relational</button>
+        <button type="button" data-opt="D"><b>D.</b> Key-Value</button>
+      </div>
+    </article>
+    <article class="q" data-key="D">
+      <p><span class="qn">13.</span> A weak entity in an ER model MUST have:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> A many-to-many relationship</button>
+        <button type="button" data-opt="B"><b>B.</b> Total participation in its identifying relationship</button>
+        <button type="button" data-opt="C"><b>C.</b> Double-lined relationship diamond</button>
+        <button type="button" data-opt="D"><b>D.</b> Both B and C</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">14.</span> A relationship where one A relates to many B’s, and each B to exactly one A is classified as:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> M : N</button>
+        <button type="button" data-opt="B"><b>B.</b> 1 : N</button>
+        <button type="button" data-opt="C"><b>C.</b> 1 : 1</button>
+        <button type="button" data-opt="D"><b>D.</b> M : 1</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">15.</span> Treating a relationship set and its participating entities as one higher-level unit so it can participate in another relationship is called:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Specialization</button>
+        <button type="button" data-opt="B"><b>B.</b> Generalization</button>
+        <button type="button" data-opt="C"><b>C.</b> Aggregation</button>
+        <button type="button" data-opt="D"><b>D.</b> Composition</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">16.</span> In the relational model, a single column whose values come from one domain is called a(n):</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Domain</button>
+        <button type="button" data-opt="B"><b>B.</b> Attribute</button>
+        <button type="button" data-opt="C"><b>C.</b> Tuple</button>
+        <button type="button" data-opt="D"><b>D.</b> Relation</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">17.</span> Which statement correctly distinguishes a schema from an instance?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Schema changes with every insert/delete; instance is fixed</button>
+        <button type="button" data-opt="B"><b>B.</b> Schema is the permanent structure; instance is the current rows</button>
+        <button type="button" data-opt="C"><b>C.</b> Schema lists current primary-key values; instance lists data types</button>
+        <button type="button" data-opt="D"><b>D.</b> Schema enforces referential integrity; instance enforces entity integrity</button>
+      </div>
+      <p class="fix">Printed key: A. Marked here as B, matching the schema/instance definitions in the notes.</p>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">18.</span> The integrity rule that forbids NULL values in a primary-key column is called:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Key Constraint</button>
+        <button type="button" data-opt="B"><b>B.</b> Referential Integrity</button>
+        <button type="button" data-opt="C"><b>C.</b> Entity Integrity</button>
+        <button type="button" data-opt="D"><b>D.</b> Domain Constraint</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">19.</span> A candidate key is defined as:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Any unique attribute set, even with extras</button>
+        <button type="button" data-opt="B"><b>B.</b> A minimal super key—remove one attribute, and uniqueness breaks</button>
+        <button type="button" data-opt="C"><b>C.</b> The chosen official identifier of the table</button>
+        <button type="button" data-opt="D"><b>D.</b> A foreign-key reference to another table</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">20.</span> Which rule is mandatory for a primary-key column (or set)?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Must reference another relation’s key</button>
+        <button type="button" data-opt="B"><b>B.</b> Must allow NULLs for optional rows</button>
+        <button type="button" data-opt="C"><b>C.</b> Must be unique and not NULL</button>
+        <button type="button" data-opt="D"><b>D.</b> Must include more than one attribute</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">21.</span> Which statement is true of super keys, candidate keys, and primary keys?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Every composite key is a candidate key</button>
+        <button type="button" data-opt="B"><b>B.</b> Every candidate key is also a super key</button>
+        <button type="button" data-opt="C"><b>C.</b> Every candidate key is minimal by definition</button>
+        <button type="button" data-opt="D"><b>D.</b> A primary key may contain duplicates if no foreign key uses it</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">22.</span> Which schema violates 2NF?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> STUDENT(rollNo PK, name)</button>
+        <button type="button" data-opt="B"><b>B.</b> MARKS(rollNo PK, courseCode PK, grade, studentName)</button>
+        <button type="button" data-opt="C"><b>C.</b> COURSE(code PK, title, credits)</button>
+        <button type="button" data-opt="D"><b>D.</b> All comply</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">23.</span> In BCNF, for every functional dependency X → Y, X must be:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> A non-minimal super key</button>
+        <button type="button" data-opt="B"><b>B.</b> A foreign key</button>
+        <button type="button" data-opt="C"><b>C.</b> A candidate key</button>
+        <button type="button" data-opt="D"><b>D.</b> A subset of Y</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">24.</span> The ability to reconstruct the original relation without data loss after decomposition is called the _______ property.</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Dependency preservation</button>
+        <button type="button" data-opt="B"><b>B.</b> Lossless (non-additive) join</button>
+        <button type="button" data-opt="C"><b>C.</b> Partial-dependence removal</button>
+        <button type="button" data-opt="D"><b>D.</b> Referential integrity</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">25.</span> Denormalisation refers to:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Splitting a wide table into smaller ones</button>
+        <button type="button" data-opt="B"><b>B.</b> Combining normalized tables or including redundant data to reduce costly joins</button>
+        <button type="button" data-opt="C"><b>C.</b> Encrypting data so only DBAs can view it</button>
+        <button type="button" data-opt="D"><b>D.</b> Applying BCNF to all relations</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">26.</span> Denormalisation is justified when the workload is mainly:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Heavy on writes, light on reads</button>
+        <button type="button" data-opt="B"><b>B.</b> Write-once, read-never</button>
+        <button type="button" data-opt="C"><b>C.</b> Read-intensive with few updates</button>
+        <button type="button" data-opt="D"><b>D.</b> CPU-bound on triggers</button>
+      </div>
+    </article>
+    <article class="q" data-key="A">
+      <p><span class="qn">27.</span> The chief drawback of denormalising a schema is:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Higher risk of update anomalies due to duplicated facts</button>
+        <button type="button" data-opt="B"><b>B.</b> Loss of primary-key enforcement</button>
+        <button type="button" data-opt="C"><b>C.</b> Mandatory distributed transactions for every write</button>
+        <button type="button" data-opt="D"><b>D.</b> Loss of the lossless-join property among the remaining tables</button>
+      </div>
+    </article>
+    <article class="q" data-key="A">
+      <p><span class="qn">28.</span> Durability is achieved through:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Write-ahead logging (WAL)</button>
+        <button type="button" data-opt="B"><b>B.</b> Two-phase locking</button>
+        <button type="button" data-opt="C"><b>C.</b> Snapshot isolation</button>
+        <button type="button" data-opt="D"><b>D.</b> All of the above</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">29.</span> The isolation level that blocks dirty reads but still allows non-repeatable reads is:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Read Uncommitted</button>
+        <button type="button" data-opt="B"><b>B.</b> Read Committed</button>
+        <button type="button" data-opt="C"><b>C.</b> Repeatable Read</button>
+        <button type="button" data-opt="D"><b>D.</b> Serializable</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">30.</span> Strict 2PL improves basic 2PL by:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Releasing locks immediately after use</button>
+        <button type="button" data-opt="B"><b>B.</b> Holding all locks until commit/abort</button>
+        <button type="button" data-opt="C"><b>C.</b> Using timestamp ordering</button>
+        <button type="button" data-opt="D"><b>D.</b> Eliminating the shrinking phase</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">31.</span> The SQL family used to grant or revoke privileges is:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> DML</button>
+        <button type="button" data-opt="B"><b>B.</b> DDL</button>
+        <button type="button" data-opt="C"><b>C.</b> DCL</button>
+        <button type="button" data-opt="D"><b>D.</b> TCL</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">32.</span> After grouping rows, which clause filters entire groups based on aggregates?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> WHERE</button>
+        <button type="button" data-opt="B"><b>B.</b> HAVING</button>
+        <button type="button" data-opt="C"><b>C.</b> ORDER BY</button>
+        <button type="button" data-opt="D"><b>D.</b> LIMIT</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">33.</span> Which aggregate counts all rows, including those with NULLs?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> COUNT(column_name)</button>
+        <button type="button" data-opt="B"><b>B.</b> COUNT(*)</button>
+        <button type="button" data-opt="C"><b>C.</b> AVG(column_name)</button>
+        <button type="button" data-opt="D"><b>D.</b> SUM(column_name)</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">34.</span> Which index type physically orders table rows by the key itself?</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Secondary (non-clustered)</button>
+        <button type="button" data-opt="B"><b>B.</b> Primary (clustered)</button>
+        <button type="button" data-opt="C"><b>C.</b> Bitmap</button>
+        <button type="button" data-opt="D"><b>D.</b> Hash</button>
+      </div>
+    </article>
+    <article class="q" data-key="B">
+      <p><span class="qn">35.</span> Adding more machines and partitioning data across them to handle the load is called:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Vertical scaling (scale-up)</button>
+        <button type="button" data-opt="B"><b>B.</b> Horizontal scaling (scale-out)</button>
+        <button type="button" data-opt="C"><b>C.</b> Query parallelism</button>
+        <button type="button" data-opt="D"><b>D.</b> Snapshot isolation</button>
+      </div>
+    </article>
+    <article class="q" data-key="C">
+      <p><span class="qn">36.</span> In RBAC, permissions are first attached to:</p>
+      <div class="choices">
+        <button type="button" data-opt="A"><b>A.</b> Individual users</button>
+        <button type="button" data-opt="B"><b>B.</b> Database triggers</button>
+        <button type="button" data-opt="C"><b>C.</b> Roles</button>
+        <button type="button" data-opt="D"><b>D.</b> Stored procedures</button>
+      </div>
+    </article>
+
+    <div class="mcq-bar">
+      <button type="button" class="reveal" id="reveal2">Show answer key</button>
+    </div>
+  </section>
+
+  <footer class="colophon">
+    <p>Study notes for DBMS. SQL, table names, and exam terms are kept in English.</p>
+  </footer>
+
+</main>
+<script>
+(function () {
+  var scrub = document.getElementById("scrub");
+  var dragging = false;
+  function maxScroll() {
+    var h = document.documentElement;
+    return Math.max(0, h.scrollHeight - h.clientHeight);
+  }
+  function paintScrub(pct) {
+    scrub.value = String(Math.round(pct));
+    scrub.parentElement.style.setProperty("--pct", (pct / 10) + "%");
+  }
+  function onScroll() {
+    if (dragging) return;
+    var max = maxScroll();
+    paintScrub(max > 0 ? (document.documentElement.scrollTop / max) * 1000 : 0);
+  }
+  document.addEventListener("scroll", onScroll, { passive: true });
+  scrub.addEventListener("pointerdown", function () { dragging = true; });
+  window.addEventListener("pointerup", function () { dragging = false; onScroll(); });
+  scrub.addEventListener("input", function () {
+    var root = document.documentElement;
+    root.style.scrollBehavior = "auto";
+    window.scrollTo(0, maxScroll() * (Number(scrub.value) / 1000));
+    root.style.scrollBehavior = "";
+    scrub.parentElement.style.setProperty("--pct", (Number(scrub.value) / 10) + "%");
+  });
+  onScroll();
+
+  var menuBtn = document.getElementById("menu-btn");
+  var drawer = document.getElementById("drawer");
+  var scrim = document.getElementById("scrim");
+  var slot = document.getElementById("drawer-nav");
+  var toc = document.querySelector(".toc");
+  if (toc && slot) {
+    var clone = toc.cloneNode(true);
+    clone.classList.add("drawer-list");
+    var heading = clone.querySelector("h2");
+    if (heading) heading.remove();
+    slot.appendChild(clone);
+  }
+  function setDrawer(open) {
+    document.body.classList.toggle("drawer-open", open);
+    menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    drawer.setAttribute("aria-hidden", open ? "false" : "true");
+  }
+  menuBtn.addEventListener("click", function () {
+    setDrawer(!document.body.classList.contains("drawer-open"));
+  });
+  document.getElementById("drawer-close").addEventListener("click", function () { setDrawer(false); });
+  scrim.addEventListener("click", function () { setDrawer(false); });
+  drawer.addEventListener("click", function (event) {
+    if (event.target.closest("a")) setDrawer(false);
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") setDrawer(false);
+  });
+  function markHere(id) {
+    document.querySelectorAll(".toc a, .drawer a").forEach(function (a) {
+      a.classList.toggle("here", a.getAttribute("href") === "#" + id);
+    });
+  }
+  if ("IntersectionObserver" in window) {
+    var seen = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) markHere(entry.target.id);
+      });
+    }, { rootMargin: "-15% 0px -75% 0px", threshold: 0 });
+    document.querySelectorAll("main section[id]").forEach(function (section) { seen.observe(section); });
+  }
+
+  var KW = {};
+  "SELECT FROM WHERE INSERT INTO VALUES UPDATE SET DELETE ALTER TABLE ADD COLUMN CREATE VIEW AS AND OR NOT NULL IS IN LIKE BETWEEN GROUP BY HAVING ORDER ASC DESC LIMIT OFFSET JOIN INNER LEFT RIGHT FULL OUTER ON UNION ALL EXISTS DISTINCT PRIMARY KEY INT VARCHAR CHAR CHECK TRUNCATE RENAME BEGIN COMMIT TRANSACTION ISOLATION LEVEL EXPLAIN ANALYZE INDEX USING".split(" ").forEach(function (w) { KW[w] = true; });
+  var FN = {};
+  "COALESCE COUNT SUM AVG MAX MIN UPPER LOWER SUBSTRING INSTR RTRIM LTRIM LENGTH REPLACE CONCAT MOD YEAR MONTH CURDATE NOW".split(" ").forEach(function (w) { FN[w] = true; });
+
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function highlight(src) {
+    var i = 0, out = "";
+    while (i < src.length) {
+      if (src[i] === "-" && src[i + 1] === "-") {
+        var j = i;
+        while (j < src.length && src[j] !== "\n") j++;
+        out += '<span class="cmt">' + esc(src.slice(i, j)) + "</span>";
+        i = j;
+        continue;
+      }
+      if (src[i] === "'") {
+        var j2 = i + 1;
+        while (j2 < src.length && src[j2] !== "'") j2++;
+        if (j2 < src.length) j2++;
+        out += '<span class="str">' + esc(src.slice(i, j2)) + "</span>";
+        i = j2;
+        continue;
+      }
+      var prev = i === 0 ? "" : src[i - 1];
+      if (/[0-9]/.test(src[i]) && !/[A-Za-z_]/.test(prev)) {
+        var j3 = i;
+        while (j3 < src.length && /[0-9.]/.test(src[j3])) j3++;
+        out += '<span class="num">' + esc(src.slice(i, j3)) + "</span>";
+        i = j3;
+        continue;
+      }
+      if (/[A-Za-z_]/.test(src[i])) {
+        var j4 = i;
+        while (j4 < src.length && /[A-Za-z0-9_]/.test(src[j4])) j4++;
+        var word = src.slice(i, j4);
+        var up = word.toUpperCase();
+        var k = j4;
+        while (k < src.length && src[k] === " ") k++;
+        if (FN[up] && src[k] === "(") out += '<span class="fn">' + esc(word) + "</span>";
+        else if (KW[up]) out += '<span class="kw">' + esc(word) + "</span>";
+        else out += esc(word);
+        i = j4;
+        continue;
+      }
+      out += esc(src[i]);
+      i++;
+    }
+    return out;
+  }
+  document.querySelectorAll("pre.sql").forEach(function (pre) {
+    pre.innerHTML = highlight(pre.textContent);
+  });
+
+  var ar = document.documentElement.lang === "ar";
+  var showLabel = ar ? "أظهر مفتاح الإجابات" : "Show answer key";
+  var hideLabel = ar ? "أخفِ مفتاح الإجابات" : "Hide answer key";
+
+  function mark() {
+    document.querySelectorAll(".q").forEach(function (q) {
+      var key = q.getAttribute("data-key");
+      q.querySelectorAll("button[data-opt]").forEach(function (b) {
+        var picked = b.classList.contains("picked");
+        b.classList.toggle("right", b.getAttribute("data-opt") === key);
+        b.classList.toggle("wrong", picked && b.getAttribute("data-opt") !== key);
+      });
+    });
+  }
+  document.querySelectorAll(".q").forEach(function (q) {
+    q.querySelectorAll("button[data-opt]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        q.querySelectorAll("button[data-opt]").forEach(function (x) { x.classList.remove("picked"); });
+        b.classList.add("picked");
+        if (document.body.classList.contains("show-key")) mark();
+      });
+    });
+  });
+  document.querySelectorAll(".reveal").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var on = document.body.classList.toggle("show-key");
+      document.querySelectorAll(".reveal").forEach(function (b) {
+        b.textContent = on ? hideLabel : showLabel;
+      });
+      if (on) mark();
+      else document.querySelectorAll(".q button").forEach(function (b) {
+        b.classList.remove("right", "wrong");
+      });
+    });
+  });
+  var reset = document.getElementById("reset");
+  if (reset) reset.addEventListener("click", function () {
+    document.querySelectorAll(".q button").forEach(function (b) {
+      b.classList.remove("picked", "right", "wrong");
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
