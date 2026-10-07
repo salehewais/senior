@@ -1,0 +1,17 @@
+# Install on reporting host after config.env is filled.
+# SHELL=/bin/bash
+# PATH=/usr/local/bin:/usr/bin
+
+# Phase 2 nightly window rebuild
+0 1 * * * cd /opt/CQRS && set -a && source phases/shared/config.env && set +a && python3 phases/02-preaggregation/jobs/refresh_runner.py --dataset aml_daily --mode nightly >> /var/log/reporting/aml_nightly.log 2>&1
+30 1 * * * cd /opt/CQRS && set -a && source phases/shared/config.env && set +a && python3 phases/02-preaggregation/jobs/refresh_runner.py --dataset sales_daily --mode nightly >> /var/log/reporting/sales_nightly.log 2>&1
+
+# Phase 2 daytime incremental
+*/15 * * * * cd /opt/CQRS && set -a && source phases/shared/config.env && set +a && python3 phases/02-preaggregation/jobs/refresh_runner.py --dataset aml_daily --mode incremental >> /var/log/reporting/aml_incr.log 2>&1
+
+# Phase 3 ETL bridge (after Phase 2)
+5,20,35,50 * * * * cd /opt/CQRS && set -a && source phases/shared/config.env && set +a && python3 phases/03-reporting-db/etl/sync_facts_from_replica.py --dataset all >> /var/log/reporting/etl_facts.log 2>&1
+15 2 * * * cd /opt/CQRS && set -a && source phases/shared/config.env && set +a && python3 phases/03-reporting-db/etl/sync_dims_from_replica.py >> /var/log/reporting/etl_dims.log 2>&1
+
+# Phase 6 warehouse (optional)
+30 3 * * * cd /opt/CQRS && set -a && source phases/shared/config.env && set +a && python3 phases/06-warehouse/elt/load_from_reporting_db.py >> /var/log/reporting/wh_elt.log 2>&1

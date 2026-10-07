@@ -1,0 +1,1 @@
+"""PEAA pattern demos."""

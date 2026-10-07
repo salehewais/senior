@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Odoo Reporting Scale — دليل الحلول والمقايضات</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #071512;
+      --panel: #0d221c;
+      --panel-2: #123028;
+      --line: #1e4a3c;
+      --mist: #9bb8ad;
+      --text: #e7f2ec;
+      --muted: #8aa89b;
+      --accent: #e8a54b;
+      --accent-2: #3ecf9a;
+      --danger: #e86b5a;
+      --warn: #e8c15a;
+      --ok: #3ecf9a;
+      --radius: 14px;
+      --shadow: 0 20px 50px rgba(0,0,0,.35);
+      --font: "IBM Plex Sans Arabic", system-ui, sans-serif;
+      --display: "Syne", "IBM Plex Sans Arabic", sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 90% -10%, rgba(62,207,154,.12), transparent 55%),
+        radial-gradient(900px 500px at -10% 20%, rgba(232,165,75,.10), transparent 50%),
+        linear-gradient(180deg, #06110e 0%, var(--ink) 40%, #0a1814 100%);
+      min-height: 100vh;
+      line-height: 1.75;
+    }
+
+    a { color: var(--accent-2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 0;
+      max-width: 1400px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    nav.side {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.5rem 1.1rem 2rem;
+      border-left: 1px solid var(--line);
+      background: rgba(7,21,18,.72);
+      backdrop-filter: blur(10px);
+    }
+
+    nav.side .brand {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -.02em;
+      color: var(--text);
+      margin-bottom: .35rem;
+      direction: ltr;
+      text-align: right;
+    }
+
+    nav.side .tag {
+      color: var(--muted);
+      font-size: .85rem;
+      margin-bottom: 1.4rem;
+    }
+
+    nav.side .group {
+      margin-bottom: 1.1rem;
+    }
+
+    nav.side .group h3 {
+      margin: 0 0 .45rem;
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    nav.side a.item {
+      display: block;
+      padding: .38rem .55rem;
+      border-radius: 8px;
+      color: var(--mist);
+      font-size: .92rem;
+      margin-bottom: .15rem;
+    }
+
+    nav.side a.item:hover,
+    nav.side a.item.active {
+      background: rgba(62,207,154,.12);
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .lang-toggle {
+      display: flex;
+      gap: .4rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .lang-toggle button {
+      flex: 1;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--mist);
+      border-radius: 999px;
+      padding: .45rem .6rem;
+      font-family: var(--font);
+      cursor: pointer;
+    }
+
+    .lang-toggle button.on {
+      background: rgba(232,165,75,.18);
+      border-color: rgba(232,165,75,.45);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    main {
+      padding: 2rem 2rem 4rem;
+    }
+
+    .hero {
+      position: relative;
+      padding: 2.2rem 2rem 2rem;
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius) + 4px);
+      background:
+        linear-gradient(135deg, rgba(18,48,40,.9), rgba(7,21,18,.55)),
+        repeating-linear-gradient(
+          -18deg,
+          transparent,
+          transparent 10px,
+          rgba(62,207,154,.03) 10px,
+          rgba(62,207,154,.03) 11px
+        );
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -20% -40% 40%;
+      height: 280px;
+      background: radial-gradient(circle, rgba(232,165,75,.22), transparent 65%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: .85rem;
+      margin-bottom: .7rem;
+      letter-spacing: .04em;
+    }
+
+    h1 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      line-height: 1.15;
+      margin: 0 0 .8rem;
+      letter-spacing: -.03em;
+      max-width: 16ch;
+    }
+
+    .hero p.lead {
+      margin: 0;
+      max-width: 42rem;
+      color: var(--mist);
+      font-size: 1.05rem;
+    }
+
+    .scenario {
+      margin-top: 1.4rem;
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 1rem;
+    }
+
+    pre.diagram {
+      margin: 0;
+      padding: 1rem 1.1rem;
+      background: rgba(0,0,0,.35);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: auto;
+      font-family: var(--mono);
+      font-size: .78rem;
+      line-height: 1.45;
+      color: #cfe8db;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 12px;
+      border: 1px solid rgba(232,165,75,.35);
+      background: rgba(232,165,75,.08);
+      color: var(--text);
+    }
+
+    .callout strong { color: var(--accent); }
+
+    section.block {
+      margin-bottom: 2.5rem;
+      scroll-margin-top: 1rem;
+    }
+
+    section.block > h2 {
+      font-family: var(--display);
+      font-size: 1.55rem;
+      margin: 0 0 .35rem;
+      letter-spacing: -.02em;
+    }
+
+    section.block > .sub {
+      color: var(--muted);
+      margin: 0 0 1.1rem;
+    }
+
+    .map-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: .75rem;
+    }
+
+    .map-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1rem;
+      min-height: 180px;
+      transition: transform .2s ease, border-color .2s ease;
+    }
+
+    .map-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(62,207,154,.55);
+    }
+
+    .map-card .lvl {
+      font-size: .72rem;
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: .4rem;
+      direction: ltr;
+      text-align: right;
+    }
+
+    .map-card h3 {
+      margin: 0 0 .6rem;
+      font-size: 1.05rem;
+    }
+
+    .map-card ul {
+      margin: 0;
+      padding: 0 1.1rem 0 0;
+      color: var(--mist);
+      font-size: .9rem;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem;
+      margin-bottom: 1rem;
+    }
+
+    .filters button {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--mist);
+      border-radius: 999px;
+      padding: .4rem .85rem;
+      font-family: var(--font);
+      cursor: pointer;
+      font-size: .88rem;
+    }
+
+    .filters button.on {
+      background: rgba(62,207,154,.15);
+      border-color: rgba(62,207,154,.5);
+      color: var(--accent-2);
+      font-weight: 600;
+    }
+
+    .cards {
+      display: grid;
+      gap: .85rem;
+    }
+
+    details.sol {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    details.sol[open] {
+      border-color: rgba(62,207,154,.45);
+      box-shadow: 0 12px 30px rgba(0,0,0,.25);
+    }
+
+    details.sol summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 1rem 1.15rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: .85rem;
+      align-items: center;
+    }
+
+    details.sol summary::-webkit-details-marker { display: none; }
+
+    .num {
+      width: 2.1rem;
+      height: 2.1rem;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-family: var(--display);
+      font-weight: 700;
+      background: rgba(232,165,75,.15);
+      color: var(--accent);
+      direction: ltr;
+    }
+
+    .sol-title h3 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .sol-title .en {
+      color: var(--muted);
+      font-size: .82rem;
+      direction: ltr;
+      text-align: right;
+      font-family: var(--display);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .3rem;
+      justify-content: flex-start;
+    }
+
+    .chip {
+      font-size: .72rem;
+      padding: .2rem .5rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--mist);
+      white-space: nowrap;
+    }
+
+    .chip.yes { border-color: rgba(62,207,154,.45); color: var(--ok); }
+    .chip.no { border-color: rgba(232,107,90,.35); color: var(--danger); }
+    .chip.mid { border-color: rgba(232,193,90,.4); color: var(--warn); }
+    .chip.star { border-color: rgba(232,165,75,.5); color: var(--accent); }
+
+    .sol-body {
+      padding: 0 1.15rem 1.2rem;
+      border-top: 1px solid rgba(30,74,60,.55);
+    }
+
+    .sol-body .grid2 {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .pros, .cons {
+      padding: .9rem 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+    }
+
+    .pros { background: rgba(62,207,154,.06); }
+    .cons { background: rgba(232,107,90,.06); }
+
+    .pros h4, .cons h4 {
+      margin: 0 0 .45rem;
+      font-size: .92rem;
+    }
+
+    .pros h4 { color: var(--ok); }
+    .cons h4 { color: var(--danger); }
+
+    .pros ul, .cons ul, .body-list {
+      margin: 0;
+      padding: 0 1.1rem 0 0;
+      color: var(--mist);
+    }
+
+    .quote {
+      margin: 1rem 0 0;
+      padding: .85rem 1rem;
+      border-right: 3px solid var(--accent);
+      background: rgba(232,165,75,.07);
+      color: var(--text);
+      border-radius: 0 10px 10px 0;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    table.matrix {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+      font-size: .9rem;
+    }
+
+    table.matrix th,
+    table.matrix td {
+      padding: .7rem .75rem;
+      border-bottom: 1px solid rgba(30,74,60,.7);
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    table.matrix th:first-child,
+    table.matrix td:first-child {
+      text-align: right;
+      position: sticky;
+      right: 0;
+      background: var(--panel-2);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    table.matrix thead th {
+      background: #0f2a22;
+      color: var(--mist);
+      font-weight: 600;
+      font-size: .8rem;
+    }
+
+    .path {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .lane {
+      padding: 1.2rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .lane.exact { border-color: rgba(232,165,75,.4); }
+    .lane.analytical { border-color: rgba(62,207,154,.4); }
+
+    .lane h3 { margin: 0 0 .5rem; }
+    .lane p { margin: 0 0 .7rem; color: var(--mist); }
+
+    .flow {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: var(--radius);
+      background: rgba(0,0,0,.28);
+      border: 1px solid var(--line);
+    }
+
+    .flow ol {
+      margin: 0;
+      padding: 0 1.2rem 0 0;
+    }
+
+    .flow li { margin-bottom: .45rem; color: var(--mist); }
+    .flow li strong { color: var(--text); }
+
+    footer.note {
+      margin-top: 2rem;
+      color: var(--muted);
+      font-size: .88rem;
+      border-top: 1px solid var(--line);
+      padding-top: 1rem;
+    }
+
+    /* EN mode */
+    html[lang="en"] { direction: ltr; }
+    html[lang="en"] nav.side { border-left: none; border-right: 1px solid var(--line); }
+    html[lang="en"] nav.side .brand { text-align: left; }
+    html[lang="en"] .map-card .lvl,
+    html[lang="en"] .sol-title .en { text-align: left; }
+    html[lang="en"] details.sol summary { grid-template-columns: auto 1fr auto; }
+    html[lang="en"] .map-card ul,
+    html[lang="en"] .pros ul,
+    html[lang="en"] .cons ul,
+    html[lang="en"] .body-list,
+    html[lang="en"] .flow ol { padding: 0 0 0 1.1rem; }
+    html[lang="en"] .quote {
+      border-right: none;
+      border-left: 3px solid var(--accent);
+      border-radius: 10px 0 0 10px;
+    }
+    html[lang="en"] table.matrix th:first-child,
+    html[lang="en"] table.matrix td:first-child {
+      text-align: left;
+      right: auto;
+      left: 0;
+    }
+
+    .ar-only { display: block; }
+    .en-only { display: none; }
+    html[lang="en"] .ar-only { display: none; }
+    html[lang="en"] .en-only { display: block; }
+    span.ar-only, span.en-only { display: inline; }
+    html[lang="en"] span.ar-only { display: none; }
+    html[lang="en"] span.en-only { display: inline; }
+
+    @media (max-width: 980px) {
+      .shell { grid-template-columns: 1fr; }
+      nav.side {
+        position: relative;
+        height: auto;
+        border-left: none;
+        border-bottom: 1px solid var(--line);
+      }
+      .map-grid { grid-template-columns: 1fr 1fr; }
+      .scenario, .sol-body .grid2, .path { grid-template-columns: 1fr; }
+      main { padding: 1.2rem 1rem 3rem; }
+      h1 { max-width: none; }
+    }
+
+    @media (max-width: 560px) {
+      .map-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <nav class="side" aria-label="Contents">
+      <div class="brand">Reporting Scale</div>
+      <div class="tag ar-only">دليل تعلّم: كل الحلول + المقايضات</div>
+      <div class="tag en-only">Learn: all solutions + trade-offs</div>
+
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" id="btn-ar" class="on" onclick="setLang('ar')">عربي</button>
+        <button type="button" id="btn-en" onclick="setLang('en')">EN</button>
+      </div>
+
+      <div class="group">
+        <h3>Start</h3>
+        <a class="item" href="#hero"><span class="ar-only">السيناريو</span><span class="en-only">Scenario</span></a>
+        <a class="item" href="#map"><span class="ar-only">خريطة الحلول</span><span class="en-only">Solution map</span></a>
+        <a class="item" href="#levels"><span class="ar-only">المستويات</span><span class="en-only">Levels</span></a>
+      </div>
+      <div class="group">
+        <h3>Solutions</h3>
+        <a class="item" href="#solutions" data-filter="all"><span class="ar-only">الكل (1–22)</span><span class="en-only">All (1–22)</span></a>
+        <a class="item" href="#solutions" data-filter="db"><span class="ar-only">قاعدة البيانات</span><span class="en-only">Database</span></a>
+        <a class="item" href="#solutions" data-filter="data"><span class="ar-only">البيانات / القراءة</span><span class="en-only">Data / Read</span></a>
+        <a class="item" href="#solutions" data-filter="app"><span class="ar-only">التطبيق</span><span class="en-only">Application</span></a>
+        <a class="item" href="#solutions" data-filter="arch"><span class="ar-only">الهندسة</span><span class="en-only">Architecture</span></a>
+        <a class="item" href="#solutions" data-filter="ent"><span class="ar-only">المؤسسة</span><span class="en-only">Enterprise</span></a>
+      </div>
+      <div class="group">
+        <h3>Decide</h3>
+        <a class="item" href="#matrix"><span class="ar-only">جدول المقارنة</span><span class="en-only">Comparison matrix</span></a>
+        <a class="item" href="#lanes"><span class="ar-only">Exact vs Analytical</span><span class="en-only">Exact vs Analytical</span></a>
+        <a class="item" href="#order"><span class="ar-only">ترتيب التنفيذ</span><span class="en-only">Recommended order</span></a>
+      </div>
+    </nav>
+
+    <main>
+      <header class="hero" id="hero">
+        <div class="eyebrow">Odoo · POS · 200M AML</div>
+        <h1 class="ar-only">كل حلول التقارير الثقيلة… والمقايضة بتاعة كل حل</h1>
+        <h1 class="en-only">Every heavy-reporting option — and what each one actually buys you</h1>
+        <p class="lead ar-only">
+          السيناريو: Odoo/POS يكتب على <code>account.move.line</code> (~200M صف)، و50+ مستخدم × 20+ فرع بيطلبوا تقارير تقيلة.
+          الـ Indexing و SQL Optimization خلاص اتعملوا. السؤال بقى: <strong>إيه الطبقات اللي تفصل الـ Writes عن الـ Reads، وإيه اللي يصغّر البيانات المقروءة؟</strong>
+        </p>
+        <p class="lead en-only">
+          Scenario: Odoo/POS writes to <code>account.move.line</code> (~200M rows) while 50+ users across 20+ branches run heavy reports.
+          Indexing and SQL tuning are already done. The real question: <strong>what isolates writes from reads, and what shrinks what reports read?</strong>
+        </p>
+
+        <div class="scenario">
+          <pre class="diagram">Odoo / POS
+   │
+   ├── Writes
+   │     ↓
+   │  account.move.line
+   │     ↓
+   │  ~200M rows
+   │
+   └── Reports
+         ↓
+      Heavy Reads
+         ↓
+      50+ users
+      20+ branches</pre>
+          <div class="callout">
+            <div class="ar-only">
+              <strong>قاعدة ذهبية:</strong> مش كل حل Performance Magic.
+              <br />Replica = عزل شغل · Aggregation = تصغير بيانات · Async = راحة UX · CQRS = فصل مسؤوليات.
+              <br />ومش لازم تستخدم الـ 22 حل كلهم — بعضهم بدائل، وبعضهم طبقات فوق بعض.
+            </div>
+            <div class="en-only">
+              <strong>Golden rule:</strong> not every solution is performance magic.
+              <br />Replica = workload isolation · Aggregation = data reduction · Async = UX relief · CQRS = separation of concerns.
+              <br />You don’t need all 22 — some are alternatives, some are layers.
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="block" id="map">
+        <h2 class="ar-only">خريطة الحلول الكاملة</h2>
+        <h2 class="en-only">Full solution map</h2>
+        <p class="sub ar-only">من PostgreSQL لحد الـ Architecture الكبيرة — خمس مستويات.</p>
+        <p class="sub en-only">From PostgreSQL up to enterprise analytics — five levels.</p>
+
+        <div class="map-grid">
+          <article class="map-card">
+            <div class="lvl">Level 1 · Database</div>
+            <h3 class="ar-only">قاعدة البيانات</h3>
+            <h3 class="en-only">Database</h3>
+            <ul>
+              <li>Partitioning</li>
+              <li>Read Replica</li>
+              <li>Archiving</li>
+              <li>Separate DB / Server</li>
+              <li>Connection control</li>
+            </ul>
+          </article>
+          <article class="map-card">
+            <div class="lvl">Level 2 · Data</div>
+            <h3 class="ar-only">البيانات / القراءة</h3>
+            <h3 class="en-only">Query / Read</h3>
+            <ul>
+              <li>Materialized View</li>
+              <li>Pre-Aggregation</li>
+              <li>Read Model</li>
+              <li>Cache</li>
+            </ul>
+          </article>
+          <article class="map-card">
+            <div class="lvl">Level 3 · App</div>
+            <h3 class="ar-only">المعالجة</h3>
+            <h3 class="en-only">Processing</h3>
+            <ul>
+              <li>Async Processing</li>
+              <li>Background Workers</li>
+            </ul>
+          </article>
+          <article class="map-card">
+            <div class="lvl">Level 4 · Architecture</div>
+            <h3 class="ar-only">الهندسة</h3>
+            <h3 class="en-only">Architecture</h3>
+            <ul>
+              <li>CQRS</li>
+              <li>Event-Driven</li>
+              <li>CQRS + Events</li>
+              <li>Reporting DB</li>
+              <li>Eventual Consistency</li>
+            </ul>
+          </article>
+          <article class="map-card">
+            <div class="lvl">Level 5 · Enterprise</div>
+            <h3 class="ar-only">التحليلات</h3>
+            <h3 class="en-only">Analytics</h3>
+            <ul>
+              <li>Data Warehouse</li>
+              <li>OLAP</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="block" id="levels">
+        <h2 class="ar-only">إيه اللي كل مستوى بيشتريه؟</h2>
+        <h2 class="en-only">What each level buys you</h2>
+        <div class="path">
+          <div class="lane">
+            <h3 class="ar-only">عزل الشغل (Isolation)</h3>
+            <h3 class="en-only">Workload isolation</h3>
+            <p class="ar-only">Replica / سيرفر منفصل / حدود اتصالات — يوقف التقارير عن خنق الـ POS. <strong>مش</strong> بيخلّي scan على 200M رخيص.</p>
+            <p class="en-only">Replica / separate host / connection caps — stops reports from choking POS. Does <strong>not</strong> make a 200M scan cheap.</p>
+          </div>
+          <div class="lane">
+            <h3 class="ar-only">تصغير البيانات (Reduction)</h3>
+            <h3 class="en-only">Data reduction</h3>
+            <p class="ar-only">Pre-agg / MatView / Read Model / Archive / Warehouse — ده اللي يخلّي 200M تحس إنها آلاف.</p>
+            <p class="en-only">Pre-agg / MatView / Read Model / Archive / Warehouse — this is what makes 200M feel like thousands.</p>
+          </div>
+          <div class="lane">
+            <h3 class="ar-only">راحة المستخدم (UX)</h3>
+            <h3 class="en-only">UX relief</h3>
+            <p class="ar-only">Async + Workers + Cache — المستخدم مش هيستنى HTTP. تكلفة الـ query ممكن تفضل زي ما هي.</p>
+            <p class="en-only">Async + Workers + Cache — users stop waiting on HTTP. Query cost may stay the same.</p>
+          </div>
+          <div class="lane">
+            <h3 class="ar-only">الهندسة (Architecture)</h3>
+            <h3 class="en-only">Architecture</h3>
+            <p class="ar-only">CQRS / Events — طبقة تمكين عشان العزل + التصغير يفضلوا قابلين للصيانة. مش سحر لوحدهم.</p>
+            <p class="en-only">CQRS / Events — enablement so isolation + reduction stay maintainable. Not magic alone.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="block" id="solutions">
+        <h2 class="ar-only">الحلول واحد واحد (1–22)</h2>
+        <h2 class="en-only">Solutions one by one (1–22)</h2>
+        <p class="sub ar-only">افتح الكارت عشان تشوف الشكل، الميزة، والعيب. فلتر حسب المستوى.</p>
+        <p class="sub en-only">Open a card for diagram, benefit, and risk. Filter by level.</p>
+
+        <div class="filters" id="filters">
+          <button type="button" class="on" data-filter="all">All</button>
+          <button type="button" data-filter="db">Database</button>
+          <button type="button" data-filter="data">Data</button>
+          <button type="button" data-filter="app">App</button>
+          <button type="button" data-filter="arch">Architecture</button>
+          <button type="button" data-filter="ent">Enterprise</button>
+          <button type="button" data-filter="combo">Combos</button>
+        </div>
+
+        <div class="cards" id="cards">
+          <!-- 1 -->
+          <details class="sol" data-level="db" id="s1">
+            <summary>
+              <div class="num">1</div>
+              <div class="sol-title">
+                <h3 class="ar-only">تقسيم الجداول · Partitioning</h3>
+                <h3 class="en-only">PostgreSQL Partitioning</h3>
+                <div class="en">account.move.line → year/month partitions</div>
+              </div>
+              <div class="chips">
+                <span class="chip yes"><span class="ar-only">يقلل القراءة</span><span class="en-only">reduces scan</span></span>
+                <span class="chip mid"><span class="ar-only">مخاطرة Odoo عالية</span><span class="en-only">high Odoo risk</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">account_move_line
+│
+├── 2024 → 40M
+├── 2025 → 60M
+└── 2026 → 100M
+
+WHERE date in Jan 2026
+      ↓
+Partition Pruning
+      ↓
+يقرأ يناير فقط بدل 200M</pre>
+              <div class="grid2">
+                <div class="pros">
+                  <h4 class="ar-only">الميزة</h4>
+                  <h4 class="en-only">Benefit</h4>
+                  <ul>
+                    <li class="ar-only">يقلل كمية البيانات اللي الـ query محتاجة تقرأها (range queries).</li>
+                    <li class="en-only">Cuts rows touched for date-range queries via partition pruning.</li>
+                  </ul>
+                </div>
+                <div class="cons">
+                  <h4 class="ar-only">العيب / الحذر</h4>
+                  <h4 class="en-only">Risk</h4>
+                  <ul>
+                    <li class="ar-only"><code>account.move.line</code> أساسي في Odoo — FK, ORM, Constraints, Upgrades, Modules.</li>
+                    <li class="en-only">Core Odoo table — FKs, ORM, constraints, upgrades, modules need careful study.</li>
+                  </ul>
+                </div>
+              </div>
+              <p class="quote ar-only">مش أول Lever بعد الـ indexes. ادخّله متأخراً وبعد دراسة.</p>
+              <p class="quote en-only">Not the first lever after indexes — late / special only.</p>
+            </div>
+          </details>
+
+          <!-- 2 -->
+          <details class="sol" data-level="db" id="s2">
+            <summary>
+              <div class="num">2</div>
+              <div class="sol-title">
+                <h3>Read Replica</h3>
+                <div class="en">Primary writes · Replica reports</div>
+              </div>
+              <div class="chips">
+                <span class="chip yes"><span class="ar-only">يعزل Write/Read</span><span class="en-only">isolates W/R</span></span>
+                <span class="chip no"><span class="ar-only">لسه 200M</span><span class="en-only">still 200M</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">Primary DB  ──replication──►  Read Replica
+    ↑                               ↑
+  Odoo / POS                      Reports</pre>
+              <div class="grid2">
+                <div class="pros">
+                  <h4 class="ar-only">الميزة</h4>
+                  <h4 class="en-only">Benefit</h4>
+                  <ul>
+                    <li class="ar-only">نعزل workload التقارير عن الـ writes / POS.</li>
+                    <li class="en-only">Isolates reporting workload from writes/POS.</li>
+                  </ul>
+                </div>
+                <div class="cons">
+                  <h4 class="ar-only">خد بالك</h4>
+                  <h4 class="en-only">Caveat</h4>
+                  <ul>
+                    <li class="ar-only">الـ Replica لسه فيه 200M صف. التقرير السيئ يفضل تقيل.</li>
+                    <li class="en-only">Replica still has 200M rows. A bad query stays expensive.</li>
+                  </ul>
+                </div>
+              </div>
+              <p class="quote ar-only"><strong>Read Replica = Workload Isolation</strong> — مش بالضرورة Query Optimization.</p>
+              <p class="quote en-only"><strong>Read Replica = Workload Isolation</strong> — not necessarily query optimization.</p>
+            </div>
+          </details>
+
+          <!-- 3 -->
+          <details class="sol" data-level="db" id="s3">
+            <summary>
+              <div class="num">3</div>
+              <div class="sol-title">
+                <h3 class="ar-only">سيرفر تقارير منفصل</h3>
+                <h3 class="en-only">Separate Reporting Server</h3>
+                <div class="en">App/CPU/RAM isolation</div>
+              </div>
+              <div class="chips">
+                <span class="chip yes"><span class="ar-only">عزل موارد</span><span class="en-only">resource isolation</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">Odoo Server (POS/UI)     Reporting Server (workers)
+         │                         │
+    PostgreSQL Primary      ──reads──► Replica / Reports</pre>
+              <p class="ar-only" style="color:var(--mist)">الفكرة: reporting ما ياكلش CPU / RAM / Disk I/O / Connections بتاعة Odoo.</p>
+              <p class="en-only" style="color:var(--mist)">Keep report CPU/RAM/IO/connections off the Odoo web tier.</p>
+            </div>
+          </details>
+
+          <!-- 4 -->
+          <details class="sol" data-level="arch" id="s4">
+            <summary>
+              <div class="num">4</div>
+              <div class="sol-title">
+                <h3>Reporting Database</h3>
+                <div class="en">Facts + Dimensions</div>
+              </div>
+              <div class="chips">
+                <span class="chip yes"><span class="ar-only">يعزل</span><span class="en-only">isolates</span></span>
+                <span class="chip star"><span class="ar-only">يصغّر القراءة</span><span class="en-only">shrinks reads</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">Odoo DB ── pipeline ──► Reporting DB
+                           │
+              fact_sales / fact_accounting
+              dim_date / dim_branch / dim_account
+                           │
+                    fact_sales_daily
+              2026-10-01 | Branch1 | 500,000</pre>
+              <p class="quote ar-only">أقوى من Replica لوحده: التقرير ما عادش بيقرأ شكل AML الخام.</p>
+              <p class="quote en-only">Stronger than a replica alone: reports leave the raw AML shape.</p>
+            </div>
+          </details>
+
+          <!-- 5 -->
+          <details class="sol" data-level="data" id="s5">
+            <summary>
+              <div class="num">5</div>
+              <div class="sol-title">
+                <h3>Read Model</h3>
+                <div class="en">Query-optimized projection</div>
+              </div>
+              <div class="chips">
+                <span class="chip star"><span class="ar-only">مناسب لـ 200M</span><span class="en-only">fits 200M</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">Report → Read Model (accounting_daily_summary)
+              date × branch × company × account
+              debit / credit / balance
+
+بدل: Report → account.move.line → 200M</pre>
+              <p class="ar-only" style="color:var(--mist)">مرتبط جداً بـ CQRS: فصل نموذج الكتابة عن نموذج القراءة.</p>
+              <p class="en-only" style="color:var(--mist)">Closely tied to CQRS: separate write model from read model.</p>
+            </div>
+          </details>
+
+          <!-- 6 -->
+          <details class="sol" data-level="data" id="s6">
+            <summary>
+              <div class="num">6</div>
+              <div class="sol-title">
+                <h3 class="ar-only">تجميع مسبق · Pre-Aggregation</h3>
+                <h3 class="en-only">Pre-Aggregation</h3>
+                <div class="en">Highest ROI for 200M</div>
+              </div>
+              <div class="chips">
+                <span class="chip star">⭐⭐⭐</span>
+                <span class="chip yes"><span class="ar-only">أكبر مكسب أداء</span><span class="en-only">biggest perf win</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">200M raw rows
+      ↓ Aggregation (nightly / incremental)
+Daily Summary (thousands–millions)
+      ↓
+Reports read summary — not AML</pre>
+              <div class="grid2">
+                <div class="pros">
+                  <h4 class="ar-only">ليه مهم عندك؟</h4>
+                  <h4 class="en-only">Why it matters here</h4>
+                  <ul>
+                    <li class="ar-only">بدل كل report يعمل SUM/GROUP BY على AML كل مرة.</li>
+                    <li class="en-only">Stops every report from re-SUM/GROUP BY-ing AML.</li>
+                    <li class="ar-only">هنا فعلاً ممكن تشوف قفزة أداء كبيرة.</li>
+                    <li class="en-only">This is where you can see a large performance jump.</li>
+                  </ul>
+                </div>
+                <div class="cons">
+                  <h4 class="ar-only">القيد</h4>
+                  <h4 class="en-only">Constraint</h4>
+                  <ul>
+                    <li class="ar-only">للـ Analytical/Management — مش للتقارير النظامية Exact بدون إثبات تطابق.</li>
+                    <li class="en-only">For Analytical/Management — not Exact statutory without proven parity.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- 7 -->
+          <details class="sol" data-level="data" id="s7">
+            <summary>
+              <div class="num">7</div>
+              <div class="sol-title">
+                <h3>Materialized View</h3>
+                <div class="en">Stored query result + REFRESH</div>
+              </div>
+              <div class="chips">
+                <span class="chip yes"><span class="ar-only">سريع للبداية</span><span class="en-only">fast to start</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">Complex Query → Execute → Store Result
+        REFRESH every 5m / 15m / 1h / nightly
+        Reports read stored result</pre>
+              <p class="quote ar-only">ممتاز لو التقرير مش محتاج real-time. مسار سريع لـ Pre-Aggregation.</p>
+              <p class="quote en-only">Great when near real-time isn’t required. Fast path to pre-aggregation.</p>
+            </div>
+          </details>
+
+          <!-- 8 -->
+          <details class="sol" data-level="data" id="s8">
+            <summary>
+              <div class="num">8</div>
+              <div class="sol-title">
+                <h3>Cache</h3>
+                <div class="en">Redis / app cache</div>
+              </div>
+              <div class="chips">
+                <span class="chip mid"><span class="ar-only">حسب التكرار</span><span class="en-only">depends on reuse</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">User1 → DB → Cache
+User2/3/4 ───────────► Cache
+(same Branch=Cairo, Month=September)</pre>
+              <p class="quote ar-only">Cache مش حل أساسي لو كل user بيعمل query مختلفة تماماً. يكمل Pre-Agg، مش يستبدله.</p>
+              <p class="quote en-only">Not a primary fix if every user has unique params. Complements pre-agg — doesn’t replace it.</p>
+            </div>
+          </details>
+
+          <!-- 9 -->
+          <details class="sol" data-level="app" id="s9">
+            <summary>
+              <div class="num">9</div>
+              <div class="sol-title">
+                <h3 class="ar-only">معالجة غير متزامنة · Async</h3>
+                <h3 class="en-only">Asynchronous Processing</h3>
+                <div class="en">Queue → Worker → Notify</div>
+              </div>
+              <div class="chips">
+                <span class="chip yes"><span class="ar-only">راحة UX</span><span class="en-only">UX relief</span></span>
+                <span class="chip no"><span class="ar-only">مش أسرع SQL</span><span class="en-only">not faster SQL</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">User → Request → Queue → Worker
+         → PDF/Excel → Store → Notify
+
+بدل: User waits 60s on HTTP</pre>
+              <p class="quote ar-only"><strong>مهم:</strong> Async مش معناها إن الـ query بقت أسرع. لو 60 ثانية، ممكن تفضل 60 — لكن من غير ما توقف الـ UI/POS.</p>
+              <p class="quote en-only"><strong>Important:</strong> Async does not make the query faster. 60s may stay 60s — but UI/POS aren’t blocked.</p>
+            </div>
+          </details>
+
+          <!-- 10 -->
+          <details class="sol" data-level="app" id="s10">
+            <summary>
+              <div class="num">10</div>
+              <div class="sol-title">
+                <h3>Background Workers</h3>
+                <div class="en">Mechanism for async / agg / sync</div>
+              </div>
+              <div class="chips">
+                <span class="chip yes"><span class="ar-only">حرج مع 50+ user</span><span class="en-only">critical at 50+ users</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">Odoo
+ ├── Web workers (POS / UI)
+ └── Background workers
+      ├── Reports / Exports
+      ├── Aggregation
+      └── Sync jobs</pre>
+            </div>
+          </details>
+
+          <!-- 11 -->
+          <details class="sol" data-level="arch" id="s11">
+            <summary>
+              <div class="num">11</div>
+              <div class="sol-title">
+                <h3>CQRS</h3>
+                <div class="en">Command ≠ Query</div>
+              </div>
+              <div class="chips">
+                <span class="chip yes"><span class="ar-only">فصل مسؤوليات</span><span class="en-only">separation</span></span>
+                <span class="chip no"><span class="ar-only">مش سحر أداء</span><span class="en-only">not perf magic</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">         Application
+         /          \
+    COMMAND         QUERY
+       ↓              ↓
+  Write Model     Read Model
+       ↓              ↓
+ Transaction DB   Reporting DB</pre>
+              <p class="quote ar-only">CQRS لوحده مش Performance Magic. الأداء ييجي لما تستغله لـ Read Model + Aggregation + Separate DB + Cache + Replica.</p>
+              <p class="quote en-only">CQRS alone isn’t performance magic. Gains come when you use it for read models, aggregation, separate DB, cache, replica.</p>
+            </div>
+          </details>
+
+          <!-- 12 -->
+          <details class="sol" data-level="arch" id="s12">
+            <summary>
+              <div class="num">12</div>
+              <div class="sol-title">
+                <h3>Event-Driven</h3>
+                <div class="en">InvoicePosted → Queue → Update summary</div>
+              </div>
+              <div class="chips">
+                <span class="chip mid"><span class="ar-only">تحديث تدريجي</span><span class="en-only">incremental</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">Invoice Posted → Event → Queue
+      → Reporting Worker → Update daily_sales_summary</pre>
+              <p class="ar-only" style="color:var(--mist)">يخلّيك تحدّث الملخصات من غير ما تعيد scan على 200M كل مرة.</p>
+              <p class="en-only" style="color:var(--mist)">Keeps summaries fresh without re-scanning 200M every refresh.</p>
+            </div>
+          </details>
+
+          <!-- 13 -->
+          <details class="sol" data-level="combo" id="s13">
+            <summary>
+              <div class="num">13</div>
+              <div class="sol-title">
+                <h3>CQRS + Event-Driven</h3>
+                <div class="en">Strong combo</div>
+              </div>
+              <div class="chips">
+                <span class="chip star">⭐⭐⭐</span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">Odoo → Write Model → Primary → COMMIT
+      → Event "InvoicePosted" → Queue
+      → Async Worker → Read Model → Reporting DB → Reports</pre>
+              <p class="quote ar-only">Write workload ≠ Read workload · Transactional data ≠ Reporting data</p>
+              <p class="quote en-only">Write workload ≠ Read workload · Transactional data ≠ Reporting data</p>
+            </div>
+          </details>
+
+          <!-- 14 -->
+          <details class="sol" data-level="arch" id="s14">
+            <summary>
+              <div class="num">14</div>
+              <div class="sol-title">
+                <h3>Eventual Consistency</h3>
+                <div class="en">Business contract for analytical lane</div>
+              </div>
+              <div class="chips">
+                <span class="chip mid"><span class="ar-only">دقائق مقبولة؟</span><span class="en-only">minutes OK?</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">10:00:00  Invoice in Odoo (real-time write)
+10:00:01…30  Event processed → Read Model updates
+
+Write DB = Real Time
+Read Model = Eventually Consistent</pre>
+              <p class="quote ar-only">لازم الـ business يقبلها للـ dashboards. وظهر دائماً <strong>as of</strong> على الشاشة.</p>
+              <p class="quote en-only">Business must accept this for dashboards. Always show an <strong>as of</strong> timestamp.</p>
+            </div>
+          </details>
+
+          <!-- 15 -->
+          <details class="sol" data-level="db" id="s15">
+            <summary>
+              <div class="num">15</div>
+              <div class="sol-title">
+                <h3 class="ar-only">الأرشفة · Archiving</h3>
+                <h3 class="en-only">Archiving</h3>
+                <div class="en">Hot vs cold — never naive DELETE</div>
+              </div>
+              <div class="chips">
+                <span class="chip mid"><span class="ar-only">قانوني أولاً</span><span class="en-only">legal first</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">Active years → Hot DB
+Older years  → Archive / Reporting storage
+
+Archive ≠ DELETE FROM account_move_line</pre>
+              <p class="quote ar-only">راعِ Legal / Audit / Tax / ZATCA / Retention / Odoo dependencies.</p>
+              <p class="quote en-only">Respect legal, audit, tax, ZATCA, retention, and Odoo dependencies.</p>
+            </div>
+          </details>
+
+          <!-- 16 -->
+          <details class="sol" data-level="ent" id="s16">
+            <summary>
+              <div class="num">16</div>
+              <div class="sol-title">
+                <h3>Data Warehouse</h3>
+                <div class="en">ETL/ELT → BI</div>
+              </div>
+              <div class="chips">
+                <span class="chip star">⭐⭐⭐</span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">Odoo → ETL/ELT → Data Warehouse
+  (Sales, Accounting, Inventory, …)
+           → BI / KPIs / Trends / Forecast</pre>
+              <p class="ar-only" style="color:var(--mist)">لما التحليلات تبقى منتج لوحدها — مش أول خطوة لحل ألم الـ POS.</p>
+              <p class="en-only" style="color:var(--mist)">When analytics becomes its own product — not the first fix for POS pain.</p>
+            </div>
+          </details>
+
+          <!-- 17 -->
+          <details class="sol" data-level="ent" id="s17">
+            <summary>
+              <div class="num">17</div>
+              <div class="sol-title">
+                <h3>OLAP</h3>
+                <div class="en">Multidimensional analytics</div>
+              </div>
+              <div class="chips">
+                <span class="chip mid"><span class="ar-only">بعد الـ Warehouse</span><span class="en-only">after warehouse</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">OLTP (Odoo) → Pipeline → OLAP / Warehouse → BI
+
+Hundreds of millions + many dimensions + heavy aggregations</pre>
+            </div>
+          </details>
+
+          <!-- 18 -->
+          <details class="sol" data-level="db" id="s18">
+            <summary>
+              <div class="num">18</div>
+              <div class="sol-title">
+                <h3 class="ar-only">عزل موارد الـ DB</h3>
+                <h3 class="en-only">DB / Resource Isolation</h3>
+                <div class="en">Separate CPU / RAM / IO</div>
+              </div>
+              <div class="chips">
+                <span class="chip yes"><span class="ar-only">يحمي OLTP</span><span class="en-only">protects OLTP</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <p class="ar-only" style="color:var(--mist)">حتى لو التقرير تقيل، ما يخنقش الـ transactional system — عبر سيرفر/replica/cluster منفصل.</p>
+              <p class="en-only" style="color:var(--mist)">Even a heavy report shouldn’t choke the transactional system — via separate server/replica/cluster.</p>
+            </div>
+          </details>
+
+          <!-- 19 -->
+          <details class="sol" data-level="db" id="s19">
+            <summary>
+              <div class="num">19</div>
+              <div class="sol-title">
+                <h3 class="ar-only">التحكم في الاتصالات</h3>
+                <h3 class="en-only">Connection / Workload Control</h3>
+                <div class="en">Pooling + concurrency caps</div>
+              </div>
+              <div class="chips">
+                <span class="chip mid"><span class="ar-only">شبكة أمان</span><span class="en-only">safety net</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">50 users → without caps → 50 expensive queries → PG overwhelmed
+50 users → pool + worker limits → queued, controlled load</pre>
+              <p class="quote ar-only">دي <strong>مش بديل</strong> عن تصميم reporting كويس — شبكة أمان فوق العزل والتصغير.</p>
+              <p class="quote en-only">Not a substitute for good reporting design — a safety net on top of isolation + reduction.</p>
+            </div>
+          </details>
+
+          <!-- 20 -->
+          <details class="sol" data-level="combo" id="s20">
+            <summary>
+              <div class="num">20</div>
+              <div class="sol-title">
+                <h3>Async + Pre-Aggregation</h3>
+                <div class="en">Best operational combo for summaries</div>
+              </div>
+              <div class="chips">
+                <span class="chip star">⭐⭐⭐</span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">Odoo → Event → Queue → Worker → Aggregation
+      → Summary Table → Report SELECT * FROM daily_sales_summary</pre>
+            </div>
+          </details>
+
+          <!-- 21 -->
+          <details class="sol" data-level="combo" id="s21">
+            <summary>
+              <div class="num">21</div>
+              <div class="sol-title">
+                <h3>Replica + Reporting Model</h3>
+                <div class="en">Hybrid</div>
+              </div>
+              <div class="chips">
+                <span class="chip yes"><span class="ar-only">عزل + رخص</span><span class="en-only">isolate + cheap</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">Primary → Read Replica → Reporting Worker → Read Model
+Exact reports on replica · Analytical on read model</pre>
+            </div>
+          </details>
+
+          <!-- 22 -->
+          <details class="sol" data-level="combo" id="s22">
+            <summary>
+              <div class="num">22</div>
+              <div class="sol-title">
+                <h3>Reporting DB + CQRS + Events + Async</h3>
+                <div class="en">Target steady-state (analytical)</div>
+              </div>
+              <div class="chips">
+                <span class="chip star"><span class="ar-only">الشكل الناضج</span><span class="en-only">mature shape</span></span>
+              </div>
+            </summary>
+            <div class="sol-body">
+              <pre class="diagram">Odoo → Write Model → Primary → COMMIT
+    → Domain Event → Queue → Async Worker
+    → Reporting Model → Reporting DB
+         → Odoo Reports    → BI</pre>
+              <p class="quote ar-only">ده الهدف للـ Analytical lane بعد ما تبني الملخصات — مش حركة الافتتاح.</p>
+              <p class="quote en-only">Steady-state for the analytical lane after summaries exist — not the opening move.</p>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section class="block" id="matrix">
+        <h2 class="ar-only">كل حل بيحل إيه؟</h2>
+        <h2 class="en-only">What does each solution solve?</h2>
+        <p class="sub ar-only">✔ عزل · ✔ تصغير بيانات · ✔ راحة انتظار · ملاءمة 200M</p>
+        <p class="sub en-only">Isolate writes · Shrink data · UX wait · Fit for 200M</p>
+        <div class="table-wrap">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th class="ar-only">الحل</th>
+                <th class="en-only">Solution</th>
+                <th class="ar-only">يعزل W/R</th>
+                <th class="en-only">Isolates W/R</th>
+                <th class="ar-only">يقلل البيانات</th>
+                <th class="en-only">Shrinks data</th>
+                <th class="ar-only">راحة المستخدم</th>
+                <th class="en-only">UX wait</th>
+                <th>200M</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Partitioning</td><td>❌</td><td>✅</td><td>✅</td><td>✅</td></tr>
+              <tr><td>Read Replica</td><td>✅</td><td>❌</td><td>✅</td><td>✅</td></tr>
+              <tr><td>Separate Reporting Server</td><td>✅</td><td>❌</td><td>✅</td><td>✅</td></tr>
+              <tr><td>Reporting DB</td><td>✅</td><td>✅</td><td>✅</td><td>⭐⭐⭐</td></tr>
+              <tr><td>Read Model</td><td>✅</td><td>✅</td><td>✅</td><td>⭐⭐⭐</td></tr>
+              <tr><td>Pre-Aggregation</td><td>❌</td><td>⭐⭐⭐</td><td>⭐⭐⭐</td><td>⭐⭐⭐</td></tr>
+              <tr><td>Materialized View</td><td>❌</td><td>⭐⭐</td><td>⭐⭐</td><td>⭐⭐⭐</td></tr>
+              <tr><td>Cache</td><td>❌</td><td>—</td><td>⭐⭐⭐</td><td><span class="ar-only">حسب الاستخدام</span><span class="en-only">depends</span></td></tr>
+              <tr><td>Async Processing</td><td>❌</td><td>❌</td><td>⭐⭐⭐</td><td>✅</td></tr>
+              <tr><td>Background Workers</td><td>❌</td><td>❌</td><td>⭐⭐⭐</td><td>✅</td></tr>
+              <tr><td>CQRS*</td><td>✅</td><td>❌*</td><td>❌*</td><td>⭐⭐</td></tr>
+              <tr><td>Event-Driven*</td><td>✅</td><td>❌*</td><td>❌*</td><td>⭐⭐</td></tr>
+              <tr><td>CQRS + Events</td><td>✅</td><td>⭐⭐⭐</td><td>⭐⭐⭐</td><td>⭐⭐⭐</td></tr>
+              <tr><td>Archiving</td><td>❌</td><td>✅</td><td>✅</td><td>✅</td></tr>
+              <tr><td>Data Warehouse</td><td>⭐⭐⭐</td><td>⭐⭐⭐</td><td>⭐⭐⭐</td><td>⭐⭐⭐</td></tr>
+              <tr><td>OLAP</td><td>⭐⭐⭐</td><td>⭐⭐⭐</td><td>⭐⭐⭐</td><td>⭐⭐⭐</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="quote ar-only">* CQRS / Events لوحدهم مش حل أداء — القيمة تظهر مع Read Models / Aggregation / Reporting DB.</p>
+        <p class="quote en-only">* CQRS / Events alone aren’t a performance fix — value appears with read models / aggregation / reporting DB.</p>
+      </section>
+
+      <section class="block" id="lanes">
+        <h2 class="ar-only">المفتاح في Odoo/Accounting: مسارين</h2>
+        <h2 class="en-only">The Odoo/Accounting key: two lanes</h2>
+        <p class="sub ar-only">خلط المسارين = إما تأخير خطر على التقارير النظامية، أو تكلفة زايدة على تقارير الإدارة.</p>
+        <p class="sub en-only">Mixing lanes forces either unsafe lag on statutory reports or unnecessary cost on management reports.</p>
+        <div class="path">
+          <div class="lane exact">
+            <h3>Exact Accounting</h3>
+            <p class="ar-only">ميزان مراجعة، GL، دفتر شركاء، ضريبة/ZATCA، إقفال.</p>
+            <p class="en-only">Trial balance, GL, partner ledger, tax/ZATCA, statutory close.</p>
+            <ul class="body-list">
+              <li class="ar-only">لازم يطابق دفتر Odoo (near real-time أو as-of مضبوط).</li>
+              <li class="en-only">Must match Odoo ledger (near real-time or controlled as-of).</li>
+              <li class="ar-only">مسموح: Replica · Async · Connection limits.</li>
+              <li class="en-only">Allowed: Replica · Async · Connection limits.</li>
+            </ul>
+          </div>
+          <div class="lane analytical">
+            <h3>Analytical / Management</h3>
+            <p class="ar-only">KPIs فروع، مبيعات يومية، Dashboards، اتجاهات، P&amp;L عبر الفروع.</p>
+            <p class="en-only">Branch KPIs, daily sales, dashboards, trends, cross-branch P&amp;L.</p>
+            <ul class="body-list">
+              <li class="ar-only">Eventual consistency OK (دقائق–ساعات) مع as of.</li>
+              <li class="en-only">Eventual consistency OK (minutes–hours) with as-of.</li>
+              <li class="ar-only">مسموح: Pre-agg · MatView · Read Model · Reporting DB · Events · CQRS · Warehouse.</li>
+              <li class="en-only">Allowed: Pre-agg · MatView · Read Model · Reporting DB · Events · CQRS · Warehouse.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="block" id="order">
+        <h2 class="ar-only">ترتيب التنفيذ للسيناريو بتاعك</h2>
+        <h2 class="en-only">Recommended order for your scenario</h2>
+        <p class="sub ar-only">مش هبدأ بـ «اعمل CQRS». هفكر كده:</p>
+        <p class="sub en-only">Don’t start with “just do CQRS”. Think like this:</p>
+        <div class="flow">
+          <pre class="diagram">200M account.move.line
+        │
+        ▼
+هل المشكلة في query نفسها؟  → غالباً NO (indexes done)
+        │
+        ▼
+هل Reads بتنافس Writes؟ → YES
+        │
+        ├─ Read Replica + Async + Caps     (Phase 1)
+        │
+        └─ Pre-Aggregation / Read Model    (Phase 2)
+                │
+                ▼
+           Reporting DB                    (Phase 3)
+                │
+                ▼
+           Event-Driven refresh            (Phase 4)
+                │
+                ▼
+           CQRS shape formalized           (Phase 5)
+                │
+                ▼
+           Warehouse / OLAP if needed      (Phase 6)</pre>
+          <ol>
+            <li class="ar-only"><strong>صنّف التقارير</strong> Exact vs Analytical.</li>
+            <li class="en-only"><strong>Classify reports</strong> Exact vs Analytical.</li>
+            <li class="ar-only"><strong>اعزل</strong> Replica + Reporting host + Async + Limits.</li>
+            <li class="en-only"><strong>Isolate</strong> Replica + reporting host + Async + limits.</li>
+            <li class="ar-only"><strong>صغّر</strong> Pre-Aggregation للـ Analytical فقط.</li>
+            <li class="en-only"><strong>Shrink</strong> Pre-aggregation for Analytical only.</li>
+            <li class="ar-only"><strong>بعدين</strong> Reporting DB → Events → CQRS → Warehouse.</li>
+            <li class="en-only"><strong>Then</strong> Reporting DB → Events → CQRS → Warehouse.</li>
+          </ol>
+        </div>
+        <footer class="note">
+          <span class="ar-only">التنفيذ التشغيلي موجود في مجلد <code>phases/</code> · الشرح المعماري في <code>docs/</code>.</span>
+          <span class="en-only">Runnable pack: <code>phases/</code> · Architecture docs: <code>docs/</code>.</span>
+        </footer>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function setLang(lang) {
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      document.getElementById('btn-ar').classList.toggle('on', lang === 'ar');
+      document.getElementById('btn-en').classList.toggle('on', lang === 'en');
+      localStorage.setItem('reporting-scale-lang', lang);
+    }
+
+    const saved = localStorage.getItem('reporting-scale-lang');
+    if (saved === 'en' || saved === 'ar') setLang(saved);
+
+    const filters = document.getElementById('filters');
+    const cards = [...document.querySelectorAll('details.sol')];
+
+    function applyFilter(level) {
+      filters.querySelectorAll('button').forEach(b => {
+        b.classList.toggle('on', b.dataset.filter === level);
+      });
+      cards.forEach(card => {
+        const show = level === 'all' || card.dataset.level === level;
+        card.style.display = show ? '' : 'none';
+      });
+    }
+
+    filters.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-filter]');
+      if (!btn) return;
+      applyFilter(btn.dataset.filter);
+    });
+
+    document.querySelectorAll('nav a[data-filter]').forEach(a => {
+      a.addEventListener('click', () => {
+        const f = a.getAttribute('data-filter');
+        if (f) applyFilter(f);
+      });
+    });
+
+    // Cache row: keep one cell visible per language via CSS on td is awkward; fix matrix cache row
+    const cacheRow = [...document.querySelectorAll('table.matrix tbody tr')].find(r => r.cells[0]?.textContent === 'Cache');
+    if (cacheRow) {
+      // rebuild last cell content handled by dual spans — ensure 5 cells
+    }
+  </script>
+</body>
+</html>

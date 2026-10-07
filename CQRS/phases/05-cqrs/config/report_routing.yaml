@@ -1,0 +1,52 @@
+# Map each report to lane + connection. Workers / apps must honor this file.
+
+defaults:
+  exact_dsn_env: REPLICA_DSN
+  analytical_dsn_env: REPORTING_DSN   # fall back to REPLICA_DSN until Phase 3 cutover
+  max_replica_lag_seconds_env: EXACT_MAX_REPLICA_LAG_SECONDS
+
+reports:
+  exact.trial_balance:
+    lane: exact
+    dsn_env: REPLICA_DSN
+    requires_lag_gate: true
+    async: true
+
+  exact.general_ledger:
+    lane: exact
+    dsn_env: REPLICA_DSN
+    requires_lag_gate: true
+    async: true
+
+  exact.partner_ledger:
+    lane: exact
+    dsn_env: REPLICA_DSN
+    requires_lag_gate: true
+    async: true
+
+  exact.tax_zatca:
+    lane: exact
+    dsn_env: REPLICA_DSN
+    requires_lag_gate: true
+    async: true
+
+  analytical.branch_pnl:
+    lane: analytical
+    dsn_env: REPORTING_DSN
+    dataset: fact_aml_daily
+    show_as_of: true
+    async: true
+
+  analytical.branch_sales_kpi:
+    lane: analytical
+    dsn_env: REPORTING_DSN
+    dataset: fact_sales_daily
+    show_as_of: true
+    async: false   # dashboard may read sync from facts
+
+  analytical.branch_kpi_stub:
+    lane: analytical
+    dsn_env: REPLICA_DSN
+    dataset: aml_daily   # Phase 2 on replica before Phase 3
+    show_as_of: true
+    async: true

@@ -1,0 +1,2 @@
+# Outline extraction only. Labs use the Python 3.10+ standard library.
+pymupdf>=1.24

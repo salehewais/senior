@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/reporting_events.schema.json",
+  "title": "ReportingDomainEvent",
+  "type": "object",
+  "required": ["event_id", "event_type", "occurred_at", "company_id", "record_model", "record_id"],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "account.move.posted",
+        "account.move.cancelled",
+        "account.payment.posted",
+        "pos.order.done"
+      ]
+    },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "company_id": { "type": "integer" },
+    "record_model": { "type": "string" },
+    "record_id": { "type": "integer" },
+    "business_date": { "type": ["string", "null"], "format": "date" },
+    "trace_id": { "type": ["string", "null"] }
+  },
+  "additionalProperties": true
+}

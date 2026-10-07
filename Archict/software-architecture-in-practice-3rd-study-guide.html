@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software Architecture in Practice, 3rd Edition — Study Guide</title>
+<style>
+  :root {
+    --bg: #e7edf2;
+    --paper: #fbfcfd;
+    --ink: #14202b;
+    --muted: #526272;
+    --line: #d0dae3;
+    --accent: #0f6e6a;
+    --accent-ink: #084743;
+    --chip: #e5f3f2;
+    --amber: #9a3412;
+    --amber-bg: #fff4ec;
+    --sidebar: #101920;
+    --sidebar-ink: #d5e0ea;
+    --sidebar-dim: #8ea0b2;
+    --shadow: 0 1px 2px rgba(16, 25, 32, 0.06), 0 8px 24px rgba(16, 25, 32, 0.04);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.55 "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+  a { color: var(--accent-ink); }
+  .skip {
+    position: absolute; left: -999px; top: 0;
+    background: #fff; padding: 0.5rem 1rem; z-index: 10;
+  }
+  .skip:focus { left: 0.5rem; top: 0.5rem; }
+  .topbar {
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    padding: 1.25rem 1.5rem 1.1rem;
+  }
+  .topbar h1 {
+    margin: 0 0 0.35rem;
+    font-size: 1.55rem;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .attrib {
+    margin: 0;
+    max-width: 68rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .layout { display: flex; align-items: flex-start; }
+  .toc-toggle {
+    display: none;
+    width: 100%;
+    border: 0;
+    background: var(--sidebar);
+    color: var(--sidebar-ink);
+    font: inherit;
+    font-weight: 650;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+  }
+  nav.toc {
+    position: sticky;
+    top: 0;
+    width: 17.5rem;
+    height: 100vh;
+    overflow: auto;
+    background: var(--sidebar);
+    color: var(--sidebar-ink);
+    padding: 1rem 0.85rem 2rem;
+    flex: none;
+  }
+  nav.toc h2 {
+    margin: 0 0 0.6rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--sidebar-dim);
+  }
+  .search {
+    width: 100%;
+    margin-bottom: 0.75rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid #2c3d4c;
+    border-radius: 6px;
+    background: #0c141b;
+    color: var(--sidebar-ink);
+    font: inherit;
+    font-size: 0.9rem;
+  }
+  .search:focus { outline: 2px solid #3dbeb6; outline-offset: 1px; }
+  .toc-actions { display: flex; gap: 0.4rem; margin-bottom: 0.85rem; }
+  .toc-actions button {
+    flex: 1;
+    background: transparent;
+    color: var(--sidebar-ink);
+    border: 1px solid #314556;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.35rem;
+    cursor: pointer;
+  }
+  .toc-actions button:hover { border-color: #3dbeb6; }
+  nav.toc a {
+    display: block;
+    color: var(--sidebar-ink);
+    text-decoration: none;
+    font-size: 0.86rem;
+    padding: 0.18rem 0.35rem;
+    border-radius: 4px;
+  }
+  nav.toc a:hover, nav.toc a:focus { background: #1c2c3a; }
+  nav.toc a[aria-current="true"] { background: #163f3d; color: #d8fffb; }
+  nav.toc .part-label {
+    margin: 0.85rem 0 0.25rem;
+    padding: 0 0.35rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #7fd1cb;
+  }
+  main { flex: 1; min-width: 0; padding: 1.25rem 1.4rem 4rem; }
+  .panel, .chapter, .appendix {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 1.1rem 1.2rem 1.15rem;
+    margin: 0 0 1rem;
+  }
+  .panel h2, .part > h2, .appendix > h2 {
+    margin: 0 0 0.4rem;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+  }
+  .lede { margin-top: 0; color: var(--muted); }
+  .map { display: grid; gap: 0.55rem; }
+  .map a {
+    display: block;
+    text-decoration: none;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    color: inherit;
+  }
+  .map a:hover { border-color: var(--accent); }
+  .map strong { display: block; }
+  .map span { color: var(--muted); font-size: 0.9rem; }
+  .sheet { display: grid; gap: 0.7rem; }
+  .sheet article {
+    border-left: 3px solid var(--accent);
+    padding: 0.15rem 0 0.15rem 0.75rem;
+  }
+  .sheet h3 { margin: 0 0 0.2rem; font-size: 1rem; }
+  .sheet p { margin: 0; }
+  .part { margin: 1.4rem 0 0.4rem; }
+  .part > h2 {
+    margin: 0 0 0.2rem;
+    padding-bottom: 0.25rem;
+  }
+  .part > .part-blurb { margin: 0 0 0.8rem; color: var(--muted); }
+  .kicker {
+    margin: 0;
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .chapter h3 { margin: 0.15rem 0 0.7rem; font-size: 1.28rem; letter-spacing: -0.02em; }
+  .notes h4, details h4 { margin: 0.2rem 0 0.4rem; font-size: 0.95rem; }
+  .notes ul, .exam-body ul, .exam-body ol, .practice ol { margin: 0.2rem 0 0.6rem; padding-left: 1.2rem; }
+  .notes li + li, .exam-body li + li { margin-top: 0.35rem; }
+  details {
+    border-top: 1px solid var(--line);
+    margin-top: 0.4rem;
+  }
+  details summary {
+    cursor: pointer;
+    font-weight: 700;
+    padding: 0.65rem 0;
+    list-style: none;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before {
+    content: "▸";
+    display: inline-block;
+    width: 1rem;
+    color: var(--accent);
+  }
+  details[open] summary::before { content: "▾"; }
+  .term {
+    display: grid;
+    grid-template-columns: minmax(8rem, 14rem) 1fr;
+    gap: 0.15rem 0.8rem;
+    margin: 0 0 0.8rem;
+  }
+  .term dt { font-weight: 700; }
+  .term dd { margin: 0; }
+  .scenario, .steps {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.3rem 0 0.9rem;
+    font-size: 0.94rem;
+  }
+  .scenario th, .scenario td, .steps th, .steps td {
+    border: 1px solid var(--line);
+    padding: 0.35rem 0.5rem;
+    vertical-align: top;
+    text-align: left;
+  }
+  .scenario th, .steps th { width: 9.5rem; background: var(--chip); }
+  .tactic {
+    background: #f6f8fa;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    margin: 0 0 0.5rem;
+  }
+  .tactic h5 { margin: 0 0 0.25rem; font-size: 0.92rem; }
+  .tactic ul { margin: 0; }
+  .prompt {
+    background: var(--amber-bg);
+    border-radius: 8px;
+    padding: 0.45rem 0.7rem;
+    margin: 0 0 0.45rem;
+  }
+  .empty {
+    display: none;
+    padding: 1rem;
+    background: var(--paper);
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+  }
+  .tag {
+    display: inline-block;
+    background: var(--chip);
+    color: var(--accent-ink);
+    border-radius: 999px;
+    padding: 0.05rem 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-right: 0.25rem;
+  }
+  @media (max-width: 900px) {
+    .toc-toggle { display: block; position: sticky; top: 0; z-index: 5; }
+    nav.toc {
+      display: none;
+      position: sticky;
+      top: 2.7rem;
+      width: 100%;
+      height: auto;
+      max-height: 62vh;
+      z-index: 4;
+    }
+    body.toc-open nav.toc { display: block; }
+    .layout { display: block; }
+    main { padding: 1rem 0.85rem 3rem; }
+    .term { grid-template-columns: 1fr; }
+  }
+  @media print {
+    body { background: #fff; }
+    .toc-toggle, nav.toc, .toc-actions, .search, .skip { display: none !important; }
+    .layout { display: block; }
+    main { padding: 0; }
+    .panel, .chapter, .appendix { box-shadow: none; break-inside: auto; }
+    details > *:not(summary) { display: block !important; }
+    details summary::before { content: ""; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+  <h1>Software Architecture in Practice — study guide</h1>
+  <p class="attrib">Study notes on Len Bass, Paul Clements, and Rick Kazman, <em>Software Architecture in Practice</em>, 3rd edition (Addison-Wesley, SEI Series). Wording here is original, for exam and review use. This page is not a reprint, and it does not reproduce the book’s figures, checklists, or passages.</p>
+</header>
+<button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false" aria-controls="toc">Contents</button>
+<div class="layout">
+<nav class="toc" id="toc" aria-label="Chapters">
+  <h2>Contents</h2>
+  <input class="search" id="q" type="search" placeholder="Filter chapters…" aria-label="Filter chapters by title or keyword">
+  <div class="toc-actions">
+    <button type="button" id="expand">Expand notes</button>
+    <button type="button" id="collapse">Collapse</button>
+  </div>
+  <a href="#how">How to use</a>
+  <a href="#map">Book map</a>
+  <a href="#sheet">Cheat sheet</a>
+  <p class="part-label">Part I · Introduction</p>
+  <a href="#ch1">1 What architecture is</a>
+  <a href="#ch2">2 Why it matters</a>
+  <a href="#ch3">3 Contexts and influence</a>
+  <p class="part-label">Part II · Quality attributes</p>
+  <a href="#ch4">4 Understanding QAs</a>
+  <a href="#ch5">5 Availability</a>
+  <a href="#ch6">6 Interoperability</a>
+  <a href="#ch7">7 Modifiability</a>
+  <a href="#ch8">8 Performance</a>
+  <a href="#ch9">9 Security</a>
+  <a href="#ch10">10 Testability</a>
+  <a href="#ch11">11 Usability</a>
+  <a href="#ch12">12 Other QAs</a>
+  <a href="#ch13">13 Tactics and patterns</a>
+  <a href="#ch14">14 Modeling and analysis</a>
+  <p class="part-label">Part III · Life cycle</p>
+  <a href="#ch15">15 Agile projects</a>
+  <a href="#ch16">16 Requirements and ASRs</a>
+  <a href="#ch17">17 ADD</a>
+  <a href="#ch18">18 Documentation</a>
+  <a href="#ch19">19 Implementation and testing</a>
+  <a href="#ch20">20 Reconstruction</a>
+  <a href="#ch21">21 ATAM</a>
+  <a href="#ch22">22 Governance</a>
+  <p class="part-label">Part IV · Business</p>
+  <a href="#ch23">23 CBAM</a>
+  <a href="#ch24">24 Competence</a>
+  <a href="#ch25">25 Product lines</a>
+  <p class="part-label">Part V · Brave new world</p>
+  <a href="#ch26">26 Cloud</a>
+  <a href="#ch27">27 The edge</a>
+  <a href="#ch28">28 Epilogue</a>
+  <p class="part-label">Appendix</p>
+  <a href="#appendix">Methods and tactic map</a>
+</nav>
+<main id="content">
+<section class="panel" id="how">
+  <h2>How to use this guide</h2>
+  <p class="lede">Read the cheat sheet once, then work a chapter’s study notes before opening the exam section. Part II (quality attributes) is expanded by default because those chapters carry the scenario and tactic vocabulary that later methods assume.</p>
+  <ul>
+    <li>Filter the sidebar by chapter title or keyword (for example <em>utility tree</em>, <em>heartbeat</em>, <em>CBAM</em>).</li>
+    <li>Each chapter has study notes, an exam deep dive, and original practice prompts in the spirit of the book’s discussion questions.</li>
+    <li>The appendix is the one-page method stack: scenario shape, QAW, PALM, ADD, ATAM, CBAM, and the reconstruction pipeline, plus a tactic map.</li>
+    <li>Print or “Save as PDF” from the browser: the sidebar hides and the collapsible sections open.</li>
+  </ul>
+</section>
+
+<section class="panel" id="map">
+  <h2>Book map</h2>
+  <p class="lede">Twenty-eight chapters in five parts. The through-line is: architecture is the structures you need in order to reason about quality, and those structures are chosen, documented, built, checked, and paid for across the life cycle.</p>
+  <div class="map">
+    <a href="#part1"><strong>Part I — Introduction (Ch 1–3)</strong><span>What an architecture is, why a project should care, and the technical, project, business, and professional forces around it.</span></a>
+    <a href="#part2"><strong>Part II — Quality attributes (Ch 4–14)</strong><span>How to specify a quality attribute, the seven main ones plus others, tactics, patterns, and ways to analyze.</span></a>
+    <a href="#part3"><strong>Part III — Life cycle (Ch 15–22)</strong><span>Agile, architecturally significant requirements, Attribute-Driven Design, documentation, implementation and test, reconstruction, ATAM, governance.</span></a>
+    <a href="#part4"><strong>Part IV — Business (Ch 23–25)</strong><span>Economic choice among strategies (CBAM), individual and organizational competence, software product lines.</span></a>
+    <a href="#part5"><strong>Part V — Brave new world (Ch 26–28)</strong><span>Cloud platforms, edge-dominant “Metropolis” systems, and how to carry the ideas into an organization.</span></a>
+  </div>
+</section>
+
+<section class="panel" id="sheet">
+  <h2>Cheat sheet</h2>
+  <div class="sheet">
+    <article>
+      <h3>Structures and views</h3>
+      <p>A <strong>structure</strong> is a set of elements, their relations, and properties of both. A <strong>view</strong> is a representation of one structure, written for an audience. There is no single picture that is “the” architecture. Three families recur: <strong>module</strong> (static implementation units), <strong>component-and-connector</strong> (runtime elements and their attachments), and <strong>allocation</strong> (mapping software onto hardware, teams, or files).</p>
+    </article>
+    <article>
+      <h3>Architecturally significant requirements</h3>
+      <p>An <strong>ASR</strong> is a requirement that has a profound effect on the architecture. Most ASRs are quality-attribute requirements written as scenarios, plus a few constraints. Functionality alone rarely picks the architecture; many structures can compute the same functions with very different quality.</p>
+    </article>
+    <article>
+      <h3>Scenarios</h3>
+      <p>A usable quality requirement has six parts: <strong>source, stimulus, environment, artifact, response, response measure</strong>. A <em>general</em> scenario is a template for a quality attribute. A <em>concrete</em> scenario fills it in for one system and can be tested.</p>
+    </article>
+    <article>
+      <h3>Tactics versus patterns</h3>
+      <p>A <strong>tactic</strong> is a design decision that controls the response to a quality-attribute stimulus. A <strong>pattern</strong> is a named package of elements, relations, and tactics that solves a recurring problem in a context. Patterns are where tactics live together — and where their side effects show up.</p>
+    </article>
+    <article>
+      <h3>Tradeoffs</h3>
+      <p>A decision that helps one quality often hurts another. Name the <strong>sensitivity point</strong> (a property the response measure depends on) and the <strong>tradeoff point</strong> (a sensitivity point for more than one quality). Methods such as ATAM find these; CBAM asks which tradeoff is worth the money.</p>
+    </article>
+  </div>
+</section>
+
+<p id="empty" class="empty" role="status">No chapters match that filter.</p>
+
+<section class="part" id="part1">
+  <h2>Part I — Introduction</h2>
+  <p class="part-blurb">Chapters 1–3 fix the vocabulary: architecture as structures you can reason with, the reasons a project invests in it, and the cycle of influence between architecture and its environment.</p>
+
+  <article class="chapter" id="ch1" data-keywords="definition structures views module component connector allocation pattern abstraction good architecture decomposition uses layers">
+    <p class="kicker">Chapter 1</p>
+    <h3>What Is Software Architecture?</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Architecture is the set of structures needed to reason about the system: software elements, relations among them, and properties of both. “Early” or “major” decisions are a weaker definition, because many early decisions are not architectural and some architectural decisions arrive late.</li>
+        <li>Architecture is an abstraction. It keeps the information required for analysis and drops detail that does not affect the reasoning you care about.</li>
+        <li>Every system has an architecture, documented or not. Behavior belongs in the architecture when you need it to reason about qualities such as performance or availability. Having an architecture does not mean it is a good one.</li>
+        <li>Three structure families: module (code units), component-and-connector (runtime), and allocation (software mapped to the environment). A view documents one structure for a stakeholder.</li>
+        <li>A pattern is a reusable bundle of elements and relations that addresses a recurring problem. Choosing a pattern is choosing a package of quality consequences.</li>
+        <li>A “good” architecture is good for stated goals. The chapter separates process advice (who decides, document, evaluate, build incrementally) from product advice (clear modules and interfaces, few interaction styles, isolated commercial dependencies, few contention points).</li>
+        <li>Connects forward: structures are what later chapters analyze; patterns return in Chapter 13; views return in Chapter 18.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Key terms</h4>
+        <dl class="term">
+          <dt>Architecture</dt><dd>Structures of elements, relations, and properties sufficient to reason about the system.</dd>
+          <dt>Element</dt><dd>A piece of the structure. In a module structure it is a code unit; in a C&amp;C structure a component is a runtime entity.</dd>
+          <dt>View</dt><dd>A representation of a structure, with a notation and an audience.</dd>
+          <dt>Module structures</dt><dd>Decomposition (is-a-submodule-of), uses (correctness dependency), layers (allowed-to-use), generalization (inherits-from), data model.</dd>
+          <dt>C&amp;C structures</dt><dd>Runtime attachment. Examples: service structure, concurrency structure. Relation is attachment, not “uses.”</dd>
+          <dt>Allocation structures</dt><dd>Deployment (software onto hardware), implementation (modules onto files), work assignment (modules onto teams).</dd>
+          <dt>Pattern</dt><dd>A named, recurring design of elements and relations with known quality consequences.</dd>
+        </dl>
+        <h4>What to be able to do</h4>
+        <ul>
+          <li>Give the book’s definition and say why “the major early decisions” is not the definition they want.</li>
+          <li>Classify a diagram as module, C&amp;C, or allocation, and name which quality it helps you reason about.</li>
+          <li>List process recommendations and product recommendations for a sound architecture, in your own words.</li>
+        </ul>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">A teammate says the architecture is “the UML class diagram plus the database schema.” Which structures are missing, and what questions can you no longer answer?</p>
+        <p class="prompt">The uses structure and the decomposition structure both contain modules. When would you consult one and ignore the other?</p>
+        <p class="prompt">Pick a system you know. Name one module structure, one C&amp;C structure, and one allocation structure that an architect would actually keep.</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch2" data-keywords="importance quality change prediction communication constraints organization prototype estimate reuse vocabulary training">
+    <p class="kicker">Chapter 2</p>
+    <h3>Why Is Software Architecture Important?</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Architecture is the primary carrier of the system’s quality attributes. The same function set can be easy or hard to change, fast or slow, safe or fragile, depending on structure.</li>
+        <li>It is also a vehicle for managing change: likely changes should fall inside few modules, and the uses relation tells you what else must be present.</li>
+        <li>Early structures let you predict qualities (by analysis, models, or evaluation) before the code exists, and they constrain implementers so independent teams can build pieces that still fit.</li>
+        <li>Architecture is a communication medium among stakeholders who do not share a vocabulary. It also shapes the organization: work-assignment and team communication tend to follow the module structure.</li>
+        <li>Other payoffs: evolutionary prototyping along the architecture, better cost and schedule estimates, a reusable model for the next system, a smaller design vocabulary (patterns and tactics), and a basis for training new people.</li>
+        <li>Connects forward: prediction motivates Chapters 14 and 21; constraints on implementation motivate Chapters 19 and 20; reuse of a whole architecture motivates Chapter 25.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Thirteen roles — recall list</h4>
+        <ol>
+          <li>Inhibits or enables quality attributes</li>
+          <li>Supports reasoning about and managing change</li>
+          <li>Lets you predict system qualities</li>
+          <li>Improves communication among stakeholders</li>
+          <li>Carries the earliest hard-to-change design decisions</li>
+          <li>Defines constraints on the implementation</li>
+          <li>Influences the organizational structure</li>
+          <li>Enables evolutionary prototyping</li>
+          <li>Improves cost and schedule estimates</li>
+          <li>Supplies a transferable, reusable model</li>
+          <li>Allows independently developed components to be integrated</li>
+          <li>Restricts the vocabulary of design alternatives</li>
+          <li>Provides a basis for training</li>
+        </ol>
+        <p>On an exam, do not stop at the label. Attach each role to a stakeholder who cares (customer, project manager, developer, new hire, acquirer).</p>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">A manager says architecture work is “documentation overhead.” Which three roles from this chapter answer that claim for a project that will live five years and be built by four teams?</p>
+        <p class="prompt">Explain, with a small example, how an architecture both enables a quality attribute and inhibits another one at the same time.</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch3" data-keywords="context technical project business professional stakeholders influence cycle architect experience">
+    <p class="kicker">Chapter 3</p>
+    <h3>The Many Contexts of Software Architecture</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Architecture sits in four contexts at once: technical (qualities, patterns, platforms), project life cycle (when architecture work happens), business (cost, schedule, market, organization), and professional (what the architect has seen and believes).</li>
+        <li>Stakeholders are people or groups with a concern. Different concerns demand different views. Missing a stakeholder usually means missing an ASR.</li>
+        <li>The architecture influence cycle: the developing organization, the technical environment, the customer’s business goals, and the architect’s experience shape the architecture. The finished architecture then shapes the organization, the technical environment, and the architect’s next project.</li>
+        <li>Professional context matters because architects reuse what worked for them. That bias should be examined, not denied.</li>
+        <li>Life-cycle context is the bridge into Part III: requirements, design, documentation, implementation, evaluation, and conformance are architecture activities, not a single phase called “architecting.”</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Key terms</h4>
+        <dl class="term">
+          <dt>Stakeholder</dt><dd>Anyone with a stake in the system’s construction or operation. Concerns, not job titles, drive which views you produce.</dd>
+          <dt>Influence cycle</dt><dd>Environment and experience shape the architecture; the architecture feeds back into the organization and the next design.</dd>
+          <dt>Architecturally significant</dt><dd>A requirement or constraint that will change the structures you choose if it changes.</dd>
+        </dl>
+        <h4>Four contexts</h4>
+        <ul>
+          <li><strong>Technical</strong> — qualities, structures, existing platforms, standards.</li>
+          <li><strong>Project life cycle</strong> — where architecture work sits relative to requirements, build, and test.</li>
+          <li><strong>Business</strong> — time to market, cost, market differentiation, organizational politics.</li>
+          <li><strong>Professional</strong> — education, prior systems, taste for particular patterns.</li>
+        </ul>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">Draw the influence cycle for a university registration system. Name one influence coming in and one influence the architecture will send back out.</p>
+        <p class="prompt">Two architects propose different patterns for the same requirements. Using the professional context, why might both proposals be rational — and how would you decide?</p>
+        <p class="prompt">List six stakeholders for an online bank and one concern each. Which concerns are unlikely to show up in a class diagram?</p>
+      </div>
+    </details>
+  </article>
+</section>
+
+<section class="part" id="part2">
+  <h2>Part II — Quality attributes</h2>
+  <p class="part-blurb">Chapters 4–14 are the technical core. Learn the six-part scenario and the seven design-decision categories once (Chapter 4), then reuse them for every quality attribute.</p>
+
+  <article class="chapter" id="ch4" data-keywords="quality attribute scenario tactic source stimulus environment artifact response measure design decisions functionality constraint">
+    <p class="kicker">Chapter 4</p>
+    <h3>Understanding Quality Attributes</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Requirements that matter to an architect fall into functional requirements, quality-attribute requirements, and constraints. Functionality says what the system does. Quality attributes say how well, under which conditions. Constraints remove design freedom.</li>
+        <li>Functionality and architecture are not the same axis. Many architectures can deliver the same functions. Quality attributes are what force a particular structure.</li>
+        <li>Quality-attribute names (“security,” “modifiability”) are too vague to design or test against. A scenario makes the requirement concrete and measurable.</li>
+        <li>A tactic is a design option aimed at controlling a quality-attribute response. Tactics are the atoms; later chapters group them and show them inside patterns.</li>
+        <li>Seven categories of design decisions recur in every quality-attribute checklist: allocation of responsibilities, coordination model, data model, resource management, mapping among elements, binding time, and choice of technology.</li>
+        <li>Qualities are not independent. The point of the chapter is a shared specification method so Chapters 5–13 can be compared.</li>
+      </ul>
+    </section>
+    <details class="exam" open>
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Key terms</h4>
+        <dl class="term">
+          <dt>Quality attribute</dt><dd>A measurable property of the system’s response, distinct from the function being computed.</dd>
+          <dt>General scenario</dt><dd>A system-independent template for one quality attribute.</dd>
+          <dt>Concrete scenario</dt><dd>A general scenario filled in for a particular system; the response measure makes it testable.</dd>
+          <dt>Tactic</dt><dd>A design decision that influences the control of a quality-attribute response.</dd>
+          <dt>Constraint</dt><dd>A design decision that has already been made, or an imposed limit (platform, standard, deadline).</dd>
+        </dl>
+        <h4>Six-part quality-attribute scenario</h4>
+        <table class="scenario">
+          <tr><th>Source</th><td>Who or what generates the stimulus (user, external system, clock, attacker).</td></tr>
+          <tr><th>Stimulus</th><td>The condition that arrives and needs a response.</td></tr>
+          <tr><th>Environment</th><td>The conditions in force (normal load, overload, startup, attack already underway).</td></tr>
+          <tr><th>Artifact</th><td>What is stimulated: whole system, a process, a data store, a collection of systems.</td></tr>
+          <tr><th>Response</th><td>What the system does when the stimulus arrives.</td></tr>
+          <tr><th>Response measure</th><td>How you know the response was good enough (time, percentage, effort, audit record).</td></tr>
+        </table>
+        <h4>Seven design-decision categories</h4>
+        <p>These are the rows of every design checklist in Chapters 5–11. They are themes, not a copied table from the book.</p>
+        <ol>
+          <li>Allocation of responsibilities — who detects, who reacts, who records.</li>
+          <li>Coordination model — how elements synchronize, what protocols they use, whether communication can change.</li>
+          <li>Data model — what data is shared, copied, or kept consistent, and which entities matter to this quality.</li>
+          <li>Management of resources — what resources exist and how contention is handled.</li>
+          <li>Mapping among architectural elements — modules to runtime elements, runtime elements to processors, and so on.</li>
+          <li>Binding time — when a decision is fixed: design, compile, deploy, startup, or runtime.</li>
+          <li>Choice of technology — what the platform already gives you, and what you must build.</li>
+        </ol>
+      </div>
+    </details>
+    <details class="practice" open>
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">Turn “the system shall be highly available” into a six-part scenario with a numeric response measure. Then turn “the system shall be easy to modify” into another. Which part was hardest to make measurable?</p>
+        <p class="prompt">A requirement says the system must run on Linux. Is that a functional requirement, a quality attribute, or a constraint? What design freedom does it remove?</p>
+        <p class="prompt">Why can two systems with identical functionality have opposite modifiability? Use the words structure and tactic in the answer.</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch5" data-keywords="availability fault failure error MTBF MTTR ping echo heartbeat redundancy rollback spare shadow voting">
+    <p class="kicker">Chapter 5</p>
+    <h3>Availability</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Availability is readiness to deliver a service that still matches the specification. A fault is an internal defect that may become an error and then an observable failure. Tactics exist so faults do not become failures, or so the failure is bounded and repair is possible.</li>
+        <li>A common numeric form is MTBF / (MTBF + MTTR): lengthen the time between failures or shorten repair. Scheduled downtime is a design choice, not “free” availability.</li>
+        <li>Tactic families: detect faults, recover from faults (prepare and repair, then reintroduce), and prevent faults. Much of this is chosen from a platform rather than hand-built.</li>
+        <li>Redundancy is the workhorse of recovery, but copies must be managed: active (hot), passive (warm), and spare (cold) differ in switchover time and cost. State has to be resynchronized or the backup is a second source of faults.</li>
+        <li>The design checklist walks the seven decision categories with availability questions: who detects, how components coordinate during failover, where state lives, which resources are replicated, and when a failed node may rejoin.</li>
+        <li>Connects to security (recovery from attack reuses these tactics) and to performance (redundancy and voting add overhead).</li>
+      </ul>
+    </section>
+    <details class="exam" open>
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Key terms</h4>
+        <dl class="term">
+          <dt>Fault</dt><dd>A defect or event that can cause an incorrect internal state.</dd>
+          <dt>Failure</dt><dd>A delivered service that no longer matches the specification, visible to an actor.</dd>
+          <dt>MTBF / MTTR</dt><dd>Mean time between failures and mean time to repair. Availability grows if either the interval grows or the repair shrinks.</dd>
+        </dl>
+        <h4>General scenario shape</h4>
+        <table class="scenario">
+          <tr><th>Source</th><td>Internal fault or an external indication of a fault.</td></tr>
+          <tr><th>Stimulus</th><td>A fault: crash, timing fault, incorrect response, omission.</td></tr>
+          <tr><th>Environment</th><td>Normal operation, startup, shutdown, repair mode, degraded mode.</td></tr>
+          <tr><th>Artifact</th><td>Process, processor, channel, storage, the whole system.</td></tr>
+          <tr><th>Response</th><td>Detect, log, notify, disable the source, be unavailable briefly, continue in degraded mode, and so on.</td></tr>
+          <tr><th>Measure</th><td>Availability percentage, detection time, repair time, fraction of faults masked, allowed downtime.</td></tr>
+        </table>
+        <h4>Tactic categories</h4>
+        <div class="tactic">
+          <h5>Detect faults</h5>
+          <ul>
+            <li>Ping/echo, monitor, heartbeat, timestamp</li>
+            <li>Sanity checking, condition monitoring, voting</li>
+            <li>Exception detection, self-test</li>
+          </ul>
+        </div>
+        <div class="tactic">
+          <h5>Recover — preparation and repair</h5>
+          <ul>
+            <li>Active redundancy, passive redundancy, spare</li>
+            <li>Exception handling, rollback, software upgrade, retry</li>
+            <li>Ignore faulty behavior, degradation, reconfiguration</li>
+          </ul>
+        </div>
+        <div class="tactic">
+          <h5>Recover — reintroduction</h5>
+          <ul>
+            <li>Shadow, state resynchronization, escalating restart, non-stop forwarding</li>
+          </ul>
+        </div>
+        <div class="tactic">
+          <h5>Prevent faults</h5>
+          <ul>
+            <li>Removal from service, transactions, predictive model, exception prevention, increase competence set</li>
+          </ul>
+        </div>
+        <h4>Checklist themes</h4>
+        <p>Ask, for each of the seven decision categories: where faults are detected, which component is allowed to fail over, how state is checkpointed, which processors are replicas, and whether a node can re-enter without a full outage.</p>
+      </div>
+    </details>
+    <details class="practice" open>
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">A payment service must keep answering within 2 seconds even if one data-center process dies. Write the scenario, then pick one detect tactic and one recover tactic and say what each costs in performance.</p>
+        <p class="prompt">Contrast active redundancy, passive redundancy, and spare for a student-facing exam server. Which response measure changes as you move from hot to cold?</p>
+        <p class="prompt">Why is “retry” both a recovery tactic and a possible cause of further failure? What would you pair it with?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch6" data-keywords="interoperability syntactic semantic discover service orchestrate tailor interface SOA">
+    <p class="kicker">Chapter 6</p>
+    <h3>Interoperability</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Interoperability is the degree to which two or more systems can usefully exchange information. It has a syntactic side (can the bits be exchanged and parsed?) and a semantic side (do both sides mean the same thing?).</li>
+        <li>The stimulus is usually a request to exchange information or to cooperate on a task. The response is that the request is accepted and correctly handled, or rejected with a clear reason.</li>
+        <li>Two tactic groups: locate (discover a service at runtime) and manage interfaces (orchestrate a sequence of calls, or tailor an interface by adding or hiding capabilities such as translation and buffering).</li>
+        <li>Orchestration coordinates services that may not know about each other. Tailoring an interface is how you absorb a partner’s odd protocol without letting it leak through the system.</li>
+        <li>The third edition gives interoperability its own chapter because systems of systems, services, and the cloud made “it speaks our protocol” a first-class architectural problem, not a footnote of modifiability.</li>
+      </ul>
+    </section>
+    <details class="exam" open>
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>General scenario shape</h4>
+        <table class="scenario">
+          <tr><th>Source</th><td>A system that wants to interoperate with ours.</td></tr>
+          <tr><th>Stimulus</th><td>A request to exchange information or to perform a joint service.</td></tr>
+          <tr><th>Environment</th><td>Known at design time, or discovered at runtime; systems already in service.</td></tr>
+          <tr><th>Artifact</th><td>The systems that wish to interoperate.</td></tr>
+          <tr><th>Response</th><td>The request is handled correctly, or rejected and reported.</td></tr>
+          <tr><th>Measure</th><td>Percentage of information exchanges accepted, or correctness of the exchanged meaning.</td></tr>
+        </table>
+        <h4>Tactic categories</h4>
+        <div class="tactic">
+          <h5>Locate</h5>
+          <ul><li>Discover service — look up a capability in a known directory, possibly through several indirections, by name, type, or location.</li></ul>
+        </div>
+        <div class="tactic">
+          <h5>Manage interfaces</h5>
+          <ul>
+            <li>Orchestrate — a controller sequences services (workflow engines; a mediator for simple cases).</li>
+            <li>Tailor interface — add translation, buffering, or smoothing, or hide functions the partner must not see.</li>
+          </ul>
+        </div>
+        <h4>Checklist themes</h4>
+        <p>Who is responsible for discovery and for refusing a bad request? What coordination mechanism carries the exchange? Which data must be translated? Is the interface bound at design time or discovered later? Which technology (directory, workflow engine, adapter) is already chosen?</p>
+      </div>
+    </details>
+    <details class="practice" open>
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">A hospital system must accept lab results from three vendors that use different message layouts. Which tactic handles the layout difference, and which quality attribute gets worse if you apply it naively?</p>
+        <p class="prompt">Explain the difference between syntactic and semantic interoperability with an example where the XML parses and the meaning is still wrong.</p>
+        <p class="prompt">When is discover-service worth the indirection, and when is a fixed address the better architectural decision?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch7" data-keywords="modifiability coupling cohesion split module encapsulate intermediary defer binding semantic coherence">
+    <p class="kicker">Chapter 7</p>
+    <h3>Modifiability</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Modifiability is about the cost and time of change, and who can make the change. A change is a stimulus; the response is that the change is made, tested, and deployed inside a budget.</li>
+        <li>Four parameters drive the tactics: size of a module, coupling (chance a change to A also touches B), cohesion (unity of purpose inside a module), and binding time (how late the change can be applied).</li>
+        <li>High coupling spreads a change. Low cohesion means one change inside a module touches unrelated responsibilities. Splitting a module helps only if the split matches the likely change.</li>
+        <li>Deferring binding lets a later stakeholder (installer, operator, user) exercise a flexibility that a developer installed earlier. Late binding mechanisms cost more to build; that is itself a tradeoff.</li>
+        <li>Coupling tactics insert intermediaries, restrict who may depend on whom, encapsulate, refactor responsibilities, or lift a shared service into one place.</li>
+      </ul>
+    </section>
+    <details class="exam" open>
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>General scenario shape</h4>
+        <table class="scenario">
+          <tr><th>Source</th><td>Developer, administrator, or user who requests a change.</td></tr>
+          <tr><th>Stimulus</th><td>A change: add, delete, or modify function, quality, platform, or capacity.</td></tr>
+          <tr><th>Environment</th><td>Design time, compile time, build time, initiation time, or runtime.</td></tr>
+          <tr><th>Artifact</th><td>Code, data, interfaces, components, resources, configuration.</td></tr>
+          <tr><th>Response</th><td>Make, test, and deploy the change; others are unaffected or the ripple is bounded.</td></tr>
+          <tr><th>Measure</th><td>Effort, money, calendar time, extent of the ripple, number of artifacts touched.</td></tr>
+        </table>
+        <h4>Tactic categories</h4>
+        <div class="tactic">
+          <h5>Reduce the size of a module</h5>
+          <ul><li>Split module — so a likely change touches less code.</li></ul>
+        </div>
+        <div class="tactic">
+          <h5>Increase cohesion</h5>
+          <ul><li>Increase semantic coherence — move a responsibility to the module whose purpose it matches.</li></ul>
+        </div>
+        <div class="tactic">
+          <h5>Reduce coupling</h5>
+          <ul>
+            <li>Encapsulate, use an intermediary, restrict dependencies, refactor, abstract common services.</li>
+          </ul>
+        </div>
+        <div class="tactic">
+          <h5>Defer binding</h5>
+          <ul>
+            <li>Compile or build: component replacement, compile-time parameterization, aspects.</li>
+            <li>Deployment: configuration-time binding. Startup: resource files.</li>
+            <li>Runtime: registration, dynamic lookup, interpreted parameters, name servers, plug-ins, publish-subscribe, shared repositories, polymorphism.</li>
+          </ul>
+        </div>
+        <h4>Checklist themes</h4>
+        <p>Which responsibilities will change together and should share a module? Which dependencies are forbidden? What is bound late, and who is allowed to exercise that binding? What technology (build system, plug-in framework) carries the mechanism?</p>
+      </div>
+    </details>
+    <details class="practice" open>
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">A pricing rule changes every sales season and currently forces a code release. Propose a defer-binding tactic and state who exercises it. What new quality risk did you introduce?</p>
+        <p class="prompt">Define coupling and cohesion in terms of change scenarios, not in terms of “modules should be independent.”</p>
+        <p class="prompt">Why can abstract-common-services hurt performance or availability? Give a one-sentence tradeoff.</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch8" data-keywords="performance latency throughput jitter queue concurrency sampling rate schedule resources">
+    <p class="kicker">Chapter 8</p>
+    <h3>Performance</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Performance is about time. Events arrive (periodic, stochastic, or sporadic), are queued, and must produce a response within a constraint: latency, throughput, deadline, or jitter.</li>
+        <li>Two sides of the tactic tree: control resource demand (do less work, or do it in a cheaper order) and manage resources (have more resources, or use them with less waste).</li>
+        <li>Demand-side moves include sampling less often, limiting how much work a response may do, prioritizing events, cutting overhead, bounding execution time, and using a more efficient algorithm.</li>
+        <li>Resource-side moves include adding hardware, introducing concurrency, keeping extra copies of data or of computations, bounding queues, and scheduling.</li>
+        <li>Almost every performance tactic taxes another quality: copies fight consistency, concurrency fights testability, dropping samples fights accuracy.</li>
+      </ul>
+    </section>
+    <details class="exam" open>
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>General scenario shape</h4>
+        <table class="scenario">
+          <tr><th>Source</th><td>Users, external systems, or internal events.</td></tr>
+          <tr><th>Stimulus</th><td>Periodic, stochastic, or sporadic events arriving.</td></tr>
+          <tr><th>Environment</th><td>Normal or overload; operating mode.</td></tr>
+          <tr><th>Artifact</th><td>System or a specific processor, store, or process.</td></tr>
+          <tr><th>Response</th><td>Process events, change service level, or reject load.</td></tr>
+          <tr><th>Measure</th><td>Latency, deadline miss rate, throughput, jitter, miss ratio, data loss.</td></tr>
+        </table>
+        <h4>Tactic categories</h4>
+        <div class="tactic">
+          <h5>Control resource demand</h5>
+          <ul>
+            <li>Manage sampling rate, limit event response, prioritize events</li>
+            <li>Reduce overhead, bound execution times, increase resource efficiency</li>
+          </ul>
+        </div>
+        <div class="tactic">
+          <h5>Manage resources</h5>
+          <ul>
+            <li>Increase resources, introduce concurrency</li>
+            <li>Maintain multiple copies of computations, maintain multiple copies of data</li>
+            <li>Bound queue sizes, schedule resources</li>
+          </ul>
+        </div>
+        <h4>Checklist themes</h4>
+        <p>Where do events arrive and who may shed load? What is shared and locked? Which data is replicated? What is the scheduling policy on the bottleneck resource? Which of these decisions are frozen by the platform?</p>
+      </div>
+    </details>
+    <details class="practice" open>
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">An intersection camera must keep up with rush hour. Write a performance scenario, then apply one demand-side tactic and one resource-side tactic. Which response measure moves?</p>
+        <p class="prompt">“Maintain multiple copies of data” improves read latency. Which quality attributes become harder, and why?</p>
+        <p class="prompt">Explain jitter in one sentence and name a system where average latency is fine but jitter is the real requirement.</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch9" data-keywords="security confidentiality integrity authentication authorization detect resist react recover audit encrypt">
+    <p class="kicker">Chapter 9</p>
+    <h3>Security</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Security is the ability to protect data and services from unauthorized access while still providing access to legitimate actors. Confidentiality, integrity, and availability are the usual trio; authentication, authorization, and nonrepudiation are how you operationalize them.</li>
+        <li>What you protect is data at rest, data in transit, and computational processes. Threat modeling (attack paths, not a slogan) is how you find the stimuli.</li>
+        <li>Tactics follow the life of an attack: detect it, resist it, react while it is underway, and recover afterward. Recovery leans on availability tactics plus an audit trail.</li>
+        <li>Resisting an attack is a sequence: identify the actor, authenticate, authorize, limit access and exposure, encrypt, separate entities, and refuse dangerous defaults.</li>
+        <li>Security tactics routinely hurt usability and performance. The exam move is to name the tradeoff, not to pretend encryption is free.</li>
+      </ul>
+    </section>
+    <details class="exam" open>
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>General scenario shape</h4>
+        <table class="scenario">
+          <tr><th>Source</th><td>An attacker, or an authorized user who makes a mistake. May be identified or not, inside or outside.</td></tr>
+          <tr><th>Stimulus</th><td>Unauthorized attempt to display, modify, or delete data; to exhaust a service; or to insert unexpected input.</td></tr>
+          <tr><th>Environment</th><td>Online or offline; firewall present or not; already connected or not.</td></tr>
+          <tr><th>Artifact</th><td>Data in a store, data on a path, a process, or the whole system.</td></tr>
+          <tr><th>Response</th><td>Authenticate, block, audit, recover, lock out, or report.</td></tr>
+          <tr><th>Measure</th><td>Time to detect, fraction of attacks resisted, likelihood of identifying the attacker, data still consistent after recovery.</td></tr>
+        </table>
+        <h4>Tactic categories</h4>
+        <div class="tactic">
+          <h5>Detect attacks</h5>
+          <ul><li>Detect intrusion, detect service denial, verify message integrity, detect message delay.</li></ul>
+        </div>
+        <div class="tactic">
+          <h5>Resist attacks</h5>
+          <ul><li>Identify actors, authenticate actors, authorize actors, limit access, limit exposure, encrypt data, separate entities, change default settings.</li></ul>
+        </div>
+        <div class="tactic">
+          <h5>React to attacks</h5>
+          <ul><li>Revoke access, lock computer, inform actors.</li></ul>
+        </div>
+        <div class="tactic">
+          <h5>Recover from attacks</h5>
+          <ul><li>Restore service (availability tactics) and maintain an audit trail so the attack can be traced and the defense improved.</li></ul>
+        </div>
+        <h4>Checklist themes</h4>
+        <p>Which actor is identified before any data moves? Where are audit records stored so an attacker cannot edit them? Which entities are separated onto different hosts? What is encrypted, and where are keys bound? Which defaults ship open?</p>
+      </div>
+    </details>
+    <details class="practice" open>
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">Write a security scenario for a stolen session cookie. Which detect tactic and which react tactic apply, and what do you need in the audit trail afterward?</p>
+        <p class="prompt">Separate “authenticate” from “authorize” with an example where the first succeeds and the second must fail.</p>
+        <p class="prompt">Why does the book treat recovery from attack as partly an availability problem?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch10" data-keywords="testability controllability observability record playback sandbox assertions nondeterminism">
+    <p class="kicker">Chapter 10</p>
+    <h3>Testability</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Testability is the ease with which software can be made to show its faults. If a fault exists, a testable system makes it likely that the next test run will fail, and makes the failure diagnosable.</li>
+        <li>Two ideas dominate: controllability (put the system into the state you want, and feed it the inputs you want) and observability (see the state and the outputs that reveal a fault).</li>
+        <li>Tactics either control and observe system state, or limit complexity so there is less hidden behavior to test. Nondeterminism is the enemy of both.</li>
+        <li>Specialized test interfaces, record/playback, localized state, abstract data sources, sandboxes, and executable assertions are the usual control-and-observe tools. They must not become a back door in production without a conscious security decision.</li>
+        <li>Testability is designed in. Bolting a test harness onto an opaque, timing-dependent system is why “we’ll test it later” fails.</li>
+      </ul>
+    </section>
+    <details class="exam" open>
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>General scenario shape</h4>
+        <table class="scenario">
+          <tr><th>Source</th><td>Unit tester, integration tester, system tester, or the running tests themselves.</td></tr>
+          <tr><th>Stimulus</th><td>A test completion milestone: a class, a subsystem, or the whole system is ready to be exercised.</td></tr>
+          <tr><th>Environment</th><td>Design time, development, compile, integration, or deployment.</td></tr>
+          <tr><th>Artifact</th><td>The piece under test.</td></tr>
+          <tr><th>Response</th><td>Control state and inputs; observe outputs; execute the test suite.</td></tr>
+          <tr><th>Measure</th><td>Effort to find a fault, probability a fault is revealed, time to run the tests, length of the longest dependency chain in a test.</td></tr>
+        </table>
+        <h4>Tactic categories</h4>
+        <div class="tactic">
+          <h5>Control and observe system state</h5>
+          <ul>
+            <li>Specialized interfaces, record/playback, localize state storage</li>
+            <li>Abstract data sources, sandbox, executable assertions</li>
+          </ul>
+        </div>
+        <div class="tactic">
+          <h5>Limit complexity</h5>
+          <ul>
+            <li>Limit structural complexity (fewer dependencies, less cyclic structure)</li>
+            <li>Limit nondeterminism (control time, threads, and ordering enough that a failure can be repeated)</li>
+          </ul>
+        </div>
+        <h4>Checklist themes</h4>
+        <p>Who can set internal state for a test? Can input sources be replaced without editing production logic? Where does nondeterminism enter? Are test interfaces identified so they can be locked down? Which bindings exist only in the test build?</p>
+      </div>
+    </details>
+    <details class="practice" open>
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">A defect appears only when two threads interleave in a rare order. Which testability tactic addresses the cause, and what would record/playback add?</p>
+        <p class="prompt">Specialized test interfaces help testers and attract attackers. How would you bind them so they exist in test and not in production?</p>
+        <p class="prompt">Why does limiting structural complexity belong under testability rather than only under modifiability?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch11" data-keywords="usability undo cancel user model task model system model learnability efficiency">
+    <p class="kicker">Chapter 11</p>
+    <h3>Usability</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Usability is how easily a user can accomplish a desired task and how the system supports that task. It covers learning, efficiency, remembering, error avoidance, and satisfaction — but the architectural question is which of those need runtime support.</li>
+        <li>Some usability is purely in the user interface. The architect cares when the UI needs information or control from the rest of the system: cancel a long operation, undo, estimate time remaining, adapt to the user.</li>
+        <li>Two tactic groups: support user initiative (the user drives: cancel, undo, pause/resume, aggregate commands) and support system initiative (the system anticipates, using a model of the task, the user, and the system).</li>
+        <li>Those models are architectural state. A task model knows the steps of a job; a user model knows preferences and expertise; a system model knows what the software is doing so it can explain itself.</li>
+        <li>Usability scenarios often trade off against performance (extra feedback) and modifiability (rules duplicated on client and server so validation feels instant).</li>
+      </ul>
+    </section>
+    <details class="exam" open>
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>General scenario shape</h4>
+        <table class="scenario">
+          <tr><th>Source</th><td>An end user.</td></tr>
+          <tr><th>Stimulus</th><td>A wish to learn the system, use it efficiently, minimize the impact of errors, adapt it, or feel confident.</td></tr>
+          <tr><th>Environment</th><td>Runtime, or configuration time.</td></tr>
+          <tr><th>Artifact</th><td>The system or the portion the user is interacting with.</td></tr>
+          <tr><th>Response</th><td>Feedback, cancellation, undo, aggregation, assistance matched to the user, or a predictable response time.</td></tr>
+          <tr><th>Measure</th><td>Task time, errors made, user satisfaction, learning time, ratio of successful operations to attempts.</td></tr>
+        </table>
+        <h4>Tactic categories</h4>
+        <div class="tactic">
+          <h5>Support user initiative</h5>
+          <ul><li>Cancel, undo, pause/resume, aggregate.</li></ul>
+        </div>
+        <div class="tactic">
+          <h5>Support system initiative</h5>
+          <ul><li>Maintain a task model, maintain a user model, maintain a system model.</li></ul>
+        </div>
+        <h4>Checklist themes</h4>
+        <p>Which user commands must be cancellable deep in the system, not only in the widget? Where is undo state stored? Which component owns the user model, and when is it bound? What extra runtime traffic does feedback require?</p>
+      </div>
+    </details>
+    <details class="practice" open>
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">“Undo” of a submitted payment is not a UI detail. What architectural responsibilities does it create, and which other quality attribute does it stress?</p>
+        <p class="prompt">Give an example of system initiative that needs a task model. What goes wrong if the model and the real workflow drift apart?</p>
+        <p class="prompt">A designer wants client-side validation and server-side validation to feel instant. Why is that a modifiability problem as well as a usability choice?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch12" data-keywords="variability portability scalability deployability mobility monitorability safety ISO x-ability">
+    <p class="kicker">Chapter 12</p>
+    <h3>Other Quality Attributes</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>The seven chapters before this one are a working set, not a closed list. Variability, portability, scalability, deployability, mobility, monitorability, and safety show up often enough to name, and each can be given the same treatment as availability or performance.</li>
+        <li>Variability (support a planned family of changes) and portability (move to a new platform) are special cases of modifiability with their own stimuli. Scalability is a performance concern about growing load. Deployability is about getting a build onto a host and rolling it forward or back.</li>
+        <li>Safety is a system property, not only a software property. A safe system avoids hazardous states; a reliable system is consistent with its specification. Those are not the same. Hazard analysis and fault trees are system-engineering tools the architect participates in.</li>
+        <li>Standard catalogs (such as ISO/IEC 25010) are useful checklists and dangerous if treated as requirements. Names overlap, and a catalog will not tell you the response measure for your system.</li>
+        <li>Bringing a new “x-ability” into the fold means writing a general scenario, listing tactics that control its response, and building a design checklist from the seven decision categories. That recipe is the chapter’s method.</li>
+      </ul>
+    </section>
+    <details class="exam" open>
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Key terms</h4>
+        <dl class="term">
+          <dt>Variability</dt><dd>Planned modifiability: the architecture exposes variation points so a family of products can be built. Chapter 25 depends on this.</dd>
+          <dt>Portability</dt><dd>Ease of moving the software to a different computing environment. Often achieved by isolating platform dependencies behind a layer.</dd>
+          <dt>Deployability</dt><dd>How an executable gets onto a host, including update, rollback, and how much of the system must stop.</dd>
+          <dt>Safety</dt><dd>Avoiding harm. Distinct from availability and from reliability. Often a property of the whole system, not of software alone.</dd>
+          <dt>X-ability recipe</dt><dd>General scenario + tactics + checklist across the seven design decisions.</dd>
+        </dl>
+        <h4>What the exam wants</h4>
+        <ul>
+          <li>Say why a quality-attribute name from a standard is not yet a requirement.</li>
+          <li>Show the three-step recipe on a quality the book did not give its own chapter (for example energy use, or legal auditability).</li>
+          <li>Distinguish safety from reliability with a short example.</li>
+        </ul>
+      </div>
+    </details>
+    <details class="practice" open>
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">Apply the x-ability recipe to “energy efficiency” for a phone app. Draft the six scenario parts and name two tactics.</p>
+        <p class="prompt">A pacemaker can be highly reliable and still unsafe, or safe and still miss its timing spec. Explain both cases.</p>
+        <p class="prompt">Why might an organization adopt ISO 25010 as a checklist and still write its own scenarios?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch13" data-keywords="pattern layered broker MVC pipe filter client server peer SOA publish subscribe shared data map-reduce multi-tier tactics">
+    <p class="kicker">Chapter 13</p>
+    <h3>Architectural Tactics and Patterns</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>A pattern documents a recurring design as context, problem, and solution. The solution describes elements, relations, and the quality attributes those structures promote — and the ones they weaken.</li>
+        <li>Tactics are the mechanisms inside a pattern. A layered system is, among other things, an application of “restrict dependencies” and semantic coherence. You can add tactics to a pattern (a cache beside a layer, a replica beside a service) and you will change the tradeoff.</li>
+        <li>Real systems wear many patterns at once. A three-tier web system may also use replication, proxies, MVC inside a tier, and pub-sub for notifications.</li>
+        <li>The catalog is grouped by the kind of problem: separation of concerns (layers, broker, MVC), data flow (pipe-and-filter, map-reduce), shared state (shared-data), distribution (client-server, peer-to-peer, multi-tier), and loose coupling over time (publish-subscribe, service orientation).</li>
+        <li>Using tactics together is where design actually happens. The chapter’s warning is that tactics interact: a performance tactic can disable a modifiability tactic that the pattern was chosen for.</li>
+      </ul>
+    </section>
+    <details class="exam" open>
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Pattern families in the catalog</h4>
+        <div class="tactic">
+          <h5>Module-oriented</h5>
+          <ul>
+            <li><strong>Layered</strong> — each layer is a virtual machine; strict layering allows use only of the layer below. Favors portability and modifiability; can add latency.</li>
+            <li><strong>Broker</strong> — clients and servers communicate through a broker that locates services and forwards requests. Favors location independence; the broker is a complexity and availability focus.</li>
+            <li><strong>Model-view-controller</strong> — separates state, presentation, and input handling. Favors independent change of UI; can scatter a single user action.</li>
+          </ul>
+        </div>
+        <div class="tactic">
+          <h5>Component-and-connector</h5>
+          <ul>
+            <li><strong>Pipe-and-filter</strong> — streams transformed by independent filters. Favors reuse and parallelism; awkward for interactive systems and shared global state.</li>
+            <li><strong>Client-server</strong> — clients request, servers provide. Simple coordination; server can become a bottleneck and a single point of failure.</li>
+            <li><strong>Peer-to-peer</strong> — peers are both clients and servers. Favors scalability and lack of a central choke point; harder to secure and to reason about consistency.</li>
+            <li><strong>Service-oriented</strong> — distributed services with advertised interfaces, often independently owned. Favors interoperability and independent evolution; operational governance is the hard part.</li>
+            <li><strong>Publish-subscribe</strong> — publishers emit events, subscribers receive them without knowing the publishers. Favors loose coupling; delivery order, loss, and debugging get harder.</li>
+            <li><strong>Shared-data</strong> — components read and write a repository. Favors consistency of data and independent producers; the repository is a performance and availability bottleneck.</li>
+            <li><strong>Map-reduce</strong> — parallel map over data partitions, then reduce. Favors throughput on large data; not a fit for tightly coupled interactive transactions.</li>
+          </ul>
+        </div>
+        <div class="tactic">
+          <h5>Allocation</h5>
+          <ul>
+            <li><strong>Multi-tier</strong> — execution structures placed on distinct hardware tiers (for example presentation, logic, data). Favors security boundaries and independent scaling; network hops add latency.</li>
+          </ul>
+        </div>
+        <h4>Tactic–pattern relationship</h4>
+        <ul>
+          <li>A pattern is a bundle of tactics plus the constraints on how elements may interact.</li>
+          <li>Choosing a pattern gets you its built-in tactics and its built-in weaknesses.</li>
+          <li>You strengthen a weak quality by adding a tactic, then you re-check the qualities the pattern was supposed to protect.</li>
+        </ul>
+      </div>
+    </details>
+    <details class="practice" open>
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">A log-processing pipeline and an online shopping cart are both “data in, data out.” Which pattern fits each, and which tactic inside the wrong pattern would fight the problem?</p>
+        <p class="prompt">Name two tactics already present in a strict layered pattern, and one tactic you might add for availability. What does that addition do to the layering rule?</p>
+        <p class="prompt">Publish-subscribe and client-server can both notify a mobile app. Compare them on coupling and on the ability to know that a message arrived.</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch14" data-keywords="analysis model checklist simulation prototype backlog of envelope queue RMA lifecycle fidelity">
+    <p class="kicker">Chapter 14</p>
+    <h3>Quality Attribute Modeling and Analysis</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Analysis asks whether the architecture will satisfy a quality-attribute scenario, before or after the code exists. Different techniques buy different confidence at different cost.</li>
+        <li>Roughly in order of increasing cost and fidelity: design checklists, thought experiments and back-of-the-envelope estimates, analytic models, simulations, and prototypes or experiments.</li>
+        <li>Models (queueing for latency, schedulability analysis for deadlines) need parameters. Early in the life cycle those parameters are guesses, so a cheap checklist or estimate is often the honest tool. Later, measurements can feed a model or a prototype.</li>
+        <li>Checklists are the seven design-decision categories applied to one quality. They find omissions. They do not produce a latency number.</li>
+        <li>Choose the technique to match the risk and the life-cycle stage. An ATAM (Chapter 21) is a facilitated way to apply questioning and scenario analysis; it is not a substitute for a queueing model when you need a number.</li>
+      </ul>
+    </section>
+    <details class="exam" open>
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Analysis ladder</h4>
+        <ol>
+          <li><strong>Checklists</strong> — systematic questions; cheap; good for design reviews.</li>
+          <li><strong>Thought experiments and back-of-the-envelope analysis</strong> — order-of-magnitude estimates with explicit assumptions.</li>
+          <li><strong>Analytic models</strong> — queueing, schedulability, and similar mathematics when the assumptions hold.</li>
+          <li><strong>Simulation</strong> — an executable model of the architecture’s timing or resource behavior.</li>
+          <li><strong>Prototype or experiment</strong> — real code on the risky path; highest fidelity, highest cost.</li>
+        </ol>
+        <p>Early life cycle: scenarios, checklists, estimates. Mid life cycle: models and focused prototypes on sensitivity points. Late life cycle: measurement on the built system, which reconstruction and test can feed.</p>
+      </div>
+    </details>
+    <details class="practice" open>
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">You have a two-week spike and a worry that a shared database cannot absorb peak writes. Which rung of the analysis ladder do you climb, and what assumption will you write down?</p>
+        <p class="prompt">Why is a checklist the wrong tool to answer “is p95 latency under 200 ms,” and why is a prototype the wrong first tool on day one of design?</p>
+        <p class="prompt">A model says the system meets its deadline. Name two reasons the running system might still miss it.</p>
+      </div>
+    </details>
+  </article>
+</section>
+
+<section class="part" id="part3">
+  <h2>Part III — Architecture in the life cycle</h2>
+  <p class="part-blurb">Chapters 15–22 move from vocabulary to work: how much architecture, how requirements become ASRs, how to design, document, implement, check conformance, evaluate, and govern.</p>
+
+  <article class="chapter" id="ch15" data-keywords="agile how much architecture risk rework sweet spot incremental documentation">
+    <p class="kicker">Chapter 15</p>
+    <h3>Architecture in Agile Projects</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>The question is not “architecture or agile.” It is how much architecture to decide before coding, given the cost of rework if you guess wrong.</li>
+        <li>Up-front architecture effort pays off when the system is large, the domain is unfamiliar, quality attributes are stringent, the team is distributed, or a wrong structure would be expensive to undo. It pays less when the system is small, the team has built this shape before, and change is cheap.</li>
+        <li>Agile architecture still has ASRs, still uses tactics, and still leaves a trail of decisions. It avoids documentation that nobody will read, and it designs the next risky slice rather than the entire future.</li>
+        <li>Guidelines: work on the architecturally significant items first, evaluate early and often, keep documentation proportional to stakeholders, and let the architecture emerge in increments without pretending there is no architecture.</li>
+        <li>Connects back to Chapter 1 (decisions are not all early) and forward to Chapters 16–18 (just enough scenarios, just enough design, just enough views).</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Key terms</h4>
+        <dl class="term">
+          <dt>How much architecture</dt><dd>The amount of design that minimizes total cost: cost of architecture work plus cost of rework from architectural mistakes.</dd>
+          <dt>Sweet spot</dt><dd>Shifts right (more up front) as size, complexity, requirements volatility you cannot absorb, and quality-attribute risk grow. Shifts left when the team already knows the pattern.</dd>
+          <dt>Agile architect</dt><dd>Designs incrementally, stays with the team, treats scenarios as backlog items, and documents decisions that others must follow.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">Two projects use Scrum. One is a brochure site; one is a national payment switch. Argue for a different amount of up-front architecture in each, using rework cost.</p>
+        <p class="prompt">Which artifacts from Chapters 4 and 18 would you still keep on a two-team agile project, and which would you thin?</p>
+        <p class="prompt">“The architecture will emerge” is sometimes true and sometimes a way to skip hard quality attributes. How can a team tell the difference?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch16" data-keywords="ASR requirements QAW PALM utility tree business goals interview prioritization">
+    <p class="kicker">Chapter 16</p>
+    <h3>Architecture and Requirements</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Architecturally significant requirements are the few requirements that shape structures. They come from quality attributes, from high-value or high-risk functions, and from constraints. Collecting every shall-statement is not the architect’s job.</li>
+        <li>Three sources: existing requirements documents (mine them for scenarios and constraints), stakeholder interviews, and business goals. The facilitated interview method in this chapter is the Quality Attribute Workshop. The business-goal method is PALM.</li>
+        <li>A utility tree turns raw concerns into a prioritized ASR list. Root is “utility.” Children are quality attributes, then refinements, then concrete scenarios. Each leaf is rated on business value and on architectural impact (high, medium, low).</li>
+        <li>The methods combine: PALM finds goals and gives existing drivers a pedigree; QAW elicits and prioritizes scenarios from a room of stakeholders; the utility tree is the backlog those scenarios land in. Documents are a starting inventory, not the workshop.</li>
+        <li>Prioritize (H,H) first in design. Do not ignore (H,M) and (M,H): high business value with medium architectural impact, and the reverse, both hide risk.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Quality Attribute Workshop</h4>
+        <ol>
+          <li>Presentation and introductions.</li>
+          <li>Business or mission presentation.</li>
+          <li>Architectural plan presentation (even if the plan is only a sketch).</li>
+          <li>Identification of architectural drivers.</li>
+          <li>Scenario brainstorming.</li>
+          <li>Scenario consolidation.</li>
+          <li>Scenario prioritization (stakeholders vote; a common rule is about 30 percent of the scenario count in votes each).</li>
+          <li>Scenario refinement of the winners into six-part form.</li>
+        </ol>
+        <h4>PALM (Pedigreed Attribute eLicitation Method)</h4>
+        <ol>
+          <li>Overview of the method.</li>
+          <li>Business drivers presentation.</li>
+          <li>Architecture drivers presentation.</li>
+          <li>Business-goal elicitation, expressed as scenarios, then prioritized.</li>
+          <li>Identification of quality attributes that would serve those goals — including missing requirements.</li>
+          <li>Assignment of pedigree: which goal each existing driver serves, and why the number in the response measure is that number.</li>
+          <li>Conclusion, next steps, feedback.</li>
+        </ol>
+        <h4>Utility tree</h4>
+        <p>Utility → quality attribute → refinement → scenario, each leaf tagged (business value, architectural impact). It is both a prioritization tool and a completeness check: a business goal with no scenario is a gap.</p>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">Build a four-leaf utility tree for a campus course-registration system. Mark each leaf (H/M/L, H/M/L) and say which leaf you would design first.</p>
+        <p class="prompt">A stakeholder says “the system must be secure.” What does a QAW facilitator do before that sentence is allowed into the utility tree?</p>
+        <p class="prompt">PALM step 6 asks why a latency limit is 40 ms and not 80. Why is that question architectural rather than pedantic?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch17" data-keywords="ADD attribute-driven design decomposition generate and test element ASR tactics patterns iteration">
+    <p class="kicker">Chapter 17</p>
+    <h3>Designing an Architecture</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Design here is a deliberate decomposition driven by ASRs, not a tour of every requirement. The strategy is generate-and-test: propose a fragment of design, see which ASRs it satisfies, and repeat.</li>
+        <li>Attribute-Driven Design (ADD) is the method. You always design one element at a time, starting with the whole system on a green-field project. The output of a round is a set of children, their responsibilities, and their interactions — plus new ASRs allocated downward.</li>
+        <li>Patterns and tactics are the generation tools. You pick a pattern because its known strengths match the ASRs of this element, then you add tactics for the qualities the pattern does not cover, and you record the tradeoffs.</li>
+        <li>Stop when the ASRs are satisfied to the depth the team can implement. Not every module needs the same depth in round one.</li>
+        <li>Inputs are ASRs (a utility tree is ideal because it is already prioritized), plus constraints. Outputs are sketches of structures that Chapter 18 will turn into views.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>ADD steps</h4>
+        <ol>
+          <li>Choose an element of the system to design. First time through, that element is the whole system. Later, it is a child that still has unsatisfied ASRs.</li>
+          <li>Identify the ASRs for the chosen element. Rank them. Constraints come along.</li>
+          <li>Generate a design solution: choose a pattern, apply tactics, allocate responsibilities to children, define interactions, and check the design against the ASRs.</li>
+          <li>Inventory what remains and pick the inputs for the next iteration (the next element, or the same element at finer grain).</li>
+          <li>Repeat until the ASRs you intended to satisfy are satisfied.</li>
+        </ol>
+        <p>In step 3, verify each important ASR explicitly. If a tactic hurts another ASR, that conflict is a result, not a failure of the method — it becomes a tradeoff to carry into evaluation.</p>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">You are on ADD iteration 1 for a ride-sharing backend. The top ASRs are “match a rider in 300 ms at peak” and “add a new city without rewriting the matcher.” Sketch the pattern you would try and one tactic you would add.</p>
+        <p class="prompt">Why does ADD tell you to design one element rather than all modules in a single drawing?</p>
+        <p class="prompt">After iteration 1 you have three subsystems. How do you decide which child is the element in iteration 2?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch18" data-keywords="documentation views notations module C&amp;C allocation stakeholder audiences behavior agile package roadmap">
+    <p class="kicker">Chapter 18</p>
+    <h3>Documenting Software Architectures</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Documentation is written for uses: education of new people, communication among stakeholders, analysis, and construction. If a section serves none of those, it should not be written.</li>
+        <li>Notations range from informal boxes-and-lines, through semi-formal UML, to formal architecture description languages. Precision should match the analysis you need to do. An informal diagram that names elements and relations is already useful; an ambiguous diagram is not.</li>
+        <li>Choose views by listing stakeholders and the structures they need. Combine views when one audience always reads two structures together, but do not merge so far that the relations become muddled.</li>
+        <li>A view package typically holds a primary presentation, an element catalog, a context diagram, a variability guide, and rationale. Around the views sit a documentation roadmap, a system overview, a mapping between views, and a glossary.</li>
+        <li>Behavior is documented when structure alone cannot answer a quality question: traces, sequence sketches, or state models tied to scenarios.</li>
+        <li>When the architecture moves faster than the document, capture decisions as they are made and prefer a living short description over a stale novel. Agile projects still owe stakeholders the views they use to build and to review.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Key terms</h4>
+        <dl class="term">
+          <dt>View</dt><dd>A representation of one structure. Chosen from module, C&amp;C, and allocation families, plus any quality-specific view (security, exception, communication) the stakeholders need.</dd>
+          <dt>Primary presentation</dt><dd>The picture or table that shows elements and relations.</dd>
+          <dt>Element catalog</dt><dd>What each element is, its properties, and its interfaces.</dd>
+          <dt>Variability guide</dt><dd>How the view may legally vary. Essential for product lines (Chapter 25).</dd>
+          <dt>Rationale</dt><dd>Why this design, including rejected alternatives. This is what evaluation and later architects need.</dd>
+        </dl>
+        <h4>Choosing views</h4>
+        <p>Make a table of stakeholders against candidate views. A view earns its place if at least one stakeholder needs it for a real task. Start from the structures ADD actually produced, not from a generic checklist of every view in the catalog.</p>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">A new developer, a security reviewer, and an operator join the project. Which view would you hand each of them first, and what section of that view must not be missing?</p>
+        <p class="prompt">When is combining the deployment view and the C&amp;C view helpful, and when does the combination hide a problem?</p>
+        <p class="prompt">Your architecture changes weekly. What would you still write down the same day a decision is made, and what would you postpone?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch19" data-keywords="implementation testing conformance framework code template incremental integration">
+    <p class="kicker">Chapter 19</p>
+    <h3>Architecture, Implementation, and Testing</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Implementation does not automatically follow the architecture. Someone must embed the structures in the code: module boundaries, allowed dependencies, threading, deployment units, and error policy.</li>
+        <li>Practical carriers of the architecture include frameworks that already implement the patterns, code templates, libraries that hide platform tactics, and checks (reviews, dependency rules) that fail the build when a forbidden dependency appears.</li>
+        <li>Testing has two architecture-related jobs. One is ordinary functional and integration testing organized along the decomposition and uses structures, so increments are testable. The other is testing quality-attribute scenarios: the response measures from Chapters 5–11 become test oracles.</li>
+        <li>Incremental implementation should follow the architecture (Chapter 1’s process advice). If the uses structure says A needs a real B, the integration order should respect that.</li>
+        <li>When code and architecture diverge, you either change the code or change the documented architecture. Chapter 20 is how you discover the divergence if you no longer trust the document.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Key terms</h4>
+        <dl class="term">
+          <dt>Architecture carrier</dt><dd>A mechanism that makes the design hard to violate: framework, template, allowed-dependency rule, code generator.</dd>
+          <dt>Conformance</dt><dd>The implementation’s structures match the documented ones. Reviews and reconstruction both produce evidence.</dd>
+          <dt>Scenario-based test</dt><dd>A concrete quality-attribute scenario used as a test: stimulus, environment, and a checkable response measure.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">You chose a layered pattern. Name two implementation mechanisms that keep a developer from calling upward, and one test that would catch a violation.</p>
+        <p class="prompt">Which of your availability scenarios can be turned into an automated test, and which can only be reviewed?</p>
+        <p class="prompt">Why does the uses structure suggest an integration order?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch20" data-keywords="reconstruction conformance raw view extraction database view fusion violations as-built">
+    <p class="kicker">Chapter 20</p>
+    <h3>Architecture Reconstruction and Conformance</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Reconstruction recovers the as-built architecture from artifacts (code, builds, traces, deployment descriptors) when the documentation is missing, stale, or untrusted. The goal is a view you can analyze, not a picture of every class.</li>
+        <li>The pipeline has four iterative phases: extract raw views, load them into a database, fuse those views into architecturally meaningful ones, and analyze the result for violations of rules you care about.</li>
+        <li>Tools extract facts; they do not decide which facts are architectural. You need a question first (layer violations, unwanted coupling, deployment surprises) or the database fills with noise.</li>
+        <li>View fusion combines extracted facts — static calls plus dynamic traces, for example — into a hypothesis about a view. Experts, if you still have them, confirm or correct the hypothesis.</li>
+        <li>Analysis compares the reconstructed view to a rule or to the intended architecture. A violation is evidence for conformance work, for a documentation update, or for both.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Reconstruction pipeline</h4>
+        <ol>
+          <li><strong>Raw view extraction</strong> — parsers, profilers, build scripts, and similar tools emit facts (calls, includes, deployments).</li>
+          <li><strong>Database construction</strong> — store and clean the facts so later queries are possible. Collapse noise; drop what the goal does not need.</li>
+          <li><strong>View fusion</strong> — query and combine facts into a candidate architectural view.</li>
+          <li><strong>Architecture analysis</strong> — test the view against intended rules and report violations.</li>
+        </ol>
+        <p>Guidelines worth remembering: start from an explicit goal, expect iteration, do not trust a tool to reconstruct an architecture unattended, and prune before you fuse.</p>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">You suspect the UI layer calls the database directly. Which phase of reconstruction answers that, and what raw fact do you need?</p>
+        <p class="prompt">Why is “run a reverse-engineering tool and print the class diagram” not yet architecture reconstruction?</p>
+        <p class="prompt">The experts who built the system have left. Which phases get harder, and what can you still conclude?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch21" data-keywords="ATAM evaluation risk nonrisk sensitivity tradeoff utility tree lightweight phase stakeholder">
+    <p class="kicker">Chapter 21</p>
+    <h3>Architecture Evaluation</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Evaluation asks whether the architecture is fit for the ASRs you claim to care about, early enough that change is still cheap. It is a risk-discovery activity, not a pass/fail certificate and not a proof.</li>
+        <li>The Architecture Tradeoff Analysis Method (ATAM) brings stakeholders and the architecture team together around business drivers, a utility tree, and scenario-based probing of architectural approaches.</li>
+        <li>Outputs to memorize: risks, nonrisks, sensitivity points, tradeoff points, and risk themes. A risk is a decision that may fail an ASR. A nonrisk is a decision judged safe against an ASR. A sensitivity point is a property that the response depends on. A tradeoff point is a sensitivity point for more than one quality.</li>
+        <li>ATAM is phased: preparation, evaluation with the architecture team, evaluation with a broader stakeholder group, and follow-up reporting. The nine steps below are the evaluation steps.</li>
+        <li>Lightweight evaluation keeps the spirit (utility tree, scenarios, risks) with a smaller cast and less ceremony when a full ATAM is more process than the project can use.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>ATAM evaluation steps</h4>
+        <ol>
+          <li>Present the ATAM.</li>
+          <li>Present the business drivers.</li>
+          <li>Present the architecture.</li>
+          <li>Identify architectural approaches (patterns and tactics in use).</li>
+          <li>Generate the quality-attribute utility tree.</li>
+          <li>Analyze architectural approaches against the high-priority scenarios.</li>
+          <li>Brainstorm and prioritize scenarios with the larger stakeholder group.</li>
+          <li>Analyze architectural approaches again, now against the new high-priority scenarios.</li>
+          <li>Present results: risks, nonrisks, sensitivity and tradeoff points, risk themes.</li>
+        </ol>
+        <h4>Phases</h4>
+        <ul>
+          <li><strong>Phase 0</strong> — partnership and preparation.</li>
+          <li><strong>Phase 1</strong> — evaluation with the decision makers and architects (through step 6).</li>
+          <li><strong>Phase 2</strong> — evaluation with a broader set of stakeholders (steps 1–9, with emphasis on 7–9).</li>
+          <li><strong>Phase 3</strong> — follow-up: write and deliver the results.</li>
+        </ul>
+        <p>Step 6 and step 8 are the same kind of analysis on two scenario sets: the team’s utility tree, then the stakeholders’ brainstorm. Disagreement between those sets is itself a finding.</p>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">During analysis, replication is found to cut failover time and to complicate consistency. Classify that finding as risk, nonrisk, sensitivity point, or tradeoff point — more than one label can apply if you justify it.</p>
+        <p class="prompt">Why does ATAM analyze scenarios twice (steps 6 and 8)? What would you miss with only the utility tree?</p>
+        <p class="prompt">When would you choose a lightweight evaluation instead of a full ATAM? What outputs do you refuse to drop even in the light version?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch22" data-keywords="governance planning organizing implementing measuring architecture review board conformance policy">
+    <p class="kicker">Chapter 22</p>
+    <h3>Management and Governance</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Architecture work needs ordinary management: a plan (what architecture tasks exist and when), an organization (who the architect is relative to teams), implementation tracking, and measurement of whether the architecture effort is paying off.</li>
+        <li>Team structure tends to mirror the decomposition (Conway’s observation in practical form). Coordination cost follows the interfaces. Putting the architecture team on the other side of every question creates a bottleneck; putting nobody there creates drift.</li>
+        <li>Governance is the set of rules about who may make and change architectural decisions, how compliance is checked, and what happens on a violation. A review board, a decision record, and automated conformance checks are governance mechanisms, not substitutes for a design.</li>
+        <li>Measurement should tie back to stakeholder value: defect rates at integration, time to make a class of change, failed evaluations, stakeholder satisfaction. Activity metrics (“number of views”) are weak.</li>
+        <li>This chapter is the management face of Chapters 19–21. Evaluation without governance does not change the next release; governance without evaluation becomes bureaucracy.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Four management activities plus governance</h4>
+        <ul>
+          <li><strong>Planning</strong> — schedule architecture design, evaluation, and documentation as project tasks with inputs and outputs.</li>
+          <li><strong>Organizing</strong> — assign architectural responsibility; align teams with modules and with the coordination the architecture demands.</li>
+          <li><strong>Implementing</strong> — track decisions into code; keep communication paths that match the dependency structure.</li>
+          <li><strong>Measuring</strong> — observe cost and benefit of architecture activities, not only their occurrence.</li>
+          <li><strong>Governance</strong> — decision rights, mandatory checkpoints, and compliance mechanisms.</li>
+        </ul>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">A company forms an architecture review board that meets monthly and has no written decision rights. Is that governance? What is missing?</p>
+        <p class="prompt">Your module structure and your team structure disagree. What symptoms would you expect in schedule and in quality?</p>
+        <p class="prompt">Propose one measure that would tell a manager the architecture work is reducing integration risk.</p>
+      </div>
+    </details>
+  </article>
+</section>
+
+<section class="part" id="part4">
+  <h2>Part IV — Architecture and business</h2>
+  <p class="part-blurb">Chapters 23–25 connect design choices to money, to the skills of architects and organizations, and to reuse across a product family.</p>
+
+  <article class="chapter" id="ch23" data-keywords="CBAM economics utility benefit cost ROI architectural strategy NASA side effect">
+    <p class="kicker">Chapter 23</p>
+    <h3>Economic Analysis of Architectures</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>ATAM can tell you that strategy A helps availability and hurts cost of change. It does not tell you whether A is worth funding. The Cost Benefit Analysis Method (CBAM) adds stakeholder utility and implementation cost so strategies can be ranked.</li>
+        <li>Utility is how much stakeholders value a particular quality-attribute response, usually scored on a small scale from worst acceptable to best imaginable. Benefit of a strategy is the gain in utility it is expected to produce, weighted by scenario importance.</li>
+        <li>CBAM is typically used when an existing system needs an upgrade and several architectural strategies compete for a limited budget. It can also compare options on a new system.</li>
+        <li>The output is an ordered list of strategies by benefit and by benefit relative to cost, plus the side effect that stakeholders see each other’s priorities. The NASA ECS case in the chapter is the worked example of that ranking, not a template to memorize numerically.</li>
+        <li>Inputs are imprecise on purpose. The method’s claim is that a shared, explicit estimate beats an unexamined preference, as long as people then check the ranking against intuition.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>CBAM steps</h4>
+        <ol>
+          <li>Collate the scenarios (often the high-priority ATAM scenarios).</li>
+          <li>Refine them so the response levels are clear.</li>
+          <li>Prioritize scenarios (votes become weights).</li>
+          <li>Assign utility to the current response and to desired response levels.</li>
+          <li>Develop architectural strategies and map them onto scenarios, including side effects on other scenarios.</li>
+          <li>Determine the expected utility of each strategy’s quality-attribute levels.</li>
+          <li>Calculate total benefit from the utility gains and the scenario weights.</li>
+          <li>Choose strategies using benefit and cost (benefit/cost is the usual ranking key) within the budget.</li>
+          <li>Confirm the ranking with the group’s intuition and revisit outliers.</li>
+        </ol>
+        <p>Remember the chain: scenario weight × utility gain = contribution to benefit; benefit compared with cost ranks the strategy. A strategy that helps one scenario and hurts another must include the negative utility.</p>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">Two strategies have the same benefit. One costs twice as much. What does CBAM tell you to do, and when would you override that ranking?</p>
+        <p class="prompt">A strategy raises availability utility and lowers modifiability utility. Where in the nine steps does that show up?</p>
+        <p class="prompt">Why is CBAM a poor fit if you have not yet agreed on scenarios?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch24" data-keywords="competence duties skills knowledge DSK organizational learning human performance assessment">
+    <p class="kicker">Chapter 24</p>
+    <h3>Architecture Competence</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Competence is treated at two levels: the individual architect, and the organization that employs architects. A brilliant architect in an organization with no governance or learning loop still fails to repeat success.</li>
+        <li>Individuals are described with duties, skills, and knowledge, both technical and nontechnical. Duties include creating an architecture and evaluating one. Skills include communication, leadership under uncertainty, and strategic thinking. Knowledge includes patterns, tactics, the domain, and the organization’s business.</li>
+        <li>Organizational competence is assessed with several lenses, not a single maturity number. The chapter uses the duties-skills-knowledge practices of the organization, a human-performance lens (do you know what architecture effort costs and what value it returns?), and an organizational-learning lens (is architectural knowledge captured and reused?).</li>
+        <li>An assessment interviews both producers of architectures and consumers (developers, managers). Findings are a profile across practice areas, closer to a vector than to a grade.</li>
+        <li>Connects to Chapter 22 (governance is an organizational practice) and Chapter 28 (how an individual starts those practices without waiting for permission).</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Key terms</h4>
+        <dl class="term">
+          <dt>DSK</dt><dd>Duties, skills, and knowledge — the individual competence model, technical and nontechnical.</dd>
+          <dt>Human performance lens</dt><dd>Questions about the cost of architecture work and the value stakeholders actually receive.</dd>
+          <dt>Organizational learning lens</dt><dd>Whether architectural knowledge is retained: documentation, communities, “who knows what,” and reuse on the next system.</dd>
+          <dt>Assessment result</dt><dd>A set of findings by practice area, used to pick improvements, not a single score.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">An architect can recite every tactic in Part II and cannot get a project manager to fund an evaluation. Which part of DSK is weak?</p>
+        <p class="prompt">Name one question from the cost-and-value lens and one from the learning lens that you would ask your own team.</p>
+        <p class="prompt">Why interview developers during an architecture-competence assessment of an organization, not only the architects?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch25" data-keywords="product line core asset variation point scope variability inheritance plugin generator clone-and-own">
+    <p class="kicker">Chapter 25</p>
+    <h3>Architecture and Software Product Lines</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>A software product line is a set of products that share a managed set of features, built from a common set of core assets, in a planned way. The architecture is the core asset that makes the others composable.</li>
+        <li>Clone-and-own (copy a product and edit) works once or twice and then collapses under divergent copies. A product line invests in variation points so the differences are explicit.</li>
+        <li>Scope is the boundary of the family. Too narrow and the reuse savings are trivial. Too wide and the core assets become a compromise that fits nobody. Products outside the scope are a business decision, not a surprise for the architect.</li>
+        <li>Variability is the quality attribute of the product line: a request to support a difference in hardware, features, technology, UI, or quality, at a stated binding time, with a cost measure. The architecture’s variation mechanisms must match those binding times.</li>
+        <li>Mechanisms differ in who can exercise them and what they cost to build: inheritance, component substitution, plug-ins, templates, parameters, generators, aspects, runtime conditionals, configurators. Building the mechanism is often expensive; exercising it should be cheap.</li>
+        <li>Evaluate a product-line architecture for the qualities of each product and for the ability to instantiate products inside the scope. Document a variability guide: what may vary, how, when, and which combinations are illegal.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>What makes it work</h4>
+        <ul>
+          <li>Core assets beyond code: requirements, architecture, test plans, schedules, and people who already know the domain.</li>
+          <li>A defined scope and the discipline to send out-of-scope requests through a business decision.</li>
+          <li>Variation mechanisms chosen for the stakeholder who will exercise them (developer vs. installer vs. end user) and for the binding time in the variability scenario.</li>
+        </ul>
+        <h4>Failure patterns worth naming</h4>
+        <p>No sustained champion, middle managers who will not give up per-project control, unclear business goals, quitting at the first overrun, untrained staff, undisciplined variation points, scope set far too wide or too narrow, and no tooling to exercise the variations.</p>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">A company ships three mobile banking apps by copying a repository. At what point does clone-and-own become more expensive than a variation point, and which mechanism would you pick for a per-bank color and logo?</p>
+        <p class="prompt">Write a variability scenario whose binding time is runtime, and one whose binding time is development time. Which mechanisms fit each?</p>
+        <p class="prompt">The product-line scope is “all vehicles.” Why is that a dangerous architecture input?</p>
+      </div>
+    </details>
+  </article>
+</section>
+
+<section class="part" id="part5">
+  <h2>Part V — The brave new world</h2>
+  <p class="part-blurb">Chapters 26–28 apply the same ideas to cloud platforms and to ecosystems whose users also build the product, then close with advice for practicing in an organization that is not ready.</p>
+
+  <article class="chapter" id="ch26" data-keywords="cloud IaaS PaaS SaaS public private hybrid virtualization hypervisor multi-tenancy elasticity">
+    <p class="kicker">Chapter 26</p>
+    <h3>Architecture in the Cloud</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Cloud computing is a way of delivering pooled, elastic computing resources, often with self-service provisioning and measured billing. The architectural shift is that hardware, and sometimes the platform or the application, is someone else’s service with a contract.</li>
+        <li>Service models: Infrastructure as a Service (you manage OS and application; you rent machines, storage, and networks), Platform as a Service (you deploy applications onto a provided stack), Software as a Service (you use a finished application, often multi-tenant). Deployment models: private, community, public, and hybrid, distinguished by who owns and operates the cloud.</li>
+        <li>The economic bet is higher utilization and elasticity: you stop buying peak capacity that sits idle, and you trade capital expense for operating expense. Uncertainty remains — you must still understand the provider’s failure modes and the bill.</li>
+        <li>Base mechanisms the chapter walks through include virtualization (hypervisor, an extra level of address translation, a scheduler), virtualized storage with replication (the HDFS-style story of name nodes and data nodes is the example), and network indirection (addresses and headers that can be rewritten so tenants share a physical network).</li>
+        <li>Architecting for a cloud environment means designing for multi-tenancy, failure of instances, stateless or quickly recoverable compute, and explicit control of where state lives. Quality-attribute scenarios do not go away; the tactics are partly supplied by the provider and partly still yours.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Key terms</h4>
+        <dl class="term">
+          <dt>IaaS / PaaS / SaaS</dt><dd>How much of the stack the consumer controls, from virtual machines up to a finished application.</dd>
+          <dt>Multi-tenancy</dt><dd>One running application serves many customers. Upgrades happen once for everyone; isolation between tenants becomes an architectural requirement.</dd>
+          <dt>Hypervisor</dt><dd>The layer that creates and schedules virtual machines and adds a translation between guest addresses and host resources.</dd>
+          <dt>Elasticity</dt><dd>The ability to add or remove capacity. It is a performance and cost tactic only if the architecture can actually use a new instance.</dd>
+        </dl>
+        <p>Exam habit: take an availability or performance scenario from Part II and say which part the cloud provider’s mechanism covers and which part remains the application architect’s problem.</p>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">Your service stores session state in memory on one virtual machine. Autoscaling adds three more VMs at peak. Why is latency still bad for many users? Which tactic from Chapter 8 or 5 fixes the mismatch?</p>
+        <p class="prompt">Contrast IaaS and SaaS for a university that wants email. What does the architect stop deciding in the SaaS case?</p>
+        <p class="prompt">Multi-tenancy pushes upgrade pain from customers onto the provider. Which new quality-attribute risk does the provider accept?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch27" data-keywords="edge metropolis core periphery crowdsourcing prosumer API platform open source">
+    <p class="kicker">Chapter 27</p>
+    <h3>Architectures for the Edge</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>Edge-dominant systems (large open-source platforms, social and content platforms, app ecosystems) are built by communities, not only by a hired team. The architecture influence cycle is extreme: the architecture determines who is allowed to contribute.</li>
+        <li>The Metropolis model is a picture of communities, not a component diagram. Stakeholders include customers and end users, developers, and prosumers (people who both consume and produce). Realms: an outer mass of end users, a periphery of developers and prosumers, and a core platform reached through APIs.</li>
+        <li>Permeability differs. In many open-source systems a contributor can move from user to developer to core committer. In open-content systems, contributing content does not make you a core developer. That social rule should be an explicit architectural and governance choice.</li>
+        <li>Classic life cycles assume known requirements, a finite team, and managed releases. At the edge, requirements arrive continuously from the periphery, contributors come and go, and versions coexist. The core has to tolerate old, partial, and multiple clients.</li>
+        <li>Implications: invest in the core’s APIs and stability, expect indifference to a single project phase, treat the periphery as the source of requirements, and evaluate the core as the fabric that holds incompatible extensions together.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Key terms</h4>
+        <dl class="term">
+          <dt>Metropolis structure</dt><dd>Core, periphery, and masses — communities and the platform that joins them.</dd>
+          <dt>Core</dt><dd>The software kernel and its APIs (a kernel, a wiki engine, a phone platform). This is what the organization must architect with care.</dd>
+          <dt>Periphery</dt><dd>Developers and prosumers who build on the core. Their work is not fully planned by the core team.</dd>
+          <dt>Prosumer</dt><dd>A participant who both uses the system and produces content or extensions.</dd>
+        </dl>
+        <h4>What changes in the life cycle</h4>
+        <ul>
+          <li>Requirements are asserted by use at the edge more than they are elicited up front.</li>
+          <li>Management does not control the periphery’s effort.</li>
+          <li>Delivery must tolerate many versions at once.</li>
+          <li>Architecture effort concentrates on the core and on the rules of extension.</li>
+        </ul>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">Wikipedia and Linux both look like a Metropolis. Contrast how a motivated newcomer can move toward the core in each.</p>
+        <p class="prompt">A startup wants an app store. What must be true of the core architecture on day one, even if almost no apps exist yet?</p>
+        <p class="prompt">Why do waterfall and a strict Scrum sprint both struggle as the only life cycle for an edge-dominant system?</p>
+      </div>
+    </details>
+  </article>
+
+  <article class="chapter" id="ch28" data-keywords="epilogue practice adoption business case guerrilla community of practice evaluation">
+    <p class="kicker">Chapter 28</p>
+    <h3>Epilogue</h3>
+    <section class="notes">
+      <h4>Study notes</h4>
+      <ul>
+        <li>The epilogue is about adoption. Knowing the methods does not mean a project will let you run an ATAM, hire a lead architect, or fill out a full view package. The advice is how to insert architectural practice anyway.</li>
+        <li>Speak in ends, not means. Decision makers buy products, risk reduction, and strategy. Project managers buy credible schedules and fewer late surprises. Architecture is justifiable in those terms: it is a risk reducer and a basis for estimates.</li>
+        <li>Get into the requirements conversation early so quality attributes are shaped while they are still movable. Talk to marketing about variations the current architecture could support — that is product-line thinking in miniature.</li>
+        <li>Argue with rough economics. A spreadsheet with honest assumptions beats a plea for “best practice.” Small, regular communities of practice (a reading group, a shared scenario list, an offer to review another team’s design) spread competence faster than a mandate.</li>
+        <li>Take small wins. The book’s promise is cumulative: each evaluated decision, each written-down view, each conformance check leaves the organization slightly more able to do the next one. Chapter 24’s competence model is the long-term target; this chapter is how you start.</li>
+      </ul>
+    </section>
+    <details class="exam">
+      <summary>Exam deep dive</summary>
+      <div class="exam-body">
+        <h4>Six moves</h4>
+        <ol>
+          <li>Translate architecture into business outcomes the decision makers already want.</li>
+          <li>Translate it again into project-manager concerns: risk, schedule, and budget.</li>
+          <li>Join requirements work instead of receiving a document over a wall.</li>
+          <li>Make the economic case, even with back-of-the-envelope numbers.</li>
+          <li>Start a small, regular architecture community with a concrete product (a template, a pattern set, a review offer).</li>
+          <li>Treat each adopted practice as a win; do not wait to reform the whole company.</li>
+        </ol>
+      </div>
+    </details>
+    <details class="practice">
+      <summary>Practice prompts</summary>
+      <div class="exam-body">
+        <p class="prompt">You want a two-day architecture evaluation and your manager has never heard of ATAM. Write the argument in schedule and risk language, in five sentences, with no method names.</p>
+        <p class="prompt">Design the first three meetings of a lunchtime architecture group for a company that only does code review today. What tangible output should meeting three have?</p>
+        <p class="prompt">Which idea from Chapter 23 would you use inside the “argue economically” advice, and what number would you refuse to invent?</p>
+      </div>
+    </details>
+  </article>
+</section>
+
+<section class="appendix" id="appendix">
+  <h2>Quick reference</h2>
+  <p class="lede">Method sequences and the tactic map for review. Names match common SEI usage in the third edition; the explanations are study paraphrases.</p>
+
+  <h3>Scenario template</h3>
+  <table class="scenario">
+    <tr><th>Source</th><td>Who or what causes the stimulus.</td></tr>
+    <tr><th>Stimulus</th><td>The event to which the system must respond.</td></tr>
+    <tr><th>Environment</th><td>Operating conditions when the stimulus arrives.</td></tr>
+    <tr><th>Artifact</th><td>The part of the system that is stimulated.</td></tr>
+    <tr><th>Response</th><td>The observable activity the system performs.</td></tr>
+    <tr><th>Response measure</th><td>The testable criterion for a successful response.</td></tr>
+  </table>
+
+  <h3>From goals to a design</h3>
+  <table class="steps">
+    <tr><th>QAW</th><td>Introduce → business presentation → architecture sketch → drivers → brainstorm scenarios → consolidate → vote → refine the top scenarios.</td></tr>
+    <tr><th>PALM</th><td>Overview → business drivers → architecture drivers → elicit and prioritize business goals → derive quality attributes → attach a pedigree to existing drivers → close.</td></tr>
+    <tr><th>Utility tree</th><td>Utility → quality attribute → refinement → scenario, scored (business value, architectural impact).</td></tr>
+    <tr><th>ADD</th><td>Choose an element → identify its ASRs → generate a design (patterns and tactics) → inventory what remains → repeat.</td></tr>
+  </table>
+
+  <h3>Checking and paying for the design</h3>
+  <table class="steps">
+    <tr><th>ATAM</th><td>Present method → business drivers → architecture → identify approaches → utility tree → analyze → brainstorm and prioritize scenarios → analyze again → present risks, nonrisks, sensitivity points, tradeoff points, and risk themes. Phases: prepare, team evaluation, stakeholder evaluation, follow-up.</td></tr>
+    <tr><th>CBAM</th><td>Collate scenarios → refine → prioritize → assign utility → map strategies → expected utility → total benefit → rank by benefit and cost → confirm against intuition.</td></tr>
+    <tr><th>Reconstruction</th><td>Raw view extraction → database construction → view fusion → analysis for violations. Iterate. Start from a question.</td></tr>
+  </table>
+
+  <h3>Quality-attribute tactic map</h3>
+  <table class="scenario">
+    <tr><th>Availability</th><td><span class="tag">Detect</span> ping/echo, monitor, heartbeat, timestamp, sanity checking, condition monitoring, voting, exception detection, self-test. <span class="tag">Recover</span> active/passive/spare redundancy, exception handling, rollback, upgrade, retry, ignore faulty behavior, degradation, reconfiguration; reintroduce via shadow, state resync, escalating restart, non-stop forwarding. <span class="tag">Prevent</span> removal from service, transactions, predictive model, exception prevention, increase competence set.</td></tr>
+    <tr><th>Interoperability</th><td><span class="tag">Locate</span> discover service. <span class="tag">Manage interfaces</span> orchestrate, tailor interface.</td></tr>
+    <tr><th>Modifiability</th><td><span class="tag">Size</span> split module. <span class="tag">Cohesion</span> increase semantic coherence. <span class="tag">Coupling</span> encapsulate, intermediary, restrict dependencies, refactor, abstract common services. <span class="tag">Defer binding</span> from compile-time replacement and aspects through configuration and resource files to runtime registration, lookup, plug-ins, pub-sub, and polymorphism.</td></tr>
+    <tr><th>Performance</th><td><span class="tag">Demand</span> manage sampling rate, limit event response, prioritize events, reduce overhead, bound execution times, increase efficiency. <span class="tag">Resources</span> increase resources, concurrency, multiple copies of computations, multiple copies of data, bound queues, schedule resources.</td></tr>
+    <tr><th>Security</th><td><span class="tag">Detect</span> intrusion, service denial, message integrity, message delay. <span class="tag">Resist</span> identify, authenticate, authorize, limit access, limit exposure, encrypt, separate entities, change defaults. <span class="tag">React</span> revoke access, lock computer, inform actors. <span class="tag">Recover</span> audit trail plus availability recovery.</td></tr>
+    <tr><th>Testability</th><td><span class="tag">Control and observe</span> specialized interfaces, record/playback, localize state, abstract data sources, sandbox, executable assertions. <span class="tag">Limit complexity</span> limit structural complexity, limit nondeterminism.</td></tr>
+    <tr><th>Usability</th><td><span class="tag">User initiative</span> cancel, undo, pause/resume, aggregate. <span class="tag">System initiative</span> task model, user model, system model.</td></tr>
+  </table>
+
+  <h3>Pattern crib</h3>
+  <p>Layered · Broker · Model-view-controller · Pipe-and-filter · Client-server · Peer-to-peer · Service-oriented · Publish-subscribe · Shared-data · Map-reduce · Multi-tier. Ask of each: which tactics it already contains, which quality it sacrifices, and which tactic you would add.</p>
+</section>
+</main>
+</div>
+<script>
+(function () {
+  var q = document.getElementById("q");
+  var empty = document.getElementById("empty");
+  var chapters = Array.prototype.slice.call(document.querySelectorAll("article.chapter"));
+  var parts = Array.prototype.slice.call(document.querySelectorAll("section.part"));
+  var links = Array.prototype.slice.call(document.querySelectorAll("nav.toc a"));
+
+  function applyFilter() {
+    var s = q.value.trim().toLowerCase();
+    var shown = 0;
+    chapters.forEach(function (ch) {
+      var blob = ((ch.getAttribute("data-keywords") || "") + " " + ch.querySelector("h3").textContent).toLowerCase();
+      var ok = !s || blob.indexOf(s) !== -1;
+      ch.hidden = !ok;
+      if (ok) shown += 1;
+    });
+    parts.forEach(function (part) {
+      var any = Array.prototype.some.call(part.querySelectorAll("article.chapter"), function (c) { return !c.hidden; });
+      part.hidden = s && !any;
+    });
+    links.forEach(function (a) {
+      var id = (a.getAttribute("href") || "").slice(1);
+      var el = document.getElementById(id);
+      if (!el) return;
+      var host = el.closest ? el.closest("article.chapter") : null;
+      a.hidden = !!(host && host.hidden);
+    });
+    empty.style.display = shown === 0 ? "block" : "none";
+  }
+  q.addEventListener("input", applyFilter);
+
+  document.getElementById("expand").addEventListener("click", function () {
+    document.querySelectorAll("article.chapter details").forEach(function (d) { d.open = true; });
+  });
+  document.getElementById("collapse").addEventListener("click", function () {
+    document.querySelectorAll("article.chapter details").forEach(function (d) { d.open = false; });
+  });
+
+  var toggle = document.getElementById("toc-toggle");
+  toggle.addEventListener("click", function () {
+    var open = document.body.classList.toggle("toc-open");
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  links.forEach(function (a) {
+    a.addEventListener("click", function () {
+      if (window.matchMedia("(max-width: 900px)").matches) {
+        document.body.classList.remove("toc-open");
+        toggle.setAttribute("aria-expanded", "false");
+      }
+    });
+  });
+
+  var spyTargets = links.map(function (a) {
+    return document.getElementById((a.getAttribute("href") || "").slice(1));
+  }).filter(Boolean);
+  function spy() {
+    var y = window.scrollY + 80;
+    var current = spyTargets[0];
+    spyTargets.forEach(function (el) {
+      if (el.offsetTop <= y) current = el;
+    });
+    links.forEach(function (a) {
+      a.setAttribute("aria-current", a.getAttribute("href") === "#" + (current && current.id) ? "true" : "false");
+    });
+  }
+  window.addEventListener("scroll", spy, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>

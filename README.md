@@ -9,6 +9,7 @@ Arabic technical study guides for senior engineer interview prep. Open **`index.
 | [rdbms-guide.html](rdbms-guide.html) | SQL, normalization, indexes, ACID | ~40–60 h |
 | [problem-solving-guide.html](problem-solving-guide.html) | DSA, 14 patterns, 16-week plan | ~120–160 h |
 | [ood-guide.html](ood-guide.html) | OOP pillars, SOLID, 25 patterns | ~50–70 h |
+| [enterpise patterns/enterprise-patterns-guide.html](enterpise%20patterns/enterprise-patterns-guide.html) | Enterprise patterns (PEAA map) + in-process concurrency | ~80–110 h |
 | [system-design-guide.html](system-design-guide.html) | Distributed systems, 25 designs | ~80–120 h |
 
 Shared assets: [roadmap.css](roadmap.css), [roadmap.js](roadmap.js).

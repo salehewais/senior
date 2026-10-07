@@ -1,0 +1,7 @@
+report_name,lane,freq_per_day,p50_sec,p95_sec,concurrent_peak,touches_aml,during_pos_peak,freshness_need,statutory_or_tax,priority,notes
+Trial balance,exact,,,,,yes,yes,<=5s_lag,yes,1,
+General ledger,exact,,,,,yes,yes,<=5s_lag,yes,1,
+Partner ledger,exact,,,,,yes,yes,<=5s_lag,no,2,
+Tax / ZATCA extract,exact,,,,,yes,no,realtime_or_as_of,yes,1,
+Branch daily sales KPI,analytical,,,,,yes,yes,<=15min,no,1,
+Cross-branch P&L dashboard,analytical,,,,,yes,yes,<=15min,no,1,

@@ -1,0 +1,687 @@
+{
+  "pdf": "Patterns of Enterprise Application Architecture.pdf",
+  "extraction": "pdftotext-toc",
+  "note": "Pattern names and structure come from the book TOC. Guide prose is original.",
+  "entries": [
+    {
+      "kind": "chapter",
+      "part": 1,
+      "chapter": 1,
+      "title": "Layering",
+      "id": "ch01-layering",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 1,
+      "chapter": 2,
+      "title": "Organizing Domain Logic",
+      "id": "ch02-domain-logic",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 1,
+      "chapter": 3,
+      "title": "Mapping to Relational Databases",
+      "id": "ch03-orm",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 1,
+      "chapter": 4,
+      "title": "Web Presentation",
+      "id": "ch04-web",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 1,
+      "chapter": 5,
+      "title": "Concurrency",
+      "id": "ch05-concurrency",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 1,
+      "chapter": 6,
+      "title": "Session State",
+      "id": "ch06-session",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 1,
+      "chapter": 7,
+      "title": "Distribution Strategies",
+      "id": "ch07-distribution",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 1,
+      "chapter": 8,
+      "title": "Putting It All Together",
+      "id": "ch08-together",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 2,
+      "chapter": 9,
+      "title": "Domain Logic Patterns",
+      "id": "ch09-domain-logic",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 9,
+      "title": "Transaction Script",
+      "id": "pattern-transaction-script",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 9,
+      "title": "Domain Model",
+      "id": "pattern-domain-model",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 9,
+      "title": "Table Module",
+      "id": "pattern-table-module",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 9,
+      "title": "Service Layer",
+      "id": "pattern-service-layer",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 2,
+      "chapter": 10,
+      "title": "Data Source Architectural Patterns",
+      "id": "ch10-data-source",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 10,
+      "title": "Table Data Gateway",
+      "id": "pattern-table-data-gateway",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 10,
+      "title": "Row Data Gateway",
+      "id": "pattern-row-data-gateway",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 10,
+      "title": "Active Record",
+      "id": "pattern-active-record",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 10,
+      "title": "Data Mapper",
+      "id": "pattern-data-mapper",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 2,
+      "chapter": 11,
+      "title": "Object-Relational Behavioral Patterns",
+      "id": "ch11-or-behavioral",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 11,
+      "title": "Unit of Work",
+      "id": "pattern-unit-of-work",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 11,
+      "title": "Identity Map",
+      "id": "pattern-identity-map",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 11,
+      "title": "Lazy Load",
+      "id": "pattern-lazy-load",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 2,
+      "chapter": 12,
+      "title": "Object-Relational Structural Patterns",
+      "id": "ch12-or-structural",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 12,
+      "title": "Identity Field",
+      "id": "pattern-identity-field",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 12,
+      "title": "Foreign Key Mapping",
+      "id": "pattern-foreign-key-mapping",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 12,
+      "title": "Association Table Mapping",
+      "id": "pattern-association-table-mapping",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 12,
+      "title": "Dependent Mapping",
+      "id": "pattern-dependent-mapping",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 12,
+      "title": "Embedded Value",
+      "id": "pattern-embedded-value",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 12,
+      "title": "Serialized LOB",
+      "id": "pattern-serialized-lob",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 12,
+      "title": "Single Table Inheritance",
+      "id": "pattern-single-table-inheritance",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 12,
+      "title": "Class Table Inheritance",
+      "id": "pattern-class-table-inheritance",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 12,
+      "title": "Concrete Table Inheritance",
+      "id": "pattern-concrete-table-inheritance",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 12,
+      "title": "Inheritance Mappers",
+      "id": "pattern-inheritance-mappers",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 2,
+      "chapter": 13,
+      "title": "Object-Relational Metadata Mapping Patterns",
+      "id": "ch13-or-metadata",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 13,
+      "title": "Metadata Mapping",
+      "id": "pattern-metadata-mapping",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 13,
+      "title": "Query Object",
+      "id": "pattern-query-object",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 13,
+      "title": "Repository",
+      "id": "pattern-repository",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 2,
+      "chapter": 14,
+      "title": "Web Presentation Patterns",
+      "id": "ch14-web",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 14,
+      "title": "Model View Controller",
+      "id": "pattern-mvc",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 14,
+      "title": "Page Controller",
+      "id": "pattern-page-controller",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 14,
+      "title": "Front Controller",
+      "id": "pattern-front-controller",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 14,
+      "title": "Template View",
+      "id": "pattern-template-view",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 14,
+      "title": "Transform View",
+      "id": "pattern-transform-view",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 14,
+      "title": "Two Step View",
+      "id": "pattern-two-step-view",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 14,
+      "title": "Application Controller",
+      "id": "pattern-application-controller",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 2,
+      "chapter": 15,
+      "title": "Distribution Patterns",
+      "id": "ch15-distribution",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 15,
+      "title": "Remote Facade",
+      "id": "pattern-remote-facade",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 15,
+      "title": "Data Transfer Object",
+      "id": "pattern-dto",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 2,
+      "chapter": 16,
+      "title": "Offline Concurrency Patterns",
+      "id": "ch16-offline",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 16,
+      "title": "Optimistic Offline Lock",
+      "id": "pattern-optimistic-offline-lock",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 16,
+      "title": "Pessimistic Offline Lock",
+      "id": "pattern-pessimistic-offline-lock",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 16,
+      "title": "Coarse-Grained Lock",
+      "id": "pattern-coarse-grained-lock",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 16,
+      "title": "Implicit Lock",
+      "id": "pattern-implicit-lock",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 2,
+      "chapter": 17,
+      "title": "Session State Patterns",
+      "id": "ch17-session",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 17,
+      "title": "Client Session State",
+      "id": "pattern-client-session-state",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 17,
+      "title": "Server Session State",
+      "id": "pattern-server-session-state",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 17,
+      "title": "Database Session State",
+      "id": "pattern-database-session-state",
+      "source": "pdf"
+    },
+    {
+      "kind": "chapter",
+      "part": 2,
+      "chapter": 18,
+      "title": "Base Patterns",
+      "id": "ch18-base",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 18,
+      "title": "Gateway",
+      "id": "pattern-gateway",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 18,
+      "title": "Mapper",
+      "id": "pattern-mapper",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 18,
+      "title": "Layer Supertype",
+      "id": "pattern-layer-supertype",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 18,
+      "title": "Separated Interface",
+      "id": "pattern-separated-interface",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 18,
+      "title": "Registry",
+      "id": "pattern-registry",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 18,
+      "title": "Value Object",
+      "id": "pattern-value-object",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 18,
+      "title": "Money",
+      "id": "pattern-money",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 18,
+      "title": "Special Case",
+      "id": "pattern-special-case",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 18,
+      "title": "Plugin",
+      "id": "pattern-plugin",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 18,
+      "title": "Service Stub",
+      "id": "pattern-service-stub",
+      "source": "pdf"
+    },
+    {
+      "kind": "pattern",
+      "part": 2,
+      "chapter": 18,
+      "title": "Record Set",
+      "id": "pattern-record-set",
+      "source": "pdf"
+    }
+  ],
+  "addons": [
+    {
+      "kind": "intro",
+      "part": 3,
+      "title": "Concurrency Patterns",
+      "id": "part3-concurrency",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Thread Pool / Worker Pool",
+      "id": "conc-thread-pool",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Producer / Consumer",
+      "id": "conc-producer-consumer",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Active Object",
+      "id": "conc-active-object",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Future / Promise",
+      "id": "conc-future-promise",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Scheduler",
+      "id": "conc-scheduler",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Read/Write Lock",
+      "id": "conc-rwlock",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Lock Splitting",
+      "id": "conc-lock-splitting",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Striped Locking",
+      "id": "conc-striped-locking",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Guarded Suspension",
+      "id": "conc-guarded-suspension",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Barrier",
+      "id": "conc-barrier",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Work Stealing",
+      "id": "conc-work-stealing",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Reactor",
+      "id": "conc-reactor",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Proactor",
+      "id": "conc-proactor",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Leader/Followers",
+      "id": "conc-leader-followers",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Rate Limiter",
+      "id": "conc-rate-limiter",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Bulkhead",
+      "id": "conc-bulkhead",
+      "source": "addon"
+    },
+    {
+      "kind": "pattern",
+      "part": 3,
+      "title": "Monitor Object",
+      "id": "conc-monitor-object",
+      "source": "addon"
+    }
+  ]
+}

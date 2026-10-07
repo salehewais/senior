@@ -1759,3 +1759,94 @@ body.page-rdbms .hub-back:hover {
   body.page-landing .landing-stats { gap: 24px; }
   body.page-landing .guides-grid { grid-template-columns: 1fr; }
 }
+
+/* ───── Study tasks & self-check (enterprise patterns guide) ───── */
+.subtitle-ar {
+  font-family: var(--sans);
+  font-size: 15px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.plain-list {
+  margin: 8px 1.2em 0 0;
+  color: var(--text2);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.plain-list li { margin: 6px 0; }
+.diagram-box {
+  background: #0a0c11;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin: 20px 0;
+  overflow: hidden;
+}
+.diagram-box .code-header { margin: 0; }
+.diagram-box pre {
+  margin: 0;
+  white-space: pre;
+}
+.rel-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 20px;
+}
+.rel-links a {
+  font-family: var(--eng);
+  font-size: 13px;
+  color: var(--teal2);
+  text-decoration: none;
+  border: 1px solid rgba(45,212,160,.35);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+.rel-links a:hover { background: rgba(45,212,160,.08); }
+.lab-meta {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text3);
+  direction: ltr;
+  text-align: left;
+  margin-bottom: 8px;
+}
+.task-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-inline-start: 3px solid var(--amber);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin: 10px 0;
+}
+.task-card-label {
+  font-family: var(--eng);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--amber2);
+  margin-bottom: 4px;
+}
+.task-card p { color: var(--text2); font-size: 15px; }
+.question-block {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin: 10px 0;
+}
+.question-block p { color: var(--text); font-size: 15px; }
+.answer-panel {
+  margin-top: 8px;
+}
+.answer-panel summary {
+  cursor: pointer;
+  color: var(--purple2);
+  font-size: 13px;
+  font-family: var(--eng);
+}
+.answer-panel p {
+  color: var(--text2);
+  margin-top: 8px;
+  font-size: 14px;
+}
