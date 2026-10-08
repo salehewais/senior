@@ -1,0 +1,46 @@
+# Phase 1 Postgres plus Phase 4 RabbitMQ.
+# This is not the full platform Compose file (that is Phase 11).
+# Redis, Django, Odoo, and the gateway are intentionally absent.
+#
+# Learning simplification: order_service owns this database because it is the only
+# database on this server. Production would split a migration role from the runtime
+# role and would not publish 5432 on the host.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: order_service
+      POSTGRES_PASSWORD: order_service
+      POSTGRES_DB: order_db
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order_service -d order_db"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: order_service
+      RABBITMQ_DEFAULT_PASS: order_service
+    ports:
+      # Localhost only. Do not publish AMQP or the management UI on 0.0.0.0.
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - order_rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  order_db_data:
+  order_rabbitmq_data:

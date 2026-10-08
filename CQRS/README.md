@@ -104,7 +104,12 @@ Details and checklists: [`docs/phase-checklists.md`](docs/phase-checklists.md).
 
 ## Learn in the browser
 
-Open [`learn.html`](learn.html) — interactive bilingual guide (AR/EN) covering all 22 solutions, trade-offs, Exact vs Analytical lanes, and the recommended order.
+- [`understand.html`](understand.html) — **start here**: every solution as one card template (definition, diagram, الهدف/مكاسب/الثمن, مكانه, مهم, Odoo, + 11 questions)
+- [`learn.html`](learn.html) — full map, comparison matrix, Exact vs Analytical
+
+## Learn with Python
+
+Runnable demos for every topic (stdlib only): [`examples/`](examples/) — start with `python3 examples/06_pre_aggregation.py` or `python3 examples/run_all.py`.
 
 ## Implementation (`phases/`)
 

@@ -1,0 +1,132 @@
+"""Declare commerce-platform-topology from docs/rabbitmq.md.
+
+Producers publish to exchanges. This module also declares the queues a
+consumer needs in order to see a message: reporting, Odoo confirmed-orders,
+and the order-service inventory queue. Retry queues and dead-letter queues
+are declared with the documented TTLs.
+
+A failed delivery is not nacked back onto the main queue. The worker publishes
+the same body to commerce.retry with routing key ``{prefix}.retry.{attempt}``
+and header x-retry-count, waits for a confirm, then acks. A nack cannot set
+that header, and requeue=true would deliver a poison message again immediately.
+
+Each retry queue holds the message for its TTL, then dead-letters it to the
+original exchange using the routing key it was published with (the retry key).
+The main queue is bound to those retry keys, so the message returns there.
+x-original-routing-key remembers the business key. Primary queue arguments are
+unchanged: adding x-dead-letter-exchange would refuse to redeclare queues that
+Phase 4 already created, and one dead-letter routing key cannot select attempt
+1 versus attempt 5.
+
+The sixth failure, and any permanent failure, is published to commerce.dlx.
+"""
+
+from __future__ import annotations
+
+import pika
+
+TOPOLOGY_NAME = "commerce-platform-topology"
+
+EXCHANGE_COMMERCE_EVENTS = "commerce.events"
+EXCHANGE_ERP_EVENTS = "erp.events"
+EXCHANGE_COMMERCE_RETRY = "commerce.retry"
+EXCHANGE_COMMERCE_DLX = "commerce.dlx"
+
+QUEUE_REPORTING = "q.reporting.projection"
+QUEUE_ODOO_CONFIRMED = "q.odoo.order-confirmed"
+QUEUE_INVENTORY = "q.order.inventory"
+
+# Phase 5 publishes to commerce.dlx with these keys after the retry budget.
+DLQ_ROUTING_KEY = {
+    QUEUE_REPORTING: "reporting.projection",
+    QUEUE_ODOO_CONFIRMED: "odoo.order-confirmed",
+    QUEUE_INVENTORY: "order.inventory",
+}
+
+# Backoff from docs/rabbitmq.md. Attempt 6 is the DLQ, not another delay.
+RETRY_DELAYS_MS: tuple[int, ...] = (5_000, 30_000, 120_000, 600_000, 1_800_000)
+
+# Where a retry queue would dead-letter back. Inventory facts return to erp.events.
+_RETRY_RETURN_EXCHANGE = {
+    QUEUE_REPORTING: EXCHANGE_COMMERCE_EVENTS,
+    QUEUE_ODOO_CONFIRMED: EXCHANGE_COMMERCE_EVENTS,
+    QUEUE_INVENTORY: EXCHANGE_ERP_EVENTS,
+}
+
+_EVENT_EXCHANGES = (
+    EXCHANGE_COMMERCE_EVENTS,
+    EXCHANGE_ERP_EVENTS,
+    EXCHANGE_COMMERCE_RETRY,
+    EXCHANGE_COMMERCE_DLX,
+)
+
+_BINDINGS: tuple[tuple[str, str, str], ...] = (
+    (QUEUE_REPORTING, EXCHANGE_COMMERCE_EVENTS, "order.*"),
+    (QUEUE_REPORTING, EXCHANGE_COMMERCE_EVENTS, "product.*"),
+    (QUEUE_REPORTING, EXCHANGE_COMMERCE_EVENTS, "customer.*"),
+    (QUEUE_REPORTING, EXCHANGE_COMMERCE_EVENTS, "payment.*"),
+    (QUEUE_REPORTING, EXCHANGE_ERP_EVENTS, "inventory.updated"),
+    (QUEUE_ODOO_CONFIRMED, EXCHANGE_COMMERCE_EVENTS, "order.confirmed"),
+    (QUEUE_INVENTORY, EXCHANGE_ERP_EVENTS, "inventory.updated"),
+)
+
+
+def declare_topology(channel: pika.channel.Channel) -> None:
+    """Idempotent declare. Safe to call on every publish and on consumer start."""
+
+    for name in _EVENT_EXCHANGES:
+        channel.exchange_declare(exchange=name, exchange_type="topic", durable=True)
+    for queue_name in (QUEUE_REPORTING, QUEUE_ODOO_CONFIRMED, QUEUE_INVENTORY):
+        # No x-dead-letter-exchange. Phase 5 adds it. See the module docstring.
+        channel.queue_declare(queue=queue_name, durable=True)
+    for queue_name, exchange, routing_key in _BINDINGS:
+        channel.queue_bind(queue=queue_name, exchange=exchange, routing_key=routing_key)
+    _declare_retry_queues(channel)
+    _declare_retry_return_bindings(channel)
+    _declare_dead_letter_queues(channel)
+
+
+def _declare_retry_queues(channel: pika.channel.Channel) -> None:
+    for queue_name, return_exchange in _RETRY_RETURN_EXCHANGE.items():
+        prefix = DLQ_ROUTING_KEY[queue_name]
+        for attempt, ttl_ms in enumerate(RETRY_DELAYS_MS, start=1):
+            retry_queue = f"{queue_name}.retry.{attempt}"
+            channel.queue_declare(
+                queue=retry_queue,
+                durable=True,
+                arguments={
+                    "x-message-ttl": ttl_ms,
+                    "x-dead-letter-exchange": return_exchange,
+                },
+            )
+            channel.queue_bind(
+                queue=retry_queue,
+                exchange=EXCHANGE_COMMERCE_RETRY,
+                routing_key=f"{prefix}.retry.{attempt}",
+            )
+
+
+def _declare_retry_return_bindings(channel: pika.channel.Channel) -> None:
+    """After the TTL, the retry key is how the message finds its main queue again."""
+
+    for queue_name, return_exchange in _RETRY_RETURN_EXCHANGE.items():
+        prefix = DLQ_ROUTING_KEY[queue_name]
+        for attempt in range(1, len(RETRY_DELAYS_MS) + 1):
+            channel.queue_bind(
+                queue=queue_name,
+                exchange=return_exchange,
+                routing_key=f"{prefix}.retry.{attempt}",
+            )
+
+
+def retry_routing_key(queue_name: str, attempt: int) -> str:
+    if attempt < 1 or attempt > len(RETRY_DELAYS_MS):
+        raise ValueError(f"Retry attempt {attempt} is outside 1..{len(RETRY_DELAYS_MS)}.")
+    return f"{DLQ_ROUTING_KEY[queue_name]}.retry.{attempt}"
+
+
+def _declare_dead_letter_queues(channel: pika.channel.Channel) -> None:
+    for queue_name, routing_key in DLQ_ROUTING_KEY.items():
+        dlq = f"{queue_name}.dlq"
+        channel.queue_declare(queue=dlq, durable=True)
+        channel.queue_bind(queue=dlq, exchange=EXCHANGE_COMMERCE_DLX, routing_key=routing_key)

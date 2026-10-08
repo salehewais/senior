@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real-Time Communication Patterns</title>
+<meta name="description" content="دليل عملي لأنماط التواصل في الوقت الفعلي: Long Polling، SSE، WebSockets، وWebhooks — مع مقارنة ورسوم تدفق تفاعلية.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1219;
+    --bg-elev: #161b26;
+    --bg-soft: #1c2333;
+    --ink: #e8ecf4;
+    --muted: #9aa6bf;
+    --line: rgba(140, 180, 190, 0.16);
+    --teal: #2dd4bf;
+    --teal-deep: #0d9488;
+    --cyan: #22d3ee;
+    --amber: #f0b429;
+    --ok: #3ecf8e;
+    --danger: #f07178;
+    --glow: rgba(45, 212, 191, 0.2);
+    --radius: 18px;
+    --shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
+    --font-ar: "Cairo", system-ui, sans-serif;
+    --font-en: "Inter", system-ui, sans-serif;
+    --header-h: 64px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 1rem); }
+  body {
+    margin: 0;
+    font-family: var(--font-ar);
+    background:
+      radial-gradient(1100px 560px at 100% -10%, rgba(45, 212, 191, 0.12), transparent 55%),
+      radial-gradient(800px 480px at -10% 25%, rgba(34, 211, 238, 0.07), transparent 50%),
+      linear-gradient(180deg, #0b0e14 0%, var(--bg) 40%, #11151f 100%);
+    color: var(--ink);
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+  html[dir="ltr"] body { font-family: var(--font-en); }
+
+  a { color: var(--cyan); text-decoration: none; }
+  a:hover { color: var(--teal); }
+
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(14px);
+    background: rgba(11, 14, 20, 0.82);
+    border-bottom: 1px solid var(--line);
+  }
+  .site-header .inner {
+    width: min(1120px, calc(100% - 2rem));
+    margin: 0 auto;
+    min-height: var(--header-h);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.65rem 0;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .brand-mark {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--teal), var(--cyan));
+    box-shadow: 0 0 0 4px var(--glow);
+    display: grid;
+    place-items: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #0b0e14;
+  }
+  .brand-text { font-size: 0.95rem; }
+
+  .lang-toggle {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.03);
+  }
+  .lang-toggle button {
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .lang-toggle button.active {
+    background: linear-gradient(135deg, var(--teal-deep), var(--teal));
+    color: #0b0e14;
+  }
+
+  .shell {
+    width: min(1120px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 1.25rem 0 4rem;
+  }
+
+  .hero {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    background:
+      linear-gradient(145deg, rgba(28, 42, 48, 0.92), rgba(15, 18, 25, 0.96)),
+      repeating-linear-gradient(
+        -32deg,
+        transparent,
+        transparent 12px,
+        rgba(45, 212, 191, 0.03) 12px,
+        rgba(45, 212, 191, 0.03) 13px
+      );
+    box-shadow: var(--shadow);
+    padding: clamp(1.5rem, 4vw, 2.75rem);
+    margin-bottom: 1.25rem;
+    animation: rise 0.7s ease both;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: auto -20% -40% 40%;
+    height: 280px;
+    background: radial-gradient(circle, var(--glow), transparent 70%);
+    pointer-events: none;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--teal);
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: rgba(45, 212, 191, 0.08);
+    position: relative;
+    z-index: 1;
+  }
+  .hero h1 {
+    margin: 0.55rem 0 0.75rem;
+    font-size: clamp(1.65rem, 4.2vw, 2.45rem);
+    line-height: 1.3;
+    font-weight: 800;
+    position: relative;
+    z-index: 1;
+  }
+  .hero p {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: 1.05rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .nav-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-bottom: 2rem;
+    position: sticky;
+    top: calc(var(--header-h) + 0.35rem);
+    z-index: 50;
+    padding: 0.45rem 0;
+    background: linear-gradient(180deg, rgba(11,14,20,0.95), rgba(11,14,20,0.75) 70%, transparent);
+  }
+  .nav-pills a {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 600;
+    background: rgba(255,255,255,0.03);
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .nav-pills a:hover {
+    border-color: rgba(45, 212, 191, 0.45);
+    color: var(--teal);
+    background: rgba(45, 212, 191, 0.08);
+  }
+
+  .pattern-card {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(160deg, rgba(22, 27, 38, 0.95), rgba(15, 18, 25, 0.98));
+    box-shadow: var(--shadow);
+    padding: clamp(1.25rem, 3vw, 2rem);
+    margin-bottom: 1.5rem;
+    scroll-margin-top: calc(var(--header-h) + 3rem);
+    animation: rise 0.6s ease both;
+  }
+  .pattern-card[data-accent="lp"] { --accent: var(--amber); --accent-soft: rgba(240, 180, 41, 0.12); }
+  .pattern-card[data-accent="sse"] { --accent: var(--cyan); --accent-soft: rgba(34, 211, 238, 0.12); }
+  .pattern-card[data-accent="ws"] { --accent: var(--teal); --accent-soft: rgba(45, 212, 191, 0.12); }
+  .pattern-card[data-accent="wh"] { --accent: #f59e6c; --accent-soft: rgba(245, 158, 108, 0.12); }
+
+  .pattern-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .pattern-head h2 {
+    margin: 0.25rem 0 0;
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    font-weight: 800;
+  }
+  .pattern-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .meta-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.65rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    background: rgba(255,255,255,0.02);
+  }
+  .meta-chip strong {
+    color: var(--ink);
+    font-weight: 700;
+    margin-inline-end: 0.25rem;
+  }
+
+  .section-block { margin-bottom: 1.35rem; }
+  .section-block h3 {
+    margin: 0 0 0.55rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .section-block p { margin: 0; color: var(--muted); }
+
+  .steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+    display: grid;
+    gap: 0.65rem;
+  }
+  .steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+    align-items: start;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.02);
+    color: var(--muted);
+  }
+  .steps li::before {
+    content: counter(step);
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #0b0e14;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+  }
+  @media (max-width: 640px) {
+    .pros-cons { grid-template-columns: 1fr; }
+  }
+  .pc-col {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.02);
+  }
+  .pc-col h4 {
+    margin: 0 0 0.55rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+  .pc-col.pros h4 { color: var(--ok); }
+  .pc-col.cons h4 { color: var(--danger); }
+  .pc-col ul {
+    margin: 0;
+    padding-inline-start: 1.15rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .pc-col li { margin-bottom: 0.35rem; }
+
+  .use-cases {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .use-cases li {
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--ink);
+    font-size: 0.88rem;
+  }
+
+  .flow-panel {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1rem;
+    background: rgba(0,0,0,0.22);
+  }
+  .flow-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    margin-bottom: 0.9rem;
+  }
+  .flow-toolbar h3 { margin: 0; color: var(--accent); font-size: 1.05rem; }
+  .play-btn {
+    border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font: inherit;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.2s;
+  }
+  .play-btn:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--accent) 22%, transparent); }
+  .play-btn:disabled { opacity: 0.55; cursor: wait; transform: none; }
+
+  .flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 0.9rem;
+  }
+  @media (max-width: 560px) {
+    .flow {
+      grid-template-columns: 1fr;
+      justify-items: center;
+    }
+    .flow-arrow { transform: rotate(90deg); margin: 0.25rem 0; }
+  }
+  .node {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1rem;
+    text-align: center;
+    background: var(--bg-elev);
+    min-height: 88px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: border-color 0.25s, box-shadow 0.25s;
+  }
+  .node.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft), 0 0 24px var(--accent-soft);
+  }
+  .node .label {
+    font-weight: 800;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+  }
+  .node .sub { color: var(--muted); font-size: 0.8rem; }
+
+  .flow-arrow {
+    width: 72px;
+    height: 28px;
+    position: relative;
+    opacity: 0.35;
+    transition: opacity 0.25s;
+  }
+  .flow-arrow.active { opacity: 1; }
+  .flow-arrow::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    top: 50%;
+    width: 100%;
+    height: 3px;
+    transform: translateY(-50%);
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    border-radius: 2px;
+  }
+  html[dir="rtl"] .flow-arrow::before {
+    background: linear-gradient(270deg, transparent, var(--accent), transparent);
+  }
+  .flow-arrow::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: 0;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-block: 7px solid transparent;
+    border-inline-start: 10px solid var(--accent);
+    transform: translateY(-50%);
+  }
+  .flow-arrow.bidir::before {
+    background: var(--accent);
+    opacity: 0.7;
+  }
+  .flow-arrow.bidir::after {
+    inset-inline-end: auto;
+    inset-inline-start: 0;
+    border-inline-start: 0;
+    border-inline-end: 10px solid var(--accent);
+  }
+  .flow-arrow.bidir .tip-end {
+    position: absolute;
+    inset-inline-end: 0;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-block: 7px solid transparent;
+    border-inline-start: 10px solid var(--accent);
+    transform: translateY(-50%);
+  }
+
+  .flow-steps {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .flow-step {
+    display: flex;
+    gap: 0.65rem;
+    align-items: flex-start;
+    padding: 0.55rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    color: var(--muted);
+    font-size: 0.88rem;
+    transition: background 0.25s, border-color 0.25s, color 0.25s;
+  }
+  .flow-step .n {
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    background: rgba(255,255,255,0.06);
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .flow-step.active {
+    background: var(--accent-soft);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    color: var(--ink);
+  }
+  .flow-step.active .n {
+    background: var(--accent);
+    color: #0b0e14;
+  }
+
+  .compare-section {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(160deg, rgba(22, 27, 38, 0.95), rgba(15, 18, 25, 0.98));
+    box-shadow: var(--shadow);
+    padding: clamp(1.25rem, 3vw, 2rem);
+    margin-bottom: 1.5rem;
+    scroll-margin-top: calc(var(--header-h) + 3rem);
+  }
+  .compare-section h2 {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+  }
+  .compare-section > p {
+    margin: 0 0 1.1rem;
+    color: var(--muted);
+  }
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    -webkit-overflow-scrolling: touch;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+    font-size: 0.9rem;
+  }
+  th, td {
+    padding: 0.75rem 0.9rem;
+    border-bottom: 1px solid var(--line);
+    text-align: start;
+    vertical-align: top;
+  }
+  th {
+    background: rgba(45, 212, 191, 0.08);
+    color: var(--teal);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  td { color: var(--muted); }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: rgba(255,255,255,0.02); color: var(--ink); }
+  td:first-child {
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .footer {
+    border-top: 1px solid var(--line);
+    padding: 1.5rem 0 0.5rem;
+    color: var(--muted);
+    font-size: 0.88rem;
+    text-align: center;
+  }
+  .footer a { font-weight: 600; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .hero, .pattern-card { animation: none; }
+    .play-btn:hover { transform: none; }
+  }
+</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">RT</span>
+        <span class="brand-text" data-i18n="brand">أنماط التواصل اللحظي</span>
+      </a>
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang="ar" class="active">AR</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <span class="eyebrow" data-i18n="hero.eyebrow">System Design · Real-Time</span>
+      <h1 data-i18n="hero.title">أنماط التواصل في الوقت الفعلي</h1>
+      <p data-i18n="hero.desc">أربعة أنماط أساسية لإيصال التحديثات بين العملاء والخوادم — متى تستخدم كل نمط، كيف يعمل، وما الفرق بينها عملياً.</p>
+    </section>
+
+    <nav class="nav-pills" aria-label="Patterns">
+      <a href="#long-polling" data-i18n="nav.lp">Long Polling</a>
+      <a href="#sse" data-i18n="nav.sse">SSE</a>
+      <a href="#websockets" data-i18n="nav.ws">WebSockets</a>
+      <a href="#webhooks" data-i18n="nav.wh">Webhooks</a>
+      <a href="#compare" data-i18n="nav.compare">المقارنة</a>
+    </nav>
+
+    <!-- Long Polling -->
+    <article class="pattern-card" id="long-polling" data-accent="lp">
+      <div class="pattern-head">
+        <div>
+          <span class="pattern-badge" data-i18n="lp.badge">طلب / استجابة متكرر</span>
+          <h2 data-i18n="lp.title">Long Polling</h2>
+        </div>
+        <div class="meta-row">
+          <span class="meta-chip"><strong data-i18n="meta.dir">الاتجاه</strong><span data-i18n="lp.dir">شبه أحادي</span></span>
+          <span class="meta-chip"><strong data-i18n="meta.proto">البروتوكول</strong><span>HTTP/1.1</span></span>
+          <span class="meta-chip"><strong data-i18n="meta.latency">التأخير</strong><span data-i18n="lp.latency">متوسط–عالٍ</span></span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.concept">المفهوم والتعريف</h3>
+        <p data-i18n="lp.def">بدل أن يستطلع العميل الخادم باستمرار (short polling)، يفتح طلباً ويُبقي الخادم الاتصال معلّقاً حتى تتوفر بيانات جديدة أو ينتهي المهلة — ثم يعيد العميل الطلب فوراً.</p>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.how">كيف يعمل</h3>
+        <ol class="steps">
+          <li data-i18n="lp.s1">العميل يرسل طلب HTTP وينتظر.</li>
+          <li data-i18n="lp.s2">الخادم يعلّق الاستجابة حتى يحدث حدث أو تنتهي المهلة.</li>
+          <li data-i18n="lp.s3">عند توفر بيانات، يُرسل الرد ويُغلق الاتصال.</li>
+          <li data-i18n="lp.s4">العميل يعيد فتح طلب جديد فوراً لمتابعة الاستماع.</li>
+        </ol>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.proscons">المميزات والعيوب</h3>
+        <div class="pros-cons">
+          <div class="pc-col pros">
+            <h4 data-i18n="label.pros">المميزات</h4>
+            <ul>
+              <li data-i18n="lp.p1">يعمل فوق HTTP العادي دون بروتوكولات خاصة</li>
+              <li data-i18n="lp.p2">متوافق مع الجدران النارية والبروكسيات القديمة</li>
+              <li data-i18n="lp.p3">أبسط من WebSockets للتحديثات أحادية الاتجاه</li>
+            </ul>
+          </div>
+          <div class="pc-col cons">
+            <h4 data-i18n="label.cons">العيوب</h4>
+            <ul>
+              <li data-i18n="lp.c1">حمل أعلى بسبب إعادة فتح الاتصالات باستمرار</li>
+              <li data-i18n="lp.c2">تأخير إضافي بين إغلاق الرد وفتح الطلب التالي</li>
+              <li data-i18n="lp.c3">استهلاك موارد على الخادم للاتصالات المعلّقة</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.usecases">حالات الاستخدام</h3>
+        <ul class="use-cases">
+          <li data-i18n="lp.u1">إشعارات بسيطة</li>
+          <li data-i18n="lp.u2">دردشة قديمة / legacy</li>
+          <li data-i18n="lp.u3">عندما لا يتوفر SSE أو WebSocket</li>
+          <li data-i18n="lp.u4">واجهات خلف جدران نارية صارمة</li>
+        </ul>
+      </div>
+
+      <div class="flow-panel" data-flow="lp">
+        <div class="flow-toolbar">
+          <h3 data-i18n="label.flow">تدفق البروتوكول</h3>
+          <button type="button" class="play-btn" data-play="lp" data-i18n="flow.play">تشغيل التدفق</button>
+        </div>
+        <div class="flow">
+          <div class="node" data-node="client">
+            <span class="label" data-i18n="flow.client">Client</span>
+            <span class="sub" data-i18n="lp.flow.clientSub">المتصفح / التطبيق</span>
+          </div>
+          <div class="flow-arrow" data-arrow></div>
+          <div class="node" data-node="server">
+            <span class="label" data-i18n="flow.server">Server</span>
+            <span class="sub" data-i18n="lp.flow.serverSub">يعلّق حتى الحدث</span>
+          </div>
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step" data-step="0"><span class="n">1</span><span data-i18n="lp.f1">طلب معلّق (GET /events)</span></div>
+          <div class="flow-step" data-step="1"><span class="n">2</span><span data-i18n="lp.f2">حدث جديد على الخادم</span></div>
+          <div class="flow-step" data-step="2"><span class="n">3</span><span data-i18n="lp.f3">استجابة بالبيانات ثم إغلاق</span></div>
+          <div class="flow-step" data-step="3"><span class="n">4</span><span data-i18n="lp.f4">إعادة الطلب فوراً</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- SSE -->
+    <article class="pattern-card" id="sse" data-accent="sse">
+      <div class="pattern-head">
+        <div>
+          <span class="pattern-badge" data-i18n="sse.badge">Server → Client</span>
+          <h2 data-i18n="sse.title">Server-Sent Events (SSE)</h2>
+        </div>
+        <div class="meta-row">
+          <span class="meta-chip"><strong data-i18n="meta.dir">الاتجاه</strong><span data-i18n="sse.dir">أحادي</span></span>
+          <span class="meta-chip"><strong data-i18n="meta.proto">البروتوكول</strong><span>HTTP/1.1 · HTTP/2</span></span>
+          <span class="meta-chip"><strong data-i18n="meta.latency">التأخير</strong><span data-i18n="sse.latency">منخفض</span></span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.concept">المفهوم والتعريف</h3>
+        <p data-i18n="sse.def">قناة HTTP مفتوحة يبث عبرها الخادم أحداثاً نصية مستمرة إلى العميل. المتصفح يدعمها أصلاً عبر EventSource مع إعادة اتصال تلقائية.</p>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.how">كيف يعمل</h3>
+        <ol class="steps">
+          <li data-i18n="sse.s1">العميل يفتح اتصال EventSource إلى مسار الأحداث.</li>
+          <li data-i18n="sse.s2">الخادم يرد بـ Content-Type: text/event-stream ويبقي الاتصال مفتوحاً.</li>
+          <li data-i18n="sse.s3">كل حدث يُرسل ككتلة نصية (data: …) مفصولة بأسطر فارغة.</li>
+          <li data-i18n="sse.s4">عند انقطاع الاتصال يعيد العميل المحاولة تلقائياً.</li>
+        </ol>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.proscons">المميزات والعيوب</h3>
+        <div class="pros-cons">
+          <div class="pc-col pros">
+            <h4 data-i18n="label.pros">المميزات</h4>
+            <ul>
+              <li data-i18n="sse.p1">بسيط جداً للبث أحادي الاتجاه</li>
+              <li data-i18n="sse.p2">إعادة اتصال ومعرّفات أحداث مدمجة في المعيار</li>
+              <li data-i18n="sse.p3">يعمل جيداً مع HTTP/2 وتعدد الاتصالات</li>
+            </ul>
+          </div>
+          <div class="pc-col cons">
+            <h4 data-i18n="label.cons">العيوب</h4>
+            <ul>
+              <li data-i18n="sse.c1">اتجاه واحد فقط (من الخادم للعميل)</li>
+              <li data-i18n="sse.c2">نصي فقط — ليس مثالياً للبيانات الثنائية الثقيلة</li>
+              <li data-i18n="sse.c3">حدود اتصال على HTTP/1.1 لكل نطاق</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.usecases">حالات الاستخدام</h3>
+        <ul class="use-cases">
+          <li data-i18n="sse.u1">Live feeds وأخبار لحظية</li>
+          <li data-i18n="sse.u2">أسعار أسهم / مؤشرات</li>
+          <li data-i18n="sse.u3">شريط تقدّم المهام</li>
+          <li data-i18n="sse.u4">لوحات مراقبة وtelemetry</li>
+        </ul>
+      </div>
+
+      <div class="flow-panel" data-flow="sse">
+        <div class="flow-toolbar">
+          <h3 data-i18n="label.flow">تدفق البروتوكول</h3>
+          <button type="button" class="play-btn" data-play="sse" data-i18n="flow.play">تشغيل التدفق</button>
+        </div>
+        <div class="flow">
+          <div class="node" data-node="client">
+            <span class="label" data-i18n="flow.client">Client</span>
+            <span class="sub">EventSource</span>
+          </div>
+          <div class="flow-arrow" data-arrow></div>
+          <div class="node" data-node="server">
+            <span class="label" data-i18n="flow.server">Server</span>
+            <span class="sub" data-i18n="sse.flow.serverSub">text/event-stream</span>
+          </div>
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step" data-step="0"><span class="n">1</span><span data-i18n="sse.f1">فتح اتصال دائم</span></div>
+          <div class="flow-step" data-step="1"><span class="n">2</span><span data-i18n="sse.f2">بث حدث 1</span></div>
+          <div class="flow-step" data-step="2"><span class="n">3</span><span data-i18n="sse.f3">بث حدث 2 …</span></div>
+          <div class="flow-step" data-step="3"><span class="n">4</span><span data-i18n="sse.f4">إعادة اتصال تلقائية عند الانقطاع</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- WebSockets -->
+    <article class="pattern-card" id="websockets" data-accent="ws">
+      <div class="pattern-head">
+        <div>
+          <span class="pattern-badge" data-i18n="ws.badge">ثنائي الاتجاه</span>
+          <h2 data-i18n="ws.title">WebSockets</h2>
+        </div>
+        <div class="meta-row">
+          <span class="meta-chip"><strong data-i18n="meta.dir">الاتجاه</strong><span data-i18n="ws.dir">ثنائي</span></span>
+          <span class="meta-chip"><strong data-i18n="meta.proto">البروتوكول</strong><span data-i18n="ws.proto">TCP بعد HTTP handshake</span></span>
+          <span class="meta-chip"><strong data-i18n="meta.latency">التأخير</strong><span data-i18n="ws.latency">منخفض جداً</span></span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.concept">المفهوم والتعريف</h3>
+        <p data-i18n="ws.def">بعد مصافحة HTTP للترقية (Upgrade)، يتحول الاتصال إلى قناة TCP ثنائية الاتجاه كاملة الإرسال — مثالية للدردشة، الألعاب، والتحرير التعاوني.</p>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.how">كيف يعمل</h3>
+        <ol class="steps">
+          <li data-i18n="ws.s1">العميل يطلب ترقية الاتصال عبر رؤوس HTTP الخاصة بـ WebSocket.</li>
+          <li data-i18n="ws.s2">الخادم يوافق (101 Switching Protocols).</li>
+          <li data-i18n="ws.s3">القناة تصبح ثنائية: إطارات نصية أو ثنائية في الاتجاهين.</li>
+          <li data-i18n="ws.s4">أي طرف يغلق الاتصال بإطار close عند الانتهاء.</li>
+        </ol>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.proscons">المميزات والعيوب</h3>
+        <div class="pros-cons">
+          <div class="pc-col pros">
+            <h4 data-i18n="label.pros">المميزات</h4>
+            <ul>
+              <li data-i18n="ws.p1">أقل تأخيراً للتفاعل ثنائي الاتجاه</li>
+              <li data-i18n="ws.p2">دعم البيانات النصية والثنائية</li>
+              <li data-i18n="ws.p3">كفاءة أعلى من فتح HTTP متكرر</li>
+            </ul>
+          </div>
+          <div class="pc-col cons">
+            <h4 data-i18n="label.cons">العيوب</h4>
+            <ul>
+              <li data-i18n="ws.c1">تعقيد أعلى (حالة الاتصال، إعادة الاتصال، التوسع)</li>
+              <li data-i18n="ws.c2">بعض البروكسيات/الجدران النارية تعيق الترقية</li>
+              <li data-i18n="ws.c3">يتطلب بنية تحتية تدير اتصالات طويلة الأمد</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.usecases">حالات الاستخدام</h3>
+        <ul class="use-cases">
+          <li data-i18n="ws.u1">دردشة فورية</li>
+          <li data-i18n="ws.u2">ألعاب متعددة اللاعبين</li>
+          <li data-i18n="ws.u3">تحرير تعاوني (co-editing)</li>
+          <li data-i18n="ws.u4">لوحات تداول تفاعلية</li>
+        </ul>
+      </div>
+
+      <div class="flow-panel" data-flow="ws">
+        <div class="flow-toolbar">
+          <h3 data-i18n="label.flow">تدفق البروتوكول</h3>
+          <button type="button" class="play-btn" data-play="ws" data-i18n="flow.play">تشغيل التدفق</button>
+        </div>
+        <div class="flow">
+          <div class="node" data-node="client">
+            <span class="label" data-i18n="flow.client">Client</span>
+            <span class="sub">WebSocket</span>
+          </div>
+          <div class="flow-arrow bidir" data-arrow><span class="tip-end"></span></div>
+          <div class="node" data-node="server">
+            <span class="label" data-i18n="flow.server">Server</span>
+            <span class="sub" data-i18n="ws.flow.serverSub">قناة كاملة الإرسال</span>
+          </div>
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step" data-step="0"><span class="n">1</span><span data-i18n="ws.f1">HTTP Upgrade handshake</span></div>
+          <div class="flow-step" data-step="1"><span class="n">2</span><span data-i18n="ws.f2">101 Switching Protocols</span></div>
+          <div class="flow-step" data-step="2"><span class="n">3</span><span data-i18n="ws.f3">رسائل في الاتجاهين</span></div>
+          <div class="flow-step" data-step="3"><span class="n">4</span><span data-i18n="ws.f4">إغلاق منظم (close frame)</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Webhooks -->
+    <article class="pattern-card" id="webhooks" data-accent="wh">
+      <div class="pattern-head">
+        <div>
+          <span class="pattern-badge" data-i18n="wh.badge">Server → Server</span>
+          <h2 data-i18n="wh.title">Webhooks</h2>
+        </div>
+        <div class="meta-row">
+          <span class="meta-chip"><strong data-i18n="meta.dir">الاتجاه</strong><span data-i18n="wh.dir">أحادي (خادم→خادم)</span></span>
+          <span class="meta-chip"><strong data-i18n="meta.proto">البروتوكول</strong><span>HTTP</span></span>
+          <span class="meta-chip"><strong data-i18n="meta.latency">التأخير</strong><span data-i18n="wh.latency">يعتمد على الشبكة</span></span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.concept">المفهوم والتعريف</h3>
+        <p data-i18n="wh.def">عندما يحدث حدث عند مزوّد (Source)، يستدعي عنوان URL لديك (Destination) بطلب HTTP — عادة POST — محملاً ببيانات الحدث. نمط دفع بين خوادم وليس متصفحاً.</p>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.how">كيف يعمل</h3>
+        <ol class="steps">
+          <li data-i18n="wh.s1">تسجّل عنوان endpoint لدى المزوّد وتشترك في أنواع الأحداث.</li>
+          <li data-i18n="wh.s2">عند وقوع الحدث يرسل المزوّد طلب HTTP إلى عنوانك.</li>
+          <li data-i18n="wh.s3">خادمك يتحقق من التوقيع/المصادقة ويعالج الحمولة.</li>
+          <li data-i18n="wh.s4">ترد بسرعة (2xx)؛ المعالجة الثقيلة تُؤجَّل لطابور.</li>
+        </ol>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.proscons">المميزات والعيوب</h3>
+        <div class="pros-cons">
+          <div class="pc-col pros">
+            <h4 data-i18n="label.pros">المميزات</h4>
+            <ul>
+              <li data-i18n="wh.p1">لا حاجة لاستطلاع — دفع عند الحدث فقط</li>
+              <li data-i18n="wh.p2">تكامل بسيط بين أنظمة مستقلة</li>
+              <li data-i18n="wh.p3">منخفض التعقيد إن أُحسنت الموثوقية</li>
+            </ul>
+          </div>
+          <div class="pc-col cons">
+            <h4 data-i18n="label.cons">العيوب</h4>
+            <ul>
+              <li data-i18n="wh.c1">يتطلب endpoint عاماً موثوقاً ومتاحاً</li>
+              <li data-i18n="wh.c2">يجب التعامل مع إعادة المحاولة والترتيب المكرر</li>
+              <li data-i18n="wh.c3">أمن التوقيعات وتجنب الطلبات المزيفة ضروري</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h3 data-i18n="label.usecases">حالات الاستخدام</h3>
+        <ul class="use-cases">
+          <li data-i18n="wh.u1">بوابات دفع (Stripe وغيرها)</li>
+          <li data-i18n="wh.u2">أحداث GitHub / CI</li>
+          <li data-i18n="wh.u3">إشعارات Slack / Discord</li>
+          <li data-i18n="wh.u4">مزامنة CRM وأنظمة خارجية</li>
+        </ul>
+      </div>
+
+      <div class="flow-panel" data-flow="wh">
+        <div class="flow-toolbar">
+          <h3 data-i18n="label.flow">تدفق البروتوكول</h3>
+          <button type="button" class="play-btn" data-play="wh" data-i18n="flow.play">تشغيل التدفق</button>
+        </div>
+        <div class="flow">
+          <div class="node" data-node="client">
+            <span class="label" data-i18n="flow.source">Source</span>
+            <span class="sub" data-i18n="wh.flow.sourceSub">مزوّد الحدث</span>
+          </div>
+          <div class="flow-arrow" data-arrow></div>
+          <div class="node" data-node="server">
+            <span class="label" data-i18n="flow.dest">Destination</span>
+            <span class="sub" data-i18n="wh.flow.destSub">endpoint لديك</span>
+          </div>
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step" data-step="0"><span class="n">1</span><span data-i18n="wh.f1">حدث عند المزوّد</span></div>
+          <div class="flow-step" data-step="1"><span class="n">2</span><span data-i18n="wh.f2">POST إلى Webhook URL</span></div>
+          <div class="flow-step" data-step="2"><span class="n">3</span><span data-i18n="wh.f3">التحقق والمعالجة</span></div>
+          <div class="flow-step" data-step="3"><span class="n">4</span><span data-i18n="wh.f4">رد 2xx (+ إعادة محاولة عند الفشل)</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Comparison -->
+    <section class="compare-section" id="compare">
+      <h2 data-i18n="cmp.title">جدول المقارنة</h2>
+      <p data-i18n="cmp.desc">ملخص سريع لاختيار النمط المناسب حسب الاتجاه، التأخير، والتعقيد.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="cmp.pattern">النمط</th>
+              <th data-i18n="meta.dir">الاتجاه</th>
+              <th data-i18n="meta.proto">البروتوكول</th>
+              <th data-i18n="meta.latency">التأخير</th>
+              <th data-i18n="cmp.complexity">التعقيد</th>
+              <th data-i18n="cmp.examples">أمثلة استخدام</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Long Polling</td>
+              <td data-i18n="lp.dir">شبه أحادي</td>
+              <td>HTTP/1.1</td>
+              <td data-i18n="lp.latency">متوسط–عالٍ</td>
+              <td data-i18n="lp.complexity">منخفض–متوسط</td>
+              <td data-i18n="lp.examples">إشعارات بسيطة، دردشة قديمة</td>
+            </tr>
+            <tr>
+              <td>SSE</td>
+              <td data-i18n="sse.dir">أحادي (Server → Client)</td>
+              <td>HTTP/1.1 أو HTTP/2</td>
+              <td data-i18n="sse.latency">منخفض</td>
+              <td data-i18n="sse.complexity">منخفض</td>
+              <td data-i18n="sse.examples">Live feeds، أسعار، progress</td>
+            </tr>
+            <tr>
+              <td>WebSockets</td>
+              <td data-i18n="ws.dir">ثنائي الاتجاه</td>
+              <td data-i18n="ws.proto">TCP بعد HTTP handshake</td>
+              <td data-i18n="ws.latency">منخفض جداً</td>
+              <td data-i18n="ws.complexity">متوسط–عالٍ</td>
+              <td data-i18n="ws.examples">Chat، ألعاب، co-editing</td>
+            </tr>
+            <tr>
+              <td>Webhooks</td>
+              <td data-i18n="wh.dir">أحادي (Server → Server)</td>
+              <td>HTTP</td>
+              <td data-i18n="wh.latency">يعتمد على الشبكة</td>
+              <td data-i18n="wh.complexity">منخفض</td>
+              <td data-i18n="wh.examples">دفع، GitHub، Slack</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p data-i18n="footer">مرجع مستوحى من مفاهيم AlgoMaster وSystem Design — للتعلّم والمقارنة العملية بين أنماط التواصل اللحظي.</p>
+    </footer>
+  </main>
+
+<script>
+const i18n = {
+  ar: {
+    "brand": "أنماط التواصل اللحظي",
+    "hero.eyebrow": "System Design · Real-Time",
+    "hero.title": "أنماط التواصل في الوقت الفعلي",
+    "hero.desc": "أربعة أنماط أساسية لإيصال التحديثات بين العملاء والخوادم — متى تستخدم كل نمط، كيف يعمل، وما الفرق بينها عملياً.",
+    "nav.lp": "Long Polling",
+    "nav.sse": "SSE",
+    "nav.ws": "WebSockets",
+    "nav.wh": "Webhooks",
+    "nav.compare": "المقارنة",
+    "meta.dir": "الاتجاه",
+    "meta.proto": "البروتوكول",
+    "meta.latency": "التأخير",
+    "label.concept": "المفهوم والتعريف",
+    "label.how": "كيف يعمل",
+    "label.proscons": "المميزات والعيوب",
+    "label.pros": "المميزات",
+    "label.cons": "العيوب",
+    "label.usecases": "حالات الاستخدام",
+    "label.flow": "تدفق البروتوكول",
+    "flow.play": "تشغيل التدفق",
+    "flow.playing": "جارٍ التشغيل…",
+    "flow.client": "Client",
+    "flow.server": "Server",
+    "flow.source": "Source",
+    "flow.dest": "Destination",
+    "lp.badge": "طلب / استجابة متكرر",
+    "lp.title": "Long Polling",
+    "lp.dir": "شبه أحادي",
+    "lp.latency": "متوسط–عالٍ",
+    "lp.complexity": "منخفض–متوسط",
+    "lp.examples": "إشعارات بسيطة، دردشة قديمة",
+    "lp.def": "بدل أن يستطلع العميل الخادم باستمرار (short polling)، يفتح طلباً ويُبقي الخادم الاتصال معلّقاً حتى تتوفر بيانات جديدة أو ينتهي المهلة — ثم يعيد العميل الطلب فوراً.",
+    "lp.s1": "العميل يرسل طلب HTTP وينتظر.",
+    "lp.s2": "الخادم يعلّق الاستجابة حتى يحدث حدث أو تنتهي المهلة.",
+    "lp.s3": "عند توفر بيانات، يُرسل الرد ويُغلق الاتصال.",
+    "lp.s4": "العميل يعيد فتح طلب جديد فوراً لمتابعة الاستماع.",
+    "lp.p1": "يعمل فوق HTTP العادي دون بروتوكولات خاصة",
+    "lp.p2": "متوافق مع الجدران النارية والبروكسيات القديمة",
+    "lp.p3": "أبسط من WebSockets للتحديثات أحادية الاتجاه",
+    "lp.c1": "حمل أعلى بسبب إعادة فتح الاتصالات باستمرار",
+    "lp.c2": "تأخير إضافي بين إغلاق الرد وفتح الطلب التالي",
+    "lp.c3": "استهلاك موارد على الخادم للاتصالات المعلّقة",
+    "lp.u1": "إشعارات بسيطة",
+    "lp.u2": "دردشة قديمة / legacy",
+    "lp.u3": "عندما لا يتوفر SSE أو WebSocket",
+    "lp.u4": "واجهات خلف جدران نارية صارمة",
+    "lp.flow.clientSub": "المتصفح / التطبيق",
+    "lp.flow.serverSub": "يعلّق حتى الحدث",
+    "lp.f1": "طلب معلّق (GET /events)",
+    "lp.f2": "حدث جديد على الخادم",
+    "lp.f3": "استجابة بالبيانات ثم إغلاق",
+    "lp.f4": "إعادة الطلب فوراً",
+    "sse.badge": "Server → Client",
+    "sse.title": "Server-Sent Events (SSE)",
+    "sse.dir": "أحادي (Server → Client)",
+    "sse.latency": "منخفض",
+    "sse.complexity": "منخفض",
+    "sse.examples": "Live feeds، أسعار، progress",
+    "sse.def": "قناة HTTP مفتوحة يبث عبرها الخادم أحداثاً نصية مستمرة إلى العميل. المتصفح يدعمها أصلاً عبر EventSource مع إعادة اتصال تلقائية.",
+    "sse.s1": "العميل يفتح اتصال EventSource إلى مسار الأحداث.",
+    "sse.s2": "الخادم يرد بـ Content-Type: text/event-stream ويبقي الاتصال مفتوحاً.",
+    "sse.s3": "كل حدث يُرسل ككتلة نصية (data: …) مفصولة بأسطر فارغة.",
+    "sse.s4": "عند انقطاع الاتصال يعيد العميل المحاولة تلقائياً.",
+    "sse.p1": "بسيط جداً للبث أحادي الاتجاه",
+    "sse.p2": "إعادة اتصال ومعرّفات أحداث مدمجة في المعيار",
+    "sse.p3": "يعمل جيداً مع HTTP/2 وتعدد الاتصالات",
+    "sse.c1": "اتجاه واحد فقط (من الخادم للعميل)",
+    "sse.c2": "نصي فقط — ليس مثالياً للبيانات الثنائية الثقيلة",
+    "sse.c3": "حدود اتصال على HTTP/1.1 لكل نطاق",
+    "sse.u1": "Live feeds وأخبار لحظية",
+    "sse.u2": "أسعار أسهم / مؤشرات",
+    "sse.u3": "شريط تقدّم المهام",
+    "sse.u4": "لوحات مراقبة وtelemetry",
+    "sse.flow.serverSub": "text/event-stream",
+    "sse.f1": "فتح اتصال دائم",
+    "sse.f2": "بث حدث 1",
+    "sse.f3": "بث حدث 2 …",
+    "sse.f4": "إعادة اتصال تلقائية عند الانقطاع",
+    "ws.badge": "ثنائي الاتجاه",
+    "ws.title": "WebSockets",
+    "ws.dir": "ثنائي الاتجاه",
+    "ws.proto": "TCP بعد HTTP handshake",
+    "ws.latency": "منخفض جداً",
+    "ws.complexity": "متوسط–عالٍ",
+    "ws.examples": "Chat، ألعاب، co-editing",
+    "ws.def": "بعد مصافحة HTTP للترقية (Upgrade)، يتحول الاتصال إلى قناة TCP ثنائية الاتجاه كاملة الإرسال — مثالية للدردشة، الألعاب، والتحرير التعاوني.",
+    "ws.s1": "العميل يطلب ترقية الاتصال عبر رؤوس HTTP الخاصة بـ WebSocket.",
+    "ws.s2": "الخادم يوافق (101 Switching Protocols).",
+    "ws.s3": "القناة تصبح ثنائية: إطارات نصية أو ثنائية في الاتجاهين.",
+    "ws.s4": "أي طرف يغلق الاتصال بإطار close عند الانتهاء.",
+    "ws.p1": "أقل تأخيراً للتفاعل ثنائي الاتجاه",
+    "ws.p2": "دعم البيانات النصية والثنائية",
+    "ws.p3": "كفاءة أعلى من فتح HTTP متكرر",
+    "ws.c1": "تعقيد أعلى (حالة الاتصال، إعادة الاتصال، التوسع)",
+    "ws.c2": "بعض البروكسيات/الجدران النارية تعيق الترقية",
+    "ws.c3": "يتطلب بنية تحتية تدير اتصالات طويلة الأمد",
+    "ws.u1": "دردشة فورية",
+    "ws.u2": "ألعاب متعددة اللاعبين",
+    "ws.u3": "تحرير تعاوني (co-editing)",
+    "ws.u4": "لوحات تداول تفاعلية",
+    "ws.flow.serverSub": "قناة كاملة الإرسال",
+    "ws.f1": "HTTP Upgrade handshake",
+    "ws.f2": "101 Switching Protocols",
+    "ws.f3": "رسائل في الاتجاهين",
+    "ws.f4": "إغلاق منظم (close frame)",
+    "wh.badge": "Server → Server",
+    "wh.title": "Webhooks",
+    "wh.dir": "أحادي (Server → Server)",
+    "wh.latency": "يعتمد على الشبكة",
+    "wh.complexity": "منخفض",
+    "wh.examples": "دفع، GitHub، Slack",
+    "wh.def": "عندما يحدث حدث عند مزوّد (Source)، يستدعي عنوان URL لديك (Destination) بطلب HTTP — عادة POST — محملاً ببيانات الحدث. نمط دفع بين خوادم وليس متصفحاً.",
+    "wh.s1": "تسجّل عنوان endpoint لدى المزوّد وتشترك في أنواع الأحداث.",
+    "wh.s2": "عند وقوع الحدث يرسل المزوّد طلب HTTP إلى عنوانك.",
+    "wh.s3": "خادمك يتحقق من التوقيع/المصادقة ويعالج الحمولة.",
+    "wh.s4": "ترد بسرعة (2xx)؛ المعالجة الثقيلة تُؤجَّل لطابور.",
+    "wh.p1": "لا حاجة لاستطلاع — دفع عند الحدث فقط",
+    "wh.p2": "تكامل بسيط بين أنظمة مستقلة",
+    "wh.p3": "منخفض التعقيد إن أُحسنت الموثوقية",
+    "wh.c1": "يتطلب endpoint عاماً موثوقاً ومتاحاً",
+    "wh.c2": "يجب التعامل مع إعادة المحاولة والترتيب المكرر",
+    "wh.c3": "أمن التوقيعات وتجنب الطلبات المزيفة ضروري",
+    "wh.u1": "بوابات دفع (Stripe وغيرها)",
+    "wh.u2": "أحداث GitHub / CI",
+    "wh.u3": "إشعارات Slack / Discord",
+    "wh.u4": "مزامنة CRM وأنظمة خارجية",
+    "wh.flow.sourceSub": "مزوّد الحدث",
+    "wh.flow.destSub": "endpoint لديك",
+    "wh.f1": "حدث عند المزوّد",
+    "wh.f2": "POST إلى Webhook URL",
+    "wh.f3": "التحقق والمعالجة",
+    "wh.f4": "رد 2xx (+ إعادة محاولة عند الفشل)",
+    "cmp.title": "جدول المقارنة",
+    "cmp.desc": "ملخص سريع لاختيار النمط المناسب حسب الاتجاه، التأخير، والتعقيد.",
+    "cmp.pattern": "النمط",
+    "cmp.complexity": "التعقيد",
+    "cmp.examples": "أمثلة استخدام",
+    "footer": "مرجع مستوحى من مفاهيم AlgoMaster وSystem Design — للتعلّم والمقارنة العملية بين أنماط التواصل اللحظي."
+  },
+  en: {
+    "brand": "Real-Time Patterns",
+    "hero.eyebrow": "System Design · Real-Time",
+    "hero.title": "Real-Time Communication Patterns",
+    "hero.desc": "Four core patterns for delivering updates between clients and servers — when to use each, how they work, and how they differ in practice.",
+    "nav.lp": "Long Polling",
+    "nav.sse": "SSE",
+    "nav.ws": "WebSockets",
+    "nav.wh": "Webhooks",
+    "nav.compare": "Compare",
+    "meta.dir": "Direction",
+    "meta.proto": "Protocol",
+    "meta.latency": "Latency",
+    "label.concept": "Concept & Definition",
+    "label.how": "How It Works",
+    "label.proscons": "Pros & Cons",
+    "label.pros": "Pros",
+    "label.cons": "Cons",
+    "label.usecases": "Use Cases",
+    "label.flow": "Protocol Flow",
+    "flow.play": "Play flow",
+    "flow.playing": "Playing…",
+    "flow.client": "Client",
+    "flow.server": "Server",
+    "flow.source": "Source",
+    "flow.dest": "Destination",
+    "lp.badge": "Repeated request / response",
+    "lp.title": "Long Polling",
+    "lp.dir": "Mostly one-way",
+    "lp.latency": "Medium–high",
+    "lp.complexity": "Low–medium",
+    "lp.examples": "Simple notifications, legacy chat",
+    "lp.def": "Instead of constantly short-polling, the client opens a request and the server holds it open until new data is available or a timeout fires — then the client immediately opens another request.",
+    "lp.s1": "The client sends an HTTP request and waits.",
+    "lp.s2": "The server holds the response until an event occurs or the timeout expires.",
+    "lp.s3": "When data is ready, the response is sent and the connection closes.",
+    "lp.s4": "The client immediately opens a new request to keep listening.",
+    "lp.p1": "Works over plain HTTP — no special protocol",
+    "lp.p2": "Friendly with older firewalls and proxies",
+    "lp.p3": "Simpler than WebSockets for one-way updates",
+    "lp.c1": "Higher overhead from repeatedly opening connections",
+    "lp.c2": "Extra delay between closing a response and the next request",
+    "lp.c3": "Server resources held by pending connections",
+    "lp.u1": "Simple notifications",
+    "lp.u2": "Legacy chat systems",
+    "lp.u3": "When SSE or WebSocket is unavailable",
+    "lp.u4": "Clients behind strict firewalls",
+    "lp.flow.clientSub": "Browser / app",
+    "lp.flow.serverSub": "Holds until event",
+    "lp.f1": "Held request (GET /events)",
+    "lp.f2": "New event on the server",
+    "lp.f3": "Response with data, then close",
+    "lp.f4": "Immediately re-request",
+    "sse.badge": "Server → Client",
+    "sse.title": "Server-Sent Events (SSE)",
+    "sse.dir": "One-way (Server → Client)",
+    "sse.latency": "Low",
+    "sse.complexity": "Low",
+    "sse.examples": "Live feeds, prices, progress",
+    "sse.def": "An open HTTP channel where the server continuously streams text events to the client. Browsers support it natively via EventSource with automatic reconnection.",
+    "sse.s1": "The client opens an EventSource connection to the events endpoint.",
+    "sse.s2": "The server responds with Content-Type: text/event-stream and keeps the connection open.",
+    "sse.s3": "Each event is a text block (data: …) separated by blank lines.",
+    "sse.s4": "On disconnect, the client automatically retries.",
+    "sse.p1": "Very simple for one-way streaming",
+    "sse.p2": "Built-in reconnection and event IDs",
+    "sse.p3": "Works well with HTTP/2 multiplexing",
+    "sse.c1": "One direction only (server to client)",
+    "sse.c2": "Text-oriented — not ideal for heavy binary",
+    "sse.c3": "Connection limits on HTTP/1.1 per origin",
+    "sse.u1": "Live feeds and news ticks",
+    "sse.u2": "Stock / metric streams",
+    "sse.u3": "Job progress bars",
+    "sse.u4": "Dashboards and telemetry",
+    "sse.flow.serverSub": "text/event-stream",
+    "sse.f1": "Open persistent connection",
+    "sse.f2": "Stream event 1",
+    "sse.f3": "Stream event 2 …",
+    "sse.f4": "Auto-reconnect on drop",
+    "ws.badge": "Bidirectional",
+    "ws.title": "WebSockets",
+    "ws.dir": "Bidirectional",
+    "ws.proto": "TCP after HTTP handshake",
+    "ws.latency": "Very low",
+    "ws.complexity": "Medium–high",
+    "ws.examples": "Chat, games, co-editing",
+    "ws.def": "After an HTTP Upgrade handshake, the connection becomes a full-duplex TCP channel — ideal for chat, games, and collaborative editing.",
+    "ws.s1": "The client requests an upgrade with WebSocket HTTP headers.",
+    "ws.s2": "The server accepts (101 Switching Protocols).",
+    "ws.s3": "The channel is bidirectional: text or binary frames either way.",
+    "ws.s4": "Either side closes with a close frame when done.",
+    "ws.p1": "Lowest latency for bidirectional interaction",
+    "ws.p2": "Supports text and binary payloads",
+    "ws.p3": "More efficient than repeated HTTP opens",
+    "ws.c1": "Higher complexity (state, reconnect, scaling)",
+    "ws.c2": "Some proxies/firewalls block the upgrade",
+    "ws.c3": "Needs infra that manages long-lived connections",
+    "ws.u1": "Realtime chat",
+    "ws.u2": "Multiplayer games",
+    "ws.u3": "Collaborative editing",
+    "ws.u4": "Interactive trading UIs",
+    "ws.flow.serverSub": "Full-duplex channel",
+    "ws.f1": "HTTP Upgrade handshake",
+    "ws.f2": "101 Switching Protocols",
+    "ws.f3": "Messages both ways",
+    "ws.f4": "Orderly close (close frame)",
+    "wh.badge": "Server → Server",
+    "wh.title": "Webhooks",
+    "wh.dir": "One-way (Server → Server)",
+    "wh.latency": "Network-dependent",
+    "wh.complexity": "Low",
+    "wh.examples": "Payments, GitHub, Slack",
+    "wh.def": "When an event occurs at a provider (Source), it calls your URL (Destination) with an HTTP request — usually POST — carrying the event payload. Push between servers, not browsers.",
+    "wh.s1": "You register an endpoint with the provider and subscribe to event types.",
+    "wh.s2": "On an event, the provider sends an HTTP request to your URL.",
+    "wh.s3": "Your server verifies signature/auth and handles the payload.",
+    "wh.s4": "Respond quickly (2xx); heavy work goes to a queue.",
+    "wh.p1": "No polling — push only when something happens",
+    "wh.p2": "Simple integration between independent systems",
+    "wh.p3": "Low complexity if reliability is handled well",
+    "wh.c1": "Needs a public, reliable, available endpoint",
+    "wh.c2": "Must handle retries and duplicate delivery",
+    "wh.c3": "Signature verification is essential against spoofing",
+    "wh.u1": "Payment gateways (Stripe, etc.)",
+    "wh.u2": "GitHub / CI events",
+    "wh.u3": "Slack / Discord notifications",
+    "wh.u4": "CRM and external sync",
+    "wh.flow.sourceSub": "Event provider",
+    "wh.flow.destSub": "Your endpoint",
+    "wh.f1": "Event at the provider",
+    "wh.f2": "POST to webhook URL",
+    "wh.f3": "Verify and process",
+    "wh.f4": "2xx response (+ retries on failure)",
+    "cmp.title": "Comparison Matrix",
+    "cmp.desc": "A quick summary to pick the right pattern by direction, latency, and complexity.",
+    "cmp.pattern": "Pattern",
+    "cmp.complexity": "Complexity",
+    "cmp.examples": "Example uses",
+    "footer": "Inspired by AlgoMaster and System Design concepts — for learning and practical comparison of realtime communication patterns."
+  }
+};
+
+const FLOW_HIGHLIGHT = {
+  lp: [
+    { client: true, server: false, arrow: true },
+    { client: false, server: true, arrow: false },
+    { client: true, server: true, arrow: true },
+    { client: true, server: false, arrow: true }
+  ],
+  sse: [
+    { client: true, server: true, arrow: true },
+    { client: true, server: true, arrow: true },
+    { client: true, server: true, arrow: true },
+    { client: true, server: false, arrow: true }
+  ],
+  ws: [
+    { client: true, server: false, arrow: true },
+    { client: true, server: true, arrow: true },
+    { client: true, server: true, arrow: true },
+    { client: true, server: true, arrow: false }
+  ],
+  wh: [
+    { client: true, server: false, arrow: false },
+    { client: true, server: true, arrow: true },
+    { client: false, server: true, arrow: false },
+    { client: true, server: true, arrow: true }
+  ]
+};
+
+const timers = {};
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function applyLang(lang) {
+  const dict = i18n[lang] || i18n.ar;
+  const dir = lang === "ar" ? "rtl" : "ltr";
+  document.documentElement.lang = lang;
+  document.documentElement.dir = dir;
+  document.title = lang === "ar"
+    ? "أنماط التواصل في الوقت الفعلي"
+    : "Real-Time Communication Patterns";
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    if (dict[key] != null) el.textContent = dict[key];
+  });
+
+  document.querySelectorAll(".lang-toggle button").forEach((btn) => {
+    btn.classList.toggle("active", btn.getAttribute("data-lang") === lang);
+  });
+
+  // Refresh play button labels if not mid-animation
+  document.querySelectorAll(".play-btn").forEach((btn) => {
+    if (!btn.disabled) btn.textContent = dict["flow.play"];
+  });
+
+  localStorage.setItem("rt-patterns-lang", lang);
+}
+
+function clearFlow(panel) {
+  panel.querySelectorAll(".node, .flow-arrow, .flow-step").forEach((el) => {
+    el.classList.remove("active");
+  });
+}
+
+function playFlow(id) {
+  const panel = document.querySelector(`[data-flow="${id}"]`);
+  const btn = document.querySelector(`[data-play="${id}"]`);
+  if (!panel || !btn) return;
+
+  if (timers[id]) {
+    timers[id].forEach(clearTimeout);
+    timers[id] = [];
+  }
+
+  const lang = document.documentElement.lang || "ar";
+  const dict = i18n[lang] || i18n.ar;
+  const steps = panel.querySelectorAll(".flow-step");
+  const client = panel.querySelector('[data-node="client"]');
+  const server = panel.querySelector('[data-node="server"]');
+  const arrow = panel.querySelector("[data-arrow]");
+  const sequence = FLOW_HIGHLIGHT[id] || [];
+
+  clearFlow(panel);
+  btn.disabled = true;
+  btn.textContent = dict["flow.playing"];
+
+  const stepDelay = reducedMotion ? 0 : 900;
+  const hold = reducedMotion ? 0 : 400;
+  timers[id] = [];
+
+  const run = (i) => {
+    if (i >= steps.length) {
+      timers[id].push(setTimeout(() => {
+        clearFlow(panel);
+        btn.disabled = false;
+        btn.textContent = dict["flow.play"];
+      }, hold + 200));
+      return;
+    }
+
+    steps.forEach((s) => s.classList.remove("active"));
+    steps[i].classList.add("active");
+
+    const h = sequence[i] || {};
+    client.classList.toggle("active", !!h.client);
+    server.classList.toggle("active", !!h.server);
+    if (arrow) arrow.classList.toggle("active", !!h.arrow);
+
+    timers[id].push(setTimeout(() => run(i + 1), stepDelay));
+  };
+
+  run(0);
+}
+
+document.querySelectorAll(".lang-toggle button").forEach((btn) => {
+  btn.addEventListener("click", () => applyLang(btn.getAttribute("data-lang")));
+});
+
+document.querySelectorAll(".play-btn").forEach((btn) => {
+  btn.addEventListener("click", () => playFlow(btn.getAttribute("data-play")));
+});
+
+const saved = localStorage.getItem("rt-patterns-lang");
+applyLang(saved === "en" || saved === "ar" ? saved : "ar");
+</script>
+</body>
+</html>

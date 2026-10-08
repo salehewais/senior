@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Understanding Cards — Odoo Reporting Solutions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a1210;
+      --panel: #121c18;
+      --line: #2a4036;
+      --text: #eaf3ee;
+      --muted: #93a89c;
+      --amber: #f0b35a;
+      --mint: #45d6a0;
+      --rose: #ef7a6a;
+      --sky: #7eb8ff;
+      --font: "IBM Plex Sans Arabic", sans-serif;
+      --display: Syne, "IBM Plex Sans Arabic", sans-serif;
+      --mono: "IBM Plex Mono", monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(900px 500px at 100% 0%, rgba(240,179,90,.1), transparent 55%),
+        radial-gradient(700px 400px at 0% 20%, rgba(69,214,160,.07), transparent 50%),
+        var(--bg);
+      line-height: 1.75;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      max-width: 1100px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+    nav {
+      position: sticky; top: 0; height: 100vh; overflow: auto;
+      padding: 1.2rem .9rem 2rem;
+      border-left: 1px solid var(--line);
+      background: rgba(10,18,16,.9);
+    }
+    .brand {
+      font-family: var(--display); font-weight: 800; font-size: 1.15rem;
+      direction: ltr; text-align: right; margin-bottom: .2rem;
+    }
+    .tag { color: var(--muted); font-size: .82rem; margin-bottom: 1rem; }
+    .lang { display: flex; gap: .35rem; margin-bottom: 1rem; }
+    .lang button {
+      flex: 1; border: 1px solid var(--line); background: transparent;
+      color: var(--muted); border-radius: 999px; padding: .35rem;
+      font-family: var(--font); cursor: pointer;
+    }
+    .lang button.on {
+      background: rgba(240,179,90,.15); border-color: rgba(240,179,90,.45); color: var(--amber);
+    }
+    nav a {
+      display: block; color: var(--muted); text-decoration: none;
+      padding: .28rem .45rem; border-radius: 8px; font-size: .86rem;
+    }
+    nav a:hover { background: rgba(69,214,160,.1); color: var(--text); }
+    main { padding: 1.5rem 1.4rem 3.5rem; }
+    .hero {
+      padding: 1.4rem 1.3rem; border: 1px solid var(--line); border-radius: 16px;
+      background: linear-gradient(145deg, #15241e, #101816); margin-bottom: 1.4rem;
+    }
+    .hero h1 {
+      font-family: var(--display); margin: 0 0 .5rem;
+      font-size: clamp(1.5rem, 3vw, 2.2rem); letter-spacing: -.02em;
+    }
+    .hero p { margin: 0; color: var(--muted); }
+    .tpl-note {
+      margin-top: .9rem; padding: .7rem .9rem; border-radius: 10px;
+      border: 1px dashed rgba(240,179,90,.4); color: var(--amber); font-size: .9rem;
+    }
+
+    /* ===== CARD TEMPLATE (collapsed by default) ===== */
+    details.card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      margin-bottom: .85rem;
+      scroll-margin-top: 1rem;
+      overflow: hidden;
+    }
+    details.card[open] {
+      border-color: rgba(69,214,160,.4);
+      padding-bottom: .25rem;
+    }
+    details.card > summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: 1rem 1.15rem;
+      user-select: none;
+    }
+    details.card > summary::-webkit-details-marker { display: none; }
+    details.card > summary::after {
+      content: "+";
+      margin-inline-start: auto;
+      color: var(--amber);
+      font-family: var(--display);
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+    details.card[open] > summary::after { content: "−"; }
+    details.card > summary:hover { background: rgba(69,214,160,.06); }
+    .card-body { padding: 0 1.15rem 1.25rem; }
+    .card h2 {
+      font-family: var(--display);
+      font-size: 1.2rem;
+      margin: 0;
+      letter-spacing: -.02em;
+      flex: 1;
+    }
+    .card h2 .n {
+      color: var(--amber); margin-inline-end: .35rem; direction: ltr; display: inline-block;
+    }
+    .def {
+      color: var(--text); margin: 0 0 1rem; font-size: 1.05rem;
+      padding: .85rem 1rem; border-radius: 12px;
+      background: rgba(69,214,160,.07); border: 1px solid rgba(69,214,160,.22);
+    }
+    .def strong { color: var(--mint); }
+    pre.diagram {
+      margin: 0 0 1rem; padding: 1rem 1.1rem;
+      background: #0a100e; border: 1px solid var(--line); border-radius: 12px;
+      font-family: var(--mono); font-size: .78rem; line-height: 1.45;
+      color: #cfe6da; direction: ltr; text-align: left; overflow: auto;
+      white-space: pre;
+    }
+    .section { margin: 1.1rem 0 .35rem; }
+    .section h3 {
+      margin: 0 0 .45rem; font-size: .95rem; color: var(--amber);
+      letter-spacing: .02em;
+    }
+    .section ul {
+      margin: 0; padding: 0 1.2rem 0 0; color: var(--muted);
+    }
+    .section p { margin: 0; color: var(--muted); }
+    .qa {
+      margin-top: 1.25rem; padding-top: 1rem;
+      border-top: 1px solid rgba(42,64,54,.8);
+    }
+    .qa h3 {
+      margin: 0 0 .75rem; font-size: 1rem; color: var(--sky);
+    }
+    .qa-item {
+      margin-bottom: .85rem; padding: .75rem .9rem;
+      border-radius: 10px; background: rgba(0,0,0,.22); border: 1px solid rgba(42,64,54,.6);
+    }
+    .qa-item .q {
+      font-weight: 700; color: var(--text); margin-bottom: .25rem; font-size: .92rem;
+    }
+    .qa-item .a { color: var(--muted); font-size: .92rem; }
+    .meta {
+      display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 1rem;
+    }
+    .chip {
+      font-size: .72rem; padding: .2rem .55rem; border-radius: 999px;
+      border: 1px solid var(--line); color: var(--muted); font-family: var(--mono);
+      direction: ltr;
+    }
+    .run {
+      margin-top: 1rem; font-family: var(--mono); font-size: .8rem;
+      direction: ltr; text-align: left; color: var(--sky);
+      background: rgba(126,184,255,.08); border: 1px solid rgba(126,184,255,.25);
+      padding: .5rem .75rem; border-radius: 10px;
+    }
+    /* Language: only ONE language visible (fix mixed AR+EN) */
+    html[lang="ar"] .en-only { display: none !important; }
+    html[lang="ar"] .ar-only { display: revert !important; }
+    html[lang="en"] .ar-only { display: none !important; }
+    html[lang="en"] .en-only { display: revert !important; }
+    html[lang="en"] { direction: ltr; }
+    html[lang="en"] nav { border-left: none; border-right: 1px solid var(--line); }
+    html[lang="en"] .brand { text-align: left; }
+    html[lang="en"] .section ul { padding: 0 0 0 1.2rem; }
+    html[lang="ar"] .section ul { padding: 0 1.2rem 0 0; }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      nav { position: relative; height: auto; border: none; border-bottom: 1px solid var(--line); }
+      main { padding: 1rem .9rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav>
+      <div class="brand">Cards</div>
+      <div class="tag ar-only">نفس القالب لكل حل</div>
+      <div class="tag en-only">Same template every card</div>
+      <div class="lang">
+        <button type="button" id="btn-ar" class="on" onclick="setLang('ar')">عربي</button>
+        <button type="button" id="btn-en" onclick="setLang('en')">EN</button>
+      </div>
+      <div id="nav-links"></div>
+    </nav>
+    <main>
+      <header class="hero">
+        <h1 class="ar-only">بطاقات الفهم — قالب موحّد</h1>
+        <h1 class="en-only">Understanding cards — one template</h1>
+        <p class="ar-only">كل حل بنفس الشكل اللي طلبته: تعريف · رسم · هدف · مكاسب · ثمن · مكان · مهم · Odoo · ثم 11 سؤال.</p>
+        <p class="en-only">Every solution uses your template: definition · diagram · goal · gains · cost · where · important · Odoo · then 11 questions.</p>
+        <div class="tpl-note ar-only">اضغط على أي كارت عشان تفتحه. اللغة عربي أو EN من الشريط الجانبي — مش الاتنين مع بعض.</div>
+        <div class="tpl-note en-only">Click a card to open it. Use AR or EN in the sidebar — never both at once.</div>
+      </header>
+      <div id="cards"></div>
+    </main>
+  </div>
+
+  <script>
+  /**
+   * Card template fields (every solution):
+   * title, file, def_ar, def_en, diagram, flow,
+   * goal_ar/en, gains[], costs[], where_ar/en, important_ar/en, odoo_ar/en,
+   * qa: { what, problem, where, how, beforeAfter, benefit, cost, when, whenNot, odoo, diff }
+   * each qa value: { ar, en }
+   */
+  const S = [
+    {
+      n: 1, title: "Partitioning", file: "01_partitioning.py",
+      def_ar: "Partitioning = تقسيم جدول كبير إلى أجزاء أصغر (Partitions) بحيث يقدر الـ Database يقرأ الـ partitions المطلوبة فقط بدل التعامل مع الجدول كله.",
+      def_en: "Partitioning = split one large table into smaller parts so the DB can read only needed partitions instead of the whole table.",
+      diagram: `                account.move.line
+                     │
+          ┌──────────┼──────────┐
+          ▼          ▼          ▼
+        2024        2025       2026
+      partition   partition   partition`,
+      flow: `Query
+  ↓
+Partition Pruning
+  ↓
+Relevant Partition(s)
+  ↓
+Less data scanned`,
+      goal_ar: "تقليل كمية البيانات اللي الـ query بتقرأها.",
+      goal_en: "Reduce the amount of data scanned.",
+      gains: [
+        { ar: "Less data scanned", en: "Less data scanned" },
+        { ar: "Partition pruning", en: "Partition pruning" },
+        { ar: "Better data locality", en: "Better data locality" },
+        { ar: "أسهل أرشفة للـ partitions القديمة", en: "Easier archiving of old partitions" },
+        { ar: "صيانة أسهل في بعض السيناريوهات", en: "Easier maintenance in some scenarios" },
+      ],
+      costs: [
+        { ar: "تعقيد أعلى", en: "More complexity" },
+        { ar: "اختيار partition key صح", en: "Choosing the right partition key" },
+        { ar: "اعتبارات Indexes / Constraints", en: "Index/constraint considerations" },
+        { ar: "توافق ORM / التطبيق", en: "ORM/application compatibility" },
+        { ar: "تعقيد Migration / Upgrade", en: "Migration/upgrade complexity" },
+      ],
+      where_ar: "عادة داخل نفس PostgreSQL database/server.",
+      where_en: "Usually inside the same PostgreSQL database/server.",
+      important_ar: "Partitioning ≠ Replication ≠ Sharding\n\nPartitioning → Split one table\nReplication  → Copy the data\nSharding     → Distribute data across nodes/databases",
+      important_en: "Partitioning ≠ Replication ≠ Sharding\n\nPartitioning → Split one table\nReplication  → Copy the data\nSharding     → Distribute data across nodes/databases",
+      odoo_ar: "تقسيم account.move.line خطر نسبياً: جدول أساسي + ORM/FK/ترقيات. مش أول حل تعمله بعماية.",
+      odoo_en: "Partitioning account.move.line can be risky: core transactional table with ORM/FK/upgrade considerations. Not the first solution to apply blindly.",
+      qa: {
+        what: {
+          ar: "تقسيم جدول واحد كبير إلى partitions (مثلاً بالسنة/الشهر).",
+          en: "Splitting one large table into partitions (e.g. by year/month)."
+        },
+        problem: {
+          ar: "Query بتمس 200M صف حتى لو محتاج شهر واحد.",
+          en: "A query touches 200M rows even when it only needs one month."
+        },
+        where: {
+          ar: "نفس الـ PostgreSQL — مستوى الجدول.",
+          en: "Same PostgreSQL — table level."
+        },
+        how: {
+          ar: "PostgreSQL يعمل Partition Pruning ويقرأ الجزء المطابق للـ WHERE.",
+          en: "PostgreSQL does partition pruning and reads only partitions matching the WHERE."
+        },
+        beforeAfter: {
+          ar: "قبل: scan 200M · بعد: scan partition يناير فقط.",
+          en: "Before: scan 200M · After: scan January partition only."
+        },
+        benefit: {
+          ar: "أقل بيانات تتقرأ (data reduction للـ range queries).",
+          en: "Less data scanned (data reduction for range queries)."
+        },
+        cost: {
+          ar: "تعقيد تشغيلي + توافق Odoo.",
+          en: "Operational complexity + Odoo compatibility."
+        },
+        when: {
+          ar: "بعد ما تفشل الحلول الأبسط، وللـ range queries واضحة على تاريخ.",
+          en: "After simpler levers, when date-range queries dominate."
+        },
+        whenNot: {
+          ar: "كخطوة أولى بعد الـ indexes، أو قبل ما تفهم تأثيره على Odoo.",
+          en: "As the first step after indexes, or before you understand Odoo impact."
+        },
+        odoo: {
+          ar: "AML جدول محاسبي أساسي — ادرس FK/ORM/modules قبل أي partition.",
+          en: "AML is a core accounting table — study FK/ORM/modules before partitioning."
+        },
+        diff: {
+          ar: "Partition = قسّم جدول · Replica = انسخ البيانات · Shard = وزّع على أكثر من node.",
+          en: "Partition = split a table · Replica = copy data · Shard = distribute across nodes."
+        }
+      }
+    },
+    {
+      n: 2, title: "Read Replica", file: "02_read_replica.py",
+      def_ar: "Read Replica = نسخة قراءة من PostgreSQL. الـ Writes تروح Primary، والتقارير الثقيلة تروح Replica.",
+      def_en: "Read Replica = a read-only copy of PostgreSQL. Writes go to Primary; heavy reports go to Replica.",
+      diagram: `             Primary DB
+                 │
+          Replication
+                 │
+                 ▼
+             Read Replica
+                 │
+              Reports`,
+      flow: `POS / Odoo writes → Primary
+Reports (SELECT)  → Replica
+                     ↓
+              Workload isolation
+(same ~200M rows still exist on replica)`,
+      goal_ar: "عزل شغل التقارير عن شغل الكتابة / POS.",
+      goal_en: "Isolate reporting workload from writes / POS.",
+      gains: [
+        { ar: "يعزل Write عن Read", en: "Isolates write from read" },
+        { ar: "يحمي Latency بتاع POS", en: "Protects POS latency" },
+        { ar: "تقارير Exact تقدر تفضل على شكل الدفتر", en: "Exact reports can stay ledger-shaped" },
+      ],
+      costs: [
+        { ar: "Replica لسه فيه 200M صف", en: "Replica still has 200M rows" },
+        { ar: "فيه Lag", en: "Replication lag" },
+        { ar: "التقرير السيئ يفضل تقيل", en: "Bad queries stay expensive" },
+      ],
+      where_ar: "PostgreSQL streaming replica (سيرفر/instance منفصل عادة).",
+      where_en: "PostgreSQL streaming replica (usually separate server/instance).",
+      important_ar: "Read Replica = Workload Isolation\nمش بالضرورة Query Optimization.\n\nReplica ≠ أصغر بيانات",
+      important_en: "Read Replica = Workload Isolation\nNot necessarily query optimization.\n\nReplica ≠ smaller data",
+      odoo_ar: "لا توجّه db_host بتاع Odoo كله على الـ replica (هيكسر الـ writes). التقارير فقط.",
+      odoo_en: "Do not point Odoo’s main db_host at the replica (breaks writes). Reports only.",
+      qa: {
+        what: { ar: "نسخة قراءة متزامنة تقريباً من Primary.", en: "Nearly synchronized read-only copy of Primary." },
+        problem: { ar: "التقارير بتتنافس مع POS على نفس الـ DB.", en: "Reports compete with POS on the same DB." },
+        where: { ar: "Replica server / instance.", en: "Replica server / instance." },
+        how: { ar: "Streaming replication؛ التقرير يستخدم DSN مختلف.", en: "Streaming replication; reports use a different DSN." },
+        beforeAfter: { ar: "قبل: كل حاجة على Primary · بعد: Writes Primary / Reports Replica.", en: "Before: everything on Primary · After: writes Primary / reports Replica." },
+        benefit: { ar: "عزل الـ workload وحماية الـ writes.", en: "Workload isolation and write protection." },
+        cost: { ar: "ما بيقللش حجم البيانات المقروءة لوحده.", en: "Does not shrink scanned data by itself." },
+        when: { ar: "أول ما التقارير تأثر على POS.", en: "As soon as reports hurt POS." },
+        whenNot: { ar: "لو المشكلة إن الـ query نفسها سيئة ومفيش عزل محتاج — لسه محتاج Pre-Agg.", en: "If the query itself is the pain — you still need pre-agg." },
+        odoo: { ar: "Exact reports على replica مع lag gate.", en: "Exact reports on replica with a lag gate." },
+        diff: { ar: "Replica ينسخ كل البيانات · Reporting DB يغيّر شكلها · Partition يقسم جدول واحد.", en: "Replica copies all data · Reporting DB reshapes it · Partition splits one table." }
+      }
+    },
+    {
+      n: 3, title: "Separate Reporting Server", file: "03_separate_reporting_server.py",
+      def_ar: "تشغيل توليد التقارير على سيرفر/host منفصل عشان CPU/RAM/Connections ما تاكلش من Odoo web/POS.",
+      def_en: "Run report generation on a separate host so CPU/RAM/connections don’t starve Odoo web/POS.",
+      diagram: `          ┌────────────┴────────────┐
+          │                         │
+     Odoo Server             Reporting Server
+     (POS / UI)              (Workers / PDF)
+          │                         │
+     Primary DB  ◄──── reads ───────┘ (via replica ideally)`,
+      flow: `User clicks Generate
+  ↓
+Enqueue on reporting host
+  ↓
+Worker uses CPU/RAM there
+  ↓
+Odoo web tier stays free`,
+      goal_ar: "عزل موارد التطبيق (App isolation).",
+      goal_en: "Isolate application resources (app isolation).",
+      gains: [
+        { ar: "CPU/RAM التقارير بعيد عن POS", en: "Report CPU/RAM off POS" },
+        { ar: "Connections منفصلة", en: "Separate connections" },
+        { ar: "يسهّل الـ horizontal scale للـ workers", en: "Easier to scale workers" },
+      ],
+      costs: [
+        { ar: "تشغيل وصيانة سيرفر إضافي", en: "Extra host to operate" },
+        { ar: "Auth / deploy / monitoring", en: "Auth / deploy / monitoring" },
+      ],
+      where_ar: "Infrastructure / app tier (مش لازم DB منفصل).",
+      where_en: "Infrastructure / app tier (not necessarily a separate DB).",
+      important_ar: "Separate server ≠ Reporting DB.\nممكن تقرأ من Replica وأنت على سيرفر تقارير.",
+      important_en: "Separate server ≠ Reporting DB.\nYou can still read from a Replica.",
+      odoo_ar: "Odoo HTTP يفضّل يـ enqueue فقط؛ الـ heavy SQL على reporting workers.",
+      odoo_en: "Prefer Odoo HTTP only enqueues; heavy SQL on reporting workers.",
+      qa: {
+        what: { ar: "Host منفصل لعمال التقارير.", en: "Separate host for report workers." },
+        problem: { ar: "تقرير ثقيل بياخد CPU من سيرفر الـ POS.", en: "Heavy reports steal CPU from the POS server." },
+        where: { ar: "App/infra layer.", en: "App/infra layer." },
+        how: { ar: "Queue + workers على reporting host.", en: "Queue + workers on reporting host." },
+        beforeAfter: { ar: "قبل: تقرير على نفس web workers · بعد: process/host منفصل.", en: "Before: report on same web workers · After: separate process/host." },
+        benefit: { ar: "POS يفضل responsive.", en: "POS stays responsive." },
+        cost: { ar: "تكلفة تشغيل.", en: "Ops cost." },
+        when: { ar: "مع Phase 1 isolation package.", en: "With the Phase 1 isolation package." },
+        whenNot: { ar: "لو مفيش ضغط موارد أصلاً — مش أولوية.", en: "If there’s no resource pressure — not a priority." },
+        odoo: { ar: "افصل longpolling/POS عن report workers.", en: "Keep longpolling/POS off report workers." },
+        diff: { ar: "Server isolation ≠ DB replica ≠ smaller data.", en: "Server isolation ≠ DB replica ≠ smaller data." }
+      }
+    },
+    {
+      n: 4, title: "Reporting Database", file: "04_reporting_db.py",
+      def_ar: "قاعدة بيانات مخصصة للتقارير بجداول Fact/Dim محسّنة للقراءة — مش شكل account.move.line.",
+      def_en: "A dedicated analytical DB with fact/dim tables optimized for reads — not account.move.line shape.",
+      diagram: `Odoo DB
+   │ data pipeline / ETL
+   ▼
+Reporting DB
+   ├── fact_aml_daily
+   ├── fact_sales_daily
+   ├── dim_branch
+   └── dim_account`,
+      flow: `AML (200M)
+  ↓ aggregate / sync
+fact_aml_daily (much smaller)
+  ↓
+Analytical reports / light BI`,
+      goal_ar: "قراءات تحليلية رخيصة + عزل عن Primary.",
+      goal_en: "Cheap analytical reads + isolation from Primary.",
+      gains: [
+        { ar: "عزل Write/Read", en: "Isolates write/read" },
+        { ar: "تصغير شكل البيانات", en: "Smaller/friendlier data shape" },
+        { ar: "حرية indexes/schema", en: "Freedom for indexes/schema" },
+      ],
+      costs: [
+        { ar: "Pipeline / sync لازم يتشغّل", en: "Pipeline/sync must run" },
+        { ar: "Lag / drift ممكن", en: "Lag / drift possible" },
+        { ar: "مصدرَين للحقيقة لو استُخدم غلط", en: "Two sources of truth if misused" },
+      ],
+      where_ar: "PostgreSQL (أو مخزن تحليلي) منفصل عن Odoo primary.",
+      where_en: "Separate PostgreSQL (or analytical store) from Odoo primary.",
+      important_ar: "Reporting DB للـ Analytical.\nExact/statutory تفضل على Odoo schema ما لم تثبت التطابق.",
+      important_en: "Reporting DB is for Analytical.\nExact/statutory stay on Odoo schema unless parity is proven.",
+      odoo_ar: "ابنِ الحقائق من replica؛ ما تكتبش في AML من الـ ETL.",
+      odoo_en: "Build facts from replica; never write AML from ETL.",
+      qa: {
+        what: { ar: "DB تحليلي بـ facts/dims.", en: "Analytical DB with facts/dims." },
+        problem: { ar: "التقارير مربوطة بشكل AML الثقيل.", en: "Reports stuck to heavy AML shape." },
+        where: { ar: "Separate reporting database.", en: "Separate reporting database." },
+        how: { ar: "ETL/CDC من Odoo/replica → facts.", en: "ETL/CDC from Odoo/replica → facts." },
+        beforeAfter: { ar: "قبل: 200M lines · بعد: daily facts.", en: "Before: 200M lines · After: daily facts." },
+        benefit: { ar: "عزل + تصغير معاً.", en: "Isolation + reduction together." },
+        cost: { ar: "تشغيل الـ sync والمطابقة.", en: "Running sync and reconciliation." },
+        when: { ar: "بعد ما Pre-Agg على replica ينجح ويضيق.", en: "After pre-agg on replica works and gets tight." },
+        whenNot: { ar: "لتقارير ZATCA/Exact بدون parity.", en: "For ZATCA/Exact without parity." },
+        odoo: { ar: "أبقِ Odoo write model؛ Reporting DB = read model.", en: "Keep Odoo as write model; Reporting DB = read model." },
+        diff: { ar: "أقوى من Replica وحده لأنه بيغيّر الشكل مش بس ينسخ.", en: "Stronger than replica alone — reshapes data, not just copies it." }
+      }
+    },
+    {
+      n: 5, title: "Read Model", file: "05_read_model.py",
+      def_ar: "نموذج قراءة مخصص للتقارير (projection) منفصل عن نموذج الكتابة transactional.",
+      def_en: "A query-optimized projection separate from the transactional write model.",
+      diagram: `Write Model          Read Model
+account.move.line    accounting_daily_summary
+      │                      │
+   Commands               Queries
+      │                      │
+   Primary               Reports`,
+      flow: `Report
+  ↓
+Read Model (date × branch × account …)
+  ↓
+NOT raw 200M AML`,
+      goal_ar: "خلي القراءة رخيصة وثابتة الشكل.",
+      goal_en: "Make reads cheap and shape-stable.",
+      gains: [
+        { ar: "استعلام مخصص للتقرير", en: "Query shaped for the report" },
+        { ar: "يقلل الاعتماد على AML", en: "Less dependence on AML" },
+        { ar: "أساس CQRS", en: "Foundation for CQRS" },
+      ],
+      costs: [
+        { ar: "لازم يتبني ويتحدّث", en: "Must be built and refreshed" },
+        { ar: "Eventual consistency", en: "Eventual consistency" },
+      ],
+      where_ar: "جداول summary على replica أو Reporting DB.",
+      where_en: "Summary tables on replica or Reporting DB.",
+      important_ar: "Read Model ≠ Cache.\nالـ Cache بيحفظ نتيجة طلب؛ الـ Read Model نموذج بيانات للقراءة.",
+      important_en: "Read Model ≠ Cache.\nCache stores a response; Read Model is a durable read-side data model.",
+      odoo_ar: "مثال: accounting_daily_summary بدل read_group على AML كل مرة.",
+      odoo_en: "Example: accounting_daily_summary instead of read_group on AML every time.",
+      qa: {
+        what: { ar: "Projection محسّن للاستعلام.", en: "A projection optimized for queries." },
+        problem: { ar: "التقرير بيقرأ نموذج الكتابة الثقيل.", en: "Reports read the heavy write model." },
+        where: { ar: "جانب القراءة (summary / reporting DB).", en: "Read side (summary / reporting DB)." },
+        how: { ar: "يُبنى من الحركات (batch أو events).", en: "Built from movements (batch or events)." },
+        beforeAfter: { ar: "قبل: Report→AML · بعد: Report→Read Model.", en: "Before: Report→AML · After: Report→Read Model." },
+        benefit: { ar: "قراءات أرخص وأوضح.", en: "Cheaper, clearer reads." },
+        cost: { ar: "صيانة التحديث والتطابق.", en: "Maintaining refresh and parity." },
+        when: { ar: "للـ Analytical reports.", en: "For analytical reports." },
+        whenNot: { ar: "كبديل للدفاتر الرسمية بدون إثبات.", en: "As a substitute for statutory books without proof." },
+        odoo: { ar: "خلي Odoo يكتب AML؛ ابنِ read model جنبه.", en: "Let Odoo write AML; build a read model beside it." },
+        diff: { ar: "Read Model أوسع من MatView؛ MatView وسيلة سريعة لبنائه.", en: "Read Model is broader than MatView; MatView is a fast way to build one." }
+      }
+    },
+    {
+      n: 6, title: "Pre-Aggregation", file: "06_pre_aggregation.py",
+      def_ar: "حساب التجميعات (SUM/GROUP BY) مسبقاً وتخزينها في جداول ملخص — بدل ما كل تقرير يعيد الحساب على 200M.",
+      def_en: "Compute aggregates (SUM/GROUP BY) ahead of time into summary tables — instead of every report re-scanning 200M.",
+      diagram: `Raw AML 200M
+      ↓ Aggregation job
+Daily Summary
+date × company × branch × account
+      ↓
+Reports read thousands–millions`,
+      flow: `Nightly / incremental job
+  ↓
+Build summary
+  ↓
+Many users read summary
+  ↓
+Huge ROI for analytical load`,
+      goal_ar: "تصغير البيانات المقروءة — أكبر مكسب أداء عندك.",
+      goal_en: "Shrink scanned data — your biggest performance win.",
+      gains: [
+        { ar: "⭐⭐⭐ أقل بيانات", en: "⭐⭐⭐ Far less data" },
+        { ar: "⭐⭐⭐ أسرع تقارير إدارية", en: "⭐⭐⭐ Faster management reports" },
+        { ar: "يقلل تكرار الحساب", en: "Avoids repeated aggregation" },
+      ],
+      costs: [
+        { ar: "تأخير as-of حسب جدول التحديث", en: "as-of lag based on refresh" },
+        { ar: "اختيار الـ grain الصح", en: "Choosing the right grain" },
+        { ar: "مش مناسب لكل Exact reports", en: "Not suitable for all Exact reports" },
+      ],
+      where_ar: "جداول reporting.* على replica أولاً، ثم Reporting DB.",
+      where_en: "reporting.* tables on replica first, then Reporting DB.",
+      important_ar: "Replica بدون Aggregation لسه بيمسح 200M.\nPre-Agg هو اللي بيخلّي 200M تحس بآلاف.",
+      important_en: "Replica without aggregation still scans 200M.\nPre-agg is what makes 200M feel like thousands.",
+      odoo_ar: "للـ Analytical فقط في البداية: KPIs، مبيعات يومية، P&L إداري.",
+      odoo_en: "Analytical only at first: KPIs, daily sales, management P&L.",
+      qa: {
+        what: { ar: "ملخصات محسوبة مسبقاً.", en: "Precomputed summary tables." },
+        problem: { ar: "كل تقرير بيعمل SUM على AML.", en: "Every report SUMs AML live." },
+        where: { ar: "Summary tables / matviews.", en: "Summary tables / matviews." },
+        how: { ar: "Job ليلي + اختياري incremental.", en: "Nightly job + optional incremental." },
+        beforeAfter: { ar: "قبل: 10× scan AML · بعد: ابنِ مرة + 10 قراءات رخيصة.", en: "Before: 10× AML scan · After: build once + 10 cheap reads." },
+        benefit: { ar: "أعلى ROI لأداء 200M.", en: "Highest ROI for 200M performance." },
+        cost: { ar: "freshness / grain design.", en: "Freshness / grain design." },
+        when: { ar: "Phase 2 بعد العزل.", en: "Phase 2 after isolation." },
+        whenNot: { ar: "Trial balance الرسمي بدون parity.", en: "Official trial balance without parity." },
+        odoo: { ar: "شوف examples/06 و phases/02-preaggregation.", en: "See examples/06 and phases/02-preaggregation." },
+        diff: { ar: "Pre-Agg هدف · MatView وسيلة · Cache نتيجة طلب مؤقتة.", en: "Pre-agg is the goal · MatView is a means · Cache is a temporary response." }
+      }
+    },
+    {
+      n: 7, title: "Materialized View", file: "07_materialized_view.py",
+      def_ar: "نتيجة استعلام معقّد متخزّنة في DB وتتحدّث بـ REFRESH حسب جدول زمني.",
+      def_en: "A stored result of a complex query, refreshed on a schedule with REFRESH.",
+      diagram: `Complex Query
+     ↓ Execute
+Store Result (Materialized View)
+     ↓
+Reports read stored result
+     ↓
+REFRESH every 5m / 15m / nightly`,
+      flow: `DEFINE MV
+  ↓
+REFRESH CONCURRENTLY
+  ↓
+SELECT FROM MV (fast, maybe slightly stale)`,
+      goal_ar: "مسار سريع لـ Pre-Aggregation بدون جداول يدوية كثيرة.",
+      goal_en: "Fast path to pre-aggregation without many hand-rolled tables.",
+      gains: [
+        { ar: "سهل البداية", en: "Easy to start" },
+        { ar: "نتائج جاهزة للقراءة", en: "Ready-to-read results" },
+        { ar: "ممتاز لو مش محتاج real-time", en: "Great when not real-time" },
+      ],
+      costs: [
+        { ar: "بين الـ REFRESH البيانات قديمة", en: "Stale between refreshes" },
+        { ar: "Full refresh ممكن يبقى غالي", en: "Full refresh can be costly" },
+        { ar: "تحكم أقل من summary tables", en: "Less control than summary tables" },
+      ],
+      where_ar: "نفس PostgreSQL (غالباً على replica).",
+      where_en: "Same PostgreSQL (often on replica).",
+      important_ar: "MatView ⊆ أدوات Pre-Agg.\nلو احتجت incremental دقيق → انتقل لـ summary tables.",
+      important_en: "MatView ⊆ pre-agg toolkit.\nNeed precise incremental? Move to summary tables.",
+      odoo_ar: "مناسب لـ dashboards إدارية؛ مش بديل دفاتر Exact.",
+      odoo_en: "Fine for management dashboards; not a substitute for Exact ledgers.",
+      qa: {
+        what: { ar: "View نتيجتها متخزّنة.", en: "A view whose result is stored." },
+        problem: { ar: "استعلام معقّد بيتنفّذ كل مرة.", en: "Complex query runs every time." },
+        where: { ar: "PostgreSQL materialized view.", en: "PostgreSQL materialized view." },
+        how: { ar: "REFRESH يحدّث النسخة المخزّنة.", en: "REFRESH updates the stored snapshot." },
+        beforeAfter: { ar: "قبل: احسب كل مرة · بعد: اقرأ المخزّن.", en: "Before: compute every time · After: read stored." },
+        benefit: { ar: "سرعة مع بساطة نسبية.", en: "Speed with relative simplicity." },
+        cost: { ar: "staleness + تكلفة الـ refresh.", en: "Staleness + refresh cost." },
+        when: { ar: "MVP للـ Analytical.", en: "MVP for analytical." },
+        whenNot: { ar: "لو محتاج تحديث صفّي دقيق جداً طول اليوم.", en: "If you need fine row-level daytime updates." },
+        odoo: { ar: "أنشئ MV على replica schema reporting.", en: "Create MV on replica reporting schema." },
+        diff: { ar: "أسهل من Reporting DB؛ أقل مرونة من summary tables + jobs.", en: "Easier than Reporting DB; less flexible than summary tables + jobs." }
+      }
+    },
+    {
+      n: 8, title: "Cache", file: "08_cache.py",
+      def_ar: "تخزين نتيجة تقرير لنفس الـ parameters مؤقتاً (Redis/App) عشان ما نضربش DB 30 مرة.",
+      def_en: "Temporarily store a report result for the same parameters (Redis/App) so 30 identical requests don’t hit the DB.",
+      diagram: `User1 → DB → Cache
+User2/3/4 ──────→ Cache hit
+(same Branch + Month)`,
+      flow: `Request params
+  ↓
+Cache lookup
+  ├ hit  → return
+  └ miss → query → store → return`,
+      goal_ar: "تقليل تكرار نفس العمل الغالي.",
+      goal_en: "Avoid repeating the same expensive work.",
+      gains: [
+        { ar: "ممتاز مع الطلبات المتطابقة", en: "Great for identical requests" },
+        { ar: "راحة UX سريعة", en: "Fast UX" },
+      ],
+      costs: [
+        { ar: "مفيش فايدة لو كل فلتر فريد", en: "Useless if every filter is unique" },
+        { ar: "Stale cache خطر لو TTL غلط", en: "Stale risk if TTL wrong" },
+        { ar: "مش بديل Pre-Agg", en: "Not a pre-agg replacement" },
+      ],
+      where_ar: "Redis / application memory أمام طبقة التقارير.",
+      where_en: "Redis / application memory in front of reporting.",
+      important_ar: "Cache ≠ Read Model ≠ Pre-Agg.\nالـ Cache بيحفظ إجابة طلب؛ مش بيبني حقيقة يومية.",
+      important_en: "Cache ≠ Read Model ≠ Pre-Agg.\nCache stores a response; it doesn’t build daily truth.",
+      odoo_ar: "استخدمه بعد ما الملخصات تبقى رخيصة — لنفس شاشة KPI المتكررة.",
+      odoo_en: "Use after summaries are cheap — for repeated identical KPI screens.",
+      qa: {
+        what: { ar: "تخزين مؤقت لنتيجة طلب.", en: "Temporary storage of a request result." },
+        problem: { ar: "نفس التقرير بيتطلب كتير في نفس اللحظة.", en: "The same report is requested many times at once." },
+        where: { ar: "Redis / app cache.", en: "Redis / app cache." },
+        how: { ar: "مفتاح = parameters + as_of / TTL.", en: "Key = parameters + as_of / TTL." },
+        beforeAfter: { ar: "قبل: 8× SQL · بعد: 1× SQL + 7 cache hits.", en: "Before: 8× SQL · After: 1× SQL + 7 cache hits." },
+        benefit: { ar: "Fan-out لنفس النتيجة.", en: "Fan-out for the same result." },
+        cost: { ar: "ما بيصلّحش الاستعلام الفريد الثقيل.", en: "Doesn’t fix unique heavy queries." },
+        when: { ar: "بعد Pre-Agg، لنفس params.", en: "After pre-agg, for same params." },
+        whenNot: { ar: "كحل وحيد لـ 200M.", en: "As the only fix for 200M." },
+        odoo: { ar: "لا تعتمد Cache لصحة Exact statutory.", en: "Don’t rely on cache for Exact statutory correctness." },
+        diff: { ar: "Cache مؤقت · Summary دائم نسبياً · Replica نسخة كاملة.", en: "Cache temporary · Summary relatively durable · Replica full copy." }
+      }
+    },
+    {
+      n: 9, title: "Async Processing", file: "09_async_processing.py",
+      def_ar: "طلب التقرير يدخل طابور ويرجع job_id فوراً؛ الشغل الثقيل في الخلفية ثم إشعار.",
+      def_en: "Report request enters a queue and returns a job_id immediately; heavy work runs in the background, then notify.",
+      diagram: `User → Request → Queue → Worker
+                 → PDF/Excel → Store → Notify
+
+NOT: User waits 60s on HTTP`,
+      flow: `Click Generate
+  ↓
+Enqueue (ms)
+  ↓
+Worker runs query (may still be 60s)
+  ↓
+User downloads when ready`,
+      goal_ar: "راحة المستخدم + عزل طلبات HTTP عن الشغل الثقيل.",
+      goal_en: "UX relief + isolate HTTP from heavy work.",
+      gains: [
+        { ar: "UI/POS ما يتعلّقوش", en: "UI/POS don’t freeze" },
+        { ar: "يشتغل مع Exact و Analytical", en: "Works for Exact and Analytical" },
+      ],
+      costs: [
+        { ar: "مش بيسرّع الـ SQL لوحده", en: "Doesn’t speed SQL alone" },
+        { ar: "محتاج job status / storage", en: "Needs job status / storage" },
+      ],
+      where_ar: "Application / queue layer (Redis, RQ, Odoo queue_job…).",
+      where_en: "Application / queue layer (Redis, RQ, Odoo queue_job…).",
+      important_ar: "Async ≠ Faster query.\nلو الـ query 60 ثانية ممكن تفضل 60 — بس من غير ما توقف الشاشة.",
+      important_en: "Async ≠ Faster query.\nA 60s query may stay 60s — but the screen isn’t blocked.",
+      odoo_ar: "Generate report → enqueue → worker على reporting host + replica DSN.",
+      odoo_en: "Generate report → enqueue → worker on reporting host + replica DSN.",
+      qa: {
+        what: { ar: "تنفيذ غير متزامن عبر طابور.", en: "Asynchronous execution via a queue." },
+        problem: { ar: "المستخدم بيستنى HTTP طويل ويعطّل الجلسة.", en: "User waits on a long HTTP request and blocks the session." },
+        where: { ar: "App/queue/workers.", en: "App/queue/workers." },
+        how: { ar: "job_id فوري + worker لاحق.", en: "Immediate job_id + later worker." },
+        beforeAfter: { ar: "قبل: wait 60s · بعد: return in ms + notify.", en: "Before: wait 60s · After: return in ms + notify." },
+        benefit: { ar: "UX + عزل الطلب.", en: "UX + request isolation." },
+        cost: { ar: "تكلفة الـ query كما هي بدون Aggregation.", en: "Query cost unchanged without aggregation." },
+        when: { ar: "Phase 1 مع أي تقرير ثقيل.", en: "Phase 1 with any heavy report." },
+        whenNot: { ar: "كتوقع إنه هيخلّي 200M خفيفة لوحده.", en: "Expecting it alone to make 200M light." },
+        odoo: { ar: "مهم جداً مع 50+ user.", en: "Critical with 50+ users." },
+        diff: { ar: "Async = متى يتنفّذ · Pre-Agg = ماذا يُقرأ.", en: "Async = when it runs · Pre-Agg = what is read." }
+      }
+    },
+    {
+      n: 10, title: "Background Workers", file: "10_background_workers.py",
+      def_ar: "عمليات خلفية تسحب من الطابور وتنفّذ التقارير/التجميع/المزامنة بعدد متزامن محدود.",
+      def_en: "Background processes that pull from a queue and run reports/aggregation/sync with a concurrency cap.",
+      diagram: `Odoo
+ ├── Web workers (POS/UI)
+ └── Background workers
+      ├── Reports
+      ├── Aggregation
+      └── Sync`,
+      flow: `N user requests
+  ↓
+Queue
+  ↓
+Only K workers run at once (cap)
+  ↓
+DB protected`,
+      goal_ar: "تنفيذ الشغل الثقيل بحدود أمان.",
+      goal_en: "Execute heavy work with safety limits.",
+      gains: [
+        { ar: "Concurrency control", en: "Concurrency control" },
+        { ar: "يفصل web عن heavy jobs", en: "Separates web from heavy jobs" },
+      ],
+      costs: [
+        { ar: "طوابير ممكن تطول", en: "Queues can grow" },
+        { ar: "محتاج مراقبة / retries", en: "Needs monitoring / retries" },
+      ],
+      where_ar: "Reporting host / worker fleet.",
+      where_en: "Reporting host / worker fleet.",
+      important_ar: "Workers = آلية التنفيذ للـ Async / Aggregation / Events.",
+      important_en: "Workers = the execution mechanism for Async / Aggregation / Events.",
+      odoo_ar: "حدّد REPORT_WORKER_CONCURRENCY (مثلاً 4–8) مش 50.",
+      odoo_en: "Set REPORT_WORKER_CONCURRENCY (e.g. 4–8), not 50.",
+      qa: {
+        what: { ar: "Pool من العمال على طابور.", en: "A pool of workers on a queue." },
+        problem: { ar: "50 مستخدم يطلقوا 50 scan مرة واحدة.", en: "50 users fire 50 scans at once." },
+        where: { ar: "Worker processes.", en: "Worker processes." },
+        how: { ar: "Queue + max concurrency.", en: "Queue + max concurrency." },
+        beforeAfter: { ar: "قبل: 50 parallel · بعد: 3–8 capped.", en: "Before: 50 parallel · After: 3–8 capped." },
+        benefit: { ar: "يحمي PostgreSQL.", en: "Protects PostgreSQL." },
+        cost: { ar: "انتظار في الطابور.", en: "Queue wait time." },
+        when: { ar: "دائماً مع Phase 1+.", en: "Always with Phase 1+." },
+        whenNot: { ar: "بدون cap = خطر.", en: "Without a cap = danger." },
+        odoo: { ar: "استخدم reporting role + statement_timeout.", en: "Use reporting role + statement_timeout." },
+        diff: { ar: "Workers تنفّذ · Async هو نمط التسليم للمستخدم.", en: "Workers execute · Async is the user delivery pattern." }
+      }
+    },
+    {
+      n: 11, title: "CQRS", file: "11_cqrs.py",
+      def_ar: "فصل Command (كتابة) عن Query (قراءة) إلى نماذج/مسارات مختلفة.",
+      def_en: "Separate Command (write) from Query (read) into different models/paths.",
+      diagram: `              Application
+              /         \\
+         COMMAND        QUERY
+            ↓             ↓
+       Write Model    Read Model
+            ↓             ↓
+      Transaction DB  Reporting DB`,
+      flow: `POS → Command → Write Model → AML
+Report → Query → Read Model → Summary`,
+      goal_ar: "فصل المسؤوليات عشان تقدر تحسّن كل جانب لوحده.",
+      goal_en: "Separate responsibilities so each side can be optimized alone.",
+      gains: [
+        { ar: "وضوح المعمارية", en: "Architectural clarity" },
+        { ar: "يفتح باب Read Models متخصصة", en: "Enables specialized read models" },
+      ],
+      costs: [
+        { ar: "مش performance magic لوحده", en: "Not performance magic alone" },
+        { ar: "تعقيد مزامنة النموذجين", en: "Sync complexity between models" },
+      ],
+      where_ar: "Architecture / application design (+ DBs).",
+      where_en: "Architecture / application design (+ DBs).",
+      important_ar: "CQRS لوحده مش حل أداء.\nالقيمة لما تضيف Read Model + Aggregation + Isolation.",
+      important_en: "CQRS alone is not a performance fix.\nValue appears with Read Model + Aggregation + Isolation.",
+      odoo_ar: "خلي Odoo هو Write Model؛ لا تعيد كتابة مسار المحاسبة.",
+      odoo_en: "Keep Odoo as the Write Model; don’t rewrite the accounting write path.",
+      qa: {
+        what: { ar: "فصل أوامر الكتابة عن استعلامات القراءة.", en: "Split write commands from read queries." },
+        problem: { ar: "نفس النموذج بيتحمّل Read+Write فيتعقّد ويتقل.", en: "One model carries both read+write and gets heavy." },
+        where: { ar: "تصميم التطبيق + مخازن منفصلة غالباً.", en: "App design + often separate stores." },
+        how: { ar: "Commands→Primary · Queries→Read models.", en: "Commands→Primary · Queries→Read models." },
+        beforeAfter: { ar: "قبل: نفس الموديل للاتنين · بعد: مساران.", en: "Before: one model for both · After: two paths." },
+        benefit: { ar: "تمكين التحسين التخصصي.", en: "Enables specialized optimization." },
+        cost: { ar: "تعقيد من غير مكسب فوري لوحده.", en: "Complexity without immediate gain alone." },
+        when: { ar: "بعد ما يبقى عندك أكثر من read consumer أو Phase 3–5.", en: "When you have multiple read consumers or Phase 3–5." },
+        whenNot: { ar: "كأول جملة تقولها بدل Pre-Agg.", en: "As the first sentence instead of pre-agg." },
+        odoo: { ar: "CQRS كفصل بيانات — مش rewrite لـ Odoo.", en: "CQRS as data separation — not an Odoo rewrite." },
+        diff: { ar: "CQRS نمط · Events وسيلة مزامنة · Reporting DB مخزن قراءة.", en: "CQRS is a pattern · Events sync · Reporting DB is a read store." }
+      }
+    },
+    {
+      n: 12, title: "Event-Driven", file: "12_event_driven.py",
+      def_ar: "بعد حدث أعمال (Invoice Posted) نُصدر Event يحدّث الملخص/الـ read model بشكل تدريجي.",
+      def_en: "After a business event (Invoice Posted) we emit an Event that incrementally updates the summary/read model.",
+      diagram: `Odoo → Invoice Posted → Event → Queue
+                              ↓
+                     Reporting Worker
+                              ↓
+                   Update daily_summary`,
+      flow: `COMMIT on Primary
+  ↓
+Domain Event
+  ↓
+Worker recomputes affected keys
+  ↓
+Summary stays fresh without full 200M scan`,
+      goal_ar: "تحديث الملخصات بدون إعادة مسح الجدول كامل كل مرة.",
+      goal_en: "Keep summaries fresh without full-table rescans every time.",
+      gains: [
+        { ar: "تحديث تدريجي", en: "Incremental updates" },
+        { ar: "freshness أفضل من batch فقط", en: "Better freshness than batch-only" },
+      ],
+      costs: [
+        { ar: "أحداث ضايعة محتملة", en: "Possible missed events" },
+        { ar: "محتاج nightly reconcile", en: "Needs nightly reconcile" },
+        { ar: "ترتيب الأحداث", en: "Event ordering" },
+      ],
+      where_ar: "Queue + workers بين Odoo و Reporting.",
+      where_en: "Queue + workers between Odoo and Reporting.",
+      important_ar: "Events بعد ما الـ Read Model موجود.\nالأحداث بتحافظ على الملخص — مش بتختَرعه من الصفر.",
+      important_en: "Events after a Read Model exists.\nEvents maintain the summary — they don’t invent it from scratch.",
+      odoo_ar: "ابدأ بأحداث قليلة: move posted/cancelled، POS done.",
+      odoo_en: "Start with few events: move posted/cancelled, POS done.",
+      qa: {
+        what: { ar: "تفاعل عبر أحداث الأعمال.", en: "Reaction via business events." },
+        problem: { ar: "تحديث الملخص بـ full rebuild غالي.", en: "Full rebuild of summaries is expensive." },
+        where: { ar: "Event bus / outbox / queue.", en: "Event bus / outbox / queue." },
+        how: { ar: "Emit → consume → recompute keys.", en: "Emit → consume → recompute keys." },
+        beforeAfter: { ar: "قبل: أعد تجميع كل شيء · بعد: حدّث المفاتيح المتأثرة.", en: "Before: re-aggregate everything · After: update affected keys." },
+        benefit: { ar: "Freshness أرخص.", en: "Cheaper freshness." },
+        cost: { ar: "تعقيد موثوقية الأحداث.", en: "Event reliability complexity." },
+        when: { ar: "Phase 4 بعد وجود الملخصات.", en: "Phase 4 after summaries exist." },
+        whenNot: { ar: "قبل ما تحدد الـ grain.", en: "Before the grain is defined." },
+        odoo: { ar: "فضّل recompute من المصدر عن deltas عمياء.", en: "Prefer recompute-from-source over blind deltas." },
+        diff: { ar: "Event-driven وسيلة تحديث · CQRS فصل المسارات.", en: "Event-driven is an update method · CQRS separates paths." }
+      }
+    },
+    {
+      n: 13, title: "CQRS + Event-Driven", file: "13_cqrs_plus_events.py",
+      def_ar: "التركيبة: كتابة على Write Model ثم Event يحدّث Read Model بشكل غير متزامن.",
+      def_en: "The combo: write to the Write Model, then an Event asynchronously updates the Read Model.",
+      diagram: `Odoo → Write Model → Primary → COMMIT
+                 ↓
+              Event
+                 ↓
+              Queue → Async Worker → Read Model → Reporting DB → Reports`,
+      flow: `Write workload  ≠  Read workload
+Transactional   ≠  Reporting data`,
+      goal_ar: "فصل كامل تقريباً بين OLTP والتقارير التحليلية مع تحديث تدريجي.",
+      goal_en: "Near-full separation of OLTP and analytical reporting with incremental updates.",
+      gains: [
+        { ar: "عزل + تصغير + freshness", en: "Isolation + reduction + freshness" },
+        { ar: "مناسب لـ 200M Analytical", en: "Fits 200M analytical" },
+      ],
+      costs: [
+        { ar: "أعلى تعقيد تشغيلي", en: "Highest ops complexity so far" },
+        { ar: "محتاج انضباط reconcile", en: "Needs reconcile discipline" },
+      ],
+      where_ar: "عبر Primary + Queue + Reporting DB.",
+      where_en: "Across Primary + Queue + Reporting DB.",
+      important_ar: "ده الشكل الناضج للـ Analytical — مش حركة الافتتاح.",
+      important_en: "Mature analytical shape — not the opening move.",
+      odoo_ar: "ابنه بعد Phase 1–3.",
+      odoo_en: "Build after Phase 1–3.",
+      qa: {
+        what: { ar: "CQRS مُزامَن بالأحداث.", en: "CQRS synchronized by events." },
+        problem: { ar: "محتاج فصل + تحديث مستمر رخيص.", en: "Need separation + cheap ongoing updates." },
+        where: { ar: "Full analytical pipeline.", en: "Full analytical pipeline." },
+        how: { ar: "Command→commit→event→project→query.", en: "Command→commit→event→project→query." },
+        beforeAfter: { ar: "قبل: كل حاجة على AML · بعد: مساران + إسقاط.", en: "Before: everything on AML · After: two paths + projection." },
+        benefit: { ar: "أفضل توازن للعزل والسرعة التحليلية.", en: "Best balance of isolation and analytical speed." },
+        cost: { ar: "تعقيد النظام.", en: "System complexity." },
+        when: { ar: "Phase 4–5.", en: "Phase 4–5." },
+        whenNot: { ar: "يوم 1 قبل العزل والملخصات.", en: "Day 1 before isolation and summaries." },
+        odoo: { ar: "Odoo يبقى مصدر الحقيقة للكتابة.", en: "Odoo remains the write source of truth." },
+        diff: { ar: "أقوى من كل جزء لوحده.", en: "Stronger than each piece alone." }
+      }
+    },
+    {
+      n: 14, title: "Eventual Consistency", file: "14_eventual_consistency.py",
+      def_ar: "عقد عمل: الـ Write فوري، والـ Read Model يلحق خلال ثواني/دقائق. لازم as of ظاهر.",
+      def_en: "A business contract: writes are immediate; the read model catches up in seconds/minutes. Show as-of.",
+      diagram: `10:00:00  Invoice in Odoo (real-time)
+10:00:01…30  Event processed → Read Model updates
+
+Write DB = Real Time
+Read Model = Eventually Consistent`,
+      flow: `Accept lag for Analytical
+  ↓
+Show as_of on every dashboard
+  ↓
+Never pretend Exact parity without policy`,
+      goal_ar: "تخلي Pre-Agg/Events ممكنين تجارياً.",
+      goal_en: "Make pre-agg/events commercially acceptable.",
+      gains: [
+        { ar: "يفتح حلول التصغير", en: "Unlocks reduction solutions" },
+        { ar: "وضوح توقعات المستخدم", en: "Clear user expectations" },
+      ],
+      costs: [
+        { ar: "مش مقبول لكل تقرير", en: "Not acceptable for every report" },
+        { ar: "لازم تعليم المستخدمين", en: "Needs user education" },
+      ],
+      where_ar: "عقد منتج / UX على الـ Analytical lane.",
+      where_en: "Product/UX contract on the Analytical lane.",
+      important_ar: "Eventual Consistency مش تقنية لوحدها — نتيجة CQRS+Async+Read Model.",
+      important_en: "Eventual consistency isn’t a tech alone — it’s a consequence of CQRS+Async+Read Model.",
+      odoo_ar: "Exact/ZATCA: lag policy صارمة أو Primary. Analytical: دقائق OK مع as of.",
+      odoo_en: "Exact/ZATCA: strict lag policy or Primary. Analytical: minutes OK with as-of.",
+      qa: {
+        what: { ar: "القبول بأن القراءة تلحق الكتابة.", en: "Accepting that reads catch up to writes." },
+        problem: { ar: "مستحيل تكون كل التقارير فورية ورخيصة معاً.", en: "Not every report can be both instant and cheap." },
+        where: { ar: "Business + UI contract.", en: "Business + UI contract." },
+        how: { ar: "as_of + SLA freshness.", en: "as_of + freshness SLA." },
+        beforeAfter: { ar: "قبل: نتوقع real-time لكل شيء · بعد: مساران بسياسات مختلفة.", en: "Before: expect real-time everywhere · After: two lanes with different policies." },
+        benefit: { ar: "يمكّن المعمارية الواقعية.", en: "Enables a realistic architecture." },
+        cost: { ar: "أرقام الداشبورد قد تتأخر.", en: "Dashboard numbers may lag." },
+        when: { ar: "دائماً مع Analytical.", en: "Always with Analytical." },
+        whenNot: { ar: "على إقرار ضريبي/إقفال بدون ضوابط.", en: "On tax filing/close without controls." },
+        odoo: { ar: "اكتب SLA في Phase 0.", en: "Write the SLA in Phase 0." },
+        diff: { ar: "سياسة · بينما Events هي الآلية.", en: "A policy · while Events are the mechanism." }
+      }
+    },
+    {
+      n: 15, title: "Archiving", file: "15_archiving.py",
+      def_ar: "فصل البيانات الساخنة (السنوات النشطة) عن الباردة التاريخية — مع الحفاظ عليها قانونياً.",
+      def_en: "Separate hot active years from cold historical data — while keeping it for legal needs.",
+      diagram: `Active years → Hot DB
+Older years  → Archive / Reporting storage
+
+Archive ≠ DELETE FROM account_move_line`,
+      flow: `Define hot window
+  ↓
+Move/copy cold history to archive store
+  ↓
+Hot set smaller → lighter scans
+  ↓
+Keep reconstructibility`,
+      goal_ar: "تصغير الـ hot working set.",
+      goal_en: "Shrink the hot working set.",
+      gains: [
+        { ar: "أقل بيانات ساخنة", en: "Less hot data" },
+        { ar: "أرشفة أوضح", en: "Clearer archive story" },
+      ],
+      costs: [
+        { ar: "Legal / ZATCA / Audit أولاً", en: "Legal / ZATCA / Audit first" },
+        { ar: "Odoo dependencies", en: "Odoo dependencies" },
+        { ar: "غلط DELETE يدمر المحاسبة", en: "Naive DELETE destroys accounting" },
+      ],
+      where_ar: "Hot DB + cold storage / archive DB.",
+      where_en: "Hot DB + cold storage / archive DB.",
+      important_ar: "Archiving في المحاسبة ≠ مسح.\nلازم سياسة احتفاظ وإمكانية إعادة البناء.",
+      important_en: "Accounting archive ≠ delete.\nNeed retention policy and reconstructibility.",
+      odoo_ar: "ادرس التأثير على التقارير القانونية قبل أي نقل.",
+      odoo_en: "Study legal report impact before any move.",
+      qa: {
+        what: { ar: "Hot/cold data separation.", en: "Hot/cold data separation." },
+        problem: { ar: "كل التاريخ في نفس الحمل الساخن.", en: "All history sits in the hot workload." },
+        where: { ar: "Storage tiers.", en: "Storage tiers." },
+        how: { ar: "سياسة سنوات + نقل بارد.", en: "Year policy + cold move." },
+        beforeAfter: { ar: "قبل: 200M كلها hot · بعد: نافذة ساخنة أصغر.", en: "Before: all 200M hot · After: smaller hot window." },
+        benefit: { ar: "تصغير الحمل الساخن.", en: "Shrink hot load." },
+        cost: { ar: "مخاطر قانونية وتشغيلية.", en: "Legal and operational risk." },
+        when: { ar: "بعد Phase 2–3 غالباً.", en: "Usually after Phase 2–3." },
+        whenNot: { ar: "كـ DELETE سريع لـ «تنظيف».", en: "As a quick DELETE cleanup." },
+        odoo: { ar: "لا تحذف AML بعماية.", en: "Never blindly delete AML." },
+        diff: { ar: "Archive ≠ Partition (لكن أحياناً يتكاملان).", en: "Archive ≠ Partition (but they can combine)." }
+      }
+    },
+    {
+      n: 16, title: "Data Warehouse", file: "16_data_warehouse.py",
+      def_ar: "مستودع نجمي (facts/dims) عبر ETL/ELT للتحليل التاريخي متعدد المجالات وأدوات BI.",
+      def_en: "A star-schema store via ETL/ELT for long historical, cross-domain analytics and BI tools.",
+      diagram: `Odoo → ETL/ELT → Data Warehouse
+                   ├── Sales
+                   ├── Accounting
+                   ├── Inventory
+                   └── BI tools`,
+      flow: `Reporting DB / Odoo
+  ↓ ELT
+Warehouse facts
+  ↓
+Power BI / Metabase / forecasts`,
+      goal_ar: "تحليلات المؤسسة لما تبقى منتج لوحدها.",
+      goal_en: "Enterprise analytics when it becomes its own product.",
+      gains: [
+        { ar: "تاريخ طويل + مجالات متعددة", en: "Long history + many domains" },
+        { ar: "أدوات BI", en: "BI tools" },
+      ],
+      costs: [
+        { ar: "تكلفة تشغيل عالية", en: "High operating cost" },
+        { ar: "فريق/عمليات أثقل", en: "Heavier team/ops" },
+      ],
+      where_ar: "Warehouse platform منفصلة.",
+      where_en: "Separate warehouse platform.",
+      important_ar: "Warehouse مش أول علاج لألم POS.\nبعد ما Phase 2–4 ما تكفيش.",
+      important_en: "Warehouse isn’t the first POS painkiller.\nAfter Phase 2–4 aren’t enough.",
+      odoo_ar: "Exact statutory ما تتعتمشش على Warehouse فقط.",
+      odoo_en: "Don’t make Exact statutory warehouse-only.",
+      qa: {
+        what: { ar: "مستودع تحليلي نجمي.", en: "Analytical star-schema warehouse." },
+        problem: { ar: "BI عبر نطاقات + تاريخ أطول من تقارير Odoo.", en: "Cross-domain BI + longer history than Odoo reports." },
+        where: { ar: "Warehouse / lakehouse.", en: "Warehouse / lakehouse." },
+        how: { ar: "ETL/ELT مجدول.", en: "Scheduled ETL/ELT." },
+        beforeAfter: { ar: "قبل: BI يضرب Odoo · بعد: BI يضرب Warehouse.", en: "Before: BI hits Odoo · After: BI hits Warehouse." },
+        benefit: { ar: "تحليل مؤسسي.", en: "Enterprise analytics." },
+        cost: { ar: "فلوس وتعقيد.", en: "Money and complexity." },
+        when: { ar: "Phase 6.", en: "Phase 6." },
+        whenNot: { ar: "كمخرج سريع لـ 200M POS pain.", en: "As a quick fix for 200M POS pain." },
+        odoo: { ar: "فضّل التحميل من Reporting DB الحقائق.", en: "Prefer loading from Reporting DB facts." },
+        diff: { ar: "أوسع من Reporting DB التشغيلي.", en: "Broader than an operational Reporting DB." }
+      }
+    },
+    {
+      n: 17, title: "OLAP", file: "17_olap.py",
+      def_ar: "تحليل متعدد الأبعاد (cubes / semantic layer): slice, dice, rollup على مقاييس كثيرة.",
+      def_en: "Multidimensional analysis (cubes / semantic layer): slice, dice, rollup across many measures.",
+      diagram: `OLTP (Odoo)
+    ↓
+Pipeline
+    ↓
+OLAP / Warehouse
+    ↓
+BI / Analytics
+  (branch × month × account × …)`,
+      flow: `Build cube cells
+  ↓
+Rollup by branch
+  ↓
+Slice month=6
+  ↓
+Fast multidimensional answers`,
+      goal_ar: "استكشاف تحليلي ثقيل متعدد الأبعاد.",
+      goal_en: "Heavy multidimensional analytical exploration.",
+      gains: [
+        { ar: "Slice/Dice سريع", en: "Fast slice/dice" },
+        { ar: "مناسب لمئات الملايين + أبعاد كثيرة", en: "Fits hundreds of millions + many dims" },
+      ],
+      costs: [
+        { ar: "Overkill لتقارير Odoo قليلة", en: "Overkill for a few Odoo reports" },
+        { ar: "يحتاج warehouse/حقائق مستقرة", en: "Needs stable warehouse/facts" },
+      ],
+      where_ar: "فوق الـ Warehouse / semantic layer.",
+      where_en: "On top of warehouse / semantic layer.",
+      important_ar: "OLAP مستوى فوق التخزين — مش بديل Pre-Agg التشغيلي.",
+      important_en: "OLAP sits above storage — not a substitute for operational pre-agg.",
+      odoo_ar: "للـ BI المتقدم بعد استقرار الحقائق.",
+      odoo_en: "For advanced BI after facts are stable.",
+      qa: {
+        what: { ar: "محرك/نموذج تحليل متعدد الأبعاد.", en: "Multidimensional analysis engine/model." },
+        problem: { ar: "تجميعات معقّدة عبر أبعاد كثيرة.", en: "Complex aggregates across many dimensions." },
+        where: { ar: "OLAP/cube/semantic tools.", en: "OLAP/cube/semantic tools." },
+        how: { ar: "Pre-aggregate cells + query semantic model.", en: "Pre-aggregate cells + query semantic model." },
+        beforeAfter: { ar: "قبل: SQL يدوي ثقيل · بعد: slice سريع.", en: "Before: heavy hand SQL · After: fast slice." },
+        benefit: { ar: "تحليل أبعاد.", en: "Dimensional analysis." },
+        cost: { ar: "تعقيد وكلفة زائدة مبكراً.", en: "Extra complexity/cost if early." },
+        when: { ar: "Phase 6 مع Warehouse.", en: "Phase 6 with warehouse." },
+        whenNot: { ar: "لتقرير فرع يومي بسيط.", en: "For a simple daily branch report." },
+        odoo: { ar: "مش مطلوب لحل POS أولاً.", en: "Not required to fix POS first." },
+        diff: { ar: "OLAP استهلاك تحليلي · Warehouse تخزين.", en: "OLAP is analytical consumption · Warehouse is storage." }
+      }
+    },
+    {
+      n: 18, title: "DB / Resource Isolation", file: "18_resource_isolation.py",
+      def_ar: "فصل موارد البنية (CPU/RAM/IO/instances) بين حمل Odoo وحمل التقارير.",
+      def_en: "Separate infrastructure resources (CPU/RAM/IO/instances) between Odoo load and reporting load.",
+      diagram: `Odoo workload → CPU/RAM/IO pool A
+Reporting     → CPU/RAM/IO pool B
+
+Separate DB server / replica / cluster`,
+      flow: `Heavy report saturates pool B
+  ↓
+Pool A (POS) still healthy`,
+      goal_ar: "حتى لو التقرير تقيل، ما يخنقش الـ OLTP.",
+      goal_en: "Even if a report is heavy, OLTP isn’t choked.",
+      gains: [
+        { ar: "حدود موارد صلبة", en: "Hard resource boundaries" },
+        { ar: "يكمل Replica/Reporting DB", en: "Complements replica/reporting DB" },
+      ],
+      costs: [
+        { ar: "تكلفة infra", en: "Infra cost" },
+        { ar: "سوء تقدير الحجم", en: "Wrong sizing" },
+      ],
+      where_ar: "Infrastructure (VMs, cgroups, separate servers).",
+      where_en: "Infrastructure (VMs, cgroups, separate servers).",
+      important_ar: "Isolation على الموارد ≠ تصغير البيانات.",
+      important_en: "Resource isolation ≠ data reduction.",
+      odoo_ar: "ضع report workers و replica على عتاد منفصل عن POS.",
+      odoo_en: "Put report workers and replica on hardware separate from POS.",
+      qa: {
+        what: { ar: "فصل موارد التشغيل.", en: "Separating runtime resources." },
+        problem: { ar: "تقرير يشبع CPU/IO المشترك.", en: "A report saturates shared CPU/IO." },
+        where: { ar: "Infra layer.", en: "Infra layer." },
+        how: { ar: "Servers/pools منفصلة.", en: "Separate servers/pools." },
+        beforeAfter: { ar: "قبل: shared host · بعد: isolated pools.", en: "Before: shared host · After: isolated pools." },
+        benefit: { ar: "حماية OLTP.", en: "OLTP protection." },
+        cost: { ar: "فلوس.", en: "Money." },
+        when: { ar: "Phase 1 مع العزل.", en: "Phase 1 with isolation." },
+        whenNot: { ar: "كبديل وحيد عن Pre-Agg.", en: "As the only alternative to pre-agg." },
+        odoo: { ar: "لا تشارك web و report على نفس الـ noisy neighbor.", en: "Don’t colocate web and report as noisy neighbors." },
+        diff: { ar: "أعمق من «سيرفر تقارير» أحياناً (DB IO أيضاً).", en: "Deeper than a report app server (includes DB IO)." }
+      }
+    },
+    {
+      n: 19, title: "Connection / Workload Control", file: "19_connection_control.py",
+      def_ar: "Pooling + حدود تزامن للاستعلامات الثقيلة عشان 50 مستخدم ما يفتحوش 50 scan مرة واحدة.",
+      def_en: "Pooling + concurrency limits so 50 users don’t open 50 scans at once.",
+      diagram: `50 users
+   ↓ without caps
+50 expensive queries → PostgreSQL overwhelmed
+
+50 users
+   ↓ with semaphore/pool
+max 3–8 concurrent → rest queued`,
+      flow: `Acquire slot
+  ↓
+Run report SQL
+  ↓
+Release slot
+(others wait)`,
+      goal_ar: "شبكة أمان للتزامن.",
+      goal_en: "A concurrency safety net.",
+      gains: [
+        { ar: "يحمي الاتصالات والـ IO", en: "Protects connections and IO" },
+        { ar: "يمنع عواصف التقارير", en: "Prevents report stampedes" },
+      ],
+      costs: [
+        { ar: "انتظار في الطابور", en: "Queue waiting" },
+        { ar: "مش بديل تصميم كويس", en: "Not a substitute for good design" },
+      ],
+      where_ar: "PgBouncer + worker caps + statement_timeout.",
+      where_en: "PgBouncer + worker caps + statement_timeout.",
+      important_ar: "دي شبكة أمان فوق العزل والتصغير — مش الحل الوحيد.",
+      important_en: "A safety net on top of isolation and reduction — not the only fix.",
+      odoo_ar: "دور odoo_reporting + pool صغير + worker concurrency.",
+      odoo_en: "odoo_reporting role + small pool + worker concurrency.",
+      qa: {
+        what: { ar: "التحكم في عدد الاتصالات/الاستعلامات المتزامنة.", en: "Controlling concurrent connections/queries." },
+        problem: { ar: "عاصفة تقارير توقع PostgreSQL.", en: "A report stampede knocks PostgreSQL over." },
+        where: { ar: "Pooler + app limits.", en: "Pooler + app limits." },
+        how: { ar: "Semaphore / pool size / timeout.", en: "Semaphore / pool size / timeout." },
+        beforeAfter: { ar: "قبل: 50 معاً · بعد: 3–8 معاً.", en: "Before: 50 together · After: 3–8 together." },
+        benefit: { ar: "استقرار.", en: "Stability." },
+        cost: { ar: "Latency انتظار.", en: "Wait latency." },
+        when: { ar: "دائماً في Phase 1.", en: "Always in Phase 1." },
+        whenNot: { ar: "كحل يغني عن الملخصات.", en: "As a solution that replaces summaries." },
+        odoo: { ar: "اربطه بـ Async عشان الانتظار يبقى مقبولاً.", en: "Pair with Async so waiting is acceptable." },
+        diff: { ar: "Control ≠ Isolation host ≠ Aggregation.", en: "Control ≠ host isolation ≠ aggregation." }
+      }
+    },
+    {
+      n: 20, title: "Async + Pre-Aggregation", file: "20_async_plus_preaggregation.py",
+      def_ar: "أفضل كومبو تشغيلي للملخصات: Worker يحدّث الـ summary، والتقرير يقرأ رخيص وبلا انتظار UI.",
+      def_en: "Best operational combo for summaries: a worker updates the summary; the report reads cheaply without UI waiting.",
+      diagram: `Odoo → Event → Queue → Worker → Aggregation
+                              ↓
+                        Summary Table
+                              ↓
+                     SELECT * FROM summary`,
+      flow: `InvoicePosted
+  ↓
+Update daily_sales_summary
+  ↓
+Dashboard/report cheap read
+(+ async delivery if heavy export)`,
+      goal_ar: "رخص البيانات + راحة التنفيذ.",
+      goal_en: "Cheap data + comfortable execution.",
+      gains: [
+        { ar: "أداء + UX معاً", en: "Performance + UX together" },
+        { ar: "مناسب جداً لـ Analytical", en: "Excellent for Analytical" },
+      ],
+      costs: [
+        { ar: "مراقبة فشل الـ workers", en: "Monitor worker failures" },
+        { ar: "reconcile ليلي", en: "Nightly reconcile" },
+      ],
+      where_ar: "Workers + summary tables / Reporting DB.",
+      where_en: "Workers + summary tables / Reporting DB.",
+      important_ar: "ده قلب التشغيل اليومي بعد Phase 2.",
+      important_en: "This is daily operations after Phase 2.",
+      odoo_ar: "اربط أحداث الترحيل بتحديث الملخصات.",
+      odoo_en: "Tie posting events to summary updates.",
+      qa: {
+        what: { ar: "دمج Async مع الملخصات.", en: "Combining async with summaries." },
+        problem: { ar: "محتاج تقارير رخيصة وغير حاجزة.", en: "Need cheap and non-blocking reports." },
+        where: { ar: "Pipeline تشغيلي.", en: "Operational pipeline." },
+        how: { ar: "Events/jobs تبني summary؛ التقارير تقرأها.", en: "Events/jobs build summary; reports read it." },
+        beforeAfter: { ar: "قبل: GROUP BY حي على AML من UI · بعد: ملخص + طابور.", en: "Before: live GROUP BY on AML from UI · After: summary + queue." },
+        benefit: { ar: "أفضل كومبو يومي.", en: "Best daily combo." },
+        cost: { ar: "تشغيل الـ pipeline.", en: "Running the pipeline." },
+        when: { ar: "Phases 2–4.", en: "Phases 2–4." },
+        whenNot: { ar: "Exact بدون سياسة.", en: "Exact without a policy." },
+        odoo: { ar: "استخدمه للـ KPIs والفروع.", en: "Use for KPIs and branches." },
+        diff: { ar: "يجمع مكسب 6 و 9.", en: "Combines gains of #6 and #9." }
+      }
+    },
+    {
+      n: 21, title: "Replica + Reporting Model", file: "21_replica_plus_reporting_model.py",
+      def_ar: "Hybrid: Exact على Replica (شكل الدفتر)، Analytical على Read Model/Reporting.",
+      def_en: "Hybrid: Exact on Replica (ledger shape), Analytical on Read Model/Reporting.",
+      diagram: `Primary
+   │
+   ▼
+Read Replica ──► Exact reports
+   │
+   ▼
+Reporting Worker → Read Model → Analytical reports`,
+      flow: `Lane Exact      → REPLICA_DSN (lag-gated)
+Lane Analytical → SUMMARY / REPORTING_DSN`,
+      goal_ar: "احترام المسارين في تشغيل واحد.",
+      goal_en: "Honor both lanes in one operations model.",
+      gains: [
+        { ar: "عزل + رخص للتحليلات", en: "Isolation + cheap analytics" },
+        { ar: "Exact يبقى صحيح", en: "Exact stays correct" },
+      ],
+      costs: [
+        { ar: "غلط التوجيه كارثي", en: "Wrong routing is catastrophic" },
+        { ar: "تشغيل مسارين", en: "Operating two paths" },
+      ],
+      where_ar: "Replica + Reporting model معاً.",
+      where_en: "Replica + reporting model together.",
+      important_ar: "أبداً ما تقدّم ZATCA من Reporting DB غير مثبت.",
+      important_en: "Never serve ZATCA from an unverified Reporting DB.",
+      odoo_ar: "report_routing.yaml: exact→replica / analytical→facts.",
+      odoo_en: "report_routing.yaml: exact→replica / analytical→facts.",
+      qa: {
+        what: { ar: "توجيه حسب نوع التقرير.", en: "Routing by report lane." },
+        problem: { ar: "حل واحد لكل التقارير يفشل.", en: "One path for all reports fails." },
+        where: { ar: "Routing layer + two stores.", en: "Routing layer + two stores." },
+        how: { ar: "Classify → pick DSN/dataset.", en: "Classify → pick DSN/dataset." },
+        beforeAfter: { ar: "قبل: الكل على AML · بعد: مساران.", en: "Before: all on AML · After: two paths." },
+        benefit: { ar: "صحة + أداء.", en: "Correctness + performance." },
+        cost: { ar: "انضباط التصنيف.", en: "Classification discipline." },
+        when: { ar: "من Phase 1–3 فصاعداً.", en: "From Phase 1–3 onward." },
+        whenNot: { ar: "لو خلطت المسارات في كود واحد.", en: "If you mix lanes in one code path." },
+        odoo: { ar: "طبّق قالب التصنيف من docs/.", en: "Apply the classification template from docs/." },
+        diff: { ar: "Hybrid تشغيلي بين 2 و 4/5.", en: "Operational hybrid of #2 and #4/#5." }
+      }
+    },
+    {
+      n: 22, title: "Reporting DB + CQRS + Events + Async", file: "22_full_stack.py",
+      def_ar: "الشكل الأكثر تطوراً للمسار التحليلي: كتابة Odoo → Event → Worker → Reporting DB → تقارير/BI.",
+      def_en: "The most advanced analytical shape: Odoo write → Event → Worker → Reporting DB → reports/BI.",
+      diagram: `Odoo → Write Model → Primary → COMMIT
+                 ↓ Domain Event
+                 ↓ Queue
+                 ↓ Async Worker
+                 ↓ Reporting Model / DB
+            ┌────┴────┐
+            ▼         ▼
+      Odoo Reports   BI`,
+      flow: `Phase 1 isolate
+  ↓
+Phase 2 pre-agg
+  ↓
+Phase 3 reporting DB
+  ↓
+Phase 4 events
+  ↓
+This steady state`,
+      goal_ar: "OLTP ≠ Reporting بشكل مستدام.",
+      goal_en: "Sustainable OLTP ≠ Reporting.",
+      gains: [
+        { ar: "يفصل تقريباً كل حاجة", en: "Separates almost everything" },
+        { ar: "هدف Analytical الناضج", en: "Mature analytical target" },
+      ],
+      costs: [
+        { ar: "أعلى تعقيد", en: "Highest complexity" },
+        { ar: "فشل لو اتعمل قبل الأسس", en: "Fails if built before foundations" },
+      ],
+      where_ar: "كل الطبقات معاً (app + queue + reporting DB).",
+      where_en: "All layers together (app + queue + reporting DB).",
+      important_ar: "مش يوم 1.\nابنِ 1→2→3 ثم وصل للأحداث.",
+      important_en: "Not day 1.\nBuild 1→2→3 then add events.",
+      odoo_ar: "Odoo يبقى مصدر الكتابة؛ الباقي إسقاط قراءة.",
+      odoo_en: "Odoo stays the write source; the rest is read projection.",
+      qa: {
+        what: {
+          ar: "التجميع النهائي لمسار Analytical: Reporting DB + CQRS + Events + Async.",
+          en: "The final analytical stack: Reporting DB + CQRS + Events + Async."
+        },
+        problem: {
+          ar: "محتاج فصل مستدام مع تحديث تدريجي وتسليم غير حاجز.",
+          en: "Need sustainable separation with incremental updates and non-blocking delivery."
+        },
+        where: {
+          ar: "Primary + Queue + Reporting DB + Workers.",
+          en: "Primary + Queue + Reporting DB + Workers."
+        },
+        how: {
+          ar: "Command→commit→event→worker→facts→query/async export.",
+          en: "Command→commit→event→worker→facts→query/async export."
+        },
+        beforeAfter: {
+          ar: "قبل: كل التقارير تضرب AML · بعد: مسار تحليلي مستقل ناضج.",
+          en: "Before: all reports hit AML · After: mature independent analytical path."
+        },
+        benefit: {
+          ar: "أفضل شكل طويل الأمد للـ Analytical lane.",
+          en: "Best long-term shape for the Analytical lane."
+        },
+        cost: {
+          ar: "أعلى تكلفة بناء وتشغيل — فقط بعد الأسس.",
+          en: "Highest build/ops cost — only after foundations."
+        },
+        when: {
+          ar: "Phases 4–5 بعد نجاح 1–3.",
+          en: "Phases 4–5 after 1–3 succeed."
+        },
+        whenNot: {
+          ar: "كأول مشروع قبل Replica/Pre-Agg.",
+          en: "As the first project before Replica/Pre-Agg."
+        },
+        odoo: {
+          ar: "Odoo Write Model ثابت؛ لا dual-write على AML.",
+          en: "Odoo write model stays fixed; no dual-write into AML."
+        },
+        diff: {
+          ar: "يجمع 4+9+11+12 في هدف تشغيلي واحد.",
+          en: "Combines #4+#9+#11+#12 into one operational target."
+        }
+      }
+    }
+  ];
+
+  const QA_LABELS = {
+    what: { ar: "1. إيه هو؟", en: "1. What is it?" },
+    problem: { ar: "2. بيحل أي مشكلة؟", en: "2. What problem does it solve?" },
+    where: { ar: "3. عايش فين؟", en: "3. Where does it live?" },
+    how: { ar: "4. بيشتغل إزاي؟", en: "4. How does it work?" },
+    beforeAfter: { ar: "5. قبل / بعد", en: "5. Before / After" },
+    benefit: { ar: "6. المكسب الأساسي", en: "6. Main benefit" },
+    cost: { ar: "7. الثمن الأساسي", en: "7. Main cost" },
+    when: { ar: "8. امتى تستخدمه؟", en: "8. When to use" },
+    whenNot: { ar: "9. امتى متستخدمهوش؟", en: "9. When NOT to use" },
+    odoo: { ar: "10. مثال في Odoo", en: "10. Odoo example" },
+    diff: { ar: "11. الفرق عن حلول شبيهة", en: "11. Difference from similar solutions" }
+  };
+
+  const UI = {
+    goal: { ar: "الهدف", en: "Goal" },
+    gains: { ar: "المكاسب", en: "Gains" },
+    cost: { ar: "الثمن", en: "Cost" },
+    where: { ar: "مكانه", en: "Where it lives" },
+    important: { ar: "مهم", en: "Important" },
+    qaTitle: { ar: "11 سؤال للفهم", en: "11 understanding questions" },
+    openHint: { ar: "اضغط للفتح", en: "Click to open" }
+  };
+
+  function lang() {
+    return document.documentElement.lang === "en" ? "en" : "ar";
+  }
+
+  function L(obj) {
+    if (!obj) return "";
+    if (typeof obj === "string") return obj;
+    const k = lang();
+    return obj[k] || obj.ar || obj.en || "";
+  }
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function renderCard(item, openIds) {
+    const k = lang();
+    const gains = item.gains.map(g => `<li>${esc(L(g))}</li>`).join("");
+    const costs = item.costs.map(c => `<li>${esc(L(c))}</li>`).join("");
+    const qaKeys = ["what","problem","where","how","beforeAfter","benefit","cost","when","whenNot","odoo","diff"];
+    const qaHtml = qaKeys.map(key => `
+      <div class="qa-item">
+        <div class="q">${esc(QA_LABELS[key][k])}</div>
+        <div class="a">${esc(item.qa[key][k])}</div>
+      </div>`).join("");
+
+    const isOpen = openIds.has(item.n) ? " open" : "";
+    const def = k === "ar" ? item.def_ar : item.def_en;
+    const goal = k === "ar" ? item.goal_ar : item.goal_en;
+    const where = k === "ar" ? item.where_ar : item.where_en;
+    const important = k === "ar" ? item.important_ar : item.important_en;
+    const odoo = k === "ar" ? item.odoo_ar : item.odoo_en;
+
+    return `
+<details class="card" id="c${item.n}"${isOpen}>
+  <summary>
+    <h2><span class="n">${item.n}.</span> ${esc(item.title)}</h2>
+  </summary>
+  <div class="card-body">
+    <div class="meta">
+      <span class="chip">examples/${esc(item.file)}</span>
+    </div>
+    <p class="def">${esc(def)}</p>
+    <pre class="diagram">${esc(item.diagram)}</pre>
+    <pre class="diagram">${esc(item.flow)}</pre>
+
+    <div class="section">
+      <h3>### ${esc(UI.goal[k])}</h3>
+      <p>${esc(goal)}</p>
+    </div>
+    <div class="section">
+      <h3>### ${esc(UI.gains[k])}</h3>
+      <ul>${gains}</ul>
+    </div>
+    <div class="section">
+      <h3>### ${esc(UI.cost[k])}</h3>
+      <ul>${costs}</ul>
+    </div>
+    <div class="section">
+      <h3>### ${esc(UI.where[k])}</h3>
+      <p>${esc(where)}</p>
+    </div>
+    <div class="section">
+      <h3>### ${esc(UI.important[k])}</h3>
+      <pre class="diagram">${esc(important)}</pre>
+    </div>
+    <div class="section">
+      <h3>### Odoo</h3>
+      <p>${esc(odoo)}</p>
+    </div>
+
+    <div class="qa">
+      <h3>${esc(UI.qaTitle[k])}</h3>
+      ${qaHtml}
+    </div>
+    <div class="run">python3 examples/${esc(item.file)}</div>
+  </div>
+</details>`;
+  }
+
+  function collectOpenIds() {
+    return new Set(
+      [...document.querySelectorAll("details.card[open]")].map(el => Number(el.id.slice(1)))
+    );
+  }
+
+  function renderAll(preserveOpen) {
+    const openIds = preserveOpen ? collectOpenIds() : new Set();
+    const nav = document.getElementById("nav-links");
+    const cards = document.getElementById("cards");
+    nav.innerHTML = S.map(s => `<a href="#c${s.n}" data-n="${s.n}">${s.n}. ${s.title}</a>`).join("");
+    cards.innerHTML = S.map(s => renderCard(s, openIds)).join("");
+
+    nav.querySelectorAll("a").forEach(a => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const n = Number(a.dataset.n);
+        const el = document.getElementById("c" + n);
+        if (!el) return;
+        el.open = true;
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        history.replaceState(null, "", "#c" + n);
+      });
+    });
+  }
+
+  function setLang(langCode) {
+    document.documentElement.lang = langCode;
+    document.documentElement.dir = langCode === "ar" ? "rtl" : "ltr";
+    document.getElementById("btn-ar").classList.toggle("on", langCode === "ar");
+    document.getElementById("btn-en").classList.toggle("on", langCode === "en");
+    localStorage.setItem("understand-lang", langCode);
+    renderAll(true);
+  }
+
+  const saved = localStorage.getItem("understand-lang");
+  document.documentElement.lang = (saved === "en" || saved === "ar") ? saved : "ar";
+  document.documentElement.dir = document.documentElement.lang === "ar" ? "rtl" : "ltr";
+  renderAll(false);
+  document.getElementById("btn-ar").classList.toggle("on", lang() === "ar");
+  document.getElementById("btn-en").classList.toggle("on", lang() === "en");
+
+  // Deep link: open one card if hash present
+  if (location.hash.startsWith("#c")) {
+    const el = document.querySelector(location.hash);
+    if (el) {
+      el.open = true;
+      el.scrollIntoView({ block: "start" });
+    }
+  }
+  </script>
+</body>
+</html>

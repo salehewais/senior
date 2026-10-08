@@ -231,15 +231,15 @@
     .node.recursion strong { font-size: 28px; }
 
     .node.tree {
-      left: 23%;
-      top: 248px;
+      left: 30%;
+      top: 220px;
       background: var(--tree-soft);
       border-color: #b7d4c0;
       color: var(--tree);
     }
     .node.graph {
-      left: 4%;
-      top: 78px;
+      left: 2%;
+      top: 300px;
       background: var(--graph-soft);
       border-color: #b7d0e2;
       color: var(--graph);
@@ -254,7 +254,7 @@
     }
     .node.dp strong { font-size: 20px; }
     .node.back {
-      left: 24%;
+      left: 32%;
       top: 470px;
       background: var(--back-soft);
       border-color: #ecc4b6;
@@ -454,7 +454,7 @@
       <div>
         <p class="eyebrow">مخطط المفاهيم</p>
         <h1>العودية وما يتفرع عنها<span>Recursion, Tree, Backtracking, Dynamic Programming, Graph</span></h1>
-        <p class="lede">ترتيب التعلم: العودية، ثم الأشجار، ثم التراجع، ثم البرمجة الديناميكية، ثم الرسوم البيانية. العودية تتفرع يساراً إلى الأشجار ويميناً إلى البرمجة الديناميكية، ومنها أيضاً الرسوم البيانية. ومن الأشجار ينزل التراجع.</p>
+        <p class="lede">ترتيب التعلم: العودية، ثم الأشجار، ثم التراجع، ثم البرمجة الديناميكية، ثم الرسوم البيانية. العودية تتفرع يساراً إلى الأشجار ويميناً إلى البرمجة الديناميكية. ومن الأشجار ينزل التراجع، ويتفرع منها أيضاً الرسوم البيانية.</p>
       </div>
       <div class="progress" aria-live="polite">
         <strong id="solved">0 / 60</strong>
@@ -483,7 +483,7 @@
           <em>العودية · 10 مسائل</em>
         </button>
         <button class="node graph" type="button" data-jump="graph">
-          <small>5 · من العودية</small>
+          <small>5 · من الشجرة</small>
           <strong>Graph</strong>
           <em>10 مسائل</em>
         </button>
@@ -505,8 +505,8 @@
       </div>
 
       <div class="relations">
-        <p>العودية في الأعلى. يتفرع منها Tree يساراً، و Dynamic Programming يميناً، و Graph منها مباشرة.</p>
-        <p>من Tree ينزل Backtracking فقط. ترتيب التعلم: 1 Recursion، 2 Tree، 3 Backtracking، 4 Dynamic Programming، 5 Graph.</p>
+        <p>العودية في الأعلى. يتفرع منها Tree يساراً، و Dynamic Programming يميناً.</p>
+        <p>من Tree ينزل Backtracking، ويتفرع Graph. ترتيب التعلم: 1 Recursion، 2 Tree، 3 Backtracking، 4 Dynamic Programming، 5 Graph.</p>
       </div>
     </section>
 
@@ -554,7 +554,7 @@
         step: "2",
         en: "Tree",
         ar: "الأشجار",
-        note: "الخطوة الثانية. الفرع الأيسر من العودية، ومنه Backtracking.",
+        note: "الخطوة الثانية. الفرع الأيسر من العودية، ومنه Backtracking و Graph.",
         groups: [
           {
             label: "مسائل شائعة",
@@ -641,7 +641,7 @@
         step: "5",
         en: "Graph",
         ar: "الرسوم البيانية",
-        note: "الخطوة الخامسة. يتفرع من العودية مباشرة.",
+        note: "الخطوة الخامسة. يتفرع من الأشجار.",
         groups: [
           {
             label: "مسائل شائعة",
@@ -773,9 +773,9 @@
       };
       const links = [
         ["recursion", "right", "dp", "left", "إلى اليمين", "#9a5b12", 10, -28],
-        ["recursion", "left", "graph", "right", "من العودية", "#1d4f72", 0, -24],
         ["recursion", "bottom-left", "tree", "top-right", "إلى اليسار", "#2f6a45", -46, -6],
-        ["tree", "bottom", "back", "top", "هبوطاً", "#9a3b24", 52, -4]
+        ["tree", "bottom", "back", "top", "هبوطاً", "#9a3b24", 52, -4],
+        ["tree", "left", "graph", "right", "من الشجرة", "#1d4f72", 0, -18]
       ];
       svg.innerHTML = links.map((link) => {
         const path = curve(pointOn(boxOf(link[0]), link[1]), pointOn(boxOf(link[2]), link[3]));
