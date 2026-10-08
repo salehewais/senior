@@ -1,6 +1,6 @@
 # Idempotency
 
-**Status: Phase 5 stores consumer dedup for the order-service inventory worker in `order_db.processed_events`, in the same transaction as `inventory_snapshots`. HTTP idempotency keys are not implemented. Redis is not used.**
+**Status: Phase 5 stores consumer dedup for the order-service inventory worker in `order_db.processed_events`, in the same transaction as `inventory_snapshots`. Phase 7 does the same for reporting projections in `reporting_db.processed_events`. HTTP idempotency keys are not implemented. Redis is not used.**
 
 At-least-once delivery means every consumer and every unsafe HTTP endpoint will see duplicates. The duplicates are not a broker bug. They are what happens when a process is killed after it has done the work and before it has recorded that it is done.
 

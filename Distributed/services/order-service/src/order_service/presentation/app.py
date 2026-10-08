@@ -5,11 +5,9 @@ from fastapi import FastAPI
 
 from order_service.application.clock import Clock, SystemClock
 from order_service.application.ports import AccessTokenIssuer, PasswordHasher, RefreshTokenCodec
-from order_service.application.publishing import EventPublisher
 from order_service.application.unit_of_work import UnitOfWork
 from order_service.infrastructure.database.engine import make_engine, make_session_factory
 from order_service.infrastructure.database.unit_of_work import SqlUnitOfWork
-from order_service.infrastructure.messaging.publisher import PikaEventPublisher
 from order_service.infrastructure.security.keys import load_signing_keys
 from order_service.infrastructure.security.passwords import Argon2PasswordHasher
 from order_service.infrastructure.security.refresh_tokens import Sha256RefreshTokens
@@ -38,23 +36,21 @@ def create_app(
     token_issuer: AccessTokenIssuer | None | object = _UNSET,
     refresh_tokens: RefreshTokenCodec | None = None,
     internal_service_token: str | None | object = _UNSET,
-    event_publisher: EventPublisher | None | object = _UNSET,
 ) -> FastAPI:
     """HTTP adapter. Business rules live in use cases, not in these routes.
 
     Pass uow_factory and token_issuer in tests to avoid Postgres and committed keys.
-    Pass event_publisher=None in tests so they do not open RabbitMQ.
-    The default factory opens order_db, loads the RS256 key pair, and publishes
-    with pika after commit. That publish is not the outbox.
+    The handler writes the business row and the outbox row, then returns.
+    It does not open RabbitMQ. A separate publisher process does that.
     """
 
     app = FastAPI(
         title="Order service",
-        version="0.4.0",
+        version="0.6.0",
         description=(
-            "Phase 4 order service. Access tokens are RS256. After order_db commits, "
-            "domain events are published to the commerce.events exchange. "
-            "A broker failure does not roll the sale back, and the event can be lost until the outbox. "
+            "Phase 6 order service. Access tokens are RS256. The order, product, or customer "
+            "write and its outbox row commit in one order_db transaction. "
+            "The HTTP handler does not publish to RabbitMQ. "
             "saga_status stays null until the saga."
         ),
     )
@@ -78,10 +74,6 @@ def create_app(
         internal_service_token = settings.internal_service_token.strip() or None
     elif isinstance(internal_service_token, str):
         internal_service_token = internal_service_token.strip() or None
-    if event_publisher is _UNSET:
-        if settings is None:
-            settings = get_settings()
-        event_publisher = PikaEventPublisher(settings)
 
     app.state.uow_factory = uow_factory
     app.state.engine = engine
@@ -90,7 +82,6 @@ def create_app(
     app.state.token_issuer = token_issuer
     app.state.refresh_tokens = refresh_tokens or Sha256RefreshTokens()
     app.state.internal_service_token = internal_service_token
-    app.state.event_publisher = event_publisher
     install_middleware(app)
     # Added after the correlation middleware so this wrapper is outermost and can
     # answer browser preflight before a route runs. Traefik replaces it in Phase 10.

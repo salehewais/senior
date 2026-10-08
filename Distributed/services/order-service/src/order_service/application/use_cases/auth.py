@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from order_service.application.auth_policy import ACCESS_TOKEN_TTL_SECONDS, REFRESH_TOKEN_TTL
 from order_service.application.clock import Clock
 from order_service.application.ports import AccessTokenIssuer, PasswordHasher, RefreshTokenCodec
-from order_service.application.publishing import EventPublisher, publish_after_commit
 from order_service.application.unit_of_work import UnitOfWork
 from order_service.domain.email import normalize_email
 from order_service.domain.entities.account import Account
@@ -46,7 +45,6 @@ class RegisterAccount:
         passwords: PasswordHasher,
         tokens: AccessTokenIssuer | None,
         refresh_tokens: RefreshTokenCodec,
-        publisher: EventPublisher | None = None,
         *,
         refresh_ttl: timedelta = REFRESH_TOKEN_TTL,
     ) -> None:
@@ -54,7 +52,6 @@ class RegisterAccount:
         self._passwords = passwords
         self._tokens = tokens
         self._refresh_tokens = refresh_tokens
-        self._publisher = publisher
         self._refresh_ttl = refresh_ttl
 
     def execute(
@@ -99,8 +96,8 @@ class RegisterAccount:
             ttl=self._refresh_ttl,
         )
         access = self._issue(account, now)
+        uow.stage_events(customer)
         uow.commit()
-        publish_after_commit(self._publisher, customer)
         return _pair(access, raw_refresh, account)
 
     def _require_keys(self) -> None:

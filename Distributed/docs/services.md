@@ -126,6 +126,8 @@ Aggregates and entities:
 
 ## Reporting service (`reporting-service`)
 
+Phase 7 implements this service: Django, `reporting_db`, the consumer on `q.reporting.projection`, and the report routes. It does not open `order_db`.
+
 **Why it exists.** Operations and managers need totals, lists, and stock pictures that must not run inside the order transaction. Django is the read model. [ADR-002](adr/ADR-002-why-django-for-reporting.md).
 
 **Responsibilities.**

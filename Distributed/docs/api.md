@@ -1,6 +1,6 @@
 # HTTP API
 
-**Status: Phase 2 authenticates the order-service routes below.** Reports and idempotency keys are still design-only. `customer_id` on an order comes from the access token. A client field with that name is ignored.
+**Status: Phase 2 authenticates the order-service routes below. Phase 7 serves the report routes from the reporting service.** Idempotency keys are still design-only. `customer_id` on an order comes from the access token. A client field with that name is ignored.
 
 There is no OpenAPI file in Phase 0. This page is the contract sketch later phases implement. Routes are stable once a phase ships them; until then they exist only on paper.
 

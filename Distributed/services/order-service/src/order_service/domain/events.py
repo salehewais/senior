@@ -1,8 +1,7 @@
 """Facts the aggregate has already accepted.
 
-The application publishes these after the database commit. The domain does not
-import a broker. Phase 6 will also store them in the outbox in the same
-transaction as the row. Until then a crash after commit can lose the event.
+The application stores these in the outbox in the same transaction as the row.
+The domain does not import a broker, a database, or a web framework.
 """
 
 from __future__ import annotations

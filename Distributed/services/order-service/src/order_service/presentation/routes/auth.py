@@ -28,7 +28,7 @@ def _ids(request: Request) -> tuple[uuid.UUID, uuid.UUID]:
 def register(body: RegisterBody, request: Request, uow: UnitOfWorkDep) -> TokenResponse:
     clock, passwords, tokens, refresh_tokens = _services(request)
     correlation_id, causation_id = _ids(request)
-    pair = RegisterAccount(clock, passwords, tokens, refresh_tokens, request.app.state.event_publisher).execute(
+    pair = RegisterAccount(clock, passwords, tokens, refresh_tokens).execute(
         uow,
         email=body.email,
         display_name=body.display_name,

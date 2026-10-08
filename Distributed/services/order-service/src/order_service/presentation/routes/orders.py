@@ -31,7 +31,7 @@ def _trace(request: Request) -> tuple[uuid.UUID, uuid.UUID]:
 @router.post("/api/v1/orders", status_code=201)
 def create_order(body: CreateOrderBody, request: Request, actor: ActorDep, uow: UnitOfWorkDep) -> OrderResponse:
     correlation_id, causation_id = _trace(request)
-    view = CreateOrder(request.app.state.clock, request.app.state.event_publisher).execute(
+    view = CreateOrder(request.app.state.clock).execute(
         uow,
         actor=actor,
         lines=[(line.product_id, line.quantity) for line in body.items],
@@ -63,7 +63,7 @@ def get_order(order_id: uuid.UUID, actor: ActorDep, uow: UnitOfWorkDep) -> Order
 @router.post("/api/v1/orders/{order_id}/confirm")
 def confirm_order(order_id: uuid.UUID, request: Request, actor: ActorDep, uow: UnitOfWorkDep) -> OrderResponse:
     correlation_id, causation_id = _trace(request)
-    view = ConfirmOrder(request.app.state.clock, request.app.state.event_publisher).execute(
+    view = ConfirmOrder(request.app.state.clock).execute(
         uow,
         actor=actor,
         order_id=order_id,
@@ -82,7 +82,7 @@ def cancel_order(
     uow: UnitOfWorkDep,
 ) -> OrderResponse:
     correlation_id, causation_id = _trace(request)
-    view = CancelOrder(request.app.state.clock, request.app.state.event_publisher).execute(
+    view = CancelOrder(request.app.state.clock).execute(
         uow,
         actor=actor,
         order_id=order_id,
@@ -106,7 +106,7 @@ def start_processing(
     _: InternalDep,
 ) -> OrderResponse:
     correlation_id, causation_id = _trace(request)
-    view = StartProcessing(request.app.state.clock, request.app.state.event_publisher).execute(
+    view = StartProcessing(request.app.state.clock).execute(
         uow,
         order_id=order_id,
         correlation_id=correlation_id,
@@ -124,7 +124,7 @@ def ship_order(
     body: ShipOrderBody | None = None,
 ) -> OrderResponse:
     correlation_id, causation_id = _trace(request)
-    view = ShipOrder(request.app.state.clock, request.app.state.event_publisher).execute(
+    view = ShipOrder(request.app.state.clock).execute(
         uow,
         order_id=order_id,
         tracking_reference=None if body is None else body.tracking_reference,
@@ -137,7 +137,7 @@ def ship_order(
 @internal.post("/{order_id}/delivered")
 def deliver_order(order_id: uuid.UUID, request: Request, uow: UnitOfWorkDep, _: InternalDep) -> OrderResponse:
     correlation_id, causation_id = _trace(request)
-    view = DeliverOrder(request.app.state.clock, request.app.state.event_publisher).execute(
+    view = DeliverOrder(request.app.state.clock).execute(
         uow,
         order_id=order_id,
         correlation_id=correlation_id,

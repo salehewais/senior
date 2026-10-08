@@ -6,6 +6,8 @@ import copy
 import uuid
 from datetime import datetime
 
+from order_service.application.outbox import OutboxRecord, stage_outbox_records
+from order_service.application.publishing import RecordsEvents
 from order_service.application.unit_of_work import UnitOfWork
 from order_service.domain.entities.account import Account
 from order_service.domain.entities.catalog import Customer, Product
@@ -29,18 +31,20 @@ class MemoryStore:
         self.orders: dict[uuid.UUID, Order] = {}
         self.accounts: dict[uuid.UUID, Account] = {}
         self.refresh_tokens: dict[uuid.UUID, RefreshToken] = {}
+        self.outbox: dict[uuid.UUID, OutboxRecord] = {}
 
-    def snapshot(self) -> tuple[dict, dict, dict, dict, dict]:
+    def snapshot(self) -> tuple[dict, dict, dict, dict, dict, dict]:
         return (
             copy.deepcopy(self.products),
             copy.deepcopy(self.customers),
             copy.deepcopy(self.orders),
             copy.deepcopy(self.accounts),
             copy.deepcopy(self.refresh_tokens),
+            copy.deepcopy(self.outbox),
         )
 
-    def restore(self, snapshot: tuple[dict, dict, dict, dict, dict]) -> None:
-        products, customers, orders, accounts, refresh_tokens = snapshot
+    def restore(self, snapshot: tuple[dict, dict, dict, dict, dict, dict]) -> None:
+        products, customers, orders, accounts, refresh_tokens, outbox = snapshot
         self.products.clear()
         self.products.update(products)
         self.customers.clear()
@@ -51,6 +55,8 @@ class MemoryStore:
         self.accounts.update(accounts)
         self.refresh_tokens.clear()
         self.refresh_tokens.update(refresh_tokens)
+        self.outbox.clear()
+        self.outbox.update(outbox)
 
 
 def _working_copy(entity):
@@ -241,6 +247,12 @@ class InMemoryUnitOfWork(UnitOfWork):
         self.orders = InMemoryOrderRepository(store)
         self.accounts = InMemoryAccountRepository(store)
         self.refresh_tokens = InMemoryRefreshTokenRepository(store)
+
+    def stage_events(self, *aggregates: RecordsEvents) -> None:
+        for record in stage_outbox_records(*aggregates):
+            if record.id in self._store.outbox:
+                raise ConflictError("Outbox event already exists.")
+            self._store.outbox[record.id] = record
 
     def commit(self) -> None:
         self._committed = True

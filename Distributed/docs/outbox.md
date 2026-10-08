@@ -1,6 +1,6 @@
 # Transactional outbox
 
-**Status: Phase 0 design; not implemented.**
+**Status: Phase 6 implements this in `order_db`. The API inserts the outbox row in the business transaction. `python -m order_service.infrastructure.messaging.outbox_publisher` publishes it. A `failed` outbox row is not a consumer dead-letter.**
 
 ## The inconsistency problem
 
@@ -55,6 +55,8 @@ The broker publish happens while the row lock is held. If the process dies after
 What happens without the publisher: outbox rows pile up and no other service ever learns anything. Checkout looks fine. This is why outbox age is an alert, not a log line someone might read.
 
 What happens when publish fails: the user already has their HTTP success. The row remains `pending`. The publisher retries. If the message is unroutable, `mandatory` surfaces it, `retry_count` climbs, and the row becomes `failed` instead of hot-looping forever.
+
+A `failed` outbox row means this publisher never got a broker confirm. The message may not be on any queue. That is an operator problem. A consumer dead-letter message is different: the broker accepted the publish, a consumer received it, and the consumer could not apply it (or exhausted its retry ladder). The outbox row for that fact can already be `published`. Do not treat `outbox.status = failed` as the inventory DLQ, and do not treat a DLQ message as a missing outbox row.
 
 Detection:
 

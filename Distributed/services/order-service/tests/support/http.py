@@ -47,7 +47,6 @@ def make_client(
     *,
     internal_service_token: str | None = INTERNAL_TOKEN,
     clock: FixedClock | None = None,
-    event_publisher=None,
 ) -> tuple[TestClient, MemoryStore, FixedClock, str]:
     store = MemoryStore()
     clock = clock or FixedClock()
@@ -59,7 +58,6 @@ def make_client(
         password_hasher=fast_hasher(),
         token_issuer=RsaAccessTokenIssuer(private_pem, public_pem),
         internal_service_token=internal_service_token,
-        event_publisher=event_publisher,
     )
     return TestClient(app), store, clock, public_pem
 

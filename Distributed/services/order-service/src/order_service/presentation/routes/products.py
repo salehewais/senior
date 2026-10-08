@@ -26,7 +26,7 @@ def _ids(request: Request) -> tuple[uuid.UUID, uuid.UUID]:
 @router.post("", status_code=201)
 def create_product(body: ProductBody, request: Request, actor: ActorDep, uow: UnitOfWorkDep) -> ProductResponse:
     correlation_id, causation_id = _ids(request)
-    view = CreateProduct(request.app.state.clock, request.app.state.event_publisher).execute(
+    view = CreateProduct(request.app.state.clock).execute(
         uow,
         sku=body.sku,
         name=body.name,
@@ -70,7 +70,7 @@ def update_product(
 ) -> ProductResponse:
     correlation_id, causation_id = _ids(request)
     price = body.unit_price
-    view = UpdateProduct(request.app.state.clock, request.app.state.event_publisher).execute(
+    view = UpdateProduct(request.app.state.clock).execute(
         uow,
         product_id=product_id,
         name=body.name,

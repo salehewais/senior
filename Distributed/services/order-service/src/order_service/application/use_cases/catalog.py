@@ -9,7 +9,6 @@ from order_service.application.authorization import require_role
 from order_service.application.clock import Clock
 from order_service.application.dto import CustomerView, ProductView, customer_view, product_view
 from order_service.application.pagination import decode_cursor, encode_cursor
-from order_service.application.publishing import EventPublisher, publish_after_commit
 from order_service.application.unit_of_work import UnitOfWork
 from order_service.domain.entities.catalog import Customer, Product
 from order_service.domain.exceptions import ConflictError, NotFoundError
@@ -21,9 +20,8 @@ _ANY_ROLE = (Role.CUSTOMER, Role.ADMIN, Role.MANAGER)
 
 
 class CreateProduct:
-    def __init__(self, clock: Clock, publisher: EventPublisher | None = None) -> None:
+    def __init__(self, clock: Clock) -> None:
         self._clock = clock
-        self._publisher = publisher
 
     def execute(
         self,
@@ -49,15 +47,14 @@ class CreateProduct:
             causation_id=causation_id,
         )
         uow.products.add(product)
+        uow.stage_events(product)
         uow.commit()
-        publish_after_commit(self._publisher, product)
         return product_view(product)
 
 
 class UpdateProduct:
-    def __init__(self, clock: Clock, publisher: EventPublisher | None = None) -> None:
+    def __init__(self, clock: Clock) -> None:
         self._clock = clock
-        self._publisher = publisher
 
     def execute(
         self,
@@ -91,8 +88,8 @@ class UpdateProduct:
             causation_id=causation_id,
         )
         uow.products.add(product)
+        uow.stage_events(product)
         uow.commit()
-        publish_after_commit(self._publisher, product)
         return product_view(product)
 
 
@@ -112,9 +109,8 @@ class ListProducts:
 
 
 class CreateCustomer:
-    def __init__(self, clock: Clock, publisher: EventPublisher | None = None) -> None:
+    def __init__(self, clock: Clock) -> None:
         self._clock = clock
-        self._publisher = publisher
 
     def execute(
         self,
@@ -135,15 +131,14 @@ class CreateCustomer:
             causation_id=causation_id,
         )
         uow.customers.add(customer)
+        uow.stage_events(customer)
         uow.commit()
-        publish_after_commit(self._publisher, customer)
         return customer_view(customer)
 
 
 class RenameCustomer:
-    def __init__(self, clock: Clock, publisher: EventPublisher | None = None) -> None:
+    def __init__(self, clock: Clock) -> None:
         self._clock = clock
-        self._publisher = publisher
 
     def execute(
         self,
@@ -165,8 +160,8 @@ class RenameCustomer:
             causation_id=causation_id,
         )
         uow.customers.add(customer)
+        uow.stage_events(customer)
         uow.commit()
-        publish_after_commit(self._publisher, customer)
         return customer_view(customer)
 
 

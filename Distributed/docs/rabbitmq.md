@@ -1,6 +1,6 @@
 # RabbitMQ
 
-**Status: Phase 4 declares this topology and publishes to `commerce.events` after commit. Phase 5 runs the retry ladder for the order-service inventory consumer: a failed delivery is published to `commerce.retry` and acked, and the sixth failure or a permanent failure is published to `commerce.dlx`. Primary queues still have no dead-letter argument, so `nack` with `requeue=false` would drop a message; the worker does not do that. `requeue=true` is not used. The transactional outbox is Phase 6.**
+**Status: Phase 4 declares this topology. Phase 5 runs the retry ladder for the order-service inventory consumer, and declares the same ladder for `q.reporting.projection`. Phase 7 runs that reporting ladder: a failed delivery is published to `commerce.retry` and acked, and the sixth failure or a permanent failure is published to `commerce.dlx`. Primary queues still have no dead-letter argument, so `nack` with `requeue=false` would drop a message; the workers do not do that. `requeue=true` is not used. Phase 6 publishes the stored outbox envelope to `commerce.events` from a separate process, after the business commit.**
 
 Topology name: **`commerce-platform-topology`**. Later phases should create this topology as code (definitions or a small declarative script), not by clicking in the management UI and forgetting the clicks. The protocol is AMQP 0-9-1, which is the model RabbitMQ uses for exchanges, queues, and routing keys.
 

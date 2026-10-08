@@ -1,7 +1,7 @@
 [project]
 name = "order-service"
 version = "0.1.0"
-description = "Order service for the commerce learning platform. Phase 5: domain, order_db, HTTP, authentication, RabbitMQ, and reliable consumption."
+description = "Order service for the commerce learning platform. Phase 6: domain, order_db, HTTP, authentication, RabbitMQ, reliable consumption, and the transactional outbox."
 requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.14",

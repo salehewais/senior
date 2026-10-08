@@ -39,12 +39,26 @@ def test_order_flow_and_error_envelope() -> None:
     assert body["saga_status"] is None
     assert created.headers["X-Correlation-Id"] == "018f1c2a-3333-7c11-8a22-444444444444"
     assert created.headers["X-Request-Id"]
-
     order_id = body["id"]
+    created_outbox = [
+        row
+        for row in store.outbox.values()
+        if row.event_type == "OrderCreated" and row.payload["aggregate_id"] == order_id
+    ]
+    assert len(created_outbox) == 1
+    assert created_outbox[0].status == "pending"
+    assert created_outbox[0].published_at is None
+    assert created_outbox[0].payload["event_id"] == str(created_outbox[0].id)
+    assert created_outbox[0].payload["correlation_id"] == "018f1c2a-3333-7c11-8a22-444444444444"
+
     confirmed = client.post(f"/api/v1/orders/{order_id}/confirm", headers=bearer(access))
     assert confirmed.status_code == 200
     assert confirmed.json()["status"] == "CONFIRMED"
     assert confirmed.json()["version"] == 2
+    confirmed_outbox = [row for row in store.outbox.values() if row.event_type == "OrderConfirmed"]
+    assert len(confirmed_outbox) == 1
+    assert confirmed_outbox[0].status == "pending"
+    assert confirmed_outbox[0].aggregate_id == uuid.UUID(order_id)
 
     cancelled = client.post(
         f"/api/v1/orders/{order_id}/cancel",
@@ -57,6 +71,7 @@ def test_order_flow_and_error_envelope() -> None:
     assert "CONFIRMED" in error["message"]
     assert "Traceback" not in error["message"]
     assert error["correlation_id"]
+    assert not any(row.event_type == "OrderCancelled" for row in store.outbox.values())
 
     internal = {"X-Internal-Token": INTERNAL_TOKEN}
     processing = client.post(f"/api/v1/internal/orders/{order_id}/processing", headers=internal)

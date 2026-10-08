@@ -3,7 +3,8 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Uuid
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Uuid, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -90,6 +91,38 @@ class ProcessedEventRow(Base):
     aggregate_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     processed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     consumer_name: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+class OutboxRow(Base):
+    """One committed fact waiting for the publisher. ``id`` is the envelope ``event_id``.
+
+    ``payload`` is the full envelope written in the business transaction. The
+    publisher sends that JSON. It does not rebuild the event from the order row.
+    """
+
+    __tablename__ = "outbox"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending', 'published', 'failed')",
+            name="ck_outbox_status",
+        ),
+        Index(
+            "ix_outbox_pending_created_at_id",
+            "created_at",
+            "id",
+            postgresql_where=text("status = 'pending'"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    aggregate_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    aggregate_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    retry_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
 
 
 class InventorySnapshotRow(Base):

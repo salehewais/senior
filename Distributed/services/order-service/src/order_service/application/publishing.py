@@ -1,11 +1,9 @@
-"""Map committed domain events onto the catalog envelope and publish them.
+"""Map domain events onto the catalog envelope.
 
-Publish-after-commit is not the transactional outbox. The database commit has
-already succeeded. If this process dies before the broker confirms, or the
-broker rejects the publish, the event is gone. Phase 6 inserts the same
-envelope in the order transaction and retries until RabbitMQ accepts it.
-A failure here is logged with correlation_id and event_id only. The payload
-is not logged: CustomerUpdated carries an email address.
+The unit of work stores that envelope in the outbox before commit. The
+publisher process sends the stored body later. This module does not open a
+broker connection. CustomerUpdated carries an email, so nothing here logs a
+payload.
 """
 
 from __future__ import annotations
@@ -71,36 +69,6 @@ class EventPublisher(Protocol):
         """Publish to the commerce.events exchange. Raise if the broker does not confirm."""
 
 
-def publish_after_commit(publisher: EventPublisher | None, *aggregates: RecordsEvents) -> None:
-    """Send events recorded on these aggregates. Never call this before commit.
-
-    ``publisher`` is None in tests that are not about the broker. Those events
-    are still dropped, which is the Phase 1 behavior. The HTTP process passes
-    a real publisher. A raise from the publisher does not propagate: the sale
-    stays committed.
-    """
-
-    if publisher is None:
-        return
-    events: list[DomainEvent] = []
-    for aggregate in aggregates:
-        events.extend(aggregate.pending_events())
-    for event in events:
-        try:
-            publisher.publish(to_outbound(event))
-        except Exception as exc:
-            logger.error(
-                "publish failed after commit; the row is committed and this event can be lost "
-                "until the outbox exists correlation_id=%s event_id=%s event_type=%s error_type=%s",
-                event.correlation_id,
-                event.event_id,
-                event.event_type,
-                type(exc).__name__,
-            )
-    for aggregate in aggregates:
-        aggregate.collect_events()
-
-
 def to_outbound(event: DomainEvent) -> OutboundMessage:
     event_type = event.event_type
     try:
@@ -124,6 +92,54 @@ def to_outbound(event: DomainEvent) -> OutboundMessage:
         routing_key=routing_key,
         correlation_id=event.correlation_id,
         body=body,
+    )
+
+
+def aggregate_type_for(event: DomainEvent) -> str:
+    if isinstance(
+        event,
+        OrderCreated | OrderConfirmed | OrderCancelled | OrderProcessingStarted | OrderShipped | OrderDelivered,
+    ):
+        return "order"
+    if isinstance(event, ProductCreated | ProductUpdated):
+        return "product"
+    if isinstance(event, CustomerUpdated):
+        return "customer"
+    raise TypeError(f"{event.event_type} has no aggregate type.")
+
+
+def outbound_from_envelope(payload: object, *, column_event_type: str) -> OutboundMessage:
+    """Build a broker message from the stored envelope. The payload is authoritative.
+
+    A mismatch between the ``event_type`` column and ``payload.event_type`` is
+    logged with ids only. The column is not used to rebuild the body.
+    """
+
+    if not isinstance(payload, dict):
+        raise TypeError("outbox payload is not a JSON object")
+    payload_type = payload.get("event_type")
+    if payload_type != column_event_type:
+        logger.error(
+            "outbox event_type column disagrees with payload; sending the payload "
+            "event_id=%s column_event_type=%s payload_event_type=%s correlation_id=%s",
+            payload.get("event_id"),
+            column_event_type,
+            payload_type,
+            payload.get("correlation_id"),
+        )
+    if not isinstance(payload_type, str) or payload_type not in ROUTING_KEYS:
+        raise TypeError("outbox payload has no catalog routing key")
+    try:
+        event_id = uuid.UUID(str(payload.get("event_id")))
+        correlation_id = uuid.UUID(str(payload.get("correlation_id")))
+    except ValueError as exc:
+        raise TypeError("outbox payload event_id or correlation_id is not a UUID") from exc
+    return OutboundMessage(
+        event_id=event_id,
+        event_type=payload_type,
+        routing_key=ROUTING_KEYS[payload_type],
+        correlation_id=correlation_id,
+        body=payload,
     )
 
 

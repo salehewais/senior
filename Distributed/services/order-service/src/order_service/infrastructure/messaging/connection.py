@@ -1,9 +1,10 @@
 """Blocking connections with an explicit timeout on every network step.
 
-pika is the client because the use cases publish synchronously after commit.
-aio-pika would put an event loop on the request thread, or hide the same
-blocking wait in a background thread. socket_timeout and stack_timeout bound
-the handshake. blocked_connection_timeout bounds a broker disk alarm.
+pika is the client for the outbox publisher and the inventory consumer.
+The HTTP process does not open a broker connection. aio-pika would put an
+event loop on those processes, or hide the same blocking wait. socket_timeout
+and stack_timeout bound the handshake. blocked_connection_timeout bounds a
+broker disk alarm.
 
 pika's BlockingChannel then waits for declare-ok and publisher confirms in a
 loop that has no deadline of its own. broker_deadline arms a timer on that

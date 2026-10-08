@@ -9,7 +9,6 @@ from order_service.application.authorization import can_view_order, cancel_reaso
 from order_service.application.clock import Clock
 from order_service.application.dto import OrderView, order_view
 from order_service.application.pagination import decode_cursor, encode_cursor
-from order_service.application.publishing import EventPublisher, publish_after_commit
 from order_service.application.unit_of_work import UnitOfWork
 from order_service.domain.entities.order import Order
 from order_service.domain.entities.order_item import OrderItem
@@ -20,9 +19,8 @@ from order_service.domain.value_objects import Quantity
 
 
 class CreateOrder:
-    def __init__(self, clock: Clock, publisher: EventPublisher | None = None) -> None:
+    def __init__(self, clock: Clock) -> None:
         self._clock = clock
-        self._publisher = publisher
 
     def execute(
         self,
@@ -61,9 +59,9 @@ class CreateOrder:
             causation_id=causation_id,
         )
         uow.orders.add(order)
+        # Same transaction as the order. The broker is a different process.
+        uow.stage_events(order)
         uow.commit()
-        # After commit on purpose. publish_after_commit does not roll the sale back.
-        publish_after_commit(self._publisher, order)
         return order_view(order)
 
 
@@ -106,9 +104,8 @@ class ListOrders:
 
 
 class ConfirmOrder:
-    def __init__(self, clock: Clock, publisher: EventPublisher | None = None) -> None:
+    def __init__(self, clock: Clock) -> None:
         self._clock = clock
-        self._publisher = publisher
 
     def execute(
         self,
@@ -126,15 +123,14 @@ class ConfirmOrder:
             causation_id=causation_id,
         )
         uow.orders.add(order)
+        uow.stage_events(order)
         uow.commit()
-        publish_after_commit(self._publisher, order)
         return order_view(order)
 
 
 class CancelOrder:
-    def __init__(self, clock: Clock, publisher: EventPublisher | None = None) -> None:
+    def __init__(self, clock: Clock) -> None:
         self._clock = clock
-        self._publisher = publisher
 
     def execute(
         self,
@@ -154,15 +150,14 @@ class CancelOrder:
             causation_id=causation_id,
         )
         uow.orders.add(order)
+        uow.stage_events(order)
         uow.commit()
-        publish_after_commit(self._publisher, order)
         return order_view(order)
 
 
 class StartProcessing:
-    def __init__(self, clock: Clock, publisher: EventPublisher | None = None) -> None:
+    def __init__(self, clock: Clock) -> None:
         self._clock = clock
-        self._publisher = publisher
 
     def execute(
         self,
@@ -179,15 +174,14 @@ class StartProcessing:
             causation_id=causation_id,
         )
         uow.orders.add(order)
+        uow.stage_events(order)
         uow.commit()
-        publish_after_commit(self._publisher, order)
         return order_view(order)
 
 
 class ShipOrder:
-    def __init__(self, clock: Clock, publisher: EventPublisher | None = None) -> None:
+    def __init__(self, clock: Clock) -> None:
         self._clock = clock
-        self._publisher = publisher
 
     def execute(
         self,
@@ -206,15 +200,14 @@ class ShipOrder:
             causation_id=causation_id,
         )
         uow.orders.add(order)
+        uow.stage_events(order)
         uow.commit()
-        publish_after_commit(self._publisher, order)
         return order_view(order)
 
 
 class DeliverOrder:
-    def __init__(self, clock: Clock, publisher: EventPublisher | None = None) -> None:
+    def __init__(self, clock: Clock) -> None:
         self._clock = clock
-        self._publisher = publisher
 
     def execute(
         self,
@@ -231,8 +224,8 @@ class DeliverOrder:
             causation_id=causation_id,
         )
         uow.orders.add(order)
+        uow.stage_events(order)
         uow.commit()
-        publish_after_commit(self._publisher, order)
         return order_view(order)
 
 

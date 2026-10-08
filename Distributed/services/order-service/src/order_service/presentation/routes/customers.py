@@ -16,7 +16,7 @@ def get_me(actor: ActorDep, uow: UnitOfWorkDep) -> CustomerResponse:
 
 @router.patch("/me")
 def rename_me(body: CustomerPatch, request: Request, actor: ActorDep, uow: UnitOfWorkDep) -> CustomerResponse:
-    view = RenameCustomer(request.app.state.clock, request.app.state.event_publisher).execute(
+    view = RenameCustomer(request.app.state.clock).execute(
         uow,
         actor=actor,
         display_name=body.display_name,

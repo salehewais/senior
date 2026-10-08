@@ -1,0 +1,31 @@
+# Phase 7 reporting database only.
+# This is not the full platform Compose file (that is Phase 11).
+# RabbitMQ stays the broker from services/order-service/compose.yaml.
+# Redis, Odoo, Traefik, and the order database are intentionally absent.
+#
+# Host port 5433 avoids colliding with order_db, which publishes 5432.
+# This Postgres server has one database, reporting_db, and one login,
+# reporting_service. It has no order_db and no odoo_db, so this user cannot
+# be given a DSN for those databases.
+# The password is a local placeholder, the same kind as the order service
+# compose file. It is not a credential for a shared environment.
+
+services:
+  reporting-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: reporting_service
+      POSTGRES_PASSWORD: reporting_service
+      POSTGRES_DB: reporting_db
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - reporting_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reporting_service -d reporting_db"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  reporting_db_data:

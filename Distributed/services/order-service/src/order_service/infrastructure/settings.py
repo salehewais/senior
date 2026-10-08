@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     rabbitmq_url: str = "amqp://order_service:order_service@127.0.0.1:5672/%2F"
     # Connect, declare, publish confirm, and consumer socket calls stop after this.
     rabbitmq_timeout_seconds: float = 5.0
+    # Outbox publisher process. The API does not use these to talk to RabbitMQ.
+    outbox_poll_interval_seconds: float = 1.0
+    outbox_batch_size: int = 100
+    # Broker confirms that failed. After this many, the row is status=failed and is not retried.
+    # Same count as the consumer retry budget. A failed outbox row is not a consumer DLQ message.
+    outbox_max_attempts: int = 5
 
 
 @lru_cache
