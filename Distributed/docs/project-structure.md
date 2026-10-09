@@ -101,7 +101,7 @@ Community CLI project `CommerceApp`. [README.md](../mobile/react-native-app/READ
 
 ### `deploy/compose`
 
-Full stack file `docker-compose.yml`. Beside it: `dynamic.yaml`, `.env.example`, `test_stack.py`. The Compose file names four Postgres services (`postgres`, `reporting-postgres`, `notification-postgres`, `odoo-db`), RabbitMQ, Redis, the order, reporting, notification, and Odoo processes and their workers, `frontend`, `jwt-check`, `gateway`, and the observability services (`otel-collector`, `tempo`, `prometheus`, `alert-webhook`, `alertmanager`, `grafana`, and the Postgres and Redis exporters).
+Full stack file `docker-compose.yml`. Beside it: `up.sh`, `dynamic.yaml`, `.env.example`, `test_stack.py`. `up.sh` creates the JWT files and `.env` when they are missing, then runs Compose, and exits non-zero when Docker is down or Compose fails. The Compose file names four Postgres services (`postgres`, `reporting-postgres`, `notification-postgres`, `odoo-db`), RabbitMQ, Redis, the order, reporting, notification, and Odoo processes and their workers, `frontend`, `jwt-check`, `gateway`, and the observability services (`otel-collector`, `tempo`, `prometheus`, `alert-webhook`, `alertmanager`, `grafana`, and the Postgres and Redis exporters).
 
 ### `deploy/gateway`
 

@@ -113,7 +113,7 @@ Needs the toolchain recorded in [mobile/react-native-app/README.md](../mobile/re
 
 ## Full Compose
 
-The file is `deploy/compose/docker-compose.yml`. From the `Distributed` root, after the key and env steps in [How to run the full stack](../README.md#how-to-run-the-full-stack):
+The file is `deploy/compose/docker-compose.yml`. From the `Distributed` root, `bash deploy/compose/up.sh` creates the JWT files and `deploy/compose/.env` when they are missing, sets `INTERNAL_SERVICE_TOKEN` to `local-dev` when that value is empty, and then runs Compose. It exits 1 when `docker info` fails. The same steps by hand, from [How to run the full stack](../README.md#how-to-run-the-full-stack), are:
 
 ```bash
 mkdir -p deploy/compose/secrets
@@ -145,4 +145,4 @@ The script uses `set -euo pipefail`. It exits 1 when `docker info` fails, and it
 
 ## Scripts
 
-No new script was added. `deploy/kind/apply.sh` already replaces the repeated kind build, load, and apply sequence, and it exits non-zero when Docker, kind, or kubectl is missing. The full Compose start is the single `docker compose -f deploy/compose/docker-compose.yml up -d --build` command above. A wrapper around that one command was not added. Failure-lab and backup scripts that already exist are `deploy/failure-lab/` and `deploy/backup/`; their README sections are [Failure lab (Phase 18)](../README.md#failure-lab-phase-18) and [Backup and restore (Phase 19)](../README.md#backup-and-restore-phase-19).
+`deploy/compose/up.sh` is the full-stack start. It exits non-zero when Docker is down or Compose fails. `deploy/kind/apply.sh` replaces the repeated kind build, load, and apply sequence, and it exits non-zero when Docker, kind, or kubectl is missing. Failure-lab and backup scripts that already exist are `deploy/failure-lab/` and `deploy/backup/`; their README sections are [Failure lab (Phase 18)](../README.md#failure-lab-phase-18) and [Backup and restore (Phase 19)](../README.md#backup-and-restore-phase-19).

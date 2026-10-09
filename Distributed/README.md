@@ -703,6 +703,8 @@ Set `INTERNAL_SERVICE_TOKEN` in `deploy/compose/.env` to a local value. That var
 
 ### Start
 
+`bash deploy/compose/up.sh` does the key and env steps above when those files are missing, then runs the command below. An empty `INTERNAL_SERVICE_TOKEN` in `.env` is set to the local placeholder `local-dev`.
+
 ```bash
 docker compose -f deploy/compose/docker-compose.yml up -d --build
 ```
