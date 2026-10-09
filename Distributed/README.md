@@ -76,7 +76,7 @@ The runtime, observability, and recovery docs describe software that is already 
 - [mobile/react-native-app/README.md](mobile/react-native-app/README.md) — Extension Phase 6 React Native client
 - [docs/project-structure.md](docs/project-structure.md) — Extension Phase 7 tree
 - [docs/run-the-project.md](docs/run-the-project.md) — Extension Phase 7 local dependencies, Compose, and kind
-- [docs/system-architecture.html](docs/system-architecture.html) — Extension Phase 8 explorer
+- [docs/system-architecture.html](docs/system-architecture.html) — bilingual architecture learning portal. How to use it: [docs/learning-portal.md](docs/learning-portal.md)
 - [docs/docker.md](docs/docker.md) — Compose first
 - [docs/kubernetes.md](docs/kubernetes.md) — kind, Phase 13, after Compose
 - [docs/observability.md](docs/observability.md), [docs/prometheus.md](docs/prometheus.md), [docs/grafana.md](docs/grafana.md), [docs/alerting.md](docs/alerting.md) — how we see failure
@@ -142,7 +142,7 @@ Extension Phases 0–10 sit after the list above. They do not renumber it. READM
 - [x] **Extension Phase 5 — Caching.** `docs/caching-strategy.md`. Keep cache-aside. Add hit, miss, error, and duration metrics on the current Grafana dashboards, TTL fallback documentation, and tests for stale data, Redis down, concurrent misses, and invalidation. See [docs/caching-strategy.md](docs/caching-strategy.md).
 - [x] **Extension Phase 6 — React Native.** `mobile/react-native-app` after the HTTP API the app needs is stable. Auth, catalog, cart, checkout, orders, and in-app notifications. FCM only after the app runs. A README with this machine’s real CLI commands. See [mobile/react-native-app/README.md](mobile/react-native-app/README.md).
 - [x] **Extension Phase 7 — Structure and startup.** `docs/project-structure.md` from the real tree, with planned paths marked planned. `docs/run-the-project.md` for local dependencies, full Compose, and kind. Scripts only when they replace repeated commands and exit non-zero on failure. See [docs/project-structure.md](docs/project-structure.md) and [docs/run-the-project.md](docs/run-the-project.md).
-- [x] **Extension Phase 8 — HTML explorer.** `docs/system-architecture.html`, self-contained, with relative links, matching what is implemented at that point. See [docs/system-architecture.html](docs/system-architecture.html).
+- [x] **Extension Phase 8 — HTML explorer.** `docs/system-architecture.html` started here as a self-contained page with relative links. It is now the bilingual learning portal. How to use it: [docs/learning-portal.md](docs/learning-portal.md).
 - [x] **Extension Phase 9 — Operational tests.** Extend the current suites for saga, consistency, reservations, notifications, cache, and Redis failure. Load numbers only from a real run, with hardware and replica count. See [docs/testing.md](docs/testing.md).
 - [x] **Extension Phase 10 — Final review.** Cross-links only. No second copy of the RabbitMQ, outbox, Kubernetes, observability, testing, or security docs. The extension pages link to [docs/rabbitmq.md](docs/rabbitmq.md), [docs/outbox.md](docs/outbox.md), [docs/kubernetes.md](docs/kubernetes.md), [docs/observability.md](docs/observability.md), [docs/testing.md](docs/testing.md), and [docs/security.md](docs/security.md).
 
@@ -909,7 +909,7 @@ The workflow file is `.github/workflows/distributed-commerce-ci.yml` in the git 
 
 - **ruff.** `ruff check` (0.16.10) on `services/order-service`, `services/reporting-service`, and `services/odoo`. Those are the trees that already configure ruff. This repo does not run `ruff format`.
 - **order-service.** Python 3.12, `pip install -e ".[dev]"`, then `pytest`. Live Postgres, RabbitMQ, and Redis tests skip.
-- **reporting-service.** The same install and `pytest` for the Django project. The reporting integration test skips when its database or the broker is down.
+- **reporting-service.** The same install and `pytest` for the Django project, after `pip install -e` of order-service so the consistency-lag tests can export an order. The reporting integration test skips when its database or the broker is down.
 - **odoo.** `pytest` for `commerce_erp`. No live Odoo.
 - **gateway.** `deploy/gateway/tests/test_public_routes.py` and `test_jwt_check.py`, after `pip install "pyjwt[crypto]>=2.10"`. `live_check.py` is not in the job, because that script starts Traefik when Docker is up.
 - **frontend.** Node 22, `npm ci`, `npm test`, and `npm run build`, from the lockfile.
@@ -919,13 +919,13 @@ The workflow file is `.github/workflows/distributed-commerce-ci.yml` in the git 
 - **failure-lab.** `python deploy/failure-lab/test_lab.py`. It reads the failure-lab scripts. It does not start Compose, stop a service, or send a request.
 - **backup.** `python deploy/backup/test_backup.py`. It reads the backup and restore scripts. It does not start Compose, dump a database, or restore one.
 - **dependency-scan.** `pip-audit` 2.10.1 with `--strict` on the three service directories, then `npm audit`.
-- **image-scan.** `docker build` of `services/order-service/Dockerfile` as `commerce/order-service:0.1.0`, then Trivy (`aquasecurity/trivy-action` v0.36.0, Trivy v0.75.0). High and critical findings fail the job. The other images are not scanned here.
+- **image-scan.** `docker build` of `services/order-service/Dockerfile` as `commerce/order-service:0.1.0`, then Trivy (`aquasecurity/trivy-action` v0.36.0, Trivy v0.75.0). The image upgrades Debian packages at build. High and critical findings that have a fixed version fail the job. Unfixed OS advisories do not. The other images are not scanned here.
 
 A green run means those jobs passed. Ruff passed. The Python suites passed, and a skipped live-database test counts as passed. The gateway file tests, the frontend test, and the frontend build passed. The manifest check and the Compose text check passed. The scans ran under the rules below. A green run does not mean a cluster was deployed, retention ran, a load test ran, a failure lab ran, or a backup was taken. The load-scenario, failure-lab, and backup jobs only read files.
 
 **Dependency scan.** There is no Python lockfile. `pip-audit` resolves the runtime dependencies in each `pyproject.toml` when the job runs, including the packages those dependencies pull in. A lockfile would make that resolution reproducible. The dev extra (pytest, ruff) is outside that resolution. When this phase was added, that resolved tree had no known vulnerabilities, and `pip-audit` fails the job if one appears or if a dependency cannot be resolved. `npm audit --omit=dev --audit-level=high` fails the job when a production dependency is high or critical. The full lockfile audit is printed as well. The frontend lockfile reports critical advisories in transitive `tinypool` (GHSA-5gmw-xhrv-c9v3 and GHSA-85c8-ppgw-ccpr), pulled in by the devDependency `vitest`, whose own advisory is moderate; the offered fix is a breaking vitest 5 bump, which this phase does not apply and does not silence with an ignore file. The job still fails if `npm audit` crashes, if a production dependency is high or critical, or if a direct dependency has its own high or critical advisory.
 
-**Image scan.** The workflow builds the order-service image and scans it. This environment did not. Docker was down, so the image was not built and was not scanned.
+**Image scan.** The workflow builds the order-service image and scans it. The Dockerfile runs `apt-get upgrade` so a Debian package with a published fix is not left at the base-image version. Trivy is set to `ignore-unfixed: true`: a high or critical finding fails the job only when a fixed version exists. Advisories Debian has not patched yet, including the util-linux, ncurses, and systemd findings on `python:3.12-slim`, stay in the table and do not fail the job. This environment did not build or scan the image. Docker was down.
 
 Pip and npm downloads are cached with `actions/setup-python@v5` and `actions/setup-node@v4`. Checkout is `actions/checkout@v4`.
 

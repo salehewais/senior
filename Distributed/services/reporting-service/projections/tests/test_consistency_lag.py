@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 import uuid
 from pathlib import Path
 
@@ -27,15 +28,21 @@ def _export_confirmed_order() -> dict[str, object]:
     return _export("export_confirmed_order")
 
 
+def _order_interpreter() -> str:
+    """Prefer the order-service virtualenv. CI installs that package into the job interpreter."""
+
+    if ORDER_PYTHON.is_file():
+        return str(ORDER_PYTHON)
+    return sys.executable
+
+
 def _export(function_name: str) -> dict[str, object]:
-    if not ORDER_PYTHON.is_file():
-        raise AssertionError(f"order-service interpreter is missing: {ORDER_PYTHON}")
     env = os.environ.copy()
     env.pop("DJANGO_SETTINGS_MODULE", None)
     env["PYTHONPATH"] = os.pathsep.join([str(ORDER_SERVICE / "src"), str(ORDER_SERVICE)])
     completed = subprocess.run(
         [
-            str(ORDER_PYTHON),
+            _order_interpreter(),
             "-c",
             "import json; from tests.support.consistency_export import "
             f"{function_name}; print(json.dumps({function_name}()))",

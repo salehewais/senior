@@ -354,7 +354,8 @@ class _DatabaseGauges(Collector):
     def collect(self):
         yield _gauge(
             "payment_circuit_state",
-            "0 closed, 1 half-open, 2 open. The saga worker copies the simulated payment breaker. The default is closed.",
+            "0 closed, 1 half-open, 2 open. The saga worker copies the simulated payment breaker. "
+            "The default is closed.",
             _payment_circuit_state,
         )
         if not _engine_holder.get("ready"):

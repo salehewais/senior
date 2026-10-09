@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from order_service.application.outbox import OutboxRecord, stage_outbox_records
+from order_service.application.outbox import OutboxRecord
 from order_service.application.publishing import RecordsEvents
 from order_service.domain.repositories import (
     AccountRepository,

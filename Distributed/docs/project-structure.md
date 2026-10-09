@@ -142,9 +142,9 @@ The write-up is [observability.md](observability.md).
 
 Pages present on this walk:
 
-`adr/` (`ADR-001` through `ADR-012`), `alerting.md`, `api.md`, `architecture.md`, `architecture-review.md`, `caching-strategy.md`, `consistency-models.md`, `current-architecture.md`, `database.md`, `deployment.md`, `disaster-recovery.md`, `docker.md`, `events.md`, `extension-gap-analysis.md`, `failure-scenarios.md`, `flask-notification-service.md`, `grafana.md`, `idempotency.md`, `kubernetes.md`, `load-balancing.md`, `observability.md`, `outbox.md`, `prometheus.md`, `rabbitmq.md`, `saga-pattern.md`, `security.md`, `services.md`, `system-architecture.html`, `testing.md`, `project-structure.md`, `run-the-project.md`.
+`adr/` (`ADR-001` through `ADR-012`), `alerting.md`, `api.md`, `architecture.md`, `architecture-review.md`, `caching-strategy.md`, `consistency-models.md`, `current-architecture.md`, `database.md`, `deployment.md`, `disaster-recovery.md`, `docker.md`, `events.md`, `extension-gap-analysis.md`, `failure-scenarios.md`, `flask-notification-service.md`, `grafana.md`, `idempotency.md`, `kubernetes.md`, `learning-portal.md`, `load-balancing.md`, `observability.md`, `outbox.md`, `prometheus.md`, `rabbitmq.md`, `saga-pattern.md`, `security.md`, `services.md`, `system-architecture.html`, `testing.md`, `project-structure.md`, `run-the-project.md`.
 
-`docs/system-architecture.html` is the Extension Phase 8 explorer. It was not in the 9 October 2026 walk. It is in this directory now.
+`docs/system-architecture.html` is the bilingual learning portal. [learning-portal.md](learning-portal.md) explains language, the map, and the workflow tracer. The HTML file was not in the 9 October 2026 walk. It is in this directory now.
 
 ## Planned
 
