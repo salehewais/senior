@@ -1,10 +1,10 @@
 # Event catalog
 
-**Status: Phase 6 stores this envelope in `order_db.outbox` in the same transaction as the aggregate write. A separate publisher sends that stored body. Phase 5's inventory worker consumes `InventoryUpdated` from `q.order.inventory`. Phase 7's reporting worker consumes the catalog on `q.reporting.projection` into `reporting_db`. If an AMQP property disagrees with the body, the body wins. Phase 8 applies `OrderConfirmed` in Odoo and publishes `InventoryUpdated` from the Odoo outbox.**
+**Status: Phase 6 stores this envelope in `order_db.outbox` in the same transaction as the aggregate write. A separate publisher sends that stored body. Phase 5's inventory worker consumes `InventoryUpdated` from `q.order.inventory`. Phase 7's reporting worker consumes the catalog on `q.reporting.projection` into `reporting_db`. If an AMQP property disagrees with the body, the body wins. Extension Phase 1 creates the Odoo sales order from `CreateErpOrder`. Reporting still consumes `OrderConfirmed`. Odoo publishes `InventoryUpdated` from its outbox.**
 
 Events are facts that have already been committed in the producer's database. They are not requests. A consumer that disagrees with a fact does not rewrite the producer's tables. It records the consequence in its own database, or it raises a command through an API that the producer validates.
 
-Saga commands are not in this catalog. They are specified in [rabbitmq.md](rabbitmq.md) so Phase 15 has a shape, and they must not be projected into reports as if they were order status.
+Saga commands are not in this catalog. They are specified in [rabbitmq.md](rabbitmq.md) and implemented in Extension Phase 1. README Phase 15 is the retention CronJob. Commands must not be projected into reports as if they were order status.
 
 ## Envelope
 
@@ -55,19 +55,19 @@ Integer minor units. Never a JSON float.
 | Event | Producer | Consumers | Aggregate |
 | --- | --- | --- | --- |
 | `OrderCreated` | `order-service` | reporting | order |
-| `OrderConfirmed` | `order-service` | reporting, Odoo | order |
-| `OrderCancelled` | `order-service` | reporting | order |
+| `OrderConfirmed` | `order-service` | reporting, Odoo, notification | order |
+| `OrderCancelled` | `order-service` | reporting, notification | order |
 | `OrderProcessingStarted` | `order-service` | reporting | order |
-| `OrderShipped` | `order-service` | reporting | order |
-| `OrderDelivered` | `order-service` | reporting | order |
+| `OrderShipped` | `order-service` | reporting, notification | order |
+| `OrderDelivered` | `order-service` | reporting, notification | order |
 | `ProductCreated` | `order-service` | reporting | product |
 | `ProductUpdated` | `order-service` | reporting | product |
 | `CustomerUpdated` | `order-service` | reporting | customer |
-| `PaymentConfirmed` | `order-service` | reporting | order |
-| `PaymentFailed` | `order-service` | reporting | order |
+| `PaymentConfirmed` | `order-service` | reporting, notification | order |
+| `PaymentFailed` | `order-service` | reporting, notification | order |
 | `InventoryUpdated` | `odoo` | order-service, reporting | product |
 
-Odoo consumes **only** `OrderConfirmed` from this catalog. `OrderCancelled` is not delivered to Odoo: cancellation exists only from `PENDING`, and Odoo never saw the pending order. Stopping an ERP document after confirmation is a saga command, not this event.
+Odoo still receives `OrderConfirmed` on `q.odoo.order-confirmed` and does not create a sales order from it. Reporting still consumes `OrderConfirmed`. The sales order is created from `CreateErpOrder`. `OrderCancelled` is not delivered to Odoo: cancellation exists only from `PENDING`, and Odoo never saw the pending order. Stopping an ERP document after confirmation is `CancelErpOrder`, not this event.
 
 The order service does not consume its own order events. It already applied them in the transaction that wrote the outbox. It consumes `InventoryUpdated` only.
 

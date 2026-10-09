@@ -14,6 +14,7 @@ resources:
   - order.yaml
   - retention.yaml
   - reporting.yaml
+  - notification.yaml
   - odoo.yaml
   - frontend.yaml
   - gateway.yaml

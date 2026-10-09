@@ -35,12 +35,22 @@ EXCHANGE_COMMERCE_DLX = "commerce.dlx"
 QUEUE_REPORTING = "q.reporting.projection"
 QUEUE_ODOO_CONFIRMED = "q.odoo.order-confirmed"
 QUEUE_INVENTORY = "q.order.inventory"
+QUEUE_RESERVE = "q.odoo.reserve-inventory"
+QUEUE_RELEASE = "q.odoo.release-inventory"
+QUEUE_CREATE_SALES_ORDER = "q.odoo.create-sales-order"
+QUEUE_CANCEL_SALES_ORDER = "q.odoo.cancel-sales-order"
+
+EXCHANGE_COMMERCE_COMMANDS = "commerce.commands"
 
 # Phase 5 publishes to commerce.dlx with these keys after the retry budget.
 DLQ_ROUTING_KEY = {
     QUEUE_REPORTING: "reporting.projection",
     QUEUE_ODOO_CONFIRMED: "odoo.order-confirmed",
     QUEUE_INVENTORY: "order.inventory",
+    QUEUE_RESERVE: "odoo.reserve-inventory",
+    QUEUE_RELEASE: "odoo.release-inventory",
+    QUEUE_CREATE_SALES_ORDER: "odoo.create-sales-order",
+    QUEUE_CANCEL_SALES_ORDER: "odoo.cancel-sales-order",
 }
 
 # Backoff from docs/rabbitmq.md. Attempt 6 is the DLQ, not another delay.
@@ -51,6 +61,10 @@ _RETRY_RETURN_EXCHANGE = {
     QUEUE_REPORTING: EXCHANGE_COMMERCE_EVENTS,
     QUEUE_ODOO_CONFIRMED: EXCHANGE_COMMERCE_EVENTS,
     QUEUE_INVENTORY: EXCHANGE_ERP_EVENTS,
+    QUEUE_RESERVE: EXCHANGE_COMMERCE_COMMANDS,
+    QUEUE_RELEASE: EXCHANGE_COMMERCE_COMMANDS,
+    QUEUE_CREATE_SALES_ORDER: EXCHANGE_COMMERCE_COMMANDS,
+    QUEUE_CANCEL_SALES_ORDER: EXCHANGE_COMMERCE_COMMANDS,
 }
 
 _EVENT_EXCHANGES = (
@@ -70,17 +84,29 @@ _BINDINGS: tuple[tuple[str, str, str], ...] = (
     (QUEUE_INVENTORY, EXCHANGE_ERP_EVENTS, "inventory.updated"),
 )
 
+_COMMAND_BINDINGS: tuple[tuple[str, str], ...] = (
+    (QUEUE_RESERVE, "inventory.reserve"),
+    (QUEUE_RELEASE, "inventory.release"),
+    (QUEUE_CREATE_SALES_ORDER, "erp.create-sales-order"),
+    (QUEUE_CANCEL_SALES_ORDER, "erp.cancel-sales-order"),
+)
+
 
 def declare_topology(channel: pika.channel.Channel) -> None:
     """Idempotent declare. Safe to call on every publish and on consumer start."""
 
     for name in _EVENT_EXCHANGES:
         channel.exchange_declare(exchange=name, exchange_type="topic", durable=True)
+    channel.exchange_declare(exchange=EXCHANGE_COMMERCE_COMMANDS, exchange_type="direct", durable=True)
     for queue_name in (QUEUE_REPORTING, QUEUE_ODOO_CONFIRMED, QUEUE_INVENTORY):
         # No x-dead-letter-exchange. Phase 5 adds it. See the module docstring.
         channel.queue_declare(queue=queue_name, durable=True)
+    for queue_name, _routing_key in _COMMAND_BINDINGS:
+        channel.queue_declare(queue=queue_name, durable=True)
     for queue_name, exchange, routing_key in _BINDINGS:
         channel.queue_bind(queue=queue_name, exchange=exchange, routing_key=routing_key)
+    for queue_name, routing_key in _COMMAND_BINDINGS:
+        channel.queue_bind(queue=queue_name, exchange=EXCHANGE_COMMERCE_COMMANDS, routing_key=routing_key)
     _declare_retry_queues(channel)
     _declare_retry_return_bindings(channel)
     _declare_dead_letter_queues(channel)

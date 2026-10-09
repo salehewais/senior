@@ -10,6 +10,7 @@ from order_service.domain.entities.account import Account
 from order_service.domain.entities.catalog import Customer, Product
 from order_service.domain.entities.order import Order
 from order_service.domain.entities.refresh_token import RefreshToken
+from order_service.domain.entities.saga import SagaInstance
 from order_service.domain.ids import AccountId, CustomerId, OrderId, ProductId
 
 
@@ -63,6 +64,21 @@ class OrderRepository(ABC):
         id_before: uuid.UUID | None,
         customer_id: uuid.UUID | None = None,
     ) -> list[Order]: ...
+
+
+class SagaRepository(ABC):
+    @abstractmethod
+    def get(self, saga_id: uuid.UUID) -> SagaInstance | None: ...
+
+    @abstractmethod
+    def get_by_order(self, order_id: uuid.UUID) -> SagaInstance | None: ...
+
+    @abstractmethod
+    def add(self, saga: SagaInstance) -> None: ...
+
+    @abstractmethod
+    def next_active(self) -> SagaInstance | None:
+        """The oldest saga that is not terminal. None when every saga is finished."""
 
 
 class AccountRepository(ABC):

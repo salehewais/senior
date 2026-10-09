@@ -125,6 +125,37 @@ class OutboxRow(Base):
     status: Mapped[str] = mapped_column(String(16), nullable=False)
 
 
+class SagaInstanceRow(Base):
+    """Saga progress committed with the order. Process memory is not this row."""
+
+    __tablename__ = "saga_instances"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ("
+            "'STARTED', 'INVENTORY_RESERVED', 'PAYMENT_CONFIRMED', 'ODOO_ORDER_CREATED', "
+            "'COMPLETED', 'COMPENSATING', 'COMPENSATED', 'FAILED', 'MANUAL_INTERVENTION_REQUIRED'"
+            ")",
+            name="ck_saga_instances_status",
+        ),
+        Index("ix_saga_instances_status_updated_at", "status", "updated_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
+    order_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("orders.id"), unique=True, nullable=False)
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+    correlation_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    causation_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    completed_steps: Mapped[list] = mapped_column(JSONB, nullable=False)
+    reservation_id: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    payment_reference: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    failure_reason: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    pending_step: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    pending_outcome: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class InventorySnapshotRow(Base):
     """Last InventoryUpdated applied for a product. Odoo is still the stock authority."""
 

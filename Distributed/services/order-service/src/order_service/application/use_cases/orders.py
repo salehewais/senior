@@ -16,6 +16,7 @@ from order_service.application.pagination import decode_cursor, encode_cursor
 from order_service.application.unit_of_work import UnitOfWork
 from order_service.domain.entities.order import Order
 from order_service.domain.entities.order_item import OrderItem
+from order_service.domain.entities.saga import SagaInstance
 from order_service.domain.exceptions import NotFoundError, ProductNotOrderableError
 from order_service.domain.ids import CustomerId, OrderId, ProductId
 from order_service.domain.roles import Role
@@ -126,7 +127,16 @@ class ConfirmOrder:
             correlation_id=correlation_id,
             causation_id=causation_id,
         )
+        now = self._clock.now()
+        saga = SagaInstance.start(
+            order_id=order.id.value,
+            now=now,
+            correlation_id=correlation_id,
+            causation_id=causation_id,
+        )
+        order.set_saga_status(saga.status.value)
         uow.orders.add(order)
+        uow.sagas.add(saga)
         uow.stage_events(order)
         uow.commit()
         return order_view(order)

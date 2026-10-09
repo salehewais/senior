@@ -5,6 +5,7 @@
 # Earlier files stay for one service at a time, with the app on the host:
 #   services/order-service/compose.yaml     order_db, RabbitMQ, Redis
 #   services/reporting-service/compose.yaml reporting_db on host port 5433
+#   services/notification-service/compose.yaml notification_db on host port 5435
 #   services/odoo/compose.yaml              Odoo and odoo_db
 #   deploy/gateway/compose.yaml             Traefik to processes on the host
 #
@@ -38,6 +39,11 @@ x-reporting-image: &reporting-image
   build:
     context: ../../services/reporting-service
 
+x-notification-image: &notification-image
+  image: commerce/notification-service:0.1.0
+  build:
+    context: ../../services/notification-service
+
 x-odoo-image: &odoo-image
   image: commerce/odoo:18.0.1
   build:
@@ -60,6 +66,13 @@ x-reporting-env: &reporting-env
   JWT_PUBLIC_KEY_PATH: /keys/jwt_public.pem
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
   OTEL_SERVICE_NAME: reporting-service
+  PYTHONUNBUFFERED: "1"
+
+x-notification-env: &notification-env
+  NOTIFICATION_DATABASE_URL: postgresql+psycopg://notification_service:notification_service@notification-postgres:5432/notification_db
+  RABBITMQ_URL: amqp://order_service:order_service@rabbitmq:5672/%2F
+  RABBITMQ_TIMEOUT_SECONDS: "5"
+  JWT_PUBLIC_KEY_PATH: /keys/jwt_public.pem
   PYTHONUNBUFFERED: "1"
 
 x-odoo-env: &odoo-env
@@ -110,6 +123,21 @@ services:
       - reporting_db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U reporting_service -d reporting_db"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  notification-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: notification_service
+      POSTGRES_PASSWORD: notification_service
+      POSTGRES_DB: notification_db
+    volumes:
+      - notification_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notification_service -d notification_db"]
       interval: 2s
       timeout: 3s
       retries: 20
@@ -289,6 +317,58 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  notification-migrate:
+    <<: *notification-image
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      <<: *notification-env
+    restart: "on-failure"
+    depends_on:
+      notification-postgres:
+        condition: service_healthy
+    init: true
+
+  notification-service:
+    <<: *notification-image
+    restart: unless-stopped
+    environment:
+      <<: *notification-env
+    volumes:
+      - ${JWT_PUBLIC_KEY_PATH:-./secrets/jwt_public.pem}:/keys/jwt_public.pem:ro
+    expose:
+      - "8002"
+    init: true
+    stop_grace_period: 20s
+    depends_on:
+      notification-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/health/ready', timeout=3)"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  notification-consumer:
+    <<: *notification-image
+    command: ["python", "-m", "notification_service.consumer"]
+    environment:
+      <<: *notification-env
+    volumes:
+      - ${JWT_PUBLIC_KEY_PATH:-./secrets/jwt_public.pem}:/keys/jwt_public.pem:ro
+    init: true
+    stop_grace_period: 20s
+    depends_on:
+      notification-migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
   odoo:
     <<: *odoo-image
     restart: unless-stopped
@@ -402,6 +482,8 @@ services:
       order-service:
         condition: service_healthy
       reporting-service:
+        condition: service_healthy
+      notification-service:
         condition: service_healthy
       frontend:
         condition: service_healthy
@@ -525,6 +607,15 @@ services:
       reporting-postgres:
         condition: service_healthy
 
+  postgres-exporter-notification:
+    image: prometheuscommunity/postgres-exporter:v0.16.0
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: postgresql://notification_service:notification_service@notification-postgres:5432/notification_db?sslmode=disable
+    depends_on:
+      notification-postgres:
+        condition: service_healthy
+
   redis-exporter:
     image: oliver006/redis_exporter:v1.66.0
     restart: unless-stopped
@@ -537,6 +628,7 @@ services:
 volumes:
   order_db_data:
   reporting_db_data:
+  notification_db_data:
   odoo_db_data:
   rabbitmq_data:
   odoo_filestore:

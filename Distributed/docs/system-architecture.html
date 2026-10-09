@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Commerce platform — system architecture</title>
+  <style>
+    :root {
+      --ink: #1c1915;
+      --muted: #5c564c;
+      --line: #d9d1c3;
+      --paper: #f7f3eb;
+      --card: #fffdf8;
+      --accent: #1f4d3a;
+      --accent-soft: #e5f0ea;
+      --warn: #6b3a12;
+      --warn-soft: #f6e6d4;
+      --side: #241f1a;
+      --side-text: #f3ece2;
+      --focus: #0b6b4a;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font: 17px/1.55 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    }
+    a { color: var(--accent); }
+    a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+    .layout { display: grid; grid-template-columns: 16rem 1fr; min-height: 100vh; }
+    nav {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100vh;
+      overflow: auto;
+      background: var(--side);
+      color: var(--side-text);
+      padding: 1.25rem 1rem 2rem;
+    }
+    nav p { margin: 0 0 0.8rem; font: 0.72rem/1.3 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: #c8bfb2; }
+    nav a {
+      display: block;
+      color: var(--side-text);
+      text-decoration: none;
+      font: 0.92rem/1.35 ui-sans-serif, system-ui, sans-serif;
+      padding: 0.28rem 0.4rem;
+      border-radius: 4px;
+    }
+    nav a:hover, nav a[aria-current="true"] { background: #3a332c; }
+    main { padding: 2rem 2.4rem 4rem; max-width: 58rem; }
+    h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 0.4rem; }
+    h2 { font-size: 1.45rem; margin: 2.2rem 0 0.6rem; scroll-margin-top: 1rem; }
+    h3 { font-size: 1.1rem; margin: 1.3rem 0 0.4rem; }
+    .lede { font-size: 1.12rem; }
+    .limits, .absent {
+      background: var(--warn-soft);
+      border-left: 4px solid var(--warn);
+      padding: 0.8rem 1rem;
+      margin: 1rem 0;
+    }
+    .limits strong, .absent strong { color: var(--warn); }
+    .card, table { background: var(--card); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.7rem; }
+    .card { border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem 0.9rem; }
+    .card h3 { margin-top: 0; }
+    .card p, .card ul { margin: 0.3rem 0 0; }
+    .kicker { font: 0.72rem/1.2 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th, td { border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; padding: 0.45rem 0.5rem; }
+    th { font: 0.78rem/1.3 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.03em; text-transform: uppercase; color: var(--muted); }
+    .flow { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0.6rem 0 1rem; }
+    .step, .arrow {
+      font: 0.88rem/1.3 ui-sans-serif, system-ui, sans-serif;
+    }
+    .step { background: var(--accent-soft); border: 1px solid #b7d4c6; border-radius: 4px; padding: 0.35rem 0.55rem; }
+    .arrow { color: var(--muted); }
+    .path { font: 0.95rem/1.45 ui-sans-serif, system-ui, sans-serif; background: var(--card); border: 1px solid var(--line); padding: 0.7rem 0.9rem; }
+    ul { padding-left: 1.2rem; }
+    code { font: 0.88em/1.4 ui-monospace, "Cascadia Code", "Source Code Pro", monospace; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.6rem 0; }
+    .tabs button {
+      font: 0.88rem/1.2 ui-sans-serif, system-ui, sans-serif;
+      background: var(--card);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.35rem 0.7rem;
+      cursor: pointer;
+    }
+    .tabs button[aria-selected="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .panel[hidden] { display: none; }
+    footer { margin-top: 2.5rem; color: var(--muted); font-size: 0.95rem; }
+    @media (max-width: 800px) {
+      .layout { grid-template-columns: 1fr; }
+      nav { position: static; height: auto; }
+      main { padding: 1.2rem 1rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav aria-label="Page sections">
+      <p>Extension Phase 8</p>
+      <a href="#limits">Limits of this page</a>
+      <a href="#components">Components</a>
+      <a href="#databases">Four databases</a>
+      <a href="#workflows">Workflows</a>
+      <a href="#saga">Saga in the order service</a>
+      <a href="#consistency">Django projections</a>
+      <a href="#notifications">Flask notifications</a>
+      <a href="#cache">Product cache</a>
+      <a href="#path">Ingress path</a>
+      <a href="#clients">Storefront and phone</a>
+      <a href="#not-here">What is not drawn</a>
+      <a href="#docs">Markdown next to this file</a>
+    </nav>
+    <main>
+      <p class="kicker">Open this file from <code>docs/</code></p>
+      <h1>System architecture</h1>
+      <p class="lede">This page is the picture of the commerce platform as the tree implements it after Extension Phases 0–7. Links below are relative paths beside this file.</p>
+
+      <section id="limits" class="limits">
+        <strong>Two limits.</strong>
+        <ul>
+          <li>The live saga worker has no command-result reply. Inventory and ERP calls in <code>services/order-service/src/order_service/infrastructure/saga/worker.py</code> return unknown, so that process does not reach <code>COMPLETED</code> against a running Odoo. The eight scenarios drive the orchestrator with test ports. They are not a live Odoo reply.</li>
+          <li>This page was written by reading the tree. Compose and kind were not started to produce it.</li>
+        </ul>
+      </section>
+
+      <section id="components">
+        <h2>Components</h2>
+        <p>The browser and the phone talk only to HTTP through the gateway. They do not open Postgres, RabbitMQ, Redis, or Odoo.</p>
+        <div class="grid">
+          <article class="card">
+            <p class="kicker">Clients</p>
+            <h3>React storefront</h3>
+            <p><code>services/frontend</code>. React and Vite. Login, register, products, cart, checkout, orders. The cart stays in the browser (<code>commerce.cart</code>) until checkout posts one order.</p>
+          </article>
+          <article class="card">
+            <p class="kicker">Clients</p>
+            <h3>React Native</h3>
+            <p><code>mobile/react-native-app</code>. Same gateway HTTP API. Auth, catalog, cart, checkout, orders, device tokens. The cart is memory on the device. There is no notification inbox API and no FCM.</p>
+          </article>
+          <article class="card">
+            <p class="kicker">Edge</p>
+            <h3>Traefik</h3>
+            <p><code>deploy/gateway</code> and the kind gateway. Routing, CORS, request IDs, JWT forward-auth, and a coarse in-memory rate limit. Token rules are <a href="security.md">security.md</a>. Not a business service and not a database owner. kind already runs a second Traefik as the Ingress controller.</p>
+          </article>
+          <article class="card">
+            <p class="kicker">Writer</p>
+            <h3>Order service</h3>
+            <p>FastAPI in <code>services/order-service</code>. Owns accounts, the catalog, and orders in <code>order_db</code>. The saga orchestrator is a process in this service, not a separate service. Simulated payment is an adapter here.</p>
+          </article>
+          <article class="card">
+            <p class="kicker">Read model</p>
+            <h3>Reporting</h3>
+            <p>Django in <code>services/reporting-service</code>. Projections in <code>reporting_db</code> are eventually consistent. The consumer applies the broker stream in its own transaction.</p>
+          </article>
+          <article class="card">
+            <p class="kicker">ERP</p>
+            <h3>Odoo</h3>
+            <p>Odoo 18 Community in <code>services/odoo</code>. <code>CreateErpOrder</code> creates one sales order. <code>OrderConfirmed</code> is recorded and does not create a second sales order. Stock authority stays in <code>odoo_db</code>.</p>
+          </article>
+          <article class="card">
+            <p class="kicker">Messages</p>
+            <h3>Flask notifications</h3>
+            <p><code>services/notification-service</code> and <code>notification_db</code>. Consumes <code>q.notification.delivery</code>. Mock email and mock push. Device-token HTTP only. It does not open <code>order_db</code>.</p>
+          </article>
+          <article class="card">
+            <p class="kicker">Shared, not truth</p>
+            <h3>RabbitMQ and Redis</h3>
+            <p>Topic topology <code>commerce-platform-topology</code>, plus the direct exchange <code>commerce.commands</code>. Exchanges, retries, and dead letters are <a href="rabbitmq.md">rabbitmq.md</a>. Redis is the product cache, the shared rate limits, and the short order-create lock. It is not the catalog.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="databases">
+        <h2>Four databases</h2>
+        <p>A transaction does not open more than one of them. Compose runs four Postgres servers: <code>postgres</code>, <code>reporting-postgres</code>, <code>notification-postgres</code>, and <code>odoo-db</code>.</p>
+        <table>
+          <thead>
+            <tr><th>Database</th><th>Owner</th><th>What it holds</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>order_db</code></td>
+              <td>Order service</td>
+              <td>Accounts, customers, products, orders, order items, the outbox, processed inventory events, inventory snapshots, refresh tokens, and <code>saga_instances</code>. <code>orders.saga_status</code> mirrors the saga row.</td>
+            </tr>
+            <tr>
+              <td><code>reporting_db</code></td>
+              <td>Django</td>
+              <td>Order, item, product, customer, inventory, and payment projections, plus processed events. They lag the order row until the consumer applies the event.</td>
+            </tr>
+            <tr>
+              <td><code>notification_db</code></td>
+              <td>Flask</td>
+              <td><code>device_tokens</code>, <code>processed_events</code>, <code>order_contacts</code>, <code>notification_deliveries</code>. The service refuses a DSN named <code>order_db</code>, <code>reporting_db</code>, or <code>odoo_db</code>.</td>
+            </tr>
+            <tr>
+              <td><code>odoo_db</code></td>
+              <td>Odoo</td>
+              <td>Odoo’s schema, including <code>sale.order</code>, reservations, and <code>commerce_event_outbox</code> for <code>InventoryUpdated</code> only.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="workflows">
+        <h2>Workflows</h2>
+        <p>Pick a path. Each panel is what the code does today.</p>
+        <div class="tabs" role="tablist" aria-label="Workflows">
+          <button type="button" role="tab" id="tab-place" aria-controls="panel-place" aria-selected="true">Place an order</button>
+          <button type="button" role="tab" id="tab-saga" aria-controls="panel-saga" aria-selected="false">Confirm and saga</button>
+          <button type="button" role="tab" id="tab-report" aria-controls="panel-report" aria-selected="false">Reporting lag</button>
+          <button type="button" role="tab" id="tab-note" aria-controls="panel-note" aria-selected="false">Notification</button>
+          <button type="button" role="tab" id="tab-cache" aria-controls="panel-cache" aria-selected="false">Product cache</button>
+          <button type="button" role="tab" id="tab-kind" aria-controls="panel-kind" aria-selected="false">kind HTTP path</button>
+        </div>
+
+        <div class="panel" id="panel-place" role="tabpanel" aria-labelledby="tab-place">
+          <ol>
+            <li>The storefront or the React Native app holds the cart locally. Checkout does not send a cart total. Prices are read from <code>order_db</code> when the order is created.</li>
+            <li>The client calls the gateway. Public auth routes skip JWT forward-auth. Other <code>/api/v1</code> routes, except <code>/api/v1/internal</code> and device tokens, require it.</li>
+            <li><code>POST /api/v1/orders</code> commits the order as <code>PENDING</code> and an <code>OrderCreated</code> outbox row in one <code>order_db</code> transaction. The HTTP handler does not publish. The publisher is <a href="outbox.md">outbox.md</a>.</li>
+            <li>The outbox publisher later sends the envelope to <code>commerce.events</code>. Django may still have no projection row after the create response.</li>
+          </ol>
+        </div>
+        <div class="panel" id="panel-saga" role="tabpanel" aria-labelledby="tab-saga" hidden>
+          <p>Confirm commits <code>CONFIRMED</code>, saga status <code>STARTED</code>, the <code>saga_instances</code> row, and <code>OrderConfirmed</code> together. It does not call Odoo or the payment adapter. The worker <code>python -m order_service.infrastructure.saga.worker</code> loads non-terminal rows. Compose does not define a saga-worker service.</p>
+          <p>The happy path the orchestrator knows, when ports report success, is below. <code>COMPLETED</code> means reserve, simulated payment, and ERP create finished. The parcel is still on the order status machine.</p>
+          <div class="flow" aria-label="Saga happy path">
+            <span class="step">confirm → STARTED</span><span class="arrow">→</span>
+            <span class="step">ReserveInventory</span><span class="arrow">→</span>
+            <span class="step">INVENTORY_RESERVED</span><span class="arrow">→</span>
+            <span class="step">simulated charge</span><span class="arrow">→</span>
+            <span class="step">PAYMENT_CONFIRMED</span><span class="arrow">→</span>
+            <span class="step">CreateErpOrder</span><span class="arrow">→</span>
+            <span class="step">ODOO_ORDER_CREATED</span><span class="arrow">→</span>
+            <span class="step">COMPLETED</span>
+          </div>
+          <p>Against a running Odoo the shipped worker still returns unknown for those commands, because it has no command-result reply. It writes the command to the outbox and does not mark the reservation succeeded. See <a href="saga-pattern.md">saga-pattern.md</a>.</p>
+        </div>
+        <div class="panel" id="panel-report" role="tabpanel" aria-labelledby="tab-report" hidden>
+          <p>After confirm, <code>GET</code> on the order service returns <code>CONFIRMED</code> and saga status <code>STARTED</code>. Django <code>order_projections</code> can still be missing, or <code>PENDING</code> at version 1, until <code>OrderConfirmed</code> is applied. <code>as_of</code> is the newest projection timestamp, not the order-service clock.</p>
+          <p><code>PaymentConfirmed</code> and <code>PaymentFailed</code> land in <code>payment_projections</code> only after the reporting consumer applies <code>payment.*</code>. The order status stays <code>CONFIRMED</code>. A recorded refund is not a guaranteed movement of money. The matrix is <a href="consistency-models.md">consistency-models.md</a>.</p>
+        </div>
+        <div class="panel" id="panel-note" role="tabpanel" aria-labelledby="tab-note" hidden>
+          <p>The notification consumer binds <code>q.notification.delivery</code> to <code>order.confirmed</code>, <code>order.cancelled</code>, <code>order.shipped</code>, <code>order.delivered</code>, <code>payment.confirmed</code>, and <code>payment.failed</code>. It declares that queue itself. Mock adapters append <code>notification_deliveries</code> rows. They do not open SMTP or FCM.</p>
+          <p>The phone registers a device token with <code>POST /api/v1/device-tokens</code>. The notifications screen reads that list. Session notes stay in the app. There is no inbox endpoint. Detail is <a href="flask-notification-service.md">flask-notification-service.md</a>.</p>
+        </div>
+        <div class="panel" id="panel-cache" role="tabpanel" aria-labelledby="tab-cache" hidden>
+          <p>Product get and list are cache-aside. A hit returns Redis and does not read <code>order_db</code>. A miss or a Redis error reads Postgres. A miss then fills Redis. The TTL is 30 seconds. Create and update delete the product key and list pages after the Postgres commit. Redis and Postgres are not one atomic update.</p>
+          <p>Get and list record <code>product_cache_hits_total</code>, <code>product_cache_misses_total</code>, <code>product_cache_errors_total</code>, and <code>product_cache_duration_seconds</code> with <code>operation</code> <code>get</code> or <code>list</code>. Those series are on the Dependencies and Platform overview dashboards. Orders are not cached. Login, register, and order create fail closed when Redis is down. See <a href="caching-strategy.md">caching-strategy.md</a>.</p>
+        </div>
+        <div class="panel" id="panel-kind" role="tabpanel" aria-labelledby="tab-kind" hidden>
+          <p class="path">Ingress <code>public</code> → Ingress-controller Traefik → commerce-gateway Traefik → Service <code>order-service</code> (ClusterIP, port 8000) → ready order pods</p>
+          <p>The Deployment starts at 2 replicas. Readiness is <code>GET /health/ready</code>. Probe timings and the HPA are <a href="kubernetes.md">kubernetes.md</a>. Compose runs one order-service container, so that path is the kind Service, not Compose. No equal request count was measured. See <a href="load-balancing.md">load-balancing.md</a>.</p>
+        </div>
+      </section>
+
+      <section id="saga">
+        <h2>Saga in the order service</h2>
+        <p>There is no saga service. State is a row in <code>saga_instances</code>, committed with the order and the outbox. Process memory is not the record. Commands go out on <code>commerce.commands</code>: <code>ReserveInventory</code>, <code>ReleaseInventory</code>, <code>CreateErpOrder</code>, <code>CancelErpOrder</code>. Routing and retry are <a href="rabbitmq.md">rabbitmq.md</a>. The publisher is <a href="outbox.md">outbox.md</a>.</p>
+        <p>Two machines stay separate. Order status is <code>PENDING</code> → <code>CONFIRMED</code> → <code>PROCESSING</code> → <code>SHIPPED</code> → <code>DELIVERED</code>, and cancel only from <code>PENDING</code>. Saga status is <code>STARTED</code>, <code>INVENTORY_RESERVED</code>, <code>PAYMENT_CONFIRMED</code>, <code>ODOO_ORDER_CREATED</code>, <code>COMPLETED</code>, <code>COMPENSATING</code>, <code>COMPENSATED</code>, <code>FAILED</code>, <code>MANUAL_INTERVENTION_REQUIRED</code>. A payment failure does not cancel the order. Failed compensation becomes <code>MANUAL_INTERVENTION_REQUIRED</code>, not <code>COMPENSATED</code>.</p>
+        <p>Odoo creates the sales order from <code>CreateErpOrder</code>. Reporting still consumes <code>OrderConfirmed</code>. Warehouse milestones are HTTP calls from Odoo to <code>/api/v1/internal</code>, not broker messages. <code>payment_circuit_state</code> copies the simulated breaker. There is no payment provider.</p>
+      </section>
+
+      <section id="consistency">
+        <h2>Django projections</h2>
+        <p>Strong consistency stops at one <code>order_db</code> transaction. <code>reporting_db</code> and <code>odoo_db</code> catch up from events and commands. Stock on the product page is <code>inventory_snapshots</code>, a projection of <code>InventoryUpdated</code>. Odoo remains the stock authority. Saga <code>COMPLETED</code> does not mean <code>DELIVERED</code>.</p>
+        <p>The lag walkthrough uses the in-memory order unit of work and the reporting suite’s SQLite database. It does not start Compose or kind. The write-up is <a href="consistency-models.md">consistency-models.md</a>.</p>
+      </section>
+
+      <section id="notifications">
+        <h2>Flask notifications</h2>
+        <p>Flask listens on port 8002. The consumer exports metrics on port 9100. kind runs two consumer replicas. <code>processed_events.event_id</code> makes a duplicate ack safe. Retry and dead-letter are <a href="rabbitmq.md">rabbitmq.md</a>. How to read the series is <a href="observability.md">observability.md</a>.</p>
+        <p>Email has no address in these payloads, so the mock stores <code>account:&lt;account_id&gt;</code>. Push stores one row per device token, or <code>no-device</code> when the account has none. FCM credentials are not read.</p>
+      </section>
+
+      <section id="cache">
+        <h2>Product cache</h2>
+        <p>Keys are <code>catalog:product:{product_id}</code> and <code>catalog:list:{limit}:{offset}</code>. Every order-service API replica uses the same Redis. There is no per-pod cache and no single-flight lock. A fill that started before a delete can put an old price back until the 30 second TTL.</p>
+      </section>
+
+      <section id="path">
+        <h2>Ingress path</h2>
+        <p>On kind the public Ingress selects the gateway Service. That Ingress controller does not load the commerce route file. The commerce gateway loads <code>deploy/compose/dynamic.yaml</code> and forwards <code>http://order-service:8000</code> to the Kubernetes Service, which selects ready pods. The route file does not list pod addresses.</p>
+        <p>Traefik sends <code>/api/v1/reports</code> to Django, <code>/api/v1/device-tokens</code> to Flask, and the rest of the public API to the order service. Other paths, except <code>/ping</code>, go to the storefront. The gateway does not route <code>/health/live</code>, <code>/health/ready</code>, or <code>/api/v1/internal</code>.</p>
+      </section>
+
+      <section id="clients">
+        <h2>Storefront and phone</h2>
+        <p>Both clients use the gateway. The React cart is browser storage. The React Native cart is on the device and is cleared in memory after checkout. Neither client owns saga state. The phone’s notifications screen is device tokens plus notes kept in the app. The app was not launched on a device or emulator. Commands from this machine are in <a href="../mobile/react-native-app/README.md">the app README</a>.</p>
+      </section>
+
+      <section id="not-here" class="absent">
+        <h2>What is not drawn</h2>
+        <ul>
+          <li>A separate saga service.</li>
+          <li>A real payment provider. Payment is <code>SimulatedPayment</code> inside the order service.</li>
+          <li>FCM, SMTP, or a notification inbox API.</li>
+          <li>A server-side cart. The cart is on the device, or in the browser for the storefront.</li>
+          <li>A sales order created from <code>OrderConfirmed</code>.</li>
+          <li>Saga <code>COMPLETED</code> as parcel delivery.</li>
+        </ul>
+      </section>
+
+      <section id="docs">
+        <h2>Markdown next to this file</h2>
+        <p>Broker, outbox, Kubernetes, observability, tests, and auth stay in those pages. This file does not copy them.</p>
+        <ul>
+          <li><a href="current-architecture.md">current-architecture.md</a> — the same tree, in prose</li>
+          <li><a href="extension-gap-analysis.md">extension-gap-analysis.md</a> — classification of the tree</li>
+          <li><a href="saga-pattern.md">saga-pattern.md</a> — states, commands, and the eight scenarios</li>
+          <li><a href="consistency-models.md">consistency-models.md</a> — where a reader can still be stale</li>
+          <li><a href="flask-notification-service.md">flask-notification-service.md</a> — Flask, <code>notification_db</code>, mock delivery</li>
+          <li><a href="load-balancing.md">load-balancing.md</a> — Ingress, the two Traefik processes, the order Service</li>
+          <li><a href="caching-strategy.md">caching-strategy.md</a> — cache-aside and the product-cache series</li>
+          <li><a href="project-structure.md">project-structure.md</a> and <a href="run-the-project.md">run-the-project.md</a></li>
+          <li><a href="rabbitmq.md">rabbitmq.md</a>, <a href="outbox.md">outbox.md</a>, <a href="kubernetes.md">kubernetes.md</a>, <a href="observability.md">observability.md</a>, <a href="testing.md">testing.md</a>, <a href="security.md">security.md</a></li>
+          <li><a href="adr/ADR-006-why-eventual-consistency.md">ADR-006</a> — why strong consistency stops at one database</li>
+          <li><a href="../README.md">README</a> — Phases 0–20 and Extension Phases 0–10</li>
+        </ul>
+      </section>
+      <footer>Extension Phase 10. Broker, outbox, kind, metrics, tests, and JWT stay in the linked pages.</footer>
+    </main>
+  </div>
+  <script>
+    (function () {
+      var tabs = document.querySelectorAll('[role="tab"]');
+      var panels = document.querySelectorAll('[role="tabpanel"]');
+      tabs.forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          tabs.forEach(function (item) { item.setAttribute("aria-selected", "false"); });
+          panels.forEach(function (panel) { panel.hidden = true; });
+          tab.setAttribute("aria-selected", "true");
+          document.getElementById(tab.getAttribute("aria-controls")).hidden = false;
+        });
+      });
+      var links = document.querySelectorAll("nav a");
+      var sections = [];
+      links.forEach(function (link) {
+        var id = link.getAttribute("href").slice(1);
+        var section = document.getElementById(id);
+        if (section) sections.push({ link: link, section: section });
+      });
+      if (!("IntersectionObserver" in window)) return;
+      var current = sections[0] && sections[0].link;
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          sections.forEach(function (item) {
+            var on = item.section === entry.target;
+            if (on) current = item.link;
+            item.link.setAttribute("aria-current", on ? "true" : "false");
+          });
+        });
+      }, { rootMargin: "-20% 0px -70% 0px", threshold: 0 });
+      sections.forEach(function (item) { observer.observe(item.section); });
+      if (current) current.setAttribute("aria-current", "true");
+    }());
+  </script>
+</body>
+</html>

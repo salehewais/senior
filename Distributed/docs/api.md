@@ -111,7 +111,7 @@ Order response:
   "id": "uuid",
   "customer_id": "uuid",
   "status": "CONFIRMED",
-  "saga_status": "INVENTORY_RESERVING",
+  "saga_status": "STARTED",
   "items": [
     {
       "product_id": "uuid",
@@ -125,7 +125,7 @@ Order response:
 }
 ```
 
-`saga_status` is null while the order is `PENDING` or `CANCELLED`. After confirm it is one of the saga states in [architecture.md](architecture.md). `version` is `aggregate_version`.
+`saga_status` is null while the order is `PENDING` or `CANCELLED`. After confirm it is one of the saga states in [saga-pattern.md](saga-pattern.md). `version` is `aggregate_version`.
 
 ### Internal fulfillment routes
 

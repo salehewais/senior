@@ -15,12 +15,15 @@ from order_service.domain.events import (
     OrderDelivered,
     OrderProcessingStarted,
     OrderShipped,
+    PaymentConfirmed,
+    PaymentFailed,
 )
-from order_service.domain.exceptions import DomainValidationError
+from order_service.domain.exceptions import DomainValidationError, InvalidStateTransition
 from order_service.domain.ids import CustomerId, OrderId, uuid7
 from order_service.domain.value_objects import Money
 
 CANCEL_REASONS = frozenset({"customer_request", "staff_request"})
+PAYMENT_REASON_CODES = frozenset({"declined", "timeout", "circuit_open", "provider_error"})
 
 
 class Order:
@@ -50,7 +53,7 @@ class Order:
         self.updated_at = updated_at
         self.tracking_reference = tracking_reference
         self.cancel_reason = cancel_reason
-        # Null until the saga phase. Confirm does not invent a saga row.
+        # Null until confirm starts a saga. The saga row is the record; this field mirrors it.
         self.saga_status = saga_status
         self._loaded_version = loaded_version
         self._events: list[DomainEvent] = []
@@ -230,6 +233,64 @@ class Order:
                 correlation_id=correlation_id,
                 causation_id=causation_id,
                 tracking_reference=cleaned,
+            )
+        )
+
+    def set_saga_status(self, status: str | None) -> None:
+        self.saga_status = status
+
+    def record_payment_confirmed(
+        self,
+        *,
+        payment_reference: str,
+        now: datetime,
+        correlation_id: uuid.UUID,
+        causation_id: uuid.UUID,
+    ) -> None:
+        if self.status is not OrderStatus.CONFIRMED:
+            raise InvalidStateTransition(
+                f"An order in {self.status.value} cannot record a payment."
+            )
+        self.version += 1
+        self.updated_at = now
+        self._record(
+            PaymentConfirmed(
+                event_id=uuid7(),
+                occurred_at=now,
+                aggregate_id=self.id.value,
+                aggregate_version=self.version,
+                correlation_id=correlation_id,
+                causation_id=causation_id,
+                payment_reference=payment_reference,
+                amount=self.total,
+            )
+        )
+
+    def record_payment_failed(
+        self,
+        *,
+        reason_code: str,
+        now: datetime,
+        correlation_id: uuid.UUID,
+        causation_id: uuid.UUID,
+    ) -> None:
+        if reason_code not in PAYMENT_REASON_CODES:
+            raise DomainValidationError("reason_code is not a version-1 payment failure.")
+        if self.status is not OrderStatus.CONFIRMED:
+            raise InvalidStateTransition(
+                f"An order in {self.status.value} cannot record a payment."
+            )
+        self.version += 1
+        self.updated_at = now
+        self._record(
+            PaymentFailed(
+                event_id=uuid7(),
+                occurred_at=now,
+                aggregate_id=self.id.value,
+                aggregate_version=self.version,
+                correlation_id=correlation_id,
+                causation_id=causation_id,
+                reason_code=reason_code,
             )
         )
 

@@ -1,7 +1,7 @@
 {
   "uid": "dependencies",
   "title": "Dependencies",
-  "description": "Database connections and cache hit ratio where the exporters provide them. Postgres hit ratio uses blks_hit and blks_read. Redis hit ratio uses keyspace hits and misses. A miss is not an error.",
+  "description": "Database connections, exporter cache ratios, and the order-service product cache. Postgres hit ratio uses blks_hit and blks_read. Redis keyspace hit ratio uses the exporter series redis_keyspace_hits_total. Product cache hits, misses, errors, and duration are product_cache_hits_total, product_cache_misses_total, product_cache_errors_total, and product_cache_duration_seconds. A product-cache miss is not an error. The keyspace ratio is not the product cache.",
   "tags": [
     "commerce",
     "phase-12"
@@ -163,7 +163,7 @@
       "id": 4,
       "type": "timeseries",
       "title": "Redis keyspace hit ratio",
-      "description": "",
+      "description": "Exporter keyspace ratio from redis_keyspace_hits_total. This is not the product-cache series.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -298,6 +298,198 @@
           "expr": "min(up{job=~\"postgres-order|postgres-reporting\"})",
           "refId": "A",
           "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Product cache hits",
+      "description": "product_cache_hits_total from the order service. operation is get or list.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 16
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (operation) (rate(product_cache_hits_total[5m]))",
+          "refId": "A",
+          "legendFormat": "{{operation}}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Product cache misses",
+      "description": "product_cache_misses_total from the order service. A miss reads order_db.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 16
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (operation) (rate(product_cache_misses_total[5m]))",
+          "refId": "A",
+          "legendFormat": "{{operation}}"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Product cache errors",
+      "description": "product_cache_errors_total. Redis did not answer. The read still falls through to order_db.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 16
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (operation) (rate(product_cache_errors_total[5m]))",
+          "refId": "A",
+          "legendFormat": "{{operation}}"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Product cache duration p95",
+      "description": "product_cache_duration_seconds. Time to classify one get or list cache read.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 16
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, operation, result) (rate(product_cache_duration_seconds_bucket[5m])))",
+          "refId": "A",
+          "legendFormat": "{{operation}} {{result}}"
         }
       ]
     }

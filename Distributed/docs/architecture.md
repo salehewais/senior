@@ -156,31 +156,34 @@ That split is deliberate. The state machine is small enough to test by hand. The
 
 ### Saga status (conceptual)
 
-The saga is not a new service. Its row lives in `order_db`, in the same database as the order, so the order version and the saga step can commit together. Implementation is Phase 15. The shape is fixed now so that phase does not invent a second state machine.
+The saga is not a new service. Its row lives in `order_db`, in the same database as the order, so the order version and the saga step can commit together. Implementation is Extension Phase 1, described in [saga-pattern.md](saga-pattern.md). README Phase 15 is the retention CronJob. The state names below are the ones the code persists. An older draft used `INVENTORY_RESERVING`, `PAYMENT_PENDING`, `ERP_CREATING`, and `AWAITING_FULFILLMENT`, and it used `COMPLETED` to mean `DELIVERED`. That draft is not the implementation.
 
-The API field `saga_status` uses these exact values. It is null before confirmation and after a cancel from `PENDING`.
+The API field `saga_status` uses these exact values. It is null before confirmation and after a cancel from `PENDING`. `COMPLETED` means reserve, simulated payment, and ERP create finished. It does not mean the parcel was delivered.
 
 | `saga_status` | Meaning |
 | --- | --- |
-| `INVENTORY_RESERVING` | Waiting on Odoo to reserve stock |
-| `PAYMENT_PENDING` | Stock is reserved; the payment call is next or in flight |
-| `ERP_CREATING` | Payment succeeded; the ERP sales order is being created |
-| `AWAITING_FULFILLMENT` | ERP order exists; warehouse milestones have not finished |
-| `COMPLETED` | The order reached `DELIVERED` |
-| `COMPENSATING` | A step failed; release, refund, or ERP cancel is in progress |
-| `COMPENSATED` | Compensation finished. Order status is still `CONFIRMED` if processing never started |
+| `STARTED` | Confirm committed. Reserve has not succeeded |
+| `INVENTORY_RESERVED` | Stock is reserved in Odoo |
+| `PAYMENT_CONFIRMED` | The simulated charge succeeded. Order status is still `CONFIRMED` |
+| `ODOO_ORDER_CREATED` | The ERP sales order exists |
+| `COMPLETED` | Reserve, simulated payment, and ERP create finished |
+| `COMPENSATING` | Release, simulated refund, or ERP cancel is in progress |
+| `COMPENSATED` | Compensation finished. Order status is still `CONFIRMED` |
+| `FAILED` | Reserve was rejected. Nothing was held |
+| `MANUAL_INTERVENTION_REQUIRED` | A compensation step failed. This is not `COMPENSATED` |
 
 ```mermaid
 stateDiagram-v2
-  [*] --> INVENTORY_RESERVING: order_confirmed
-  INVENTORY_RESERVING --> PAYMENT_PENDING: stock_reserved
-  PAYMENT_PENDING --> ERP_CREATING: payment_confirmed
-  ERP_CREATING --> AWAITING_FULFILLMENT: erp_order_created
-  AWAITING_FULFILLMENT --> COMPLETED: order_delivered
-  INVENTORY_RESERVING --> COMPENSATING: reserve_failed
-  PAYMENT_PENDING --> COMPENSATING: payment_failed_or_circuit_open
-  ERP_CREATING --> COMPENSATING: erp_create_failed
+  [*] --> STARTED: order_confirmed
+  STARTED --> INVENTORY_RESERVED: stock_reserved
+  INVENTORY_RESERVED --> PAYMENT_CONFIRMED: payment_confirmed
+  PAYMENT_CONFIRMED --> ODOO_ORDER_CREATED: erp_order_created
+  ODOO_ORDER_CREATED --> COMPLETED: saga_finished
+  STARTED --> FAILED: reserve_rejected
+  INVENTORY_RESERVED --> COMPENSATING: payment_failed
+  PAYMENT_CONFIRMED --> COMPENSATING: erp_create_failed
   COMPENSATING --> COMPENSATED: release_and_refund_done
+  COMPENSATING --> MANUAL_INTERVENTION_REQUIRED: compensation_failed
 ```
 
 Compensation releases a reservation, refunds a captured payment if one exists, and cancels an ERP sales order if one was created. It does not emit `OrderCancelled`, because that event means "cancelled while `PENDING`." Once the order is `PROCESSING`, this automatic compensation path is closed. Later warehouse problems are operational exceptions, handled by people, still without an illegal transition.
@@ -210,13 +213,14 @@ sequenceDiagram
   API->>DB: status CONFIRMED and OrderConfirmed outbox
   API-->>React: 200 CONFIRMED
 
-  Note over API,MQ: After commit, publisher sends the outbox row
-  API->>MQ: publish order.confirmed
-  MQ->>ERP: deliver to q.odoo.order-confirmed
-  API->>Pay: charge, through the circuit breaker
-  Pay-->>API: approved
-  API->>DB: PaymentConfirmed outbox, saga advances
-  API->>MQ: command to create the ERP sales order
+  Note over API,MQ: After commit, the publisher sends the outbox row
+  API->>MQ: publish order.confirmed for reporting
+  Note over API: Saga worker, a separate process
+  API->>MQ: ReserveInventory on commerce.commands
+  API->>Pay: simulated charge
+  Pay-->>API: approved or declined
+  API->>MQ: CreateErpOrder on commerce.commands
+  MQ->>ERP: command consumer creates the sales order
   ERP->>API: private POST processing, then shipped, then delivered
   API->>DB: domain transition and matching outbox event
   MQ->>API: InventoryUpdated from Odoo
@@ -334,7 +338,7 @@ A failure should stop the capability that depends on the failed part, and leave 
 | Odoo down | Confirm still commits | Unaffected until stock events pause | Unavailable | Queue `q.odoo.order-confirmed` grows; snapshot age grows | Odoo returns; consumers drain; saga retries the ERP step |
 | RabbitMQ down | Local commits succeed; publish pauses | Stops updating | Stops receiving new confirms | Outbox age, broker probe | Broker returns; publisher drains the outbox |
 | Redis down | Orders still commit | Unaffected | Unaffected | Cache errors; auth rate limit fails closed | Reads hit Postgres; cache refills; limits work again |
-| Payment provider down | Create and confirm still commit; saga cannot finish payment | Sees `PaymentFailed` once recorded | No sales order if we have not created one | Circuit opens, alert | Half-open trial; compensation if the step failed |
+| Payment adapter open | Create and confirm still commit; the saga records `PaymentFailed` and compensates | Sees `PaymentFailed` once recorded | No sales order if we have not created one | `payment_circuit_state` | Half-open trial; `COMPENSATED` if release succeeds, otherwise `MANUAL_INTERVENTION_REQUIRED` |
 | Gateway down | No public traffic | No public traffic | Internal ERP UI may still work if exposed only on a private port | External probe | Restart Traefik; no data restore |
 
 Without isolation, one shared database means the reporting backup, the Odoo module upgrade, and the order migration share a lock and a disk. A long report query can then stall checkout. The separate databases exist so that those jobs do not sit on the same tables.
@@ -343,19 +347,13 @@ The local single-server Postgres shortcut weakens this picture on a laptop. The 
 
 ## Circuit breaker
 
-One breaker, around the payment HTTP client inside the order service.
+One breaker, around the simulated payment adapter inside the order service. It is not a call to a payment provider.
 
-Why only there: the payment provider is outside our process and our broker. A synchronous call can sit until the request thread is exhausted. A breaker opens after repeated failures, fails the saga step immediately, and lets compensation run. RabbitMQ already buffers Odoo and reporting. Putting a breaker on a consumer would hide messages we would rather retry. Putting a breaker on Postgres would turn a short database blip into a self-inflicted outage.
+Why only there: a charge that keeps failing should fail the saga step and let compensation run, instead of sitting on the worker. RabbitMQ already buffers Odoo and reporting. Putting a breaker on a consumer would hide messages we would rather retry. Putting a breaker on Postgres would turn a short database blip into a self-inflicted outage.
 
-Conceptual thresholds, to be tuned with real latency later, not copied in as magic:
+The adapter opens after a small run of consecutive declines, then allows one half-open trial. A successful trial closes it. A failed trial opens it again. While open, a charge returns `circuit_open`, the saga records `PaymentFailed` with that reason, and compensation runs. The gauge `payment_circuit_state` is 0 closed, 1 half-open, 2 open. The worker copies the adapter into that gauge. The API process leaves it at closed until a worker has set it.
 
-- Timeouts on the payment client (connect and read, both finite).
-- Open after a small run of consecutive failures.
-- Stay open for a cool-down, then allow one half-open trial.
-- A successful trial closes the breaker. A failed trial opens it again.
-- While open, record `PaymentFailed` with reason `circuit_open` and compensate. Do not wait on the provider.
-
-Detection: a gauge for breaker state and a counter for opens. Recovery is automatic via the half-open trial. If the provider is down for a long time, orders sit at `CONFIRMED` with saga status `COMPENSATED` or stuck just before compensation, and the alert tells a human. No other integration gets this wrapper in this project.
+If the simulated adapter stays open, orders sit at `CONFIRMED` with saga status `COMPENSATED` when release succeeded, or `MANUAL_INTERVENTION_REQUIRED` when a compensation step failed. No other integration gets this wrapper in this project.
 
 ## Technology decisions
 

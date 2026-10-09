@@ -39,7 +39,7 @@ http:
             - http://localhost:8080
             - http://127.0.0.1:5173
             - http://localhost:5173
-          allowMethods: GET,POST,PATCH,OPTIONS
+          allowMethods: GET,POST,PATCH,DELETE,OPTIONS
           allowHeaders: Authorization,Content-Type,X-Correlation-Id,Idempotency-Key
           exposeHeaders: X-Correlation-Id
     edge-cors:
@@ -71,6 +71,17 @@ http:
         - edge-cors
         - jwt-access
       service: reporting
+    notifications:
+      rule: "Path(`/api/v1/device-tokens`) || PathPrefix(`/api/v1/device-tokens/`)"
+      priority: 300
+      entryPoints:
+        - web
+      middlewares:
+        - edge-prepare
+        - coarse-limit
+        - edge-cors
+        - jwt-access
+      service: notification
     auth-public:
       rule: "Method(`POST`) && (Path(`/api/v1/auth/register`) || Path(`/api/v1/auth/login`) || Path(`/api/v1/auth/refresh`) || Path(`/api/v1/auth/logout`))"
       priority: 250
@@ -82,7 +93,7 @@ http:
         - edge-cors
       service: order
     order-api:
-      rule: "PathPrefix(`/api/v1`) && !PathPrefix(`/api/v1/internal`) && !Path(`/api/v1/reports`) && !PathPrefix(`/api/v1/reports/`)"
+      rule: "PathPrefix(`/api/v1`) && !PathPrefix(`/api/v1/internal`) && !Path(`/api/v1/reports`) && !PathPrefix(`/api/v1/reports/`) && !Path(`/api/v1/device-tokens`) && !PathPrefix(`/api/v1/device-tokens/`)"
       priority: 200
       entryPoints:
         - web
@@ -116,6 +127,12 @@ http:
         serversTransport: upstream
         servers:
           - url: http://reporting-service:8001
+    notification:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: upstream
+        servers:
+          - url: http://notification-service:8002
     frontend:
       loadBalancer:
         passHostHeader: true

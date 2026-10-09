@@ -36,6 +36,10 @@ EVENT_TYPES = frozenset(
         "PaymentConfirmed",
         "PaymentFailed",
         "InventoryUpdated",
+        "ReserveInventory",
+        "ReleaseInventory",
+        "CreateErpOrder",
+        "CancelErpOrder",
     }
 )
 
@@ -181,6 +185,32 @@ consumer_messages_total = define_counter(
     ("queue", "result"),
 )
 
+# Product catalog cache. operation is get or list. result is hit, miss, or error.
+# A product id, account id, or token is not a label.
+product_cache_hits_total = define_counter(
+    "product_cache_hits_total",
+    "Product get or list reads that returned a stored catalog value.",
+    ("operation",),
+)
+product_cache_misses_total = define_counter(
+    "product_cache_misses_total",
+    "Product get or list reads with no usable cached value. The caller reads order_db.",
+    ("operation",),
+)
+product_cache_errors_total = define_counter(
+    "product_cache_errors_total",
+    "Product get or list reads that failed because Redis did not answer. The caller reads order_db.",
+    ("operation",),
+)
+product_cache_duration_seconds = define_histogram(
+    "product_cache_duration_seconds",
+    "Time to classify one product get or list cache read.",
+    ("operation", "result"),
+)
+
+_CACHE_OPERATIONS = frozenset({"get", "list"})
+_CACHE_RESULTS = frozenset({"hit", "miss", "error"})
+
 DECLARED = (
     http_requests_total,
     http_request_duration_seconds,
@@ -203,11 +233,37 @@ DECLARED = (
     message_dlq_total,
     message_processing_duration_seconds,
     consumer_messages_total,
+    product_cache_hits_total,
+    product_cache_misses_total,
+    product_cache_errors_total,
+    product_cache_duration_seconds,
 )
 
 
 def declared_metrics():
     return DECLARED
+
+
+def record_product_cache(*, operation: str, result: str, seconds: float) -> None:
+    """Record one product get or list cache read.
+
+    `operation` is `get` or `list`. `result` is `hit`, `miss`, or `error`.
+    Those words are the only label values. A product id is not a label.
+    """
+
+    if operation not in _CACHE_OPERATIONS:
+        raise ValueError("product cache operation must be get or list")
+    if result not in _CACHE_RESULTS:
+        raise ValueError("product cache result must be hit, miss, or error")
+    if seconds < 0:
+        raise ValueError("product cache duration cannot be negative")
+    if result == "hit":
+        inc(product_cache_hits_total, operation=operation)
+    elif result == "miss":
+        inc(product_cache_misses_total, operation=operation)
+    else:
+        inc(product_cache_errors_total, operation=operation)
+    observe(product_cache_duration_seconds, seconds, operation=operation, result=result)
 
 
 def record_http(route: str, status: int, seconds: float) -> None:
@@ -265,6 +321,14 @@ def record_message(
 
 _engine_holder: dict[str, object] = {"engine": None, "ready": False}
 _collector_registered = False
+_payment_circuit_state = 0.0
+
+
+def set_payment_circuit_state(value: float) -> None:
+    """0 closed, 1 half-open, 2 open. The saga worker copies the simulated breaker."""
+
+    global _payment_circuit_state
+    _payment_circuit_state = value
 
 
 def bind_database_engine(engine: object) -> None:
@@ -290,8 +354,8 @@ class _DatabaseGauges(Collector):
     def collect(self):
         yield _gauge(
             "payment_circuit_state",
-            "0 closed, 1 half-open, 2 open. No payment provider is wired in this phase, so the value stays 0.",
-            0.0,
+            "0 closed, 1 half-open, 2 open. The saga worker copies the simulated payment breaker. The default is closed.",
+            _payment_circuit_state,
         )
         if not _engine_holder.get("ready"):
             return

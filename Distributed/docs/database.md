@@ -1,8 +1,8 @@
 # Database ownership
 
-**Status: Implemented. Three Postgres servers: `order_db`, `reporting_db`, and `odoo_db`. A transaction does not open more than one of them.**
+**Status: Implemented. Four Postgres servers: `order_db`, `reporting_db`, `notification_db`, and `odoo_db`. A transaction does not open more than one of them.**
 
-Three databases, three owners, three migration tools. A transaction never opens more than one of them.
+Four databases, four owners, four migration tools. A transaction never opens more than one of them. `notification_db` was added in Extension Phase 3.
 
 ## Names
 
@@ -10,6 +10,7 @@ Three databases, three owners, three migration tools. A transaction never opens 
 | --- | --- | --- | --- |
 | `order_db` | `order-service` | `order_service` | Alembic |
 | `reporting_db` | `reporting-service` | `reporting_service` | Django migrations |
+| `notification_db` | `notification-service` | `notification_service` | Alembic |
 | `odoo_db` | `odoo` | `odoo` | Odoo module upgrades |
 
 No passwords, connection strings, or secret files belong in this repository. Later phases read them from the environment. The application roles are not superusers. They do not get `GRANT` on another service's database.
@@ -81,14 +82,14 @@ These are conceptual tables, not a migration. Names can match this list when Ale
 | `accounts` | Email, password hash, role (`customer`, `admin`, `manager`). Role is server state. |
 | `customers` | Profile for accounts that are customers. Same id as the account. |
 | `products` | Storefront catalog. Price is `Money` stored as minor units and currency. |
-| `orders` | Status, customer id, total, version, saga status once the saga exists. |
+| `orders` | Status, customer id, total, version, saga status mirrored from `saga_instances`. |
 | `order_items` | Product id, SKU copy, quantity, unit price copy. |
 | `inventory_snapshots` | Last stock snapshot per product. Includes the version from Odoo. |
 | `outbox` | See below and [outbox.md](outbox.md). |
 | `processed_events` | Events this service has applied. See [idempotency.md](idempotency.md). |
 | `http_idempotency_keys` | Client idempotency keys for unsafe HTTP. Durable here, not in Redis. |
 | `refresh_tokens` | Hash of the current refresh token, expiry, rotation parent. |
-| `saga_instances` | Conceptual, Phase 15. Same database so a step and the order commit together. |
+| `saga_instances` | Extension Phase 1. Same database so a step, the order, and the outbox commit together. See [saga-pattern.md](saga-pattern.md). |
 
 `orders.version` is an integer starting at 1 and incrementing on each accepted order change that emits an order event. Payment facts increment it too when they are recorded against the order, so a single aggregate stream stays ordered. Implementers should not also mutate status inside a payment write unless the state machine allows that transition. Recording `PaymentConfirmed` while status stays `CONFIRMED` is legal if the version still moves.
 

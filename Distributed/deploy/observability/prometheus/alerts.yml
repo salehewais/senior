@@ -9,7 +9,7 @@ groups:
   - name: commerce-alerts
     rules:
       - alert: ServiceTargetDown
-        expr: up{job=~"order-service|reporting-service|gateway|rabbitmq|postgres-order|postgres-reporting"} == 0
+        expr: up{job=~"order-service|reporting-service|notification-service|gateway|rabbitmq|postgres-order|postgres-reporting|postgres-notification"} == 0
         for: 2m
         labels:
           severity: page

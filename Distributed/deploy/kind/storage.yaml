@@ -112,6 +112,39 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
+  name: commerce-notification-postgres
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: commerce-hostpath
+  hostPath:
+    path: /var/local/commerce/notification-postgres
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: notification-postgres
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: commerce-hostpath
+  volumeName: commerce-notification-postgres
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
   name: commerce-rabbitmq
   labels:
     app.kubernetes.io/part-of: commerce

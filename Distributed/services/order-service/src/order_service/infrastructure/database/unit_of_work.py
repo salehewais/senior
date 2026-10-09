@@ -11,6 +11,7 @@ from order_service.infrastructure.database.repositories import (
     SqlProductRepository,
     SqlRefreshTokenRepository,
 )
+from order_service.infrastructure.database.saga_repository import SqlSagaRepository
 from order_service.observability.metrics import record_outbox_created
 
 
@@ -22,11 +23,17 @@ class SqlUnitOfWork(UnitOfWork):
         self.products = SqlProductRepository(session)
         self.customers = SqlCustomerRepository(session)
         self.orders = SqlOrderRepository(session)
+        self.sagas = SqlSagaRepository(session)
         self.accounts = SqlAccountRepository(session)
         self.refresh_tokens = SqlRefreshTokenRepository(session)
 
     def stage_events(self, *aggregates: RecordsEvents) -> None:
         for record in stage_outbox_records(*aggregates):
+            self._session.add(_outbox_row(record))
+            self._outbox_types.append(record.event_type)
+
+    def stage_outbox(self, records: list[OutboxRecord]) -> None:
+        for record in records:
             self._session.add(_outbox_row(record))
             self._outbox_types.append(record.event_type)
 

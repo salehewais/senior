@@ -69,6 +69,28 @@ class OdooClient:
             raise OdooCallError("unexpected-result")
         return result
 
+    def apply_command(self, envelope: dict[str, object]) -> dict[str, object]:
+        try:
+            uid = self._uid or self._authenticate()
+            self._uid = uid
+            result = self._models().execute_kw(
+                self._settings.odoo_db,
+                uid,
+                self._settings.odoo_password,
+                "commerce.connector",
+                "apply_command",
+                [envelope],
+            )
+        except OdooCallError:
+            self._uid = None
+            raise
+        except Exception as exc:
+            self._uid = None
+            raise OdooCallError(type(exc).__name__) from exc
+        if not isinstance(result, dict) or not isinstance(result.get("outcome"), str):
+            raise OdooCallError("unexpected-result")
+        return result
+
     def _authenticate(self) -> int:
         try:
             uid = self._common().authenticate(

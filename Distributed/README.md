@@ -66,6 +66,17 @@ Read in this order. Later files assume the earlier decisions.
 
 The runtime, observability, and recovery docs describe software that is already in the repository. [docs/architecture-review.md](docs/architecture-review.md) is the Phase 20 review of what is still missing. This system is a learning platform on one laptop. It is not production-ready.
 
+- [docs/current-architecture.md](docs/current-architecture.md) — Extension Phase 0 tree
+- [docs/extension-gap-analysis.md](docs/extension-gap-analysis.md) — Extension Phase 0 classification
+- [docs/saga-pattern.md](docs/saga-pattern.md) — Extension Phase 1 saga
+- [docs/consistency-models.md](docs/consistency-models.md) — Extension Phase 2 consistency matrix
+- [docs/flask-notification-service.md](docs/flask-notification-service.md) — Extension Phase 3 Flask notifications
+- [docs/load-balancing.md](docs/load-balancing.md) — Extension Phase 4 load balancing
+- [docs/caching-strategy.md](docs/caching-strategy.md) — Extension Phase 5 product cache
+- [mobile/react-native-app/README.md](mobile/react-native-app/README.md) — Extension Phase 6 React Native client
+- [docs/project-structure.md](docs/project-structure.md) — Extension Phase 7 tree
+- [docs/run-the-project.md](docs/run-the-project.md) — Extension Phase 7 local dependencies, Compose, and kind
+- [docs/system-architecture.html](docs/system-architecture.html) — Extension Phase 8 explorer
 - [docs/docker.md](docs/docker.md) — Compose first
 - [docs/kubernetes.md](docs/kubernetes.md) — kind, Phase 13, after Compose
 - [docs/observability.md](docs/observability.md), [docs/prometheus.md](docs/prometheus.md), [docs/grafana.md](docs/grafana.md), [docs/alerting.md](docs/alerting.md) — how we see failure
@@ -74,7 +85,7 @@ The runtime, observability, and recovery docs describe software that is already 
 - [docs/disaster-recovery.md](docs/disaster-recovery.md) — what must be restorable
 - [docs/deployment.md](docs/deployment.md) — how Compose and kind ship this
 
-Status lines at the top of those docs name the phase that implemented each decision. HTTP idempotency keys and a payment provider are still not built. [docs/disaster-recovery.md](docs/disaster-recovery.md) is the Phase 19 backup and restore target. The scripts are in [Backup and restore (Phase 19)](#backup-and-restore-phase-19). The review is [Architecture review (Phase 20)](#architecture-review-phase-20).
+Status lines at the top of those docs name the phase that implemented each decision. HTTP idempotency keys are still not built. Payment is a simulated adapter in the order service ([docs/saga-pattern.md](docs/saga-pattern.md)). [docs/disaster-recovery.md](docs/disaster-recovery.md) is the Phase 19 backup and restore target. The scripts are in [Backup and restore (Phase 19)](#backup-and-restore-phase-19). The review is [Architecture review (Phase 20)](#architecture-review-phase-20).
 
 ## Technology decisions (short)
 
@@ -118,6 +129,22 @@ Phases 0 through 20 are done. This checklist is the authoritative order from the
 - [x] **Phase 18 — Failure lab.** Break RabbitMQ, PostgreSQL, Redis, Django, Odoo, and FastAPI pods on purpose. See [Failure lab (Phase 18)](#failure-lab-phase-18).
 - [x] **Phase 19 — Disaster recovery.** Backup, restore, persistent volume recovery. RTO and RPO. See [Backup and restore (Phase 19)](#backup-and-restore-phase-19).
 - [x] **Phase 20 — Architecture review.** What would still have to change for a real production system. See [Architecture review (Phase 20)](#architecture-review-phase-20).
+
+## Extension plan
+
+Extension Phases 0–10 sit after the list above. They do not renumber it. README Phase 15 is the retention CronJob. Notes that still schedule the saga as Phase 15 are stale; that work is Extension Phase 1. The classification is [docs/extension-gap-analysis.md](docs/extension-gap-analysis.md).
+
+- [x] **Extension Phase 0 — Documentation.** Current architecture and the gap analysis. [docs/current-architecture.md](docs/current-architecture.md), [docs/extension-gap-analysis.md](docs/extension-gap-analysis.md).
+- [x] **Extension Phase 1 — Saga.** Tables and legal transitions in the order service, an orchestrator process, simulated payment, Odoo command consumers, an outbox for saga events, the eight scenarios, and `docs/saga-pattern.md`. See [docs/saga-pattern.md](docs/saga-pattern.md).
+- [x] **Extension Phase 2 — Consistency.** `docs/consistency-models.md`, a consistency matrix, idempotent reservation against Odoo, and a way to read the order row and the Django projection before and after the event arrives. See [docs/consistency-models.md](docs/consistency-models.md).
+- [x] **Extension Phase 3 — Flask notifications.** `services/notification-service`, `notification_db`, a RabbitMQ consumer, idempotency, retry, DLQ, health, metrics, mock email and push, a device-token API, a service README, and `docs/flask-notification-service.md`. See [docs/flask-notification-service.md](docs/flask-notification-service.md).
+- [x] **Extension Phase 4 — Load balancing.** `docs/load-balancing.md` for the current gateway and kind Service. A traffic observation only where the manifests do not already show replicas, readiness, and the HPA. No claim of equal request counts. See [docs/load-balancing.md](docs/load-balancing.md).
+- [x] **Extension Phase 5 — Caching.** `docs/caching-strategy.md`. Keep cache-aside. Add hit, miss, error, and duration metrics on the current Grafana dashboards, TTL fallback documentation, and tests for stale data, Redis down, concurrent misses, and invalidation. See [docs/caching-strategy.md](docs/caching-strategy.md).
+- [x] **Extension Phase 6 — React Native.** `mobile/react-native-app` after the HTTP API the app needs is stable. Auth, catalog, cart, checkout, orders, and in-app notifications. FCM only after the app runs. A README with this machine’s real CLI commands. See [mobile/react-native-app/README.md](mobile/react-native-app/README.md).
+- [x] **Extension Phase 7 — Structure and startup.** `docs/project-structure.md` from the real tree, with planned paths marked planned. `docs/run-the-project.md` for local dependencies, full Compose, and kind. Scripts only when they replace repeated commands and exit non-zero on failure. See [docs/project-structure.md](docs/project-structure.md) and [docs/run-the-project.md](docs/run-the-project.md).
+- [x] **Extension Phase 8 — HTML explorer.** `docs/system-architecture.html`, self-contained, with relative links, matching what is implemented at that point. See [docs/system-architecture.html](docs/system-architecture.html).
+- [x] **Extension Phase 9 — Operational tests.** Extend the current suites for saga, consistency, reservations, notifications, cache, and Redis failure. Load numbers only from a real run, with hardware and replica count. See [docs/testing.md](docs/testing.md).
+- [x] **Extension Phase 10 — Final review.** Cross-links only. No second copy of the RabbitMQ, outbox, Kubernetes, observability, testing, or security docs. The extension pages link to [docs/rabbitmq.md](docs/rabbitmq.md), [docs/outbox.md](docs/outbox.md), [docs/kubernetes.md](docs/kubernetes.md), [docs/observability.md](docs/observability.md), [docs/testing.md](docs/testing.md), and [docs/security.md](docs/security.md).
 
 ## How to run Phase 1
 

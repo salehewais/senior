@@ -1,9 +1,8 @@
-"""Turn one OrderConfirmed envelope into at most one ERP sales order.
+"""Turn one OrderConfirmed envelope into a recorded delivery, not a sales order.
 
-The decision lives here so a test can run it without Odoo. The module's
-ORM adapter performs the writes. Both paths share this function, so a
-duplicate event_id or a duplicate commerce order_id cannot create a second
-sales order.
+ERP creation is the CreateErpOrder command. Reporting still consumes
+OrderConfirmed. This function stays so a duplicate event_id is remembered
+and a second delivery does not become a second code path.
 
 OrderCreated is a permanent rejection. This function does not open
 order_db, and it does not copy password hashes onto the partner.
@@ -78,10 +77,11 @@ class ErpStore(Protocol):
 
 
 def apply_confirmed_order(store: ErpStore, envelope: object) -> ApplyResult:
-    """Apply OrderConfirmed once.
+    """Remember OrderConfirmed without creating a sales order.
 
-    The caller commits the processed-event row and the sales order together,
-    and acks only after that commit. A duplicate returns without creating.
+    CreateErpOrder is the only path that calls create_sales_order. A duplicate
+    event_id is still a duplicate. The caller commits the processed-event row
+    and acks only after that commit.
     """
 
     parsed = parse_order_confirmed(envelope)
@@ -89,12 +89,8 @@ def apply_confirmed_order(store: ErpStore, envelope: object) -> ApplyResult:
         return ApplyResult("permanent", parsed.reason)
     if store.has_event(parsed.event_id):
         return ApplyResult("duplicate", "event_id")
-    if store.has_order(parsed.order_id):
-        store.remember_event(parsed.event_id, parsed.event_type, parsed.order_id)
-        return ApplyResult("duplicate", "order_id")
     store.remember_event(parsed.event_id, parsed.event_type, parsed.order_id)
-    store.create_sales_order(parsed)
-    return ApplyResult("created", "")
+    return ApplyResult("ignored", "create-erp-order-command")
 
 
 def parse_order_confirmed(envelope: object) -> ConfirmedOrder | PermanentRejection:

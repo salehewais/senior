@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
+from order_service.application.outbox import OutboxRecord, stage_outbox_records
 from order_service.application.publishing import RecordsEvents
 from order_service.domain.repositories import (
     AccountRepository,
@@ -14,6 +15,7 @@ from order_service.domain.repositories import (
     OrderRepository,
     ProductRepository,
     RefreshTokenRepository,
+    SagaRepository,
 )
 
 
@@ -21,12 +23,17 @@ class UnitOfWork(ABC):
     products: ProductRepository
     customers: CustomerRepository
     orders: OrderRepository
+    sagas: SagaRepository
     accounts: AccountRepository
     refresh_tokens: RefreshTokenRepository
 
     @abstractmethod
     def stage_events(self, *aggregates: RecordsEvents) -> None:
         """Insert one pending outbox row per domain event. Call this before commit."""
+
+    @abstractmethod
+    def stage_outbox(self, records: list[OutboxRecord]) -> None:
+        """Insert command rows in this same transaction. Call this before commit."""
 
     @abstractmethod
     def commit(self) -> None:

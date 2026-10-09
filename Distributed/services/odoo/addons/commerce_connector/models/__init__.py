@@ -1,4 +1,4 @@
-from . import bootstrap, connector, inventory, partner, processed_event, product, sale_order, stock_quant
+from . import bootstrap, connector, inventory, partner, processed_event, product, reservation, sale_order, stock_quant
 
 __all__ = [
     "bootstrap",
@@ -7,6 +7,7 @@ __all__ = [
     "partner",
     "processed_event",
     "product",
+    "reservation",
     "sale_order",
     "stock_quant",
 ]

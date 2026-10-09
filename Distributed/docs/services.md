@@ -74,11 +74,11 @@ See [ADR-012](adr/ADR-012-why-api-gateway.md) and [security.md](security.md).
 - Orders and order lines. Prices are copied onto the line at creation.
 - The order state machine, enforced in the domain.
 - `InventorySnapshot`, a projection of Odoo stock, never the warehouse authority.
-- The saga row for a confirmed order (Phase 15), in `order_db`.
+- The saga row for a confirmed order (Extension Phase 1), in `order_db`. README Phase 15 is the retention CronJob.
 - The transactional outbox.
 - The processed-event store for messages this service consumes (`InventoryUpdated`).
 - HTTP idempotency keys for unsafe order endpoints.
-- The payment HTTP client and its circuit breaker.
+- The simulated payment adapter and its circuit breaker. It is not a payment provider. A refund it records is not guaranteed.
 - Publishing domain events after commit.
 - Private HTTP commands that apply `PROCESSING`, `SHIPPED`, and `DELIVERED` after the domain agrees.
 
@@ -91,7 +91,7 @@ See [ADR-012](adr/ADR-012-why-api-gateway.md) and [security.md](security.md).
 - Call Odoo synchronously during create or confirm.
 - Expose Odoo models to the browser.
 
-**Interactions.** SQL to `order_db`. Redis for cache and shared rate limits. AMQP publish to `commerce.events`. AMQP consume of `inventory.updated` from `erp.events`. HTTPS to the payment provider. Private HTTP from the Odoo module for fulfillment milestones.
+**Interactions.** SQL to `order_db`. Redis for cache and shared rate limits. AMQP publish to `commerce.events` and `commerce.commands`. AMQP consume of `inventory.updated` from `erp.events`. Simulated payment inside the process. Private HTTP from the Odoo module for fulfillment milestones.
 
 **Failure.** If this service is down, checkout is down. Reports still answer from `reporting_db`. Confirmed facts already published can still be consumed. Detection: readiness probe (database required; broker required for the publisher process), gateway 502, outbox age if only the publisher is sick. Recovery: restart. Unpublished outbox rows drain. In-flight HTTP calls that the client retries are safe when the idempotency key was stored in the same transaction as the order.
 
@@ -157,10 +157,10 @@ Phase 7 implements this service: Django, `reporting_db`, the consumer on `q.repo
 **Responsibilities.**
 
 - Own warehouse quantities in `odoo_db`.
-- Consume `OrderConfirmed` only, and create the ERP sales order from that payload.
+- Consume `OrderConfirmed` without creating a sales order. Reporting still uses that event. `CreateErpOrder` creates the sales order.
 - Publish `InventoryUpdated` as a full snapshot when stock changes.
 - Call the order service's private fulfillment routes when processing starts, when the goods ship, and when they are delivered.
-- Consume saga commands (`reserve`, `release`, `create sales order`, `cancel sales order`) when Phase 15 adds them.
+- Consume saga commands (`ReserveInventory`, `ReleaseInventory`, `CreateErpOrder`, `CancelErpOrder`) on `commerce.commands`. Extension Phase 1. README Phase 15 is the retention CronJob.
 - Keep a processed-event table, in `odoo_db`, for message IDs it has applied.
 
 **Must not.**

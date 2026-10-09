@@ -2,12 +2,12 @@
     "name": "Commerce Connector",
     "version": "18.0.1.0.0",
     "category": "Sales",
-    "summary": "Apply OrderConfirmed in odoo_db and publish InventoryUpdated",
+    "summary": "Saga commands create the sales order; stock changes publish InventoryUpdated",
     "description": """
-Confirmed orders arrive from RabbitMQ as OrderConfirmed. This module creates
-the customer, the products, and one sales order from that payload. Stock
-changes write an InventoryUpdated row into commerce_event_outbox in the same
-transaction. Fulfillment buttons call the order service over HTTP.
+OrderConfirmed is recorded and does not create a sales order. CreateErpOrder
+does. ReserveInventory and ReleaseInventory are idempotent on the commerce
+order id. Stock changes write an InventoryUpdated row into commerce_event_outbox
+in the same transaction. Fulfillment buttons call the order service over HTTP.
     """,
     "author": "Commerce learning project",
     "license": "LGPL-3",

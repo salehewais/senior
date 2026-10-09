@@ -54,6 +54,7 @@ def test_order_flow_and_error_envelope() -> None:
     confirmed = client.post(f"/api/v1/orders/{order_id}/confirm", headers=bearer(access))
     assert confirmed.status_code == 200
     assert confirmed.json()["status"] == "CONFIRMED"
+    assert confirmed.json()["saga_status"] == "STARTED"
     assert confirmed.json()["version"] == 2
     confirmed_outbox = [row for row in store.outbox.values() if row.event_type == "OrderConfirmed"]
     assert len(confirmed_outbox) == 1

@@ -4,3 +4,4 @@ access_commerce_processed_event_system,commerce.processed.event.system,model_com
 access_commerce_inventory_state_user,commerce.inventory.state.user,model_commerce_inventory_state,base.group_user,1,0,0,0
 access_commerce_inventory_state_system,commerce.inventory.state.system,model_commerce_inventory_state,base.group_system,1,1,1,1
 access_commerce_connector_system,commerce.connector.system,model_commerce_connector,base.group_system,1,1,1,1
+access_commerce_reservation_system,commerce.reservation.system,model_commerce_reservation,base.group_system,1,1,1,1

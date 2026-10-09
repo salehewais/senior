@@ -69,8 +69,8 @@ The README already states these. They are choices for a laptop, not unfinished a
 - One outbox publisher. A second publisher with `SKIP LOCKED` can still publish a later row first. Partitioning by `aggregate_id` is not implemented.
 - The HPA scales the order API on CPU. A consumer can sit idle on CPU while a queue grows. No Prometheus adapter and no KEDA are installed.
 - Backups are hand scripts. Nothing schedules them. The Odoo filestore is not in the dump. Redis and RabbitMQ are not dumped.
-- No payment provider. `PaymentConfirmed` and `PaymentFailed` are in the catalog. This service does not emit them.
-- `saga_status` stays null. The column exists. The order API returns null (`services/order-service/tests/api/test_orders_api.py`).
+- No payment provider. `PaymentConfirmed` and `PaymentFailed` are emitted by the Extension Phase 1 saga. The charge is simulated inside the order service.
+- `saga_status` mirrors `saga_instances` after confirm. See [saga-pattern.md](../saga-pattern.md).
 - The public listener is HTTP. There is no TLS certificate on Traefik. The trace exporter sets `tls.insecure: true` toward Tempo (`deploy/observability/otel/collector.yaml`).
 - There is no NetworkPolicy in `deploy/kind`.
 

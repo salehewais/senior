@@ -90,3 +90,14 @@ class ProductUpdated(DomainEvent):
 class CustomerUpdated(DomainEvent):
     email: str
     display_name: str
+
+
+@dataclass(frozen=True, slots=True)
+class PaymentConfirmed(DomainEvent):
+    payment_reference: str
+    amount: Money
+
+
+@dataclass(frozen=True, slots=True)
+class PaymentFailed(DomainEvent):
+    reason_code: str

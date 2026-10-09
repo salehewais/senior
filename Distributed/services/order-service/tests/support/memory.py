@@ -13,6 +13,8 @@ from order_service.domain.entities.account import Account
 from order_service.domain.entities.catalog import Customer, Product
 from order_service.domain.entities.order import Order
 from order_service.domain.entities.refresh_token import RefreshToken
+from order_service.domain.entities.saga import SagaInstance
+from order_service.domain.entities.saga_status import TERMINAL_SAGA_STATUSES
 from order_service.domain.exceptions import ConcurrentModificationError, ConflictError, NotFoundError
 from order_service.domain.ids import AccountId, CustomerId, OrderId, ProductId
 from order_service.domain.repositories import (
@@ -21,6 +23,7 @@ from order_service.domain.repositories import (
     OrderRepository,
     ProductRepository,
     RefreshTokenRepository,
+    SagaRepository,
 )
 
 
@@ -32,8 +35,9 @@ class MemoryStore:
         self.accounts: dict[uuid.UUID, Account] = {}
         self.refresh_tokens: dict[uuid.UUID, RefreshToken] = {}
         self.outbox: dict[uuid.UUID, OutboxRecord] = {}
+        self.sagas: dict[uuid.UUID, SagaInstance] = {}
 
-    def snapshot(self) -> tuple[dict, dict, dict, dict, dict, dict]:
+    def snapshot(self) -> tuple[dict, dict, dict, dict, dict, dict, dict]:
         return (
             copy.deepcopy(self.products),
             copy.deepcopy(self.customers),
@@ -41,10 +45,11 @@ class MemoryStore:
             copy.deepcopy(self.accounts),
             copy.deepcopy(self.refresh_tokens),
             copy.deepcopy(self.outbox),
+            copy.deepcopy(self.sagas),
         )
 
-    def restore(self, snapshot: tuple[dict, dict, dict, dict, dict, dict]) -> None:
-        products, customers, orders, accounts, refresh_tokens, outbox = snapshot
+    def restore(self, snapshot: tuple[dict, dict, dict, dict, dict, dict, dict]) -> None:
+        products, customers, orders, accounts, refresh_tokens, outbox, sagas = snapshot
         self.products.clear()
         self.products.update(products)
         self.customers.clear()
@@ -57,6 +62,8 @@ class MemoryStore:
         self.refresh_tokens.update(refresh_tokens)
         self.outbox.clear()
         self.outbox.update(outbox)
+        self.sagas.clear()
+        self.sagas.update(sagas)
 
 
 def _working_copy(entity):
@@ -237,6 +244,45 @@ class InMemoryRefreshTokenRepository(RefreshTokenRepository):
         self._store.refresh_tokens[token.id] = copy.deepcopy(token)
 
 
+class InMemorySagaRepository(SagaRepository):
+    def __init__(self, store: MemoryStore) -> None:
+        self._store = store
+
+    def get(self, saga_id: uuid.UUID) -> SagaInstance | None:
+        row = self._store.sagas.get(saga_id)
+        return None if row is None else copy.deepcopy(row)
+
+    def get_by_order(self, order_id: uuid.UUID) -> SagaInstance | None:
+        for saga in self._store.sagas.values():
+            if saga.order_id == order_id:
+                return copy.deepcopy(saga)
+        return None
+
+    def add(self, saga: SagaInstance) -> None:
+        current = self._store.sagas.get(saga.id)
+        if saga.loaded_version is None:
+            if current is not None:
+                raise ConflictError("Saga already exists.")
+            saga.acknowledge_persisted()
+            self._store.sagas[saga.id] = copy.deepcopy(saga)
+            return
+        if current is None or current.version != saga.loaded_version:
+            raise ConcurrentModificationError("The saga was changed by another worker.")
+        saga.acknowledge_persisted()
+        self._store.sagas[saga.id] = copy.deepcopy(saga)
+
+    def next_active(self) -> SagaInstance | None:
+        rows = [
+            saga
+            for saga in self._store.sagas.values()
+            if saga.status not in TERMINAL_SAGA_STATUSES
+        ]
+        if not rows:
+            return None
+        chosen = sorted(rows, key=lambda saga: (saga.updated_at, saga.id))[0]
+        return copy.deepcopy(chosen)
+
+
 class InMemoryUnitOfWork(UnitOfWork):
     def __init__(self, store: MemoryStore) -> None:
         self._store = store
@@ -245,11 +291,18 @@ class InMemoryUnitOfWork(UnitOfWork):
         self.products = InMemoryProductRepository(store)
         self.customers = InMemoryCustomerRepository(store)
         self.orders = InMemoryOrderRepository(store)
+        self.sagas = InMemorySagaRepository(store)
         self.accounts = InMemoryAccountRepository(store)
         self.refresh_tokens = InMemoryRefreshTokenRepository(store)
 
     def stage_events(self, *aggregates: RecordsEvents) -> None:
         for record in stage_outbox_records(*aggregates):
+            if record.id in self._store.outbox:
+                raise ConflictError("Outbox event already exists.")
+            self._store.outbox[record.id] = record
+
+    def stage_outbox(self, records: list[OutboxRecord]) -> None:
+        for record in records:
             if record.id in self._store.outbox:
                 raise ConflictError("Outbox event already exists.")
             self._store.outbox[record.id] = record

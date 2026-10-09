@@ -15,7 +15,7 @@ Names stay stable so lessons and screenshots match. The JSON is provisioned from
 | Outbox and broker | Unpublished age, queue depth, DLQ depth, publish failures |
 | Reporting lag | How far projections sit behind the latest aggregate version |
 | Payment | Circuit state, payment success and failure counts |
-| Dependencies | Postgres connections, Redis keyspace hit ratio, broker and exporter up |
+| Dependencies | Postgres connections, Redis exporter keyspace hit ratio, order-service product-cache hits, misses, errors, and duration, exporter up |
 
 The Order path board carries the business counters (created, confirmed, cancelled, shipped, delivered). Outbox and broker carries RabbitMQ rate, depth, unacked, consumers, retries, and DLQ next to outbox pending, published, failed, and publish latency. Payment shows `payment_circuit_state`, which stays 0 because no payment provider is wired.
 

@@ -1,0 +1,26 @@
+# Extension Phase 3 database only.
+# The full stack is deploy/compose/docker-compose.yml.
+# Host port 5435 avoids 5432 (order_db), 5433 (reporting_db), and 5434 (odoo_db).
+# This server has one database, notification_db, and one login.
+# It does not create order_db, reporting_db, or odoo_db.
+# The password is a local placeholder. It is not a credential for a shared environment.
+
+services:
+  notification-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: notification_service
+      POSTGRES_PASSWORD: notification_service
+      POSTGRES_DB: notification_db
+    ports:
+      - "127.0.0.1:5435:5432"
+    volumes:
+      - notification_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notification_service -d notification_db"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  notification_db_data:

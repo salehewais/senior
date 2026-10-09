@@ -56,7 +56,7 @@ Designed now, built later:
 - Consumer duplicate counter and handler errors.
 - Reporting projection lag (newest order version minus newest projected version, as a coarse gauge).
 - Payment circuit state.
-- Redis errors (cache miss is not an error; connection failure is).
+- Redis errors (cache miss is not an error; connection failure is). Product-cache hit, miss, error, and duration are [caching-strategy.md](caching-strategy.md).
 
 ## Failure of the observability stack
 

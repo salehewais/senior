@@ -1,0 +1,217 @@
+# Notification HTTP API and consumer. Same image as Compose.
+# NOTIFICATION_DATABASE_URL uses the notification-postgres Service.
+# The public JWT key is mounted. The private key is not.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: notification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: notification-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: notification-service
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 20
+      initContainers:
+        - name: migrate
+          image: commerce/notification-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["alembic", "upgrade", "head"]
+          env:
+            - name: NOTIFICATION_DATABASE_URL
+              value: postgresql+psycopg://notification_service:notification_service@notification-postgres:5432/notification_db
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      containers:
+        - name: notification-service
+          image: commerce/notification-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "notification_service.http"]
+          ports:
+            - name: http
+              containerPort: 8002
+          envFrom:
+            - configMapRef:
+                name: commerce-config
+          env:
+            - name: NOTIFICATION_DATABASE_URL
+              value: postgresql+psycopg://notification_service:notification_service@notification-postgres:5432/notification_db
+            - name: RABBITMQ_URL
+              value: amqp://order_service:order_service@rabbitmq:5672/%2F
+            - name: JWT_PUBLIC_KEY_PATH
+              value: /keys/jwt_public.pem
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          volumeMounts:
+            - name: jwt
+              mountPath: /keys
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: jwt
+          secret:
+            secretName: commerce-secrets
+            items:
+              - key: jwt_public.pem
+                path: jwt_public.pem
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: notification-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: notification-service
+  ports:
+    - name: http
+      port: 8002
+      targetPort: http
+---
+# Competing consumers on q.notification.delivery. Prefetch stays 10 per process.
+# processed_events.event_id is the primary key. requeue=true is not set.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-consumer
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: notification-consumer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: notification-consumer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: notification-consumer
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 20
+      initContainers:
+        - name: migrate
+          image: commerce/notification-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["alembic", "upgrade", "head"]
+          env:
+            - name: NOTIFICATION_DATABASE_URL
+              value: postgresql+psycopg://notification_service:notification_service@notification-postgres:5432/notification_db
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      containers:
+        - name: notification-consumer
+          image: commerce/notification-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "notification_service.consumer"]
+          ports:
+            - name: metrics
+              containerPort: 9100
+          envFrom:
+            - configMapRef:
+                name: commerce-config
+          env:
+            - name: NOTIFICATION_DATABASE_URL
+              value: postgresql+psycopg://notification_service:notification_service@notification-postgres:5432/notification_db
+            - name: RABBITMQ_URL
+              value: amqp://order_service:order_service@rabbitmq:5672/%2F
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-consumer
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: notification-consumer
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: notification-consumer
+  ports:
+    - name: metrics
+      port: 9100
+      targetPort: metrics

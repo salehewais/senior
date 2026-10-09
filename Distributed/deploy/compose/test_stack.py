@@ -30,6 +30,8 @@ class StackContractTests(unittest.TestCase):
         self.assertNotIn("/api/v1/internal", without_negation)
         self.assertIn("http://order-service:8000", DYNAMIC)
         self.assertIn("http://reporting-service:8001", DYNAMIC)
+        self.assertIn("http://notification-service:8002", DYNAMIC)
+        self.assertIn("!PathPrefix(`/api/v1/device-tokens/`)", DYNAMIC)
         self.assertIn("http://frontend:8080", DYNAMIC)
 
     def test_workers_are_separate_services_and_the_token_is_not_on_the_frontend(self) -> None:
@@ -37,6 +39,8 @@ class StackContractTests(unittest.TestCase):
             "order-outbox-publisher:",
             "order-inventory-consumer:",
             "reporting-consumer:",
+            "notification-migrate:",
+            "notification-consumer:",
             "odoo-consumer:",
             "odoo-publisher:",
             "order-migrate:",
@@ -56,6 +60,7 @@ class StackContractTests(unittest.TestCase):
         self.assertNotIn(":latest", COMPOSE)
         self.assertIn("commerce/order-service:0.1.0", COMPOSE)
         self.assertIn("commerce/reporting-service:0.1.0", COMPOSE)
+        self.assertIn("commerce/notification-service:0.1.0", COMPOSE)
         self.assertIn("commerce/frontend:0.1.0", COMPOSE)
         self.assertIn("commerce/odoo:18.0.1", COMPOSE)
         self.assertIn("commerce/jwt-check:0.1.0", COMPOSE)

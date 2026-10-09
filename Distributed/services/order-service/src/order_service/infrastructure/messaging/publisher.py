@@ -22,7 +22,7 @@ from order_service.infrastructure.messaging.connection import (
     close_connection,
     open_connection,
 )
-from order_service.infrastructure.messaging.topology import EXCHANGE_COMMERCE_EVENTS, declare_topology
+from order_service.infrastructure.messaging.topology import declare_topology
 from order_service.infrastructure.settings import Settings
 
 
@@ -100,7 +100,7 @@ def _publish_confirmed(channel: BlockingChannel, message: OutboundMessage) -> No
 
     with publisher_span(message.body, message.event_type) as trace_headers:
         channel.basic_publish(
-            exchange=EXCHANGE_COMMERCE_EVENTS,
+            exchange=message.exchange,
             routing_key=message.routing_key,
             body=_body(message),
             properties=pika.BasicProperties(

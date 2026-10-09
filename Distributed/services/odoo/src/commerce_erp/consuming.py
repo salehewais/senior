@@ -85,7 +85,11 @@ class FailureRouter(Protocol):
 EventHandler = Callable[[dict[str, object]], DeliveryResult]
 
 
-def inspect_envelope(body: bytes) -> ParsedEnvelope | EnvelopeRejection:
+def inspect_envelope(
+    body: bytes,
+    *,
+    accepted_event_types: frozenset[str] | None = None,
+) -> ParsedEnvelope | EnvelopeRejection:
     try:
         parsed = json.loads(body)
     except (json.JSONDecodeError, UnicodeDecodeError):
@@ -102,7 +106,8 @@ def inspect_envelope(body: bytes) -> ParsedEnvelope | EnvelopeRejection:
         return EnvelopeRejection(REASON_MALFORMED)
     if version != UNDERSTOOD_SCHEMA_VERSION:
         return EnvelopeRejection(REASON_UNKNOWN_VERSION)
-    if event_type not in ACCEPTED_EVENT_TYPES:
+    accepted = ACCEPTED_EVENT_TYPES if accepted_event_types is None else accepted_event_types
+    if event_type not in accepted:
         return EnvelopeRejection(REASON_UNKNOWN_TYPE)
     return ParsedEnvelope(event_id=event_id, event_type=event_type, body=parsed)
 
@@ -141,6 +146,7 @@ def settle_delivery(
     router: FailureRouter,
     headers: dict[str, object] | None = None,
     routing_key: str = "",
+    accepted_event_types: frozenset[str] | None = None,
 ) -> None:
     """Ack, retry, or dead-letter. Never nack with requeue=true."""
 
@@ -150,7 +156,7 @@ def settle_delivery(
         logger.error("permanent failure dead-lettered before handler reason=%s", scheduled.reason)
         _dead_letter(channel, delivery_tag, router, body, business_key, scheduled.reason, 0)
         return
-    inspected = inspect_envelope(body)
+    inspected = inspect_envelope(body, accepted_event_types=accepted_event_types)
     if isinstance(inspected, EnvelopeRejection):
         logger.error("permanent failure dead-lettered before handler reason=%s", inspected.reason)
         _dead_letter(channel, delivery_tag, router, body, business_key, inspected.reason, scheduled)

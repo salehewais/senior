@@ -43,6 +43,10 @@ So dashboards and alerts do not churn:
 - `consumer_dlq_messages` gauge or the broker's own queue-depth series for the three DLQs
 - `payment_circuit_state` (0 closed, 1 half-open, 2 open)
 - `projection_lag_versions` on the reporting service
+- `product_cache_hits_total`, `product_cache_misses_total`, and `product_cache_errors_total` with label `operation` (`get` or `list`)
+- `product_cache_duration_seconds` with labels `operation` and `result` (`hit`, `miss`, or `error`)
+
+The product-cache names are Extension Phase 5. What they measure is [caching-strategy.md](caching-strategy.md). An account id, a product id, and a token are not labels on those series.
 
 Route labels use the template (`/api/v1/orders/{id}`), never the UUID. Otherwise every order creates a new time series.
 

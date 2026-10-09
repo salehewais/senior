@@ -41,6 +41,16 @@ scrape_configs:
     static_configs:
       - targets: ["reporting-consumer:9100"]
 
+  - job_name: notification-service
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["notification-service:8002"]
+
+  - job_name: notification-consumer
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["notification-consumer:9100"]
+
   # Aggregated counters. No per-channel Erlang pid labels.
   - job_name: rabbitmq
     metrics_path: /metrics
@@ -64,6 +74,10 @@ scrape_configs:
   - job_name: postgres-reporting
     static_configs:
       - targets: ["postgres-exporter-reporting:9187"]
+
+  - job_name: postgres-notification
+    static_configs:
+      - targets: ["postgres-exporter-notification:9187"]
 
   - job_name: redis
     static_configs:

@@ -62,7 +62,7 @@ Phase 18 is the failure lab. Phase 19 is backup and restore, not this lab. Do no
 
 **Expected.** Create and confirm still succeed. `q.odoo.order-confirmed` grows. Saga steps that need Odoo retry. Inventory snapshots stop updating, so the "nothing in stock" guard becomes stale. Reports that do not need new stock events still work.
 
-**Detection.** Queue depth, snapshot age, saga stuck in `INVENTORY_RESERVING` or `ERP_CREATING`.
+**Detection.** Queue depth, snapshot age, saga stuck in `STARTED` or `PAYMENT_CONFIRMED`.
 
 **Recovery.** Start Odoo. The queue drains. Idempotency on commerce `order_id` prevents two ERP orders.
 
@@ -86,15 +86,15 @@ Phase 18 is the failure lab. Phase 19 is backup and restore, not this lab. Do no
 
 **Recovery.** Start Redis. Cache refills. Limits apply again.
 
-## Payment provider down
+## Simulated payment fails
 
-**Cause.** Make the fake provider return errors or hang.
+**Cause.** The simulated adapter declines, times out, or opens its circuit after consecutive declines.
 
-**Expected.** The circuit opens after the configured consecutive failures. Further saga steps fail fast with `PaymentFailed` reason `circuit_open`. Inventory reservations are released. Order status stays `CONFIRMED`. `saga_status` becomes `COMPENSATED`. The UI shows that pair. The order does not become `CANCELLED`.
+**Expected.** A decline or `circuit_open` records `PaymentFailed` and releases the reservation when release succeeds. Order status stays `CONFIRMED`. `saga_status` becomes `COMPENSATED`. If release or the simulated refund fails, `saga_status` becomes `MANUAL_INTERVENTION_REQUIRED`. The order does not become `CANCELLED`. A recorded refund is not a guaranteed movement of money.
 
-**Detection.** `PaymentCircuitOpen`.
+**Detection.** `payment_circuit_state` and the saga row. Stuck `STARTED` or `PAYMENT_CONFIRMED` means an Odoo command outcome is still unknown.
 
-**Recovery.** Provider returns. Half-open trial succeeds and the circuit closes. New confirms can pay. Already compensated orders do not silently restart payment; a human or a defined replay of the saga does.
+**Recovery.** A half-open trial can close the circuit. Already compensated orders do not silently restart payment. `MANUAL_INTERVENTION_REQUIRED` waits for a person.
 
 ## Illegal transition through the API
 

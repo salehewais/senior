@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Protocol
 
+from order_service.application.saga.contract import COMMAND_ROUTING_KEYS, EXCHANGE_COMMERCE_COMMANDS
 from order_service.domain.events import (
     CustomerUpdated,
     DomainEvent,
@@ -24,6 +25,8 @@ from order_service.domain.events import (
     OrderDelivered,
     OrderProcessingStarted,
     OrderShipped,
+    PaymentConfirmed,
+    PaymentFailed,
     ProductCreated,
     ProductUpdated,
 )
@@ -44,6 +47,8 @@ ROUTING_KEYS: dict[str, str] = {
     "ProductCreated": "product.created",
     "ProductUpdated": "product.updated",
     "CustomerUpdated": "customer.updated",
+    "PaymentConfirmed": "payment.confirmed",
+    "PaymentFailed": "payment.failed",
 }
 
 
@@ -62,6 +67,7 @@ class OutboundMessage:
     routing_key: str
     correlation_id: uuid.UUID
     body: dict[str, object]
+    exchange: str = "commerce.events"
 
 
 class EventPublisher(Protocol):
@@ -107,6 +113,8 @@ def aggregate_type_for(event: DomainEvent) -> str:
         return "product"
     if isinstance(event, CustomerUpdated):
         return "customer"
+    if isinstance(event, PaymentConfirmed | PaymentFailed):
+        return "order"
     raise TypeError(f"{event.event_type} has no aggregate type.")
 
 
@@ -129,7 +137,15 @@ def outbound_from_envelope(payload: object, *, column_event_type: str) -> Outbou
             payload_type,
             payload.get("correlation_id"),
         )
-    if not isinstance(payload_type, str) or payload_type not in ROUTING_KEYS:
+    if not isinstance(payload_type, str):
+        raise TypeError("outbox payload has no catalog routing key")
+    if payload_type in COMMAND_ROUTING_KEYS:
+        routing_key = COMMAND_ROUTING_KEYS[payload_type]
+        exchange = EXCHANGE_COMMERCE_COMMANDS
+    elif payload_type in ROUTING_KEYS:
+        routing_key = ROUTING_KEYS[payload_type]
+        exchange = "commerce.events"
+    else:
         raise TypeError("outbox payload has no catalog routing key")
     try:
         event_id = uuid.UUID(str(payload.get("event_id")))
@@ -139,9 +155,10 @@ def outbound_from_envelope(payload: object, *, column_event_type: str) -> Outbou
     return OutboundMessage(
         event_id=event_id,
         event_type=payload_type,
-        routing_key=ROUTING_KEYS[payload_type],
+        routing_key=routing_key,
         correlation_id=correlation_id,
         body=payload,
+        exchange=exchange,
     )
 
 
@@ -192,7 +209,58 @@ def _payload(event: DomainEvent) -> dict[str, object]:
             "display_name": event.display_name,
             "aggregate_version": event.aggregate_version,
         }
+    if isinstance(event, PaymentConfirmed):
+        return {
+            "order_id": str(event.aggregate_id),
+            "payment_reference": event.payment_reference,
+            "amount": event.amount.as_dict(),
+            "aggregate_version": event.aggregate_version,
+        }
+    if isinstance(event, PaymentFailed):
+        return {
+            "order_id": str(event.aggregate_id),
+            "reason_code": event.reason_code,
+            "aggregate_version": event.aggregate_version,
+        }
     raise TypeError(f"{event.event_type} has no payload mapping.")
+
+
+def command_message(
+    *,
+    event_id: uuid.UUID,
+    event_type: str,
+    occurred_at: datetime,
+    aggregate_id: uuid.UUID,
+    correlation_id: uuid.UUID,
+    causation_id: uuid.UUID,
+    payload: dict[str, object],
+) -> OutboundMessage:
+    """One saga command envelope. It is not a catalog event and not a report fact."""
+
+    try:
+        routing_key = COMMAND_ROUTING_KEYS[event_type]
+    except KeyError as exc:
+        raise TypeError(f"{event_type} is not a saga command.") from exc
+    body: dict[str, object] = {
+        "event_id": str(event_id),
+        "event_type": event_type,
+        "occurred_at": _occurred_at(occurred_at),
+        "producer": PRODUCER,
+        "aggregate_id": str(aggregate_id),
+        "correlation_id": str(correlation_id),
+        "causation_id": str(causation_id),
+        "version": SCHEMA_VERSION,
+        "payload": payload,
+    }
+    body.update(_trace_carrier())
+    return OutboundMessage(
+        event_id=event_id,
+        event_type=event_type,
+        routing_key=routing_key,
+        correlation_id=correlation_id,
+        body=body,
+        exchange=EXCHANGE_COMMERCE_COMMANDS,
+    )
 
 
 def _order_lines(event: OrderCreated | OrderConfirmed, status: str) -> dict[str, object]:

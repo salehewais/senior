@@ -24,6 +24,7 @@ fi
 
 docker build -t commerce/order-service:0.1.0 services/order-service
 docker build -t commerce/reporting-service:0.1.0 services/reporting-service
+docker build -t commerce/notification-service:0.1.0 services/notification-service
 docker build -t commerce/frontend:0.1.0 \
   --build-arg VITE_API_BASE_URL=http://127.0.0.1:8080 \
   services/frontend
@@ -35,6 +36,7 @@ docker build -t commerce/odoo:18.0.1 services/odoo
 for image in \
   commerce/order-service:0.1.0 \
   commerce/reporting-service:0.1.0 \
+  commerce/notification-service:0.1.0 \
   commerce/frontend:0.1.0 \
   commerce/jwt-check:0.1.0 \
   commerce/odoo:18.0.1

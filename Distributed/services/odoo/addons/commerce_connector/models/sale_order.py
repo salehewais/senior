@@ -24,6 +24,7 @@ class SaleOrder(models.Model):
         index=True,
         readonly=True,
     )
+    commerce_idempotency_key = fields.Char(string="Saga idempotency key", copy=False, index=True)
     commerce_tracking_reference = fields.Char(string="Tracking reference")
 
     _sql_constraints = [

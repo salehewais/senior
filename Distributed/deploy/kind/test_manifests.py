@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parents[1]
 
-POSTGRES_SERVICES = {"order-postgres", "reporting-postgres", "odoo-postgres"}
+POSTGRES_SERVICES = {"order-postgres", "reporting-postgres", "notification-postgres", "odoo-postgres"}
 DATA_SERVICES = POSTGRES_SERVICES | {"redis", "rabbitmq"}
 
 
@@ -74,7 +74,7 @@ class KindManifestTests(unittest.TestCase):
         ingress = ingresses[0]
         self.assertNotIn("/api/v1/internal", ingress)
         self.assertIn("name: gateway", ingress)
-        for blocked in ("order-postgres", "reporting-postgres", "odoo-postgres", "redis", "rabbitmq"):
+        for blocked in ("order-postgres", "reporting-postgres", "notification-postgres", "odoo-postgres", "redis", "rabbitmq"):
             self.assertNotIn(f"name: {blocked}", ingress)
 
     def deployment(self, name: str) -> str:
@@ -114,6 +114,28 @@ class KindManifestTests(unittest.TestCase):
         self.assertNotIn("/api/v1/internal", ingresses[0])
         self.assertIn("--kubelet-insecure-tls", self.files["metrics-server.yaml"])
 
+    def test_order_service_readiness_replicas_and_hpa_bounds(self) -> None:
+        order = self.deployment("order-service")
+        self.assertEqual(int(re.search(r"^  replicas:\s*(\d+)\s*$", order, re.M).group(1)), 2)
+        self.assertIn("terminationGracePeriodSeconds: 20", order)
+        self.assertIn("path: /health/ready", order)
+        self.assertNotIn("sessionAffinity:", order)
+        services = [
+            doc
+            for _, doc in self.docs
+            if kind_of(doc) == "Service" and metadata_name(doc) == "order-service"
+        ]
+        self.assertEqual(len(services), 1)
+        self.assertIn("type: ClusterIP", services[0])
+        self.assertNotIn("sessionAffinity:", services[0])
+        hpas = [doc for _, doc in self.docs if kind_of(doc) == "HorizontalPodAutoscaler"]
+        self.assertEqual(len(hpas), 1)
+        hpa = hpas[0]
+        self.assertEqual(int(re.search(r"^  minReplicas:\s*(\d+)\s*$", hpa, re.M).group(1)), 2)
+        self.assertEqual(int(re.search(r"^  maxReplicas:\s*(\d+)\s*$", hpa, re.M).group(1)), 4)
+        self.assertIn("name: cpu", hpa)
+        self.assertIn("averageUtilization: 70", hpa)
+
     def test_retention_cronjob_is_bounded_and_uses_order_db(self) -> None:
         cronjobs = [doc for _, doc in self.docs if kind_of(doc) == "CronJob"]
         self.assertEqual(len(cronjobs), 1)
@@ -141,6 +163,7 @@ class KindManifestTests(unittest.TestCase):
         joined = "\n".join(self.files.values())
         self.assertIn("@order-postgres:5432/order_db", joined)
         self.assertIn("@reporting-postgres:5432/reporting_db", joined)
+        self.assertIn("@notification-postgres:5432/notification_db", joined)
         self.assertIn("@odoo-postgres:5432/odoo_db", joined)
         self.assertIn("@rabbitmq:5672/", joined)
         self.assertIn("redis://redis:6379/0", joined)

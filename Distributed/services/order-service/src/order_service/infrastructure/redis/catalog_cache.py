@@ -9,10 +9,12 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 import uuid
 
 from order_service.application.dto import MoneyView, ProductView
 from order_service.infrastructure.redis.commands import RedisCommands, RedisUnavailable
+from order_service.observability.metrics import record_product_cache
 
 logger = logging.getLogger("order_service")
 
@@ -73,28 +75,34 @@ class ProductCatalogCache:
         self._ttl_seconds = ttl_seconds
 
     def get_product(self, product_id: uuid.UUID) -> ProductView | None:
-        raw = self._read(product_cache_key(product_id))
+        raw, elapsed = self._read(product_cache_key(product_id), operation="get")
         if raw is None:
             return None
         try:
-            return _load_product_json(raw)
+            view = _load_product_json(raw)
         except (TypeError, ValueError, KeyError, json.JSONDecodeError):
+            record_product_cache(operation="get", result="miss", seconds=elapsed)
             return None
+        record_product_cache(operation="get", result="hit", seconds=elapsed)
+        return view
 
     def put_product(self, view: ProductView) -> None:
         self._write(product_cache_key(view.id), _dump_product(view))
 
     def get_list(self, *, limit: int, offset: int) -> list[ProductView] | None:
-        raw = self._read(list_cache_key(limit=limit, offset=offset))
+        raw, elapsed = self._read(list_cache_key(limit=limit, offset=offset), operation="list")
         if raw is None:
             return None
         try:
             data = json.loads(raw)
             if not isinstance(data, list):
                 raise TypeError("product list cache entry is not a list")
-            return [_load_product(item) for item in data]
+            views = [_load_product(item) for item in data]
         except (TypeError, ValueError, KeyError, json.JSONDecodeError):
+            record_product_cache(operation="list", result="miss", seconds=elapsed)
             return None
+        record_product_cache(operation="list", result="hit", seconds=elapsed)
+        return views
 
     def put_list(self, views: list[ProductView], *, limit: int, offset: int) -> None:
         body = "[" + ",".join(_dump_product(view) for view in views) + "]"
@@ -113,12 +121,28 @@ class ProductCatalogCache:
         except RedisUnavailable:
             logger.warning("product cache invalidation failed; the ttl is the backstop")
 
-    def _read(self, key: str) -> str | None:
+    def _read(self, key: str, *, operation: str) -> tuple[str | None, float]:
+        """Return the stored JSON and the read time, or `(None, seconds)` to stop.
+
+        A missing key is a miss. `RedisUnavailable` is an error. Both return None
+        so the caller reads `order_db`. A present payload is not a hit until the
+        caller parses it; a payload that does not parse is a miss. There is no
+        single-flight lock around this read.
+        """
+
+        started = time.perf_counter()
         try:
-            return self._commands.get(key)
+            raw = self._commands.get(key)
         except RedisUnavailable:
+            elapsed = time.perf_counter() - started
+            record_product_cache(operation=operation, result="error", seconds=elapsed)
             logger.debug("product cache read skipped; using the database")
-            return None
+            return None, elapsed
+        elapsed = time.perf_counter() - started
+        if raw is None:
+            record_product_cache(operation=operation, result="miss", seconds=elapsed)
+            return None, elapsed
+        return raw, elapsed
 
     def _write(self, key: str, value: str) -> None:
         try:

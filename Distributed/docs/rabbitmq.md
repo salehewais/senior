@@ -63,7 +63,7 @@ All exchanges and queues are durable. Messages are persistent (`delivery_mode` 2
 | `erp.events` | topic | odoo | `InventoryUpdated` only |
 | `commerce.retry` | topic | broker dead-lettering, not application code | Holds a message for a TTL, then sends it back |
 | `commerce.dlx` | topic | broker, after retry budget | Dead-letter landing zone |
-| `commerce.commands` | direct | order-service saga | One consumer per command. Conceptual until Phase 15 |
+| `commerce.commands` | direct | order-service saga | One consumer per command. Declared in Extension Phase 1 |
 
 Two event exchanges exist so Odoo's credentials can be granted publish rights on `erp.events` and not on `commerce.events`. A bug in the module then cannot forge `OrderConfirmed`.
 
@@ -94,12 +94,13 @@ Keys are the contract. Queue names are not.
 | `q.reporting.projection` | `erp.events` | `inventory.updated` | reporting workers |
 | `q.odoo.order-confirmed` | `commerce.events` | `order.confirmed` | Odoo connector |
 | `q.order.inventory` | `erp.events` | `inventory.updated` | order-service inventory worker |
+| `q.notification.delivery` | `commerce.events` | `order.confirmed`, `order.cancelled`, `order.shipped`, `order.delivered`, `payment.confirmed`, `payment.failed` | notification workers |
 
 `q.odoo.order-confirmed` has no binding for `order.created`, `order.cancelled`, or payment keys. That is how "Odoo receives only confirmed orders" is enforced in the broker, not only in a wiki.
 
 One queue may have several bindings. Reporting uses that so a single consumer loop and a single dedup table see every fact.
 
-### Saga commands (conceptual, Phase 15)
+### Saga commands (Extension Phase 1)
 
 Not domain events. Direct exchange `commerce.commands`:
 

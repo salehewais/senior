@@ -25,6 +25,7 @@ import threading
 import pika
 
 from commerce_erp.broker import broker_deadline, close_connection, open_connection
+from commerce_erp.commands import COMMAND_TYPES
 from commerce_erp.consuming import (
     HEADER_FAILURE_REASON,
     HEADER_ORIGINAL_ROUTING_KEY,
@@ -39,7 +40,11 @@ from commerce_erp.topology import (
     DLQ_ROUTING_KEY,
     EXCHANGE_COMMERCE_DLX,
     EXCHANGE_COMMERCE_RETRY,
+    QUEUE_CANCEL_SALES_ORDER,
+    QUEUE_CREATE_SALES_ORDER,
     QUEUE_ODOO_CONFIRMED,
+    QUEUE_RELEASE,
+    QUEUE_RESERVE,
     declare_topology,
     retry_routing_key,
 )
@@ -65,7 +70,7 @@ class OdooApplyHandler:
             )
             return DeliveryResult(DeliveryOutcome.TRANSIENT, "odoo-unavailable")
         outcome = result.get("outcome")
-        if outcome == "created":
+        if outcome in {"created", "ignored"}:
             logger.info(
                 "sales order created event_id=%s aggregate_id=%s",
                 envelope.get("event_id"),
@@ -80,14 +85,44 @@ class OdooApplyHandler:
         return DeliveryResult(DeliveryOutcome.TRANSIENT, "odoo-unexpected-result")
 
 
+class CommandApplyHandler:
+    def __init__(self, client: OdooClient) -> None:
+        self._client = client
+
+    def __call__(self, envelope: dict[str, object]) -> DeliveryResult:
+        try:
+            result = self._client.apply_command(envelope)
+        except OdooCallError as exc:
+            logger.error(
+                "odoo command failed event_id=%s correlation_id=%s error=%s",
+                envelope.get("event_id"),
+                envelope.get("correlation_id"),
+                exc,
+            )
+            return DeliveryResult(DeliveryOutcome.TRANSIENT, "odoo-unavailable")
+        outcome = result.get("outcome")
+        if outcome == "succeeded":
+            return DeliveryResult(DeliveryOutcome.SUCCESS)
+        if outcome == "duplicate":
+            return DeliveryResult(DeliveryOutcome.SUCCESS, "duplicate")
+        if outcome == "permanent":
+            reason = result.get("reason")
+            return DeliveryResult(DeliveryOutcome.PERMANENT, reason if isinstance(reason, str) else "permanent")
+        if outcome == "failed":
+            reason = result.get("reason")
+            return DeliveryResult(DeliveryOutcome.PERMANENT, reason if isinstance(reason, str) else "failed")
+        return DeliveryResult(DeliveryOutcome.TRANSIENT, "odoo-unexpected-result")
+
+
 class RepublishingRouter:
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, queue_name: str) -> None:
         self._settings = settings
+        self._queue_name = queue_name
 
     def schedule_retry(self, *, attempt: int, body: bytes, original_routing_key: str, reason: str) -> None:
         self._publish(
             exchange=EXCHANGE_COMMERCE_RETRY,
-            routing_key=retry_routing_key(QUEUE_ODOO_CONFIRMED, attempt),
+            routing_key=retry_routing_key(self._queue_name, attempt),
             body=body,
             headers={
                 HEADER_RETRY_COUNT: attempt,
@@ -99,7 +134,7 @@ class RepublishingRouter:
     def dead_letter(self, *, body: bytes, original_routing_key: str, reason: str, retry_count: int) -> None:
         self._publish(
             exchange=EXCHANGE_COMMERCE_DLX,
-            routing_key=DLQ_ROUTING_KEY[QUEUE_ODOO_CONFIRMED],
+            routing_key=DLQ_ROUTING_KEY[self._queue_name],
             body=body,
             headers={
                 HEADER_RETRY_COUNT: retry_count,
@@ -133,49 +168,58 @@ class RepublishingRouter:
 
 def run_consumer(settings: Settings, handler: OdooApplyHandler, stop: threading.Event) -> None:
     timeout = settings.rabbitmq_timeout_seconds
-    router = RepublishingRouter(settings)
+    command_handler = CommandApplyHandler(handler._client)
     connection = open_connection(settings.rabbitmq_url, timeout)
     try:
         with broker_deadline(connection, timeout):
             channel = connection.channel()
             declare_topology(channel)
             channel.basic_qos(prefetch_count=PREFETCH_COUNT)
-
-            def _on_message(ch, method, properties, body) -> None:
-                header_map: dict[str, object] = {}
-                if properties is not None and properties.headers:
-                    header_map = dict(properties.headers)
-                raw = body.encode("utf-8") if isinstance(body, str) else bytes(body)
-                try:
-                    settle_delivery(
-                        ch,
-                        method.delivery_tag,
-                        raw,
-                        handler,
-                        router=router,
-                        headers=header_map,
-                        routing_key=method.routing_key or "",
-                    )
-                except Exception as exc:
-                    logger.error(
-                        "settlement failed; shutting down so the delivery is redelivered error_type=%s",
-                        type(exc).__name__,
-                    )
-                    stop.set()
-
-            consumer_tag = channel.basic_consume(
-                queue=QUEUE_ODOO_CONFIRMED,
-                on_message_callback=_on_message,
-                auto_ack=False,
-            )
+            consumer_tags = [
+                _consume(channel, settings, stop, QUEUE_ODOO_CONFIRMED, handler, accepted=None),
+                _consume(channel, settings, stop, QUEUE_RESERVE, command_handler, accepted=COMMAND_TYPES),
+                _consume(channel, settings, stop, QUEUE_RELEASE, command_handler, accepted=COMMAND_TYPES),
+                _consume(channel, settings, stop, QUEUE_CREATE_SALES_ORDER, command_handler, accepted=COMMAND_TYPES),
+                _consume(channel, settings, stop, QUEUE_CANCEL_SALES_ORDER, command_handler, accepted=COMMAND_TYPES),
+            ]
         logger.info("odoo consumer started queue=%s prefetch=%s", QUEUE_ODOO_CONFIRMED, PREFETCH_COUNT)
         while not stop.is_set():
             connection.process_data_events(time_limit=0.5)
         if channel.is_open:
             with broker_deadline(connection, timeout):
-                channel.basic_cancel(consumer_tag)
+                for consumer_tag in consumer_tags:
+                    channel.basic_cancel(consumer_tag)
     finally:
         close_connection(connection, timeout_seconds=timeout)
+
+
+def _consume(channel, settings: Settings, stop: threading.Event, queue_name: str, handler, accepted):
+    router = RepublishingRouter(settings, queue_name)
+
+    def _on_message(ch, method, properties, body) -> None:
+        header_map: dict[str, object] = {}
+        if properties is not None and properties.headers:
+            header_map = dict(properties.headers)
+        raw = body.encode("utf-8") if isinstance(body, str) else bytes(body)
+        try:
+            settle_delivery(
+                ch,
+                method.delivery_tag,
+                raw,
+                handler,
+                router=router,
+                headers=header_map,
+                routing_key=method.routing_key or "",
+                accepted_event_types=accepted,
+            )
+        except Exception as exc:
+            logger.error(
+                "settlement failed; shutting down so the delivery is redelivered error_type=%s",
+                type(exc).__name__,
+            )
+            stop.set()
+
+    return channel.basic_consume(queue=queue_name, on_message_callback=_on_message, auto_ack=False)
 
 
 def main() -> None:

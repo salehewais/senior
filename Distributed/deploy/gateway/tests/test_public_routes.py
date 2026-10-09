@@ -38,6 +38,10 @@ class PublicRouterTests(unittest.TestCase):
         self.assertIn("!PathPrefix(`/api/v1/reports/`)", self.rules)
         self.assertIn("service: reporting", self.text)
         self.assertIn("http://host.docker.internal:8001", self.text)
+        self.assertIn("http://host.docker.internal:8002", self.text)
+        self.assertIn("!Path(`/api/v1/device-tokens`)", self.rules)
+        self.assertIn("!PathPrefix(`/api/v1/device-tokens/`)", self.rules)
+        self.assertIn("service: notification", self.text)
         self.assertIn("http://host.docker.internal:8000", self.text)
         order_block = self.text.split("services:", 1)[1]
         reporting_url = order_block.split("reporting:", 1)[1].split("frontend:", 1)[0]
