@@ -8,8 +8,11 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi.testclient import TestClient
 from tests.support.clock import FixedClock
+from tests.support.fake_redis import FakeRedis
 from tests.support.memory import InMemoryUnitOfWork, MemoryStore
 
+from order_service.application.ports import PasswordHasher
+from order_service.application.rate_limit import RateLimitPolicy
 from order_service.application.use_cases.auth import CreateStaffAccount
 from order_service.domain.roles import Role
 from order_service.infrastructure.security.passwords import Argon2PasswordHasher
@@ -47,6 +50,9 @@ def make_client(
     *,
     internal_service_token: str | None = INTERNAL_TOKEN,
     clock: FixedClock | None = None,
+    redis_commands: FakeRedis | None = None,
+    password_hasher: PasswordHasher | None = None,
+    rate_limit_policy: RateLimitPolicy | None = None,
 ) -> tuple[TestClient, MemoryStore, FixedClock, str]:
     store = MemoryStore()
     clock = clock or FixedClock()
@@ -55,9 +61,11 @@ def make_client(
         uow_factory=lambda: InMemoryUnitOfWork(store),
         clock=clock,
         engine=None,
-        password_hasher=fast_hasher(),
+        password_hasher=password_hasher or fast_hasher(),
         token_issuer=RsaAccessTokenIssuer(private_pem, public_pem),
         internal_service_token=internal_service_token,
+        redis_commands=redis_commands if redis_commands is not None else FakeRedis(),
+        rate_limit_policy=rate_limit_policy,
     )
     return TestClient(app), store, clock, public_pem
 

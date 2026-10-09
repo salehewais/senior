@@ -1,6 +1,6 @@
 # ADR-007: Why Redis
 
-**Status: Phase 0 design; not implemented.** Accepted for this learning project.
+**Status: Implemented in Phase 9 for the order service.** Accepted for this learning project. The product cache, login, register, and order-create limits are in Redis. Orders, the outbox, refresh-token hashes, and processed events stay in Postgres. The HTTP idempotency table is still not built; order create uses only an expiring in-flight lock.
 
 ## Context
 

@@ -1,0 +1,46 @@
+# Live-check overlay. Echo upstreams replace host.docker.internal so the
+# routing assertions do not need the order service, reporting service, or Vite.
+# Nothing here publishes a database, Redis, or RabbitMQ port.
+# GATEWAY_DYNAMIC_FILE points Traefik at the rewritten router file.
+
+services:
+  gateway:
+    depends_on:
+      order-echo:
+        condition: service_started
+      reporting-echo:
+        condition: service_started
+      frontend-echo:
+        condition: service_started
+  order-echo:
+    image: python:3.12-alpine
+    environment:
+      UPSTREAM_NAME: order
+      PORT: "8000"
+    command: ["python", "-u", "/echo_upstream.py"]
+    volumes:
+      - ./echo_upstream.py:/echo_upstream.py:ro
+    networks:
+      - gateway
+
+  reporting-echo:
+    image: python:3.12-alpine
+    environment:
+      UPSTREAM_NAME: reporting
+      PORT: "8000"
+    command: ["python", "-u", "/echo_upstream.py"]
+    volumes:
+      - ./echo_upstream.py:/echo_upstream.py:ro
+    networks:
+      - gateway
+
+  frontend-echo:
+    image: python:3.12-alpine
+    environment:
+      UPSTREAM_NAME: frontend
+      PORT: "8000"
+    command: ["python", "-u", "/echo_upstream.py"]
+    volumes:
+      - ./echo_upstream.py:/echo_upstream.py:ro
+    networks:
+      - gateway

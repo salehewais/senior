@@ -1,4 +1,8 @@
-"""Order use cases. Prices come from the catalog row, never from the caller."""
+"""Order use cases. Prices come from the catalog row, never from the caller.
+
+The product cache is not read here. A cached GET can be stale until its TTL.
+The price copied onto the order line is the product row in this unit of work.
+"""
 
 from __future__ import annotations
 

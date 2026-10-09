@@ -10,7 +10,7 @@ We also need traces somewhere a human can click. Grafana can show those beside t
 
 ## Decision
 
-Use Grafana for dashboards and later for trace lookup. The boards listed in [../grafana.md](../grafana.md) are the set Phase 17 should create and commit as JSON.
+Use Grafana for dashboards and for trace lookup. The boards listed in [../grafana.md](../grafana.md) are the set Phase 12 commits as JSON.
 
 Grafana is not an alerting path. Prometheus rules plus Alertmanager remain the only alerts. Grafana's alerting product is capable and, if turned on beside Alertmanager, gives two places a threshold can hide.
 
@@ -25,7 +25,7 @@ Grafana is not an alerting path. Prometheus rules plus Alertmanager remain the o
 
 ## Consequences
 
-- Dashboards drift if they are edited only in the UI. Commit the JSON once it exists. Until Phase 17, the names in the doc are the contract.
+- Dashboards drift if they are edited only in the UI. Phase 12 commits the JSON. The names in the doc stay the contract. A Kubernetes board waits for Phase 13.
 - Grafana credentials come from the environment, not from this repository.
 - A SQL data source pointed at `order_db` is forbidden. It would bypass the reporting service and put a long query on the writer. Boards read Prometheus, and traces, and if needed the reporting HTTP API.
 - Grafana down does not stop alerts and does not stop checkout. It stops the shared picture. Drills should say that out loud so nobody "fixes" a Grafana outage by failing the deploy.

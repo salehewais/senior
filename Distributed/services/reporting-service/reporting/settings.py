@@ -17,7 +17,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "local-reporting-dev-only")
 DEBUG = False
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "testserver"]
+_allowed = os.environ.get(
+    "DJANGO_ALLOWED_HOSTS",
+    "127.0.0.1,localhost,testserver,reporting-service",
+)
+ALLOWED_HOSTS = [host.strip() for host in _allowed.split(",") if host.strip()]
 APPEND_SLASH = False
 
 INSTALLED_APPS = [
@@ -25,6 +29,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "projections.middleware.ObservabilityMiddleware",
     "projections.middleware.CorrelationIdMiddleware",
     "projections.middleware.ApiErrorMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -59,10 +64,10 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "plain": {"format": "%(levelname)s %(name)s %(message)s"},
+        "json": {"()": "projections.jsonlog.JsonFormatter"},
     },
     "handlers": {
-        "console": {"class": "logging.StreamHandler", "formatter": "plain"},
+        "console": {"class": "logging.StreamHandler", "formatter": "json"},
     },
     "root": {"handlers": ["console"], "level": "INFO"},
 }

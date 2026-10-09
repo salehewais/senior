@@ -96,21 +96,25 @@ class ConfirmingBroker:
 
 
 def _publish_confirmed(channel: BlockingChannel, message: OutboundMessage) -> None:
-    channel.basic_publish(
-        exchange=EXCHANGE_COMMERCE_EVENTS,
-        routing_key=message.routing_key,
-        body=_body(message),
-        properties=pika.BasicProperties(
-            content_type="application/json",
-            content_encoding="utf-8",
-            delivery_mode=pika.DeliveryMode.Persistent,
-            message_id=str(message.event_id),
-            correlation_id=str(message.correlation_id),
-            type=message.event_type,
-            app_id="order-service",
-        ),
-        mandatory=True,
-    )
+    from order_service.observability.tracing import publisher_span
+
+    with publisher_span(message.body, message.event_type) as trace_headers:
+        channel.basic_publish(
+            exchange=EXCHANGE_COMMERCE_EVENTS,
+            routing_key=message.routing_key,
+            body=_body(message),
+            properties=pika.BasicProperties(
+                content_type="application/json",
+                content_encoding="utf-8",
+                delivery_mode=pika.DeliveryMode.Persistent,
+                message_id=str(message.event_id),
+                correlation_id=str(message.correlation_id),
+                type=message.event_type,
+                app_id="order-service",
+                headers=trace_headers or None,
+            ),
+            mandatory=True,
+        )
 
 
 def _body(message: OutboundMessage) -> bytes:

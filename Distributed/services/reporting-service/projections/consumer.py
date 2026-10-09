@@ -146,7 +146,9 @@ def run_consumer(stop: threading.Event) -> None:
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
+    from projections.metrics import serve_metrics
+
+    serve_metrics()
     stop = threading.Event()
 
     def _request_stop(signum: int, _frame: object) -> None:

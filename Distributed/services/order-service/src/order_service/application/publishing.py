@@ -86,6 +86,8 @@ def to_outbound(event: DomainEvent) -> OutboundMessage:
         "version": SCHEMA_VERSION,
         "payload": _payload(event),
     }
+    # traceparent is the technical id. correlation_id above is unchanged.
+    body.update(_trace_carrier())
     return OutboundMessage(
         event_id=event.event_id,
         event_type=event_type,
@@ -210,6 +212,12 @@ def _order_lines(event: OrderCreated | OrderConfirmed, status: str) -> dict[str,
         "total": event.total.as_dict(),
         "aggregate_version": event.aggregate_version,
     }
+
+
+def _trace_carrier() -> dict[str, str]:
+    from order_service.observability.tracing import current_trace_carrier
+
+    return current_trace_carrier()
 
 
 def _occurred_at(value: datetime) -> str:

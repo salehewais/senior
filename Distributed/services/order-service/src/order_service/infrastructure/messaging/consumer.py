@@ -27,8 +27,10 @@ statement timeout.
 from __future__ import annotations
 
 import logging
+import os
 import signal
 import threading
+import time
 from collections.abc import Callable
 from typing import Protocol
 
@@ -64,6 +66,9 @@ from order_service.infrastructure.messaging.topology import (
     declare_topology,
 )
 from order_service.infrastructure.settings import Settings, get_settings
+from order_service.observability.context import correlation_id_var, event_id_var, event_type_var
+from order_service.observability.metrics import bounded_event_type, record_message
+from order_service.observability.tracing import consumer_span
 
 logger = logging.getLogger("order_service.consumer")
 
@@ -108,6 +113,7 @@ def settle_delivery(
     routing_key: str = "",
     accepted_event_types: frozenset[str] = CATALOG_EVENT_TYPES,
     property_message_id: str | None = None,
+    queue_name: str = "",
 ) -> None:
     """Ack, retry, or dead-letter. Never nack with requeue=true.
 
@@ -116,17 +122,79 @@ def settle_delivery(
     """
 
     del property_message_id
-    business_key = original_routing_key(headers, routing_key)
-    scheduled = retries_already_scheduled(headers)
-    if isinstance(scheduled, EnvelopeRejection):
-        logger.error("permanent failure dead-lettered before handler reason=%s", scheduled.reason)
-        _dead_letter(channel, delivery_tag, router, body, business_key, scheduled.reason, 0)
-        return
-    inspected = inspect_envelope(body, accepted_event_types=accepted_event_types)
-    if isinstance(inspected, EnvelopeRejection):
-        logger.error("permanent failure dead-lettered before handler reason=%s", inspected.reason)
-        _dead_letter(channel, delivery_tag, router, body, business_key, inspected.reason, scheduled)
-        return
+    started = time.perf_counter()
+    event_type = "unknown"
+    correlation_id = ""
+    event_id = ""
+    processed = False
+    failed = False
+    retry = False
+    dlq = False
+    result_label = "error"
+    try:
+        business_key = original_routing_key(headers, routing_key)
+        scheduled = retries_already_scheduled(headers)
+        if isinstance(scheduled, EnvelopeRejection):
+            logger.error("permanent failure dead-lettered before handler reason=%s", scheduled.reason)
+            _dead_letter(channel, delivery_tag, router, body, business_key, scheduled.reason, 0)
+            failed = True
+            dlq = True
+            return
+        inspected = inspect_envelope(body, accepted_event_types=accepted_event_types)
+        if isinstance(inspected, EnvelopeRejection):
+            logger.error("permanent failure dead-lettered before handler reason=%s", inspected.reason)
+            _dead_letter(channel, delivery_tag, router, body, business_key, inspected.reason, scheduled)
+            failed = True
+            dlq = True
+            return
+        event_type = inspected.event_type
+        event_id = str(inspected.event_id)
+        raw_correlation = inspected.body.get("correlation_id")
+        correlation_id = str(raw_correlation) if raw_correlation is not None else ""
+        type_token = event_type_var.set(event_type)
+        id_token = event_id_var.set(event_id)
+        correlation_token = correlation_id_var.set(correlation_id)
+        try:
+            with consumer_span(headers, body, event_type=bounded_event_type(event_type)):
+                outcome = _settle_inspected(
+                    channel,
+                    delivery_tag,
+                    body,
+                    handler,
+                    router=router,
+                    business_key=business_key,
+                    scheduled=scheduled,
+                    inspected=inspected,
+                )
+        finally:
+            event_type_var.reset(type_token)
+            event_id_var.reset(id_token)
+            correlation_id_var.reset(correlation_token)
+        processed, failed, retry, dlq, result_label = outcome
+    finally:
+        record_message(
+            event_type=event_type,
+            seconds=time.perf_counter() - started,
+            processed=processed,
+            failed=failed,
+            retry=retry,
+            dlq=dlq,
+            queue=queue_name,
+            result=result_label,
+        )
+
+
+def _settle_inspected(
+    channel: DeliveryChannel,
+    delivery_tag: int,
+    body: bytes,
+    handler: EventHandler,
+    *,
+    router: FailureRouter,
+    business_key: str,
+    scheduled: int,
+    inspected,
+) -> tuple[bool, bool, bool, bool, str]:
     try:
         result = coerce_handler_result(handler(inspected.body))
     except Exception as exc:
@@ -144,8 +212,13 @@ def settle_delivery(
                 inspected.event_id,
                 inspected.event_type,
             )
+            label = "duplicate"
+        elif result.reason == "stale":
+            label = "stale"
+        else:
+            label = "applied"
         channel.basic_ack(delivery_tag=delivery_tag)
-        return
+        return True, False, False, False, label
     if result.outcome is DeliveryOutcome.PERMANENT:
         logger.error(
             "permanent failure dead-lettered event_id=%s correlation_id=%s reason=%s",
@@ -154,7 +227,7 @@ def settle_delivery(
             result.reason,
         )
         _dead_letter(channel, delivery_tag, router, body, business_key, result.reason or "permanent", scheduled)
-        return
+        return False, True, False, True, "error"
     attempt = next_retry_attempt(scheduled)
     if attempt is None:
         logger.error(
@@ -164,7 +237,7 @@ def settle_delivery(
             result.reason,
         )
         _dead_letter(channel, delivery_tag, router, body, business_key, REASON_RETRIES_EXHAUSTED, scheduled)
-        return
+        return False, True, False, True, "error"
     logger.error(
         "transient failure scheduled retry attempt=%s event_id=%s correlation_id=%s reason=%s",
         attempt,
@@ -179,6 +252,7 @@ def settle_delivery(
         reason=result.reason or REASON_HANDLER_FAILED,
     )
     channel.basic_ack(delivery_tag=delivery_tag)
+    return False, True, True, False, "error"
 
 
 def _dead_letter(
@@ -235,6 +309,7 @@ def run_consumer(
                         routing_key=method.routing_key or "",
                         accepted_event_types=accepted_event_types,
                         property_message_id=message_id,
+                        queue_name=queue_name,
                     )
                 except Exception as exc:
                     # Leave the delivery unacked. Closing the connection returns
@@ -271,9 +346,15 @@ def run_consumer(
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
+    from order_service.observability.jsonlog import configure_logging
+    from order_service.observability.metrics import serve_metrics
+    from order_service.observability.tracing import configure_tracing
+
+    configure_logging("order-inventory-consumer")
     settings = get_settings()
     engine = make_engine(settings)
+    configure_tracing(os.environ.get("OTEL_SERVICE_NAME", "order-inventory-consumer"), engine)
+    serve_metrics()
     with engine.connect() as connection:
         connection.execute(text("SELECT 1"))
     handler = InventoryUpdatedHandler(make_session_factory(engine))

@@ -1,6 +1,6 @@
 # Services and components
 
-**Status: Phase 0 design; not implemented.**
+**Status: Phase 0 component contract. Traefik is implemented in Phase 10 (`deploy/gateway`).**
 
 Each component exists because a responsibility has a clear owner. If a responsibility is missing from this list, do not invent a microservice for it. Put it in the owner below, or stop and write an ADR.
 
@@ -33,6 +33,8 @@ Names are the ones later Compose services and Kubernetes Deployments should use.
 
 ## Traefik (`gateway`)
 
+**Phase 10.** Running from `deploy/gateway`. See the README for the start command. OSS Traefik has no RS256 middleware, so signature checks are a ForwardAuth call to `jwt-check` in that same Compose file. The checker has the public key only and does not read roles. Correlation IDs, header stripping, and CORS are a local Traefik plugin. The in-memory rate limit stays Traefik's.
+
 **Why it exists.** One front door for routing, CORS, correlation IDs, coarse rate limits, and JWT checks. Business rules stay behind it.
 
 **Responsibilities.**
@@ -41,7 +43,7 @@ Names are the ones later Compose services and Kubernetes Deployments should use.
 - Route other `/api/v1` traffic to the order service.
 - Route `/` to the frontend.
 - Generate or forward `X-Correlation-Id` (UUID).
-- Strip client-supplied identity headers (`X-User-Id`, `X-User-Role`, and anything similar) and set them only from a validated token.
+- Strip client-supplied identity headers (`X-User-Id`, `X-User-Role`, and anything similar). Do not set replacements. The services derive the actor from the JWT.
 - CORS for the storefront origin.
 - A coarse anonymous rate limit per client IP.
 - Access logs that include the correlation ID and the upstream status.

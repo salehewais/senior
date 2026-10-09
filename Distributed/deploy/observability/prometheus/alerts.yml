@@ -1,0 +1,131 @@
+# Starting points for a quiet laptop. These thresholds will be wrong under load.
+# Tuning them is later work. They are not a production paging policy.
+groups:
+  - name: commerce-recording
+    rules:
+      - record: projection_lag_versions
+        expr: clamp_min(max(orders_max_version) - max(projection_max_version), 0)
+
+  - name: commerce-alerts
+    rules:
+      - alert: ServiceTargetDown
+        expr: up{job=~"order-service|reporting-service|gateway|rabbitmq|postgres-order|postgres-reporting"} == 0
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "A scrape target is down"
+          description: "Prometheus cannot scrape this target. Open docs/alerting.md. If the process is healthy and only the scrape failed, say so before restarting checkout."
+
+      - alert: OrderServiceDown
+        expr: up{job="order-service"} == 0
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "Order service metrics are down"
+          description: "The order-service scrape has been down for 2 minutes. Open docs/alerting.md. If /health/ready fails, restore order_db or the process. If only the scrape fails, checkout may still be up."
+
+      - alert: Gateway5xx
+        expr: |
+          (
+            sum(rate(traefik_service_requests_total{code=~"5.."}[5m]))
+            /
+            clamp_min(sum(rate(traefik_service_requests_total[5m])), 0.001)
+          ) > 0.05
+          or
+          (
+            sum(rate(http_errors_total[5m]))
+            /
+            clamp_min(sum(rate(http_requests_total[5m])), 0.001)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: "High 5xx rate"
+          description: "More than 5 percent of recent requests are 5xx. Open docs/alerting.md. Compare the gateway series with the order-service and reporting-service series before changing application code."
+
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, sum by (le, service) (rate(http_request_duration_seconds_bucket[5m]))) > 1
+        for: 5m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "High HTTP latency"
+          description: "p95 latency is above 1 second. Open docs/alerting.md. This threshold is a laptop starting point and will be wrong under load. Look at the trace for one slow request before raising capacity."
+
+      - alert: RabbitQueueGrowth
+        expr: |
+          sum by (queue) (
+            rabbitmq_detailed_queue_messages{queue=~"q.reporting.projection|q.odoo.order-confirmed|q.order.inventory"}
+          ) > 100
+        for: 5m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "A primary RabbitMQ queue is growing"
+          description: "A primary queue has more than 100 messages. Open docs/rabbitmq.md. Check the consumer logs. A growing queue is not the same as a dead-letter queue."
+
+      - alert: DeadLetterBacklog
+        expr: sum by (queue) (rabbitmq_detailed_queue_messages{queue=~".+\.dlq"}) > 0
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: "Dead-letter messages are waiting"
+          description: "A DLQ has had messages for 5 minutes. Open docs/alerting.md. Read the payload and the last error, fix the cause, then replay. Do not delete the queue."
+
+      - alert: OutboxStale
+        expr: max(outbox_oldest_pending_age_seconds) > 60
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: "Outbox rows are sitting unpublished"
+          description: "The oldest pending outbox row is older than 60 seconds. Open docs/outbox.md. Check the publisher logs and RabbitMQ, then let the publisher drain. A rising outbox_events_pending means committed facts have not been confirmed to the broker."
+
+      - alert: OutboxFailed
+        expr: max(outbox_failed_rows) > 0
+        for: 1m
+        labels:
+          severity: page
+        annotations:
+          summary: "An outbox row is status failed"
+          description: "A row reached the publish attempt limit and will not move without a human. Open docs/outbox.md. Read the event id from the publisher log, fix the cause, and mark the row pending again deliberately. This is not the consumer DLQ."
+
+      - alert: PaymentCircuitOpen
+        expr: max(payment_circuit_state) == 2
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "Payment circuit is open"
+          description: "payment_circuit_state is 2. Open docs/alerting.md. No payment provider is wired in this phase, so this gauge stays 0 until a later phase sets it. Do not close a real circuit by hand as the first move."
+
+      - alert: ReportingLagHigh
+        expr: projection_lag_versions > 20
+        for: 10m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "Reporting projections are behind order versions"
+          description: "orders_max_version is more than 20 ahead of projection_max_version. Open docs/alerting.md. Reporting does not read order_db; this gap is the difference of two gauges. Also look at q.reporting.projection depth and consumer errors."
+
+      - alert: RabbitDown
+        expr: up{job="rabbitmq"} == 0
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "RabbitMQ metrics are down"
+          description: "The broker scrape is missing. Open docs/alerting.md. Checkout can still commit to the outbox. Restore RabbitMQ and watch outbox age fall."
+
+      - alert: RedisExporterDown
+        expr: up{job="redis"} == 0 or redis_up == 0
+        for: 2m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "Redis exporter is down"
+          description: "Prometheus cannot read Redis metrics, or redis_up is 0. Open docs/alerting.md. The product cache and rate limits fail closed when Redis itself is down. A dead exporter is not by itself a dead cache."

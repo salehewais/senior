@@ -11,6 +11,9 @@ type RequestOptions = {
 };
 
 export function apiBaseUrl(): string {
+  // Default is the order service so tests and curl can talk to the API with the
+  // gateway stopped. The documented browser path is the gateway: set
+  // VITE_API_BASE_URL=http://127.0.0.1:8080. This value is never a database URL.
   const configured = import.meta.env.VITE_API_BASE_URL?.trim();
   const base = configured && configured.length > 0 ? configured : "http://127.0.0.1:8000";
   return base.replace(/\/+$/, "");

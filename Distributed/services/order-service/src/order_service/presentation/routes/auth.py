@@ -5,6 +5,7 @@ import uuid
 from fastapi import APIRouter, Request, Response
 
 from order_service.application.use_cases.auth import LoginAccount, LogoutSession, RefreshSession, RegisterAccount
+from order_service.presentation.client_address import client_ip
 from order_service.presentation.dependencies import UnitOfWorkDep
 from order_service.presentation.schemas import LoginBody, RefreshTokenBody, RegisterBody, TokenResponse
 
@@ -26,6 +27,7 @@ def _ids(request: Request) -> tuple[uuid.UUID, uuid.UUID]:
 
 @router.post("/register", status_code=201)
 def register(body: RegisterBody, request: Request, uow: UnitOfWorkDep) -> TokenResponse:
+    request.app.state.rate_limiter.consume_register(ip=client_ip(request))
     clock, passwords, tokens, refresh_tokens = _services(request)
     correlation_id, causation_id = _ids(request)
     pair = RegisterAccount(clock, passwords, tokens, refresh_tokens).execute(
@@ -45,6 +47,7 @@ def register(body: RegisterBody, request: Request, uow: UnitOfWorkDep) -> TokenR
 
 @router.post("/login")
 def login(body: LoginBody, request: Request, uow: UnitOfWorkDep) -> TokenResponse:
+    request.app.state.rate_limiter.consume_login(ip=client_ip(request), email=body.email)
     clock, passwords, tokens, refresh_tokens = _services(request)
     pair = LoginAccount(clock, passwords, tokens, refresh_tokens).execute(
         uow,

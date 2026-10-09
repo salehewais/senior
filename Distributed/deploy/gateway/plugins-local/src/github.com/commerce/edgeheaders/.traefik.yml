@@ -1,0 +1,8 @@
+displayName: Edge headers
+type: middleware
+import: github.com/commerce/edgeheaders
+
+summary: Correlation IDs, identity-header stripping, and storefront CORS.
+
+testData:
+  mode: prepare

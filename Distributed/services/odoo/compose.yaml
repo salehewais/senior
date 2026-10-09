@@ -1,0 +1,66 @@
+# Phase 8: Odoo Community and its database only.
+# The full stack is deploy/compose/docker-compose.yml. This file stays for Odoo
+# beside an order service already running on the host (host.docker.internal).
+# RabbitMQ stays the broker from services/order-service/compose.yaml.
+# Redis, Traefik, the order database, and reporting_db are intentionally absent.
+#
+# Host port 5434 avoids 5432 (order_db) and 5433 (reporting_db).
+# Host port 8069 is the Odoo HTTP UI and XML-RPC, bound to localhost.
+# The image tag odoo:18.0 is Odoo 18 Community. It is not the floating latest tag.
+#
+# Passwords below are local placeholders. Do not copy them into a shared environment.
+# INTERNAL_SERVICE_TOKEN is read from the shell. It is not given a default here.
+
+services:
+  odoo-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+      POSTGRES_DB: odoo_db
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - odoo_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo -d odoo_db"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  odoo:
+    image: odoo:18.0
+    depends_on:
+      odoo-db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8069:8069"
+    volumes:
+      - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
+      - ./addons:/mnt/extra-addons:ro
+      - ./src:/opt/commerce_erp_src:ro
+      - odoo_filestore:/var/lib/odoo
+    environment:
+      HOST: odoo-db
+      PORT: "5432"
+      USER: odoo
+      PASSWORD: odoo
+      PYTHONPATH: /opt/commerce_erp_src
+      ORDER_SERVICE_URL: ${ORDER_SERVICE_URL:-http://host.docker.internal:8000}
+      ORDER_SERVICE_TIMEOUT_SECONDS: ${ORDER_SERVICE_TIMEOUT_SECONDS:-5}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      - odoo
+      - --config=/etc/odoo/odoo.conf
+      - -d
+      - odoo_db
+      - -i
+      - commerce_connector
+      - --without-demo=all
+      - --http-port=8069
+
+volumes:
+  odoo_db_data:
+  odoo_filestore:

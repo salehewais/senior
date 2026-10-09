@@ -1,6 +1,6 @@
 # Idempotency
 
-**Status: Phase 5 stores consumer dedup for the order-service inventory worker in `order_db.processed_events`, in the same transaction as `inventory_snapshots`. Phase 7 does the same for reporting projections in `reporting_db.processed_events`. HTTP idempotency keys are not implemented. Redis is not used.**
+**Status: Phase 5 stores consumer dedup for the order-service inventory worker in `order_db.processed_events`, in the same transaction as `inventory_snapshots`. Phase 7 does the same for reporting projections in `reporting_db.processed_events`. HTTP idempotency keys are not implemented. Phase 9 adds an expiring Redis lock around order create. That lock is not a store of record.**
 
 At-least-once delivery means every consumer and every unsafe HTTP endpoint will see duplicates. The duplicates are not a broker bug. They are what happens when a process is killed after it has done the work and before it has recorded that it is done.
 
@@ -12,6 +12,8 @@ There are two different stores. Do not merge them into Redis.
 | HTTP dedup | `http_idempotency_keys` in `order_db` | Client `Idempotency-Key` plus the route and account | Retried POST requests |
 
 Redis is the wrong home for both. Eviction or a restart would forget that an order already exists and the next retry would create another one.
+
+Phase 9 does not change that. `POST /api/v1/orders` takes a Redis lock keyed by the account and the line items, with a 15-second TTL, and releases it when the request finishes. A second in-flight create with the same body gets 409 `IDEMPOTENCY_IN_PROGRESS` and writes nothing. Two requests in sequence still insert two orders. If the process dies, the key expires and a retry can insert another order. That is not exactly-once. `http_idempotency_keys` is still not in `order_db`, so a lost response is not replayed.
 
 ## Processed-event store
 
@@ -54,6 +56,8 @@ Recovery: duplicates need no repair when the transaction rule is kept. If a cons
 Version conflicts are not duplicates. An older `InventoryUpdated` is acked and ignored without treating it as an error. A future order version is not inserted into `processed_events` before it is applied; the handler fails so the retry can run. If you mark it processed and then fail the apply, you have swallowed the fact.
 
 ## HTTP idempotency
+
+Phase 9 does not enforce `Idempotency-Key`. The paragraphs below are the durable design. The table is not migrated yet.
 
 `POST /api/v1/orders`, `POST /api/v1/orders/{id}/confirm`, and `POST /api/v1/orders/{id}/cancel` require an `Idempotency-Key` header (UUID, client-generated). The server stores the key, the account id, the request hash, and the response status and body.
 

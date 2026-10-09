@@ -1,0 +1,47 @@
+# Static configuration for the learning gateway. File provider only.
+# The Docker socket is not mounted. Traefik does not discover other containers.
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+api:
+  dashboard: false
+  insecure: false
+
+ping:
+  entryPoint: web
+
+log:
+  level: INFO
+
+accessLog:
+  format: json
+  fields:
+    headers:
+      defaultMode: drop
+      names:
+        X-Correlation-Id: keep
+        Authorization: drop
+
+entryPoints:
+  web:
+    address: ":80"
+    # insecure is false: a client-supplied X-Forwarded-For is not the client IP.
+    forwardedHeaders:
+      insecure: false
+    transport:
+      respondingTimeouts:
+        readTimeout: 30s
+        writeTimeout: 60s
+        idleTimeout: 90s
+
+providers:
+  file:
+    filename: /etc/traefik/dynamic.yaml
+    watch: true
+
+experimental:
+  localPlugins:
+    edgeheaders:
+      moduleName: github.com/commerce/edgeheaders

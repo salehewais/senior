@@ -1,0 +1,545 @@
+# Phase 11 full local stack.
+#
+# One network, commerce. Containers find each other by Compose DNS name.
+#
+# Earlier files stay for one service at a time, with the app on the host:
+#   services/order-service/compose.yaml     order_db, RabbitMQ, Redis
+#   services/reporting-service/compose.yaml reporting_db on host port 5433
+#   services/odoo/compose.yaml              Odoo and odoo_db
+#   deploy/gateway/compose.yaml             Traefik to processes on the host
+#
+# Do not run deploy/gateway/compose.yaml at the same time. Both publish
+# 127.0.0.1:8080.
+#
+# Only the gateway HTTP port is the public path. RabbitMQ management and the
+# Odoo UI are private learning ports on 127.0.0.1. Postgres and Redis are not
+# published, so a host Postgres on 5432 does not collide with this file.
+#
+# Images we build are tagged 0.1.0 (Odoo 18.0.1). The tag latest is not used.
+# Phase 12 adds Prometheus, Grafana, Alertmanager, and OpenTelemetry on this
+# network. Grafana and Prometheus are published on 127.0.0.1 only.
+# Kubernetes is Phase 13 and is not in this file.
+#
+# HTTP on localhost. This is not a production deploy.
+
+name: commerce
+
+networks:
+  default:
+    name: commerce
+
+x-order-image: &order-image
+  image: commerce/order-service:0.1.0
+  build:
+    context: ../../services/order-service
+
+x-reporting-image: &reporting-image
+  image: commerce/reporting-service:0.1.0
+  build:
+    context: ../../services/reporting-service
+
+x-odoo-image: &odoo-image
+  image: commerce/odoo:18.0.1
+  build:
+    context: ../../services/odoo
+
+x-order-env: &order-env
+  DATABASE_URL: postgresql+psycopg://order_service:order_service@postgres:5432/order_db
+  RABBITMQ_URL: amqp://order_service:order_service@rabbitmq:5672/%2F
+  RABBITMQ_TIMEOUT_SECONDS: "5"
+  REDIS_URL: redis://redis:6379/0
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+  OTEL_SERVICE_NAME: order-service
+  PYTHONUNBUFFERED: "1"
+
+x-reporting-env: &reporting-env
+  REPORTING_DATABASE_URL: postgresql://reporting_service:reporting_service@reporting-postgres:5432/reporting_db
+  RABBITMQ_URL: amqp://order_service:order_service@rabbitmq:5672/%2F
+  RABBITMQ_TIMEOUT_SECONDS: "5"
+  DJANGO_SECRET_KEY: local-reporting-dev-only
+  JWT_PUBLIC_KEY_PATH: /keys/jwt_public.pem
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+  OTEL_SERVICE_NAME: reporting-service
+  PYTHONUNBUFFERED: "1"
+
+x-odoo-env: &odoo-env
+  HOST: odoo-db
+  PORT: "5432"
+  USER: odoo
+  PASSWORD: odoo
+  ODOO_URL: http://odoo:8069
+  ODOO_DB: odoo_db
+  ODOO_USER: admin
+  ODOO_PASSWORD: admin
+  ODOO_TIMEOUT_SECONDS: "5"
+  ODOO_DATABASE_URL: postgresql://odoo:odoo@odoo-db:5432/odoo_db
+  DB_CONNECT_TIMEOUT_SECONDS: "5"
+  DB_STATEMENT_TIMEOUT_MS: "10000"
+  RABBITMQ_URL: amqp://order_service:order_service@rabbitmq:5672/%2F
+  RABBITMQ_TIMEOUT_SECONDS: "5"
+  ORDER_SERVICE_URL: http://order-service:8000
+  ORDER_SERVICE_TIMEOUT_SECONDS: "5"
+  # The order service HTTP process gets the same value. The frontend does not.
+  INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-}
+  PYTHONUNBUFFERED: "1"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: order_service
+      POSTGRES_PASSWORD: order_service
+      POSTGRES_DB: order_db
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order_service -d order_db"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  reporting-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: reporting_service
+      POSTGRES_PASSWORD: reporting_service
+      POSTGRES_DB: reporting_db
+    volumes:
+      - reporting_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reporting_service -d reporting_db"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  odoo-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+      POSTGRES_DB: odoo_db
+    volumes:
+      - odoo_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo -d odoo_db"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: order_service
+      RABBITMQ_DEFAULT_PASS: order_service
+    ports:
+      # Management UI only. AMQP stays on the commerce network.
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ../observability/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # No password and no host port. Other containers are not "local" to Redis,
+    # so protected mode would refuse them. Redis is not a system of record.
+    command: ["redis-server", "--protected-mode", "no", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  order-migrate:
+    <<: *order-image
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      <<: *order-env
+    restart: "on-failure"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    init: true
+
+  order-service:
+    <<: *order-image
+    restart: unless-stopped
+    environment:
+      <<: *order-env
+      JWT_PRIVATE_KEY_PATH: /keys/jwt_private.pem
+      JWT_PUBLIC_KEY_PATH: /keys/jwt_public.pem
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-}
+    volumes:
+      - ${JWT_PRIVATE_KEY_PATH:-./secrets/jwt_private.pem}:/keys/jwt_private.pem:ro
+      - ${JWT_PUBLIC_KEY_PATH:-./secrets/jwt_public.pem}:/keys/jwt_public.pem:ro
+    expose:
+      - "8000"
+    init: true
+    stop_grace_period: 20s
+    depends_on:
+      order-migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  order-outbox-publisher:
+    <<: *order-image
+    command: ["python", "-m", "order_service.infrastructure.messaging.outbox_publisher"]
+    environment:
+      <<: *order-env
+      OTEL_SERVICE_NAME: order-outbox-publisher
+    init: true
+    stop_grace_period: 20s
+    depends_on:
+      order-migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  order-inventory-consumer:
+    <<: *order-image
+    command: ["python", "-m", "order_service.infrastructure.messaging.consumer"]
+    environment:
+      <<: *order-env
+      OTEL_SERVICE_NAME: order-inventory-consumer
+    init: true
+    stop_grace_period: 20s
+    depends_on:
+      order-migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  reporting-migrate:
+    <<: *reporting-image
+    command: ["python", "-u", "manage.py", "migrate", "--noinput"]
+    environment:
+      <<: *reporting-env
+    volumes:
+      - ${JWT_PUBLIC_KEY_PATH:-./secrets/jwt_public.pem}:/keys/jwt_public.pem:ro
+    restart: "on-failure"
+    depends_on:
+      reporting-postgres:
+        condition: service_healthy
+    init: true
+
+  reporting-service:
+    <<: *reporting-image
+    restart: unless-stopped
+    environment:
+      <<: *reporting-env
+    volumes:
+      - ${JWT_PUBLIC_KEY_PATH:-./secrets/jwt_public.pem}:/keys/jwt_public.pem:ro
+    expose:
+      - "8001"
+    init: true
+    stop_grace_period: 20s
+    depends_on:
+      reporting-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.error, urllib.request\ntry:\n    urllib.request.urlopen('http://127.0.0.1:8001/api/v1/reports/orders/summary', timeout=3)\nexcept urllib.error.HTTPError as exc:\n    raise SystemExit(0 if exc.code in (401, 403) else 1)\n"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  reporting-consumer:
+    <<: *reporting-image
+    command: ["python", "-u", "manage.py", "consume_events"]
+    environment:
+      <<: *reporting-env
+      OTEL_SERVICE_NAME: reporting-consumer
+    volumes:
+      - ${JWT_PUBLIC_KEY_PATH:-./secrets/jwt_public.pem}:/keys/jwt_public.pem:ro
+    init: true
+    stop_grace_period: 20s
+    depends_on:
+      reporting-migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  odoo:
+    <<: *odoo-image
+    restart: unless-stopped
+    depends_on:
+      odoo-db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8069:8069"
+    volumes:
+      - ../../services/odoo/config/odoo.conf:/etc/odoo/odoo.conf:ro
+      - odoo_filestore:/var/lib/odoo
+    environment:
+      <<: *odoo-env
+    command:
+      - odoo
+      - --config=/etc/odoo/odoo.conf
+      - -d
+      - odoo_db
+      - -i
+      - commerce_connector
+      - --without-demo=all
+      - --http-port=8069
+    init: true
+    stop_grace_period: 30s
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8069/web/health', timeout=5)"
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 300s
+
+  odoo-consumer:
+    <<: *odoo-image
+    command: ["python3", "-m", "commerce_erp.consumer"]
+    environment:
+      <<: *odoo-env
+    init: true
+    stop_grace_period: 20s
+    depends_on:
+      odoo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  odoo-publisher:
+    <<: *odoo-image
+    command: ["python3", "-m", "commerce_erp.publisher"]
+    environment:
+      <<: *odoo-env
+    init: true
+    stop_grace_period: 20s
+    depends_on:
+      odoo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    image: commerce/frontend:0.1.0
+    restart: unless-stopped
+    build:
+      context: ../../services/frontend
+      args:
+        VITE_API_BASE_URL: http://127.0.0.1:8080
+    expose:
+      - "8080"
+    init: true
+    stop_grace_period: 10s
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  jwt-check:
+    image: commerce/jwt-check:0.1.0
+    restart: unless-stopped
+    build:
+      context: ../gateway
+      dockerfile: jwt-check/Dockerfile
+    environment:
+      JWT_PUBLIC_KEY_PATH: /keys/jwt_public.pem
+    volumes:
+      - ${JWT_PUBLIC_KEY_PATH:-./secrets/jwt_public.pem}:/keys/jwt_public.pem:ro
+    expose:
+      - "8081"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8081/ready')"
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  gateway:
+    image: traefik:v3.5.0
+    restart: unless-stopped
+    working_dir: /
+    depends_on:
+      jwt-check:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
+      reporting-service:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    command:
+      - --configFile=/etc/traefik/traefik.yaml
+      # Metrics stay on the commerce network. Port 80 is the only published listener.
+      - --entryPoints.metrics.address=:8082
+      - --metrics.prometheus.entryPoint=metrics
+      - --metrics.prometheus.addEntryPointsLabels=true
+      - --metrics.prometheus.addServicesLabels=true
+      # Trace the gateway hop. A missing collector must not be required for a request.
+      - --tracing.serviceName=gateway
+      - --tracing.sampleRate=1
+      - --tracing.otlp.grpc.endpoint=otel-collector:4317
+      - --tracing.otlp.grpc.insecure=true
+      - --tracing.capturedRequestHeaders=X-Correlation-Id
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ../gateway/traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - ./dynamic.yaml:/etc/traefik/dynamic.yaml:ro
+      - ../gateway/plugins-local:/plugins-local:ro
+    # The v3 image is distroless and the binary is /traefik. Ping is on :80.
+    healthcheck:
+      test: ["CMD", "/traefik", "healthcheck", "--ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  # Phase 12. Checkout does not wait on these. Grafana and Prometheus bind to 127.0.0.1.
+  otel-collector:
+    image: otel/opentelemetry-collector:0.114.0
+    restart: unless-stopped
+    command: ["--config=/etc/otel/collector.yaml"]
+    volumes:
+      - ../observability/otel/collector.yaml:/etc/otel/collector.yaml:ro
+    depends_on:
+      - tempo
+
+  tempo:
+    image: grafana/tempo:2.6.1
+    restart: unless-stopped
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ../observability/tempo/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo_data:/var/tempo
+    # Queried by Grafana on the commerce network. No host port.
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=3d
+    volumes:
+      - ../observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../observability/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+
+  alert-webhook:
+    image: python:3.12-alpine
+    restart: unless-stopped
+    command: ["python", "-u", "/hook.py"]
+    volumes:
+      - ../observability/webhook/hook.py:/hook.py:ro
+    # stdout is the notification log. No host port and no secret.
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+    volumes:
+      - ../observability/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "127.0.0.1:9093:9093"
+    depends_on:
+      - alert-webhook
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    restart: unless-stopped
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SECURITY_ADMIN_USER: admin
+      # Local placeholder, same idea as the database passwords in this file.
+      # The docs do not repeat it. Override with GRAFANA_ADMIN_PASSWORD.
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-local-grafana}
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    volumes:
+      - ../observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+      - tempo
+
+  postgres-exporter-order:
+    image: prometheuscommunity/postgres-exporter:v0.16.0
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: postgresql://order_service:order_service@postgres:5432/order_db?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres-exporter-reporting:
+    image: prometheuscommunity/postgres-exporter:v0.16.0
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: postgresql://reporting_service:reporting_service@reporting-postgres:5432/reporting_db?sslmode=disable
+    depends_on:
+      reporting-postgres:
+        condition: service_healthy
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.66.0
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  order_db_data:
+  reporting_db_data:
+  odoo_db_data:
+  rabbitmq_data:
+  odoo_filestore:
+  prometheus_data:
+  grafana_data:
+  tempo_data:

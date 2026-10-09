@@ -1,12 +1,12 @@
 # Grafana
 
-**Status: Phase 0 design; not implemented.**
+**Status: Phase 12.** Dashboards are JSON in `deploy/observability/grafana/dashboards`, loaded by file provisioning. Open `http://127.0.0.1:3000`. Anonymous Admin is enabled on this laptop. The admin password comes from `GRAFANA_ADMIN_PASSWORD` and is not written in this document.
 
 Grafana is how a person looks at Prometheus metrics and, later, traces. It is not the alerting path. Alertmanager owns pages. If both Grafana and Alertmanager raise the same condition, people learn to ignore one of them. See [ADR-010](adr/ADR-010-why-grafana.md).
 
-## Dashboards to build in Phase 17
+## Dashboards
 
-Names stay stable so lessons and screenshots match.
+Names stay stable so lessons and screenshots match. The JSON is provisioned from the repo. A Kubernetes board is out of scope until Phase 13. Container CPU and memory are not on these boards: cAdvisor is not in the Compose file, and this phase does not pretend to have node metrics.
 
 | Dashboard | Question it answers |
 | --- | --- |
@@ -15,7 +15,9 @@ Names stay stable so lessons and screenshots match.
 | Outbox and broker | Unpublished age, queue depth, DLQ depth, publish failures |
 | Reporting lag | How far projections sit behind the latest aggregate version |
 | Payment | Circuit state, payment success and failure counts |
-| Dependencies | Postgres connections, Redis errors, broker up |
+| Dependencies | Postgres connections, Redis keyspace hit ratio, broker and exporter up |
+
+The Order path board carries the business counters (created, confirmed, cancelled, shipped, delivered). Outbox and broker carries RabbitMQ rate, depth, unacked, consumers, retries, and DLQ next to outbox pending, published, failed, and publish latency. Payment shows `payment_circuit_state`, which stays 0 because no payment provider is wired.
 
 Each panel needs a unit and a time range that fits the signal. Outbox age in seconds. Request rate per second. A single "stat" panel with no unit is how a dashboard teaches the wrong lesson.
 

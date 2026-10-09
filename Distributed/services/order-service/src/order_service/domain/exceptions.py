@@ -50,3 +50,11 @@ class ForbiddenError(DomainError):
 
 class DependencyUnavailableError(DomainError):
     code = "DEPENDENCY_UNAVAILABLE"
+
+
+class RateLimitedError(DomainError):
+    code = "RATE_LIMITED"
+
+
+class IdempotencyInProgressError(DomainError):
+    code = "IDEMPOTENCY_IN_PROGRESS"

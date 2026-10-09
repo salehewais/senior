@@ -1,0 +1,17 @@
+# One receiver. No email account and no secret. Group by alert name so one
+# down target does not become fifty notifications.
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: webhook
+  group_by: ["alertname"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  - name: webhook
+    webhook_configs:
+      - url: http://alert-webhook:8080/hook
+        send_resolved: true

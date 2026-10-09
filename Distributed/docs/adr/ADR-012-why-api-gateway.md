@@ -1,6 +1,6 @@
 # ADR-012: Why an API gateway, and why Traefik
 
-**Status: Phase 0 design; not implemented.** Accepted for this learning project.
+**Status: Accepted. Implemented in Phase 10** as `deploy/gateway`. This is the gateway Compose file, not the full platform file.
 
 ## Context
 
@@ -44,7 +44,7 @@ Services still verify JWTs because a pod IP on the docker network is reachable i
 ## Consequences
 
 - Traefik's in-memory rate limit is per replica. Shared login limits stay in Redis behind the order service ([ADR-007](ADR-007-why-redis.md)). Do not "fix" a bypass by claiming the gateway limit is global.
-- JWT verification at the edge needs the public key mounted into Traefik. Rotation means updating that mount and the services together. Document the overlap when rotation exists. Phase 0 only reserves the requirement.
+- JWT verification at the edge needs the order-service public key. Rotation means updating that mount and the services together. Phase 10 mounts the public PEM into `jwt-check`, the ForwardAuth process beside Traefik, not into a place that can sign tokens. The private key stays on the order service.
 - A misrouted prefix silently sends report traffic to FastAPI, which will 404. Route tests belong in the Compose journey.
 - The gateway is a single process in the learning setup. When it is down, public traffic is down, and data is fine. Run it on purpose in the gateway drill in [../failure-scenarios.md](../failure-scenarios.md).
 - Internal routes (fulfillment milestones) must not be added to the public router. A review check is part of the decision, because Traefik will happily expose whatever is labeled.
@@ -53,3 +53,11 @@ Services still verify JWTs because a pod IP on the docker network is reachable i
 ## What happens without this decision
 
 Each service grows a slightly different CORS list and a slightly different idea of a correlation id. The React app imports two base URLs and, eventually, a database password someone put in a frontend env file because it was "easier to query reports directly." The gateway exists so that shortcut has nowhere public to attach.
+
+## Phase 10 implementation
+
+Traefik OSS does not verify RS256 itself. Protected routers call `jwt-check` with ForwardAuth. That process checks the Bearer header and the signature and that `token_type` is `access`. It does not read `role`. A bad signature is 401 before the upstream is dialed. The services verify the token again.
+
+Correlation IDs, stripping of `X-User-Id`, `X-User-Role`, and similar headers (including `X-Internal-Token`), and the storefront CORS allow-list are a local plugin. The gateway does not invent an identity header from the token. Login and order-create budgets stay in Redis in the order service. Traefik's limiter is in-memory and per process.
+
+`/api/v1/internal` is absent from the public routers. The order router also negates that prefix and the reports prefix. Odoo keeps calling the order service on the private network. `deploy/gateway/tests/test_public_routes.py` fails if a public rule gains the fulfillment path.

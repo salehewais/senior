@@ -12,6 +12,14 @@ from order_service.application.use_cases.orders import (
     ShipOrder,
     StartProcessing,
 )
+from order_service.observability.metrics import (
+    orders_cancelled_total,
+    orders_confirmed_total,
+    orders_created_total,
+    orders_delivered_total,
+    orders_shipped_total,
+)
+from order_service.presentation.client_address import client_ip
 from order_service.presentation.dependencies import ActorDep, InternalDep, UnitOfWorkDep
 from order_service.presentation.schemas import (
     CancelOrderBody,
@@ -30,14 +38,25 @@ def _trace(request: Request) -> tuple[uuid.UUID, uuid.UUID]:
 
 @router.post("/api/v1/orders", status_code=201)
 def create_order(body: CreateOrderBody, request: Request, actor: ActorDep, uow: UnitOfWorkDep) -> OrderResponse:
-    correlation_id, causation_id = _trace(request)
-    view = CreateOrder(request.app.state.clock).execute(
-        uow,
-        actor=actor,
-        lines=[(line.product_id, line.quantity) for line in body.items],
-        correlation_id=correlation_id,
-        causation_id=causation_id,
-    )
+    # The limit runs before any order row is written. Redis down is 503, not an unlimited create.
+    lines = [(line.product_id, line.quantity) for line in body.items]
+    request.app.state.rate_limiter.consume_order_create(ip=client_ip(request), account_id=actor.account_id)
+    guard = request.app.state.order_guard
+    held = None
+    try:
+        held = guard.acquire(account_id=actor.account_id, lines=lines)
+        correlation_id, causation_id = _trace(request)
+        view = CreateOrder(request.app.state.clock).execute(
+            uow,
+            actor=actor,
+            lines=lines,
+            correlation_id=correlation_id,
+            causation_id=causation_id,
+        )
+    finally:
+        if held is not None:
+            guard.release(held)
+    orders_created_total.inc()
     return OrderResponse.from_view(view)
 
 
@@ -70,6 +89,7 @@ def confirm_order(order_id: uuid.UUID, request: Request, actor: ActorDep, uow: U
         correlation_id=correlation_id,
         causation_id=causation_id,
     )
+    orders_confirmed_total.inc()
     return OrderResponse.from_view(view)
 
 
@@ -90,6 +110,7 @@ def cancel_order(
         correlation_id=correlation_id,
         causation_id=causation_id,
     )
+    orders_cancelled_total.inc()
     return OrderResponse.from_view(view)
 
 
@@ -131,6 +152,7 @@ def ship_order(
         correlation_id=correlation_id,
         causation_id=causation_id,
     )
+    orders_shipped_total.inc()
     return OrderResponse.from_view(view)
 
 
@@ -143,4 +165,5 @@ def deliver_order(order_id: uuid.UUID, request: Request, uow: UnitOfWorkDep, _: 
         correlation_id=correlation_id,
         causation_id=causation_id,
     )
+    orders_delivered_total.inc()
     return OrderResponse.from_view(view)

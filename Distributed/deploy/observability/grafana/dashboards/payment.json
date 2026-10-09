@@ -1,0 +1,81 @@
+{
+  "uid": "payment",
+  "title": "Payment",
+  "description": "Circuit state is 0 closed, 1 half-open, 2 open. No payment provider is wired in this phase, so the gauge stays 0. The alert exists so a later phase can raise it without a new rule name.",
+  "tags": [
+    "commerce",
+    "phase-12"
+  ],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Payment circuit state",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "max(payment_circuit_state)",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "text",
+      "title": "What this means",
+      "gridPos": {
+        "h": 6,
+        "w": 18,
+        "x": 6,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "0 is closed. There is no payment client in this learning stack, so the series stays at 0. A value of 2 is what `PaymentCircuitOpen` pages on. Do not treat a cache miss or a 409 as an open circuit."
+      }
+    }
+  ]
+}

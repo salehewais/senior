@@ -1,0 +1,124 @@
+# Public routers for the full stack.
+#
+# Upstreams are Compose DNS names on the commerce network.
+# deploy/gateway/dynamic.yaml is the other file: it reaches processes on the host.
+#
+# Fulfillment callbacks are not listed. Odoo calls the order service at
+# http://order-service:8000 on this network.
+#
+# Reports are their own router with a higher priority, and the order router
+# also excludes that prefix, so a report path is not forwarded to FastAPI.
+
+http:
+  serversTransports:
+    upstream:
+      forwardingTimeouts:
+        dialTimeout: 3s
+        responseHeaderTimeout: 30s
+        idleConnTimeout: 90s
+
+  middlewares:
+    edge-prepare:
+      plugin:
+        edgeheaders:
+          mode: prepare
+          stripHeaders:
+            - X-User-Id
+            - X-User-Role
+            - X-User-Roles
+            - X-Role
+            - X-Roles
+            - X-Account-Id
+            - X-Customer-Id
+            - X-Auth-User
+            - X-Remote-User
+            - X-Forwarded-User
+            - X-Internal-Token
+          allowOrigins:
+            - http://127.0.0.1:8080
+            - http://localhost:8080
+            - http://127.0.0.1:5173
+            - http://localhost:5173
+          allowMethods: GET,POST,PATCH,OPTIONS
+          allowHeaders: Authorization,Content-Type,X-Correlation-Id,Idempotency-Key
+          exposeHeaders: X-Correlation-Id
+    edge-cors:
+      plugin:
+        edgeheaders:
+          mode: cors
+    coarse-limit:
+      rateLimit:
+        average: 30
+        period: 1s
+        burst: 60
+    jwt-access:
+      forwardAuth:
+        address: http://jwt-check:8081/verify
+        trustForwardHeader: false
+        authRequestHeaders:
+          - Authorization
+          - X-Correlation-Id
+
+  routers:
+    reports:
+      rule: "Path(`/api/v1/reports`) || PathPrefix(`/api/v1/reports/`)"
+      priority: 300
+      entryPoints:
+        - web
+      middlewares:
+        - edge-prepare
+        - coarse-limit
+        - edge-cors
+        - jwt-access
+      service: reporting
+    auth-public:
+      rule: "Method(`POST`) && (Path(`/api/v1/auth/register`) || Path(`/api/v1/auth/login`) || Path(`/api/v1/auth/refresh`) || Path(`/api/v1/auth/logout`))"
+      priority: 250
+      entryPoints:
+        - web
+      middlewares:
+        - edge-prepare
+        - coarse-limit
+        - edge-cors
+      service: order
+    order-api:
+      rule: "PathPrefix(`/api/v1`) && !PathPrefix(`/api/v1/internal`) && !Path(`/api/v1/reports`) && !PathPrefix(`/api/v1/reports/`)"
+      priority: 200
+      entryPoints:
+        - web
+      middlewares:
+        - edge-prepare
+        - coarse-limit
+        - edge-cors
+        - jwt-access
+      service: order
+    frontend:
+      rule: "!PathPrefix(`/api`) && !Path(`/ping`)"
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - edge-prepare
+        - coarse-limit
+        - edge-cors
+      service: frontend
+
+  services:
+    order:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: upstream
+        servers:
+          - url: http://order-service:8000
+    reporting:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: upstream
+        servers:
+          - url: http://reporting-service:8001
+    frontend:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: upstream
+        servers:
+          - url: http://frontend:8080

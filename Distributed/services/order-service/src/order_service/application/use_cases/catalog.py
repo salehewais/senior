@@ -9,6 +9,7 @@ from order_service.application.authorization import require_role
 from order_service.application.clock import Clock
 from order_service.application.dto import CustomerView, ProductView, customer_view, product_view
 from order_service.application.pagination import decode_cursor, encode_cursor
+from order_service.application.product_cache import ProductCache
 from order_service.application.unit_of_work import UnitOfWork
 from order_service.domain.entities.catalog import Customer, Product
 from order_service.domain.exceptions import ConflictError, NotFoundError
@@ -20,8 +21,9 @@ _ANY_ROLE = (Role.CUSTOMER, Role.ADMIN, Role.MANAGER)
 
 
 class CreateProduct:
-    def __init__(self, clock: Clock) -> None:
+    def __init__(self, clock: Clock, cache: ProductCache | None = None) -> None:
         self._clock = clock
+        self._cache = cache
 
     def execute(
         self,
@@ -49,12 +51,16 @@ class CreateProduct:
         uow.products.add(product)
         uow.stage_events(product)
         uow.commit()
-        return product_view(product)
+        view = product_view(product)
+        if self._cache is not None:
+            self._cache.invalidate(view.id)
+        return view
 
 
 class UpdateProduct:
-    def __init__(self, clock: Clock) -> None:
+    def __init__(self, clock: Clock, cache: ProductCache | None = None) -> None:
         self._clock = clock
+        self._cache = cache
 
     def execute(
         self,
@@ -90,22 +96,45 @@ class UpdateProduct:
         uow.products.add(product)
         uow.stage_events(product)
         uow.commit()
-        return product_view(product)
+        view = product_view(product)
+        if self._cache is not None:
+            self._cache.invalidate(view.id)
+        return view
 
 
 class GetProduct:
+    def __init__(self, cache: ProductCache | None = None) -> None:
+        self._cache = cache
+
     def execute(self, uow: UnitOfWork, *, actor: Actor, product_id: uuid.UUID) -> ProductView:
         require_role(actor, *_ANY_ROLE)
+        if self._cache is not None:
+            cached = self._cache.get_product(product_id)
+            if cached is not None:
+                return cached
         product = uow.products.get(ProductId(product_id))
         if product is None:
             raise NotFoundError("Product not found.")
-        return product_view(product)
+        view = product_view(product)
+        if self._cache is not None:
+            self._cache.put_product(view)
+        return view
 
 
 class ListProducts:
+    def __init__(self, cache: ProductCache | None = None) -> None:
+        self._cache = cache
+
     def execute(self, uow: UnitOfWork, *, actor: Actor, limit: int, offset: int) -> list[ProductView]:
         require_role(actor, *_ANY_ROLE)
-        return [product_view(product) for product in uow.products.list_page(limit=limit, offset=offset)]
+        if self._cache is not None:
+            cached = self._cache.get_list(limit=limit, offset=offset)
+            if cached is not None:
+                return cached
+        views = [product_view(product) for product in uow.products.list_page(limit=limit, offset=offset)]
+        if self._cache is not None:
+            self._cache.put_list(views, limit=limit, offset=offset)
+        return views
 
 
 class CreateCustomer:

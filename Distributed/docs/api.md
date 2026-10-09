@@ -1,6 +1,6 @@
 # HTTP API
 
-**Status: Phase 2 authenticates the order-service routes below. Phase 7 serves the report routes from the reporting service.** Idempotency keys are still design-only. `customer_id` on an order comes from the access token. A client field with that name is ignored.
+**Status: Phase 2 authenticates the order-service routes below. Phase 7 serves the report routes from the reporting service. Phase 9 rate-limits login, register, and order create in Redis. Phase 10 publishes `/api/v1` through Traefik and does not route `/api/v1/internal`.** Durable idempotency keys are still design-only. Order create holds a short Redis lock for an in-flight duplicate and does not require `Idempotency-Key`. A retry after that lock expires can create a second order. `customer_id` on an order comes from the access token. A client field with that name is ignored.
 
 There is no OpenAPI file in Phase 0. This page is the contract sketch later phases implement. Routes are stable once a phase ships them; until then they exist only on paper.
 
@@ -48,7 +48,7 @@ Errors are one shape. Success responses are the resource, not wrapped.
 | 409 | `IDEMPOTENCY_KEY_REUSE` | Same key, different body |
 | 429 | `RATE_LIMITED` | Gateway coarse limit or Redis-backed limit |
 | 500 | `INTERNAL` | Unexpected |
-| 503 | `DEPENDENCY_UNAVAILABLE` | Circuit open, or Redis fail-closed on an auth limit |
+| 503 | `DEPENDENCY_UNAVAILABLE` | Circuit open, or Redis fail-closed on login, register, or order create |
 
 Controllers map domain errors to this table. They do not invent a parallel set of transition rules.
 

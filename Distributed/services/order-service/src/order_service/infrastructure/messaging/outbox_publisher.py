@@ -25,8 +25,10 @@ closes the broker connection.
 from __future__ import annotations
 
 import logging
+import os
 import signal
 import threading
+import time
 import uuid
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
@@ -42,6 +44,8 @@ from order_service.infrastructure.database.engine import make_engine, make_sessi
 from order_service.infrastructure.database.models import OutboxRow
 from order_service.infrastructure.messaging.publisher import ConfirmingBroker
 from order_service.infrastructure.settings import Settings, get_settings
+from order_service.observability.context import correlation_id_var, event_id_var, event_type_var
+from order_service.observability.metrics import record_outbox_attempt_failed, record_outbox_published
 
 logger = logging.getLogger("order_service.outbox")
 
@@ -99,15 +103,31 @@ def publish_batch(
             lease.abort()
             return 0
         for row in rows:
+            event_id, event_type, correlation_id = _log_ids(row)
+            event_token = event_id_var.set(event_id)
+            type_token = event_type_var.set(event_type)
+            correlation_token = correlation_id_var.set(correlation_id if correlation_id != "missing" else "")
+            started = time.perf_counter()
             try:
-                broker.publish(outbound_from_envelope(row.payload, column_event_type=row.event_type))
-            except Exception as exc:
-                retry_count = row.retry_count + 1
-                status = FAILED if retry_count >= max_attempts else PENDING
-                lease.record_attempt_failure(row.id, retry_count=retry_count, status=status)
-                _log_failure(row, exc, retry_count=retry_count, status=status)
-                continue
-            lease.mark_published(row.id, now())
+                try:
+                    broker.publish(outbound_from_envelope(row.payload, column_event_type=row.event_type))
+                except Exception as exc:
+                    retry_count = row.retry_count + 1
+                    status = FAILED if retry_count >= max_attempts else PENDING
+                    lease.record_attempt_failure(row.id, retry_count=retry_count, status=status)
+                    record_outbox_attempt_failed(
+                        event_type,
+                        terminal=status == FAILED,
+                        seconds=time.perf_counter() - started,
+                    )
+                    _log_failure(row, exc, retry_count=retry_count, status=status)
+                    continue
+                lease.mark_published(row.id, now())
+                record_outbox_published(event_type, time.perf_counter() - started)
+            finally:
+                event_id_var.reset(event_token)
+                event_type_var.reset(type_token)
+                correlation_id_var.reset(correlation_token)
         lease.finish()
         return len(rows)
     except Exception:
@@ -219,9 +239,16 @@ class SqlOutboxLease:
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
+    from order_service.observability.jsonlog import configure_logging
+    from order_service.observability.metrics import bind_database_engine, serve_metrics
+    from order_service.observability.tracing import configure_tracing
+
+    configure_logging("order-outbox-publisher")
     settings = get_settings()
     engine = make_engine(settings)
+    configure_tracing(os.environ.get("OTEL_SERVICE_NAME", "order-outbox-publisher"), engine)
+    bind_database_engine(engine)
+    serve_metrics()
     with engine.connect() as connection:
         connection.execute(text("SELECT 1"))
     sessions = make_session_factory(engine)

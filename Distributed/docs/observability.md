@@ -1,6 +1,6 @@
 # Observability
 
-**Status: Phase 0 design; not implemented.**
+**Status: Phase 12 wires this to Compose.** The README phase list wins where an older sentence says Phase 17. This is not a production observability stack.
 
 Observability here means we can tell what a checkout did, how late the events are, and whether a human should act, without attaching a debugger. The four tools have separate jobs so that a dashboard outage is not a paging outage and a trace pipeline is not the metrics database.
 
@@ -11,7 +11,7 @@ Observability here means we can tell what a checkout did, how late the events ar
 | Grafana | Read metrics and traces | [grafana.md](grafana.md), [ADR-010](adr/ADR-010-why-grafana.md) |
 | Alertmanager | Route alerts raised from Prometheus rules | [alerting.md](alerting.md) |
 
-Nothing in this stack is implemented. Phase 17 wires it to Compose.
+Phase 12 runs the four tools on the Compose network `commerce`, plus Tempo as the trace store Grafana reads. Checkout does not wait on them. Logs stay on container stdout. There is no retained log store, so a rotated log is gone. Odoo and the Django ORM are not auto-instrumented. The traced path is the gateway span, the order-service server span, the Postgres span, the outbox publish span, and a reporting consumer span when the message carries `traceparent`.
 
 ## Signals
 
@@ -45,7 +45,7 @@ The gateway creates `X-Correlation-Id` when the caller did not send a UUID. Serv
 
 What happens without propagation: an Odoo sales order and a 500 in the order service cannot be tied together, and every incident starts with a full-text search of three log streams.
 
-## What must be visible before we call Phase 17 done
+## What Phase 12 makes visible
 
 Designed now, built later:
 

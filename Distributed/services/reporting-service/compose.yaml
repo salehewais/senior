@@ -1,7 +1,9 @@
 # Phase 7 reporting database only.
-# This is not the full platform Compose file (that is Phase 11).
+# The full stack is deploy/compose/docker-compose.yml. This file stays for
+# reporting_db while Django runs on the host.
 # RabbitMQ stays the broker from services/order-service/compose.yaml.
-# Redis, Odoo, Traefik, and the order database are intentionally absent.
+# Redis, Traefik, and the order database are intentionally absent.
+# Odoo is services/odoo/compose.yaml.
 #
 # Host port 5433 avoids colliding with order_db, which publishes 5432.
 # This Postgres server has one database, reporting_db, and one login,

@@ -1,7 +1,7 @@
 [project]
 name = "order-service"
 version = "0.1.0"
-description = "Order service for the commerce learning platform. Phase 6: domain, order_db, HTTP, authentication, RabbitMQ, reliable consumption, and the transactional outbox."
+description = "Order service for the commerce learning platform. Phase 9: domain, order_db, HTTP, authentication, RabbitMQ, reliable consumption, the transactional outbox, and Redis for the product cache and shared rate limits."
 requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.14",
@@ -11,6 +11,13 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "pydantic-settings>=2.6",
     "pyjwt[crypto]>=2.10",
+    "opentelemetry-api>=1.27",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.27",
+    "opentelemetry-instrumentation-fastapi>=0.48b0",
+    "opentelemetry-instrumentation-sqlalchemy>=0.48b0",
+    "opentelemetry-sdk>=1.27",
+    "prometheus-client>=0.21",
+    "redis>=5.0",
     "sqlalchemy>=2.0",
     "uvicorn[standard]>=0.32",
 ]

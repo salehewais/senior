@@ -11,12 +11,14 @@ from order_service.infrastructure.database.repositories import (
     SqlProductRepository,
     SqlRefreshTokenRepository,
 )
+from order_service.observability.metrics import record_outbox_created
 
 
 class SqlUnitOfWork(UnitOfWork):
     def __init__(self, session: Session) -> None:
         self._session = session
         self._committed = False
+        self._outbox_types: list[str] = []
         self.products = SqlProductRepository(session)
         self.customers = SqlCustomerRepository(session)
         self.orders = SqlOrderRepository(session)
@@ -26,10 +28,14 @@ class SqlUnitOfWork(UnitOfWork):
     def stage_events(self, *aggregates: RecordsEvents) -> None:
         for record in stage_outbox_records(*aggregates):
             self._session.add(_outbox_row(record))
+            self._outbox_types.append(record.event_type)
 
     def commit(self) -> None:
         self._session.commit()
         self._committed = True
+        for event_type in self._outbox_types:
+            record_outbox_created(event_type)
+        self._outbox_types.clear()
 
     def rollback(self) -> None:
         self._session.rollback()

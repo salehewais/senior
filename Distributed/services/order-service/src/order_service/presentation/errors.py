@@ -1,4 +1,5 @@
 import logging
+import time
 import uuid
 
 from fastapi import FastAPI, Request
@@ -9,6 +10,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from order_service.domain.exceptions import DomainError
 from order_service.domain.ids import uuid7
+from order_service.observability.context import correlation_id_var, request_id_var
+from order_service.observability.metrics import SERVICE, http_requests_in_progress, record_http
 
 logger = logging.getLogger("order_service")
 
@@ -21,6 +24,8 @@ _STATUS = {
     "CONFLICT": 409,
     "CONCURRENT_MODIFICATION": 409,
     "PRODUCT_NOT_ORDERABLE": 409,
+    "IDEMPOTENCY_IN_PROGRESS": 409,
+    "RATE_LIMITED": 429,
     "DEPENDENCY_UNAVAILABLE": 503,
 }
 
@@ -56,10 +61,42 @@ def install_middleware(app: FastAPI) -> None:
             request.state.correlation_id = uuid.UUID(raw) if raw else uuid7()
         except (ValueError, AttributeError, TypeError):
             request.state.correlation_id = uuid7()
-        response = await call_next(request)
-        response.headers["X-Request-Id"] = str(request.state.request_id)
-        response.headers["X-Correlation-Id"] = str(request.state.correlation_id)
-        return response
+        request_token = request_id_var.set(str(request.state.request_id))
+        correlation_token = correlation_id_var.set(str(request.state.correlation_id))
+        path = request.url.path
+        skip_metrics = path == "/metrics" or path.startswith("/metrics/")
+        started = time.perf_counter()
+        status = 500
+        if not skip_metrics:
+            http_requests_in_progress.labels(service=SERVICE).inc()
+        try:
+            response = await call_next(request)
+            status = response.status_code
+            response.headers["X-Request-Id"] = str(request.state.request_id)
+            response.headers["X-Correlation-Id"] = str(request.state.correlation_id)
+            return response
+        finally:
+            if not skip_metrics:
+                http_requests_in_progress.labels(service=SERVICE).dec()
+                record_http(_route_template(request), status, time.perf_counter() - started)
+                logger.info(
+                    "http request",
+                    extra={
+                        "http_method": request.method,
+                        "http_route": _route_template(request),
+                        "http_status": status,
+                    },
+                )
+            request_id_var.reset(request_token)
+            correlation_id_var.reset(correlation_token)
+
+
+def _route_template(request: Request) -> str:
+    route = request.scope.get("route")
+    path = getattr(route, "path", None)
+    if isinstance(path, str) and path:
+        return path
+    return "unmatched"
 
 
 def install_error_handlers(app: FastAPI) -> None:

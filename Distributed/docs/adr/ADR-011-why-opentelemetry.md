@@ -1,6 +1,6 @@
 # ADR-011: Why OpenTelemetry
 
-**Status: Phase 0 design; not implemented.** Accepted for this learning project.
+**Status: Accepted. Phase 12 exports OTLP from the order path to a collector.** Odoo and Django ORM auto-instrumentation are not in that wiring.
 
 ## Context
 
@@ -32,7 +32,7 @@ The collector is not on the checkout correctness path. If it is down, spans are 
 - Two ids exist. Document them in logs: `correlation_id` and trace id. Do not overwrite one with the other.
 - Instrumentation can become noisy. Start with server spans, client spans for Postgres, Redis, HTTP payment, and consumer spans. Do not manually span every domain method.
 - Sampling policy is a later knob. Until it exists, a laptop can keep every span. The design still assumes spans can disappear, so business facts never live only in a span.
-- The collector is another moving part. Phase 17 adds it. Earlier phases still propagate `X-Correlation-Id` so logs are useful before traces exist.
+- The collector is another moving part. Phase 12 adds it. `X-Correlation-Id` is still propagated, and it is not replaced by the trace id.
 - Context must cross the outbox. The publisher creates a span when it publishes and puts trace context on the AMQP headers. If it only logs the correlation id, the consumer trace is disconnected, which is survivable and worse. Do both.
 
 ## What happens without this decision

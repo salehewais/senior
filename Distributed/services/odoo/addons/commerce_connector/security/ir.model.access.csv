@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_commerce_processed_event_user,commerce.processed.event.user,model_commerce_processed_event,base.group_user,1,0,0,0
+access_commerce_processed_event_system,commerce.processed.event.system,model_commerce_processed_event,base.group_system,1,1,1,1
+access_commerce_inventory_state_user,commerce.inventory.state.user,model_commerce_inventory_state,base.group_user,1,0,0,0
+access_commerce_inventory_state_system,commerce.inventory.state.system,model_commerce_inventory_state,base.group_system,1,1,1,1
+access_commerce_connector_system,commerce.connector.system,model_commerce_connector,base.group_system,1,1,1,1

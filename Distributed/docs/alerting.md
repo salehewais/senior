@@ -1,10 +1,10 @@
 # Alerting
 
-**Status: Phase 0 design; not implemented.**
+**Status: Phase 12.** Rules live in `deploy/observability/prometheus/alerts.yml`. Alertmanager groups them and posts to the `alert-webhook` container, which prints one JSON line per alert. There is no email account and no secret. The UI is `http://127.0.0.1:9093`.
 
 Alertmanager receives alerts from Prometheus and groups them. Grafana is for looking. A second alert system inside Grafana would page twice or, worse, page differently, and nobody would know which rule is the real one.
 
-Phase 0 defines the first rules. Phase 17 implements them. Phase 19 is allowed to fire them on purpose.
+Phase 12 implements the rules below, plus `ServiceTargetDown`, `HighLatency`, `RabbitQueueGrowth`, and `RedisExporterDown`. A later failure exercise is allowed to fire them on purpose. Thresholds are starting points for a quiet laptop. They will be wrong under load.
 
 ## What a good alert is
 

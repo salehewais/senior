@@ -26,7 +26,7 @@ def _ids(request: Request) -> tuple[uuid.UUID, uuid.UUID]:
 @router.post("", status_code=201)
 def create_product(body: ProductBody, request: Request, actor: ActorDep, uow: UnitOfWorkDep) -> ProductResponse:
     correlation_id, causation_id = _ids(request)
-    view = CreateProduct(request.app.state.clock).execute(
+    view = CreateProduct(request.app.state.clock, request.app.state.product_cache).execute(
         uow,
         sku=body.sku,
         name=body.name,
@@ -41,12 +41,13 @@ def create_product(body: ProductBody, request: Request, actor: ActorDep, uow: Un
 
 @router.get("")
 def list_products(
+    request: Request,
     actor: ActorDep,
     uow: UnitOfWorkDep,
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> ProductListResponse:
-    views = ListProducts().execute(uow, actor=actor, limit=limit, offset=offset)
+    views = ListProducts(request.app.state.product_cache).execute(uow, actor=actor, limit=limit, offset=offset)
     return ProductListResponse(
         items=[ProductResponse.from_view(view) for view in views],
         limit=limit,
@@ -55,8 +56,8 @@ def list_products(
 
 
 @router.get("/{product_id}")
-def get_product(product_id: uuid.UUID, actor: ActorDep, uow: UnitOfWorkDep) -> ProductResponse:
-    view = GetProduct().execute(uow, actor=actor, product_id=product_id)
+def get_product(product_id: uuid.UUID, request: Request, actor: ActorDep, uow: UnitOfWorkDep) -> ProductResponse:
+    view = GetProduct(request.app.state.product_cache).execute(uow, actor=actor, product_id=product_id)
     return ProductResponse.from_view(view)
 
 
@@ -70,7 +71,7 @@ def update_product(
 ) -> ProductResponse:
     correlation_id, causation_id = _ids(request)
     price = body.unit_price
-    view = UpdateProduct(request.app.state.clock).execute(
+    view = UpdateProduct(request.app.state.clock, request.app.state.product_cache).execute(
         uow,
         product_id=product_id,
         name=body.name,

@@ -1,0 +1,128 @@
+# Public routers for the learning gateway.
+#
+# host.docker.internal is the laptop where the order service (8000), the
+# reporting service (8001), and the frontend (5173) are published. Those
+# processes are not part of this Compose project. Fulfillment callbacks are
+# not listed: Odoo calls the order service on the private network.
+#
+# Reports are their own router with a higher priority, and the order router
+# also excludes that prefix, so a report path is not forwarded to FastAPI.
+#
+# Dial, response-header, and idle timeouts are set on the shared transport.
+# The rate limit is Traefik's in-memory limiter: one counter per process, and
+# on a published Docker port often one counter for the bridge address. It is
+# not the login or order-create budget inside the order service.
+
+http:
+  serversTransports:
+    upstream:
+      forwardingTimeouts:
+        dialTimeout: 3s
+        responseHeaderTimeout: 30s
+        idleConnTimeout: 90s
+
+  middlewares:
+    edge-prepare:
+      plugin:
+        edgeheaders:
+          mode: prepare
+          stripHeaders:
+            - X-User-Id
+            - X-User-Role
+            - X-User-Roles
+            - X-Role
+            - X-Roles
+            - X-Account-Id
+            - X-Customer-Id
+            - X-Auth-User
+            - X-Remote-User
+            - X-Forwarded-User
+            - X-Internal-Token
+          allowOrigins:
+            - http://127.0.0.1:8080
+            - http://localhost:8080
+            - http://127.0.0.1:5173
+            - http://localhost:5173
+          allowMethods: GET,POST,PATCH,OPTIONS
+          allowHeaders: Authorization,Content-Type,X-Correlation-Id,Idempotency-Key
+          exposeHeaders: X-Correlation-Id
+    edge-cors:
+      plugin:
+        edgeheaders:
+          mode: cors
+    coarse-limit:
+      rateLimit:
+        average: 30
+        period: 1s
+        burst: 60
+    jwt-access:
+      forwardAuth:
+        address: http://jwt-check:8081/verify
+        trustForwardHeader: false
+        authRequestHeaders:
+          - Authorization
+          - X-Correlation-Id
+
+  routers:
+    reports:
+      rule: "Path(`/api/v1/reports`) || PathPrefix(`/api/v1/reports/`)"
+      priority: 300
+      entryPoints:
+        - web
+      middlewares:
+        - edge-prepare
+        - coarse-limit
+        - edge-cors
+        - jwt-access
+      service: reporting
+    auth-public:
+      rule: "Method(`POST`) && (Path(`/api/v1/auth/register`) || Path(`/api/v1/auth/login`) || Path(`/api/v1/auth/refresh`) || Path(`/api/v1/auth/logout`))"
+      priority: 250
+      entryPoints:
+        - web
+      middlewares:
+        - edge-prepare
+        - coarse-limit
+        - edge-cors
+      service: order
+    order-api:
+      rule: "PathPrefix(`/api/v1`) && !PathPrefix(`/api/v1/internal`) && !Path(`/api/v1/reports`) && !PathPrefix(`/api/v1/reports/`)"
+      priority: 200
+      entryPoints:
+        - web
+      middlewares:
+        - edge-prepare
+        - coarse-limit
+        - edge-cors
+        - jwt-access
+      service: order
+    frontend:
+      rule: "!PathPrefix(`/api`) && !Path(`/ping`)"
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - edge-prepare
+        - coarse-limit
+        - edge-cors
+      service: frontend
+
+  services:
+    order:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: upstream
+        servers:
+          - url: http://host.docker.internal:8000
+    reporting:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: upstream
+        servers:
+          - url: http://host.docker.internal:8001
+    frontend:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: upstream
+        servers:
+          - url: http://host.docker.internal:5173

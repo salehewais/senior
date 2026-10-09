@@ -2,7 +2,8 @@
 
 The inventory consumer persists this when a newer InventoryUpdated arrives.
 An older source_version is ignored, because the payload is a full snapshot
-and the next newer one heals a gap. Phase 8 is still the Odoo publisher.
+and the next newer one heals a gap. Odoo writes that snapshot through
+the inventory outbox in odoo_db.
 """
 
 from __future__ import annotations

@@ -1,6 +1,6 @@
 # Security
 
-**Status: Phase 2 implements accounts, argon2id password hashes, RS256 access tokens, and hashed refresh tokens in the order service. Gateway rate limits, Redis login limits, KMS, and refresh-token family revocation are not implemented.**
+**Status: Phase 2 implements accounts, argon2id password hashes, RS256 access tokens, and hashed refresh tokens in the order service. Phase 9 adds Redis login, register, and order-create limits that fail closed when Redis is down. Phase 10 adds the Traefik gateway: storefront CORS, a coarse in-memory per-IP limit, correlation IDs, and an RS256 signature check on protected routes. KMS and refresh-token family revocation are not implemented.**
 
 This is the threat model for a learning system that still refuses to trust the browser. It is not a penetration test and not a production sign-off.
 
@@ -28,8 +28,8 @@ Access token lifetime: 15 minutes. Refresh token lifetime: 7 days, rotated on ev
 ### Do not trust the client
 
 - Ignore `role` in JSON bodies.
-- The gateway strips inbound `X-User-Id` and `X-User-Role` (and similar) before it sets them from the verified token.
-- Services still verify the JWT signature. A request that reaches a pod and bypasses the gateway must not become admin because a header said so.
+- The gateway strips inbound `X-User-Id` and `X-User-Role` (and similar, including `X-Internal-Token`). It does not copy the verified subject or role onto a new header. The services already derive identity from the JWT, and a header they do not read must not become a second source of truth.
+- Services still verify the JWT signature. A request that reaches a published port and bypasses the gateway must not become admin because a header said so. The order service does not emit browser CORS; the gateway does. Skipping Traefik does not skip the Bearer check.
 - Prices, totals, and status strings from the client are not written onto the order. The server computes them or rejects them.
 - Internal fulfillment routes use a service credential, not a customer token, and are not on the public ingress. Phase 2 compares `X-Internal-Token` to `INTERNAL_SERVICE_TOKEN` in constant time and returns 503 if that variable is unset. A long-lived shared header is a learning stand-in. Production would use a private network plus a rotated credential or mTLS.
 
@@ -42,7 +42,7 @@ Authorization sits in the application use case, not only in the router. The doma
 - TLS is the production requirement at the public door. Local Compose may use HTTP. That is a simplification, and it means tokens travel in the clear on localhost. Do not point that HTTP port at a shared network and call it fine.
 - CORS allows the storefront origin, not `*`, once credentials or tokens are in play. A reflection of any origin is a bug.
 - Coarse rate limit per IP at Traefik.
-- Login and order-create limits in the order service, backed by Redis, failing closed (503) if Redis is down so the login route cannot be sprayed without limit during a cache outage.
+- Login, register, and order-create limits in the order service, backed by Redis, failing closed (503) if Redis is down so those routes cannot be sprayed without a limit during a cache outage. Catalog reads fall through to Postgres.
 - Request body size limits so a huge payload cannot pin a worker.
 
 ## Data handling

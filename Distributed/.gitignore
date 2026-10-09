@@ -6,7 +6,9 @@ __pycache__/
 *.pyc
 .env
 *.pem
+secrets/
 .coverage
+deploy/gateway/.check/
 htmlcov/
 *.egg-info/
 .idea/

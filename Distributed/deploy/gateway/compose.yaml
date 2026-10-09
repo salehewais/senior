@@ -1,0 +1,62 @@
+# Phase 10 gateway only. The full stack is deploy/compose/docker-compose.yml.
+# This file stays for apps already running on the host.
+# The only published port is the gateway on 127.0.0.1:8080.
+# Postgres, Redis, and RabbitMQ are not in this file.
+#
+# Upstreams stay in their own Compose projects and on the host:
+#   order service      127.0.0.1:8000
+#   reporting service  127.0.0.1:8001
+#   frontend (Vite)    127.0.0.1:5173
+# Traefik reaches them as host.docker.internal. On Linux that name is the
+# host-gateway extra host below. Joining the other projects' networks is not
+# required.
+#
+# JWT_PUBLIC_KEY_PATH is the order-service public PEM (the same file as
+# JWT_PUBLIC_KEY_PATH on the order service). The private key is not mounted.
+
+name: commerce-gateway
+
+services:
+  jwt-check:
+    build:
+      context: .
+      dockerfile: jwt-check/Dockerfile
+    environment:
+      JWT_PUBLIC_KEY_PATH: /keys/jwt_public.pem
+    volumes:
+      - ${JWT_PUBLIC_KEY_PATH:?set JWT_PUBLIC_KEY_PATH to the order-service public PEM}:/keys/jwt_public.pem:ro
+    expose:
+      - "8081"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8081/ready')"
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    networks:
+      - gateway
+
+  gateway:
+    image: traefik:v3.5.0
+    working_dir: /
+    depends_on:
+      jwt-check:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      - --configFile=/etc/traefik/traefik.yaml
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - ${GATEWAY_DYNAMIC_FILE:-./dynamic.yaml}:/etc/traefik/dynamic.yaml:ro
+      - ./plugins-local:/plugins-local:ro
+    networks:
+      - gateway
+
+networks:
+  gateway:

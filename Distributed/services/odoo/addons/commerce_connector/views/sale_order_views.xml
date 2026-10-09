@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_commerce" model="ir.ui.view">
+        <field name="name">sale.order.form.commerce</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_commerce_processing" type="object" string="Commerce processing"
+                        invisible="not commerce_order_id"/>
+                <button name="action_commerce_shipped" type="object" string="Commerce shipped"
+                        invisible="not commerce_order_id"/>
+                <button name="action_commerce_delivered" type="object" string="Commerce delivered"
+                        invisible="not commerce_order_id"/>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="commerce_order_id"/>
+                <field name="commerce_tracking_reference"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

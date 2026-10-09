@@ -1,6 +1,9 @@
-# Phase 1 Postgres plus Phase 4 RabbitMQ.
-# This is not the full platform Compose file (that is Phase 11).
-# Redis, Django, Odoo, and the gateway are intentionally absent.
+# Phase 1 Postgres, Phase 4 RabbitMQ, Phase 9 Redis.
+# The full stack is deploy/compose/docker-compose.yml. This file stays for the
+# order service running on the host, with these ports on 127.0.0.1.
+# The gateway is deploy/gateway/compose.yaml (Phase 10), not this file.
+# Django is services/reporting-service/compose.yaml.
+# Odoo is services/odoo/compose.yaml.
 #
 # Learning simplification: order_service owns this database because it is the only
 # database on this server. Production would split a migration role from the runtime
@@ -40,6 +43,24 @@ services:
       timeout: 5s
       retries: 20
       start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    # No password. Local placeholder, not a committed secret.
+    # Host publish is 127.0.0.1 only. Do not bind 0.0.0.0.
+    # protected-mode is off because Docker NAT makes a laptop client look non-local
+    # inside the container, and protected mode would refuse that connection.
+    # Persistence is off: Redis is not a system of record.
+    # If 6379 is already taken on the host, change the left-hand port and set
+    # REDIS_URL=redis://127.0.0.1:<port>/0. 6379 was free when this was added.
+    command: ["redis-server", "--protected-mode", "no", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
 
 volumes:
   order_db_data:

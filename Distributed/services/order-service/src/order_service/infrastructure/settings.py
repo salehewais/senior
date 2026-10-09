@@ -29,6 +29,20 @@ class Settings(BaseSettings):
     # Broker confirms that failed. After this many, the row is status=failed and is not retried.
     # Same count as the consumer retry budget. A failed outbox row is not a consumer DLQ message.
     outbox_max_attempts: int = 5
+    # Local placeholder. No password: the Compose port is bound to 127.0.0.1 only.
+    redis_url: str = "redis://127.0.0.1:6379/0"
+    # A hung Redis must fail the command. None would block the request until the socket dies.
+    redis_socket_connect_timeout_seconds: float = 1.0
+    redis_socket_timeout_seconds: float = 1.0
+    # Short on purpose. A stale fill after invalidation lives only this long.
+    product_cache_ttl_seconds: int = 30
+    # Laptop demo. Shared across API processes because the counters live in Redis.
+    login_rate_limit: int = 5
+    register_rate_limit: int = 5
+    order_create_rate_limit: int = 10
+    rate_limit_window_seconds: int = 60
+    # In-flight duplicate suppressor only. After this, a retry can create another order.
+    order_create_lock_ttl_seconds: int = 15
 
 
 @lru_cache
