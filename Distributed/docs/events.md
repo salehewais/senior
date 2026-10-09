@@ -1,6 +1,6 @@
 # Event catalog
 
-**Status: Phase 6 stores this envelope in `order_db.outbox` in the same transaction as the aggregate write. A separate publisher sends that stored body. Phase 5's inventory worker consumes `InventoryUpdated` from `q.order.inventory`. Phase 7's reporting worker consumes the catalog on `q.reporting.projection` into `reporting_db`. If an AMQP property disagrees with the body, the body wins. The Odoo client is a later phase.**
+**Status: Phase 6 stores this envelope in `order_db.outbox` in the same transaction as the aggregate write. A separate publisher sends that stored body. Phase 5's inventory worker consumes `InventoryUpdated` from `q.order.inventory`. Phase 7's reporting worker consumes the catalog on `q.reporting.projection` into `reporting_db`. If an AMQP property disagrees with the body, the body wins. Phase 8 applies `OrderConfirmed` in Odoo and publishes `InventoryUpdated` from the Odoo outbox.**
 
 Events are facts that have already been committed in the producer's database. They are not requests. A consumer that disagrees with a fact does not rewrite the producer's tables. It records the consequence in its own database, or it raises a command through an API that the producer validates.
 

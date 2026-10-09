@@ -1,8 +1,8 @@
 # Disaster recovery
 
-**Status: Phase 0 design; not implemented.**
+**Status: Phase 19 backup and restore for the three Compose databases. The RPO and RTO below are learning targets. RTO was not measured.**
 
-This page says what must be restorable and in what order. It does not claim an RPO or RTO that anyone has measured. The numbers below are **exercise targets for the learning project**, so Phase 20 has something to aim at. They are not a customer promise.
+This page says what must be restorable and in what order. It does not claim an RPO or RTO that anyone has measured. The numbers below are **exercise targets for the learning project**, so Phase 19 has something to aim at. They are not a customer promise.
 
 | Store | Exercise target | Why this number |
 | --- | --- | --- |
@@ -13,7 +13,7 @@ This page says what must be restorable and in what order. It does not claim an R
 | Redis | No restore | It is a cache |
 | Prometheus | No restore required for business correctness | A metrics gap is acceptable in this project |
 
-> **Learning simplification.** A documented `pg_dump` per database, taken by hand in Phase 20, stored outside the database container.
+> **Learning simplification.** A documented `pg_dump` per database, taken by hand in Phase 19 (`deploy/backup/dump.sh`), stored outside the database container. Restore is `deploy/backup/restore.sh` with `--yes`, and it replaces only that database.
 > **Production would require.** Scheduled backups, an off-site copy, encryption, restore tests on a calendar, and targets agreed with the people who lose money when checkout is down. Point-in-time recovery for `order_db` is the usual production bar. We have not built it.
 
 ## What is authoritative
@@ -51,7 +51,7 @@ What happens without a written order: the team restores reporting first, serves 
 
 ## Detection
 
-Backups that have never been restored are rumors. Phase 20's drill is the detection. A failed restore is the finding. Metrics will not tell you that a dump is truncated; only a restore will.
+Backups that have never been restored are rumors. Phase 19's restore is the detection. A failed restore is the finding. Metrics will not tell you that a dump is truncated; only a restore will.
 
 ## What we will not recover
 

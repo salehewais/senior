@@ -1,6 +1,6 @@
 # ADR-010: Why Grafana
 
-**Status: Phase 0 design; not implemented.** Accepted for this learning project.
+**Status: Accepted. Implemented in Phase 12.** Dashboards are file-provisioned. This is a learning project.
 
 ## Context
 

@@ -1,6 +1,6 @@
 # Architecture
 
-**Status: Phase 0 design; not implemented.**
+**Status: Phases 0–19 built this map in the repository. It is a learning system on one laptop. It is not production-ready. The gaps are in [architecture-review.md](architecture-review.md).**
 
 This document is the map for every later phase. It names the system, the containers, the only legal order transitions, which conversations are HTTP, and which failures are allowed to spread.
 

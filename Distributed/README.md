@@ -2,7 +2,7 @@
 
 This repository is a learning project for a small commerce platform. It is designed with the same boundaries a production system would need. Phase 0 fixed the vocabulary. Phase 1 is the FastAPI order service in `services/order-service`: the domain, `order_db`, and the HTTP API. Phase 2 adds authentication and authorization on that service. Phase 3 is the React storefront in `services/frontend`. It calls the order service over HTTP. Phase 4 publishes domain events to RabbitMQ. Phase 5 makes the order service's inventory consumer idempotent and routes failed deliveries through retry queues into a dead-letter queue. Phase 6 writes each of those events into an outbox row in the same `order_db` transaction, and a separate publisher process sends pending rows to RabbitMQ. Phase 7 is the Django reporting service in `services/reporting-service`. Phase 8 is Odoo in `services/odoo`: a confirmed order becomes one ERP sales order, and a stock change comes back as `InventoryUpdated`. Phase 9 adds Redis beside the order service for the product cache and the shared login, register, and order-create limits. Later phases add the gateway, the full Compose file, observability, and a local kind cluster.
 
-Nothing here is production-ready. The order service can run against local Postgres, RabbitMQ, and Redis containers. The storefront is a Vite dev server. Reporting and Odoo each have their own Compose file and their own database. Compose is the first runtime. The kind cluster in Phase 13 is a second packaging of the same images, and it is not a production deploy.
+Nothing here is production-ready. The order service can run against local Postgres, RabbitMQ, and Redis containers. Phase 3 runs the storefront as a Vite dev server. The full stack serves that same UI as an nginx build. Reporting and Odoo each have their own Compose file and their own database. Compose is the first runtime. The kind cluster in Phase 13 is a second packaging of the same images, and it is not a production deploy.
 
 ## Learning goal
 
@@ -64,17 +64,17 @@ Read in this order. Later files assume the earlier decisions.
 | 9 | [docs/security.md](docs/security.md) | JWT, roles, and what the gateway is allowed to trust |
 | 10 | [docs/adr/](docs/adr/) | Why this stack was chosen, including the alternatives that lost |
 
-Use the remaining docs when you reach the phase that implements them. They are design stubs: the decision is recorded, the software is not built.
+The runtime, observability, and recovery docs describe software that is already in the repository. [docs/architecture-review.md](docs/architecture-review.md) is the Phase 20 review of what is still missing. This system is a learning platform on one laptop. It is not production-ready.
 
 - [docs/docker.md](docs/docker.md) — Compose first
 - [docs/kubernetes.md](docs/kubernetes.md) — kind, Phase 13, after Compose
 - [docs/observability.md](docs/observability.md), [docs/prometheus.md](docs/prometheus.md), [docs/grafana.md](docs/grafana.md), [docs/alerting.md](docs/alerting.md) — how we see failure
-- [docs/testing.md](docs/testing.md) — what is worth testing before the cluster exists
+- [docs/testing.md](docs/testing.md) — what the suites cover
 - [docs/failure-scenarios.md](docs/failure-scenarios.md) — expected behavior when a dependency dies
 - [docs/disaster-recovery.md](docs/disaster-recovery.md) — what must be restorable
-- [docs/deployment.md](docs/deployment.md) — how a later phase should ship this
+- [docs/deployment.md](docs/deployment.md) — how Compose and kind ship this
 
-Most design docs are still marked **Phase 0 design; not implemented**. [docs/security.md](docs/security.md) and [docs/api.md](docs/api.md) note what Phase 2 implemented. [docs/rabbitmq.md](docs/rabbitmq.md) is the topology Phase 4 declares and Phase 5 uses for retries. The transactional outbox in that document is still Phase 6.
+Status lines at the top of those docs name the phase that implemented each decision. HTTP idempotency keys and a payment provider are still not built. [docs/disaster-recovery.md](docs/disaster-recovery.md) is the Phase 19 backup and restore target. The scripts are in [Backup and restore (Phase 19)](#backup-and-restore-phase-19). The review is [Architecture review (Phase 20)](#architecture-review-phase-20).
 
 ## Technology decisions (short)
 
@@ -95,7 +95,7 @@ The full table, including what we refused to add, is in [docs/architecture.md](d
 
 ## Phase plan
 
-Phases 0 through 13 are done. Later phases are not started. This checklist is the authoritative order from the project specification. Some design notes still mention an earlier draft numbering (Compose-only as phase 1, observability as phase 17, kind as phase 18). When a sentence and this list disagree, follow this list. Kubernetes does not start before the system runs under Docker Compose.
+Phases 0 through 20 are done. This checklist is the authoritative order from the project specification. Some design notes still mention an earlier draft numbering (Compose-only as phase 1, observability as phase 17, kind as phase 18). When a sentence and this list disagree, follow this list. Kubernetes does not start before the system runs under Docker Compose.
 
 - [x] **Phase 0 — Architecture.** Boundaries, events, state machine, communication matrix, ADRs. No application code.
 - [x] **Phase 1 — FastAPI foundation.** Clean Architecture, MVC at the HTTP edge, PostgreSQL, SQLAlchemy, Alembic, domain model, order state machine, basic REST APIs, unit tests. See [How to run Phase 1](#how-to-run-phase-1).
@@ -113,11 +113,11 @@ Phases 0 through 13 are done. Later phases are not started. This checklist is th
 - [x] **Phase 13 — Kubernetes.** kind, after Compose. Namespace, deployments, services, ConfigMaps, Secrets, PVCs, Ingress, probes. See [How to run on kind](#how-to-run-on-kind).
 - [x] **Phase 14 — Scaling.** FastAPI replicas, competing consumers, HPA, queue-backlog monitoring. See [Scaling (Phase 14)](#scaling-phase-14).
 - [x] **Phase 15 — CronJobs.** Retention, batched cleanup. See [Retention (Phase 15)](#retention-phase-15).
-- [ ] **Phase 16 — CI/CD.** Lint, tests, security scans, image build and scan.
-- [ ] **Phase 17 — Load testing.** Product browse, order create, order read.
-- [ ] **Phase 18 — Failure lab.** Break RabbitMQ, PostgreSQL, Redis, Django, Odoo, and FastAPI pods on purpose.
-- [ ] **Phase 19 — Disaster recovery.** Backup, restore, persistent volume recovery. RTO and RPO.
-- [ ] **Phase 20 — Architecture review.** What would still have to change for a real production system.
+- [x] **Phase 16 — CI/CD.** Lint, tests, security scans, image build and scan. See [CI (Phase 16)](#ci-phase-16).
+- [x] **Phase 17 — Load testing.** Product browse, order create, order read. See [Load testing (Phase 17)](#load-testing-phase-17).
+- [x] **Phase 18 — Failure lab.** Break RabbitMQ, PostgreSQL, Redis, Django, Odoo, and FastAPI pods on purpose. See [Failure lab (Phase 18)](#failure-lab-phase-18).
+- [x] **Phase 19 — Disaster recovery.** Backup, restore, persistent volume recovery. RTO and RPO. See [Backup and restore (Phase 19)](#backup-and-restore-phase-19).
+- [x] **Phase 20 — Architecture review.** What would still have to change for a real production system. See [Architecture review (Phase 20)](#architecture-review-phase-20).
 
 ## How to run Phase 1
 
@@ -871,4 +871,195 @@ This environment did not create a kind cluster and did not run the Job. Docker w
 
 > **Learning simplification.** One daily job, a 365-day cutoff, batches of 100, and at most 20 batches of each table per night. Laptop database passwords. No archive table.
 > **Production would require.** A tested restore, a way to pause the job when a row must be kept, and a cutoff agreed with the people who still need the orders. This phase is not that.
+
+## CI (Phase 16)
+
+Phase 16 adds one GitHub Actions workflow for this tree. It lints, runs the suites that skip when Postgres, RabbitMQ, or Redis is down, and scans dependencies and the order-service image. It does not start Compose, kind, or the retention CronJob. It does not run a load test against a live API. The load-scenario job only reads the scenario files. The failure-lab job only reads the lab scripts. The backup job only reads the backup scripts. It is not production.
+
+The workflow file is `.github/workflows/distributed-commerce-ci.yml` in the git root, the parent of `Distributed`. GitHub reads workflows from that directory. A pull request runs it, and a push to `main` runs it, when a path under `Distributed/` or the workflow file itself changes. A change that stays in CQRS or Real-Time Communication Patterns does not start these jobs. The jobs run in parallel. The workflow has no secret, no private key, and no PEM.
+
+- **ruff.** `ruff check` (0.16.10) on `services/order-service`, `services/reporting-service`, and `services/odoo`. Those are the trees that already configure ruff. This repo does not run `ruff format`.
+- **order-service.** Python 3.12, `pip install -e ".[dev]"`, then `pytest`. Live Postgres, RabbitMQ, and Redis tests skip.
+- **reporting-service.** The same install and `pytest` for the Django project. The reporting integration test skips when its database or the broker is down.
+- **odoo.** `pytest` for `commerce_erp`. No live Odoo.
+- **gateway.** `deploy/gateway/tests/test_public_routes.py` and `test_jwt_check.py`, after `pip install "pyjwt[crypto]>=2.10"`. `live_check.py` is not in the job, because that script starts Traefik when Docker is up.
+- **frontend.** Node 22, `npm ci`, `npm test`, and `npm run build`, from the lockfile.
+- **kind-manifests.** `python deploy/kind/test_manifests.py`. It reads the manifests. It does not create a cluster.
+- **compose.** `python deploy/compose/test_stack.py`. It reads the Compose file. It does not talk to a daemon.
+- **load-scenario.** `python deploy/load/test_scenario.py`. It reads the Locust scenario. It does not install Locust, start the stack, or send a request.
+- **failure-lab.** `python deploy/failure-lab/test_lab.py`. It reads the failure-lab scripts. It does not start Compose, stop a service, or send a request.
+- **backup.** `python deploy/backup/test_backup.py`. It reads the backup and restore scripts. It does not start Compose, dump a database, or restore one.
+- **dependency-scan.** `pip-audit` 2.10.1 with `--strict` on the three service directories, then `npm audit`.
+- **image-scan.** `docker build` of `services/order-service/Dockerfile` as `commerce/order-service:0.1.0`, then Trivy (`aquasecurity/trivy-action` v0.36.0, Trivy v0.75.0). High and critical findings fail the job. The other images are not scanned here.
+
+A green run means those jobs passed. Ruff passed. The Python suites passed, and a skipped live-database test counts as passed. The gateway file tests, the frontend test, and the frontend build passed. The manifest check and the Compose text check passed. The scans ran under the rules below. A green run does not mean a cluster was deployed, retention ran, a load test ran, a failure lab ran, or a backup was taken. The load-scenario, failure-lab, and backup jobs only read files.
+
+**Dependency scan.** There is no Python lockfile. `pip-audit` resolves the runtime dependencies in each `pyproject.toml` when the job runs, including the packages those dependencies pull in. A lockfile would make that resolution reproducible. The dev extra (pytest, ruff) is outside that resolution. When this phase was added, that resolved tree had no known vulnerabilities, and `pip-audit` fails the job if one appears or if a dependency cannot be resolved. `npm audit --omit=dev --audit-level=high` fails the job when a production dependency is high or critical. The full lockfile audit is printed as well. The frontend lockfile reports critical advisories in transitive `tinypool` (GHSA-5gmw-xhrv-c9v3 and GHSA-85c8-ppgw-ccpr), pulled in by the devDependency `vitest`, whose own advisory is moderate; the offered fix is a breaking vitest 5 bump, which this phase does not apply and does not silence with an ignore file. The job still fails if `npm audit` crashes, if a production dependency is high or critical, or if a direct dependency has its own high or critical advisory.
+
+**Image scan.** The workflow builds the order-service image and scans it. This environment did not. Docker was down, so the image was not built and was not scanned.
+
+Pip and npm downloads are cached with `actions/setup-python@v5` and `actions/setup-node@v4`. Checkout is `actions/checkout@v4`.
+
+From `Distributed`, with ruff 0.16.10 already in the service virtualenvs:
+
+```bash
+ruff check services/order-service services/reporting-service services/odoo
+```
+
+From each of those service directories, after `pip install -e ".[dev]"`:
+
+```bash
+pytest
+```
+
+From `Distributed`:
+
+```bash
+python3 deploy/gateway/tests/test_public_routes.py
+python3 deploy/gateway/tests/test_jwt_check.py
+python3 deploy/kind/test_manifests.py
+python3 deploy/compose/test_stack.py
+python3 deploy/load/test_scenario.py
+python3 deploy/failure-lab/test_lab.py
+python3 deploy/backup/test_backup.py
+```
+
+`test_jwt_check.py` skips when PyJWT is missing. CI installs it, so the signature tests run. From `services/frontend`: `npm ci`, `npm test`, and `npm run build`.
+
+> **Learning simplification.** One workflow, skipped integration tests when the databases are down, a dependency scan without a Python lockfile, and a scan of one image.
+> **Production would require.** A lockfile, branch protection, integration tests against ephemeral Postgres and RabbitMQ, and a registry scan for every image that ships. This phase is not that.
+
+## Load testing (Phase 17)
+
+Phase 17 adds a Locust scenario for the customer path. The run registers one customer, or reuses one account from the environment, and logs in once. Each virtual user then reads the product list, creates one order, and reads that order back. The client sends `product_id` and `quantity` only. The server prices the line. The scenario does not call `/api/v1/internal`, does not call `/api/v1/reports`, and does not call refresh or logout.
+
+Install Locust once:
+
+```bash
+pip install 'locust==2.46.7'
+```
+
+From `Distributed`, against the gateway (the default):
+
+```bash
+LOAD_MODE=gentle locust -f deploy/load/locustfile.py --headless --users 2 --spawn-rate 1 --run-time 30s
+```
+
+The same file against the order service directly:
+
+```bash
+LOAD_BASE_URL=http://127.0.0.1:8000 LOAD_MODE=gentle \
+  locust -f deploy/load/locustfile.py --headless --users 2 --spawn-rate 1 --run-time 30s
+```
+
+`LOAD_BASE_URL` defaults to `http://127.0.0.1:8080` when it is unset or empty. `LOAD_EMAIL`, `LOAD_PASSWORD`, and `LOAD_PRODUCT_ID` default to empty. Empty email and password mean the scenario registers a new customer and does not print the password. If register or login returns 429, wait for the minute, or set `LOAD_EMAIL` and `LOAD_PASSWORD` to a customer you already created and run again. The catalog has to contain one product already, or set `LOAD_PRODUCT_ID`. This scenario does not create products.
+
+A second invocation crosses the order-create limit on purpose. Wait a minute after the gentle run so the two do not share one Redis window. Then:
+
+```bash
+LOAD_MODE=flood locust -f deploy/load/locustfile.py --headless --users 1 --spawn-rate 1 --run-time 45s
+```
+
+Flood mode is one virtual user and 15 order creates, 0.2 seconds apart. The run stops after those 15. It does not keep going for the whole 45 seconds unless the API is slow.
+
+Two virtual users are two loops in this process. They share one customer and the laptop IP. Redis allows login 5 times a minute per IP and per email hash, register 5 times a minute per IP, and order create 10 times a minute per IP and per account. Traefik, on the gateway, allows 30 requests a second per IP in that one process, with a burst of 60. The gentle command uses 2 users and waits 15 seconds between orders, which is about 8 order creates a minute before request time, under the budget of 10. Register and login run once, under the budget of 5. The flood's 15 creates are more than 10 in that minute. If each call returned instantly, the flood would still be about 16 requests a second, under Traefik's 30, so the 429 to expect is the order service body `error.code` `RATE_LIMITED`, not the gateway's coarse limiter. A 429 with that code is the flood pass bar. It is not a bug, and this phase does not raise the limits or turn auth off.
+
+The gentle pass bar is no failed requests, no 429, and a p95 under 2000 ms. That 2000 ms figure is a laptop starting point for noticing a stuck process. It is not a capacity number, and it was not measured here. The flood pass bar is at least one order create with 429 `RATE_LIMITED`, and no other failures. Locust prints the counts and writes them to `deploy/load/RESULTS.md` only after a run that sent requests.
+
+This environment did not run Locust against the API. Docker was down (the engine socket was missing), so the stack was not started. No latency was measured. `deploy/load/RESULTS.md` says the run did not happen. The file check is `python3 deploy/load/test_scenario.py`. It does not need Locust, Docker, or a listening port.
+
+> **Learning simplification.** Two virtual users, a 30 second gentle run, a 15-request flood, and a 2000 ms ceiling chosen as a starting point. One laptop IP. The Redis and Traefik limits stay where Phase 9 and Phase 10 put them.
+> **Production would require.** A target that is not your laptop, a rate model that is not "stay under the demo limiter," and a latency budget agreed from real traffic. This phase is not that, and it is not a capacity test.
+
+## Failure lab (Phase 18)
+
+Phase 18 adds four stop/start drills against the Compose project in `deploy/compose`. Each script stops or starts one service and prints what to look at. The behavior is already in the services. The scripts do not change order states, rate limits, the outbox protocol, or auth. They do not call `/api/v1/internal`. They do not run `docker compose down -v`, delete a volume, or drop a database. Expected results stay the ones in [docs/failure-scenarios.md](docs/failure-scenarios.md). Backup, restore, RTO, and RPO are Phase 19 and are not in this lab.
+
+The stack has to be up already, from [How to run the full stack](#how-to-run-the-full-stack). Run the scripts from `Distributed`. If `docker info` fails, the script exits before it stops or starts anything.
+
+**Reporting consumer.** Failure: `reporting-consumer` is stopped. Django's HTTP process (`reporting-service`) stays up. What still works: `POST http://127.0.0.1:8080/api/v1/orders/{order_id}/confirm` still returns the order with status `CONFIRMED`. The outbox publisher still sends. What waits: `q.reporting.projection` grows, because nothing acks it. Report routes keep serving the rows already in `reporting_db`. How you tell it recovered: start the consumer, the queue depth falls, and `reporting_db.order_projections` has one row for that order. `processed_events.event_id` is the primary key, so a redelivery is a no-op. The log line is `reason=duplicate`. The consumer does not use `requeue=true`.
+
+```bash
+bash deploy/failure-lab/reporting-consumer.sh stop
+bash deploy/failure-lab/reporting-consumer.sh start
+```
+
+**RabbitMQ.** Failure: `rabbitmq` is stopped. `order-service` and `order-outbox-publisher` stay up. What still works: create or confirm still commits in `order_db`. The API does not call the broker. What waits: the outbox row stays `pending`, with `published_at` empty. Queues do not grow while the broker is down. The publisher log says `outbox publish failed; row stays pending`. `OUTBOX_MAX_ATTEMPTS` is 5. After five failed confirms the row becomes `status=failed` and the publisher stops claiming it. That is not a consumer dead-letter queue. How you tell it recovered: start `rabbitmq` and leave the publisher running. A `pending` row becomes `published`. Do not delete the outbox row. If the row is already `failed`, set `status` back to `pending` and `retry_count` back to 0, and record why.
+
+```bash
+bash deploy/failure-lab/rabbitmq.sh stop
+bash deploy/failure-lab/rabbitmq.sh start
+```
+
+**Redis.** Failure: `redis` is stopped. Log in first and keep the access token. `jwt-check` does not use Redis, so that token still passes the gateway. What still works: `GET http://127.0.0.1:8080/api/v1/products` returns 200 from Postgres when `order_db` is up. A dead cache is a miss. What waits: `POST http://127.0.0.1:8080/api/v1/auth/login` and `POST http://127.0.0.1:8080/api/v1/orders` return 503 `DEPENDENCY_UNAVAILABLE` ("The rate limit service is unavailable."). Register fails the same way. No order row is written. Confirm, order read, refresh, and logout do not use Redis. How you tell it recovered: start `redis`. Login and order create succeed again, and the cache fills on the next miss. A later 429 `RATE_LIMITED` means the limiter is back (login 5 per minute, order create 10 per minute). This lab does not change those limits.
+
+```bash
+bash deploy/failure-lab/redis.sh stop
+bash deploy/failure-lab/redis.sh start
+```
+
+**Inventory consumer.** Failure: `order-inventory-consumer` is stopped. What still works: confirm still returns `CONFIRMED`. That fact is `OrderConfirmed`. It is not routed to `q.order.inventory`. What waits: `q.order.inventory` grows when `odoo-publisher` sends `InventoryUpdated` (a stock change in the Odoo UI) while this consumer is down. If nothing publishes that event, the depth stays where it was, and confirm can still succeed. How you tell it recovered: start the consumer, the queue depth falls, and `order_db.processed_events` has one row for that `event_id` (`consumer_name` `order-inventory`). A second delivery logs `duplicate delivery acked without a second effect` and does not move `quantity_on_hand` again. The consumer does not use `requeue=true`.
+
+```bash
+bash deploy/failure-lab/inventory-consumer.sh stop
+bash deploy/failure-lab/inventory-consumer.sh start
+```
+
+**Order database, without a stop script.** These scripts do not stop `postgres`. On the order-service process, `GET /health/live` answers without querying the database. `GET /health/ready` returns 503 `DEPENDENCY_UNAVAILABLE` when `order_db` does not accept a query. The Compose healthcheck calls `http://127.0.0.1:8000/health/ready` inside the `order-service` container. The gateway file does not route `/health/live` or `/health/ready`.
+
+**Odoo, without a stop script.** These scripts do not stop `odoo` or `odoo-consumer`. Confirm does not call Odoo. If that consumer is down, `q.odoo.order-confirmed` grows and confirm still succeeds. That result is already in [docs/failure-scenarios.md](docs/failure-scenarios.md).
+
+**Order-service API, skipped.** `deploy/compose/dynamic.yaml` sets `dialTimeout` to 3s and `responseHeaderTimeout` to 30s on the upstream transport. `deploy/gateway/traefik.yaml` sets `readTimeout` to 30s and `writeTimeout` to 60s. Neither file names 502 or 504. This lab does not add a fifth script that would have to guess which status the gateway returns while `frontend` stays up.
+
+This environment did not run the lab. Docker was down (the engine socket was missing and the daemon was inactive), so the stack was not started. No HTTP status, queue depth, log line, or outbox row was observed. The file check is `python3 deploy/failure-lab/test_lab.py`. It does not need Docker.
+
+> **Learning simplification.** Four Compose stop/start drills, checked by reading the scripts. No Toxiproxy and no Chaos Mesh. One laptop.
+> **Production would require.** A game day on a system that is not this laptop, with an on-call path and a restore test. This phase is not that, and it is not a production-readiness claim.
+
+## Backup and restore (Phase 19)
+
+Phase 19 adds a hand dump and a hand restore for each Compose Postgres database. The three databases are separate servers. `order_db` is the Compose service `postgres` (role `order_service`). `reporting_db` is `reporting-postgres` (role `reporting_service`). `odoo_db` is `odoo-db` (role `odoo`). A dump of one is not restored into another. The scripts read the database name from the dump archive header (`pg_restore --list`, the `dbname` line). The file name is not that check. Those databases do not publish a host port. The scripts use `docker compose exec` on the Compose network.
+
+The stack has to be up already, from [How to run the full stack](#how-to-run-the-full-stack). Run the scripts from `Distributed`. If `docker info` fails, the script exits before it dumps or restores anything.
+
+**What is backed up.** `deploy/backup/dump.sh` runs `pg_dump` in custom format inside that one database's container. The file is written under `deploy/backup/dumps/`, which is gitignored. Do not commit a dump.
+
+- `order_db` holds accounts, orders, the outbox, processed events, and refresh-token hashes.
+- `reporting_db` holds projections and processed events.
+- `odoo_db` holds the ERP rows in that database. The Odoo filestore volume `odoo_filestore` is not in the dump. [docs/disaster-recovery.md](docs/disaster-recovery.md) restores that database and the filestore together. This phase dumps the database only.
+
+Redis is a cache. It is not the source of truth, and it is not backed up. RabbitMQ is not backed up. The outbox in `order_db` is the copy of unpublished work.
+
+```bash
+bash deploy/backup/dump.sh order_db
+bash deploy/backup/dump.sh reporting_db
+bash deploy/backup/dump.sh odoo_db
+```
+
+Each command prints the path it wrote, shaped like `deploy/backup/dumps/order_db-20261009T140000Z.dump`.
+
+**What a restore replaces.** `deploy/backup/restore.sh` replaces the objects in that one database. It requires `--yes` and prints the database name before `pg_restore --clean`. Restoring `order_db` does not drop `reporting_db` or `odoo_db`. The same is true for the other two. It does not drop RabbitMQ or Redis data, and it does not delete a volume.
+
+```bash
+bash deploy/backup/restore.sh order_db deploy/backup/dumps/order_db-20261009T140000Z.dump --yes
+bash deploy/backup/restore.sh reporting_db deploy/backup/dumps/reporting_db-20261009T140000Z.dump --yes
+bash deploy/backup/restore.sh odoo_db deploy/backup/dumps/odoo_db-20261009T140000Z.dump --yes
+```
+
+A restored database is a copy of that database at dump time. It is not a rewind of RabbitMQ, Redis, reporting, or Odoo. Reporting and Odoo stay at whatever they had unless their own dump is restored. The outbox and the broker can diverge. A restored `order_db` can contain published outbox rows whose messages were already consumed, or pending rows the broker already has. Eventual consistency after a one-database restore can mean a consumer sees an old event again. `processed_events` in the restored database is the dedupe state as of the dump. Already-published rows must not be sent again unless you have decided to replay. Consumers dedupe when that restored table still has the `event_id`.
+
+**RPO.** RPO is the maximum data loss you accept. Dumps are taken by hand, so the learning target is everything since the last dump you ran. The exercise target in [docs/disaster-recovery.md](docs/disaster-recovery.md) is 24 hours for `order_db`, and it holds only if a dump was taken inside that window. Production would schedule backups, keep an off-site copy, and use point-in-time recovery for `order_db`. This phase does not schedule them.
+
+**RTO.** RTO is the time to get that database accepting connections again after you start the restore. The exercise target in the same document is 8 hours. It was not measured. When a restore does run, the script records a start timestamp and an end timestamp in `deploy/backup/dumps/last-restore.txt`, so a later live run can fill the number in.
+
+No backup was taken and no restore was timed. Docker was down (the engine socket was missing and the daemon was inactive), so the stack was not started. No dump file was written. The file check is `python3 deploy/backup/test_backup.py`. It does not need Docker.
+
+> **Learning simplification.** Three hand dumps, one database at a time, checked by reading the scripts. No scheduled backup, no off-site copy, and no Odoo filestore copy. One laptop.
+> **Production would require.** A calendar of restore tests, encryption, an off-site copy, and point-in-time recovery for `order_db`. This phase is not that, and it is not a production-readiness claim.
+
+## Architecture review (Phase 20)
+
+Phase 20 does not add a feature. [docs/architecture-review.md](docs/architecture-review.md) says what the system is, what the tests and file checks cover, what was not run live, and which gaps keep it off a production path.
+
+This system is a learning platform on one laptop. It is not production-ready.
 

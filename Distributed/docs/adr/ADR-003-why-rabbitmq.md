@@ -1,6 +1,6 @@
 # ADR-003: Why RabbitMQ
 
-**Status: Phase 0 design; not implemented.** Accepted for this learning project.
+**Status: Accepted. Implemented in Phase 4**, with the retry ladder in Phase 5 and the outbox publisher in Phase 6. This is a learning project.
 
 ## Context
 

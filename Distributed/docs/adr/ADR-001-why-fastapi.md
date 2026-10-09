@@ -1,6 +1,6 @@
 # ADR-001: Why FastAPI for the order service
 
-**Status: Phase 0 design; not implemented.** Accepted for this learning project.
+**Status: Accepted. Implemented in Phase 1** as `services/order-service`. This is a learning project.
 
 ## Context
 

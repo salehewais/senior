@@ -1,10 +1,10 @@
 # Failure scenarios
 
-**Status: Phase 0 design; not implemented.**
+**Status: The services implement the results below. Phase 18 adds stop/start scripts in `deploy/failure-lab`. Those scripts were not run live (Docker was down). This page is the expected result, not a measured drill.**
 
-These are the failures later phases should cause on purpose. Each one states the user-visible result, what must stay up, how you notice, and how you recover. If a drill produces a different result, the implementation drifted from the architecture.
+These are the failures a drill should cause on purpose. Each one states the user-visible result, what must stay up, how you notice, and how you recover. If a drill produces a different result, the implementation drifted from the architecture.
 
-Phase 19 runs the drills. Phase 0 only specifies them. Do not "fix" a drill by weakening the expected result.
+Phase 18 is the failure lab. Phase 19 is backup and restore, not this lab. Do not "fix" a drill by weakening the expected result.
 
 ## Order database unavailable
 

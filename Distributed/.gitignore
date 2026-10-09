@@ -9,6 +9,7 @@ __pycache__/
 secrets/
 deploy/kind/secrets.yaml
 deploy/kind/secrets.local.yaml
+deploy/backup/dumps/
 .coverage
 deploy/gateway/.check/
 htmlcov/

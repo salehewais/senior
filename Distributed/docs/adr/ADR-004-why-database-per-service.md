@@ -1,6 +1,6 @@
 # ADR-004: Why a database per service
 
-**Status: Phase 0 design; not implemented.** Accepted for this learning project.
+**Status: Accepted. Implemented** as separate `order_db`, `reporting_db`, and `odoo_db` servers. This is a learning project.
 
 ## Context
 

@@ -1,6 +1,6 @@
 # ADR-009: Why Prometheus
 
-**Status: Phase 0 design; not implemented.** Accepted for this learning project.
+**Status: Accepted. Implemented in Phase 12** on the Compose network. This is a learning project.
 
 ## Context
 

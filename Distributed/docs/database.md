@@ -1,6 +1,6 @@
 # Database ownership
 
-**Status: Phase 0 design; not implemented.**
+**Status: Implemented. Three Postgres servers: `order_db`, `reporting_db`, and `odoo_db`. A transaction does not open more than one of them.**
 
 Three databases, three owners, three migration tools. A transaction never opens more than one of them.
 

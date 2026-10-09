@@ -1,6 +1,6 @@
 # ADR-002: Why Django for reporting
 
-**Status: Phase 0 design; not implemented.** Accepted for this learning project.
+**Status: Accepted. Implemented in Phase 7** as `services/reporting-service`. This is a learning project.
 
 ## Context
 

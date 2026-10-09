@@ -1,8 +1,8 @@
 # Testing
 
-**Status: Phase 0 design; not implemented.**
+**Status: Unit tests and static file checks exist for the phases that shipped code. Live Compose, kind, Locust, the failure lab, and a timed restore were not run on this machine.**
 
-Tests show up with the phase that introduces the behavior. Phase 0 has nothing to execute. This page fixes what is worth testing so later phases do not discover the state machine only through the UI.
+Tests show up with the phase that introduces the behavior. Phase 0 had nothing to execute. Later phases added the tests this page describes, so a state machine is not discovered only through the UI.
 
 ## Layers
 

@@ -1,6 +1,6 @@
 # ADR-006: Why eventual consistency between services
 
-**Status: Phase 0 design; not implemented.** Accepted for this learning project.
+**Status: Accepted. Implemented** as one transaction inside a service database and events after that. This is a learning project.
 
 ## Context
 

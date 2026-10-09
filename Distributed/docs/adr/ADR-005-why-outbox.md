@@ -1,6 +1,6 @@
 # ADR-005: Why the transactional outbox
 
-**Status: Phase 0 design; not implemented.** Accepted for this learning project.
+**Status: Accepted. Implemented in Phase 6** in `order_db`. The Odoo inventory outbox is Phase 8. This is a learning project.
 
 ## Context
 
