@@ -1,0 +1,19 @@
+# Non-secret settings: ports, timeouts, and the collector URL.
+# Database, broker, and Redis hostnames are set on each Deployment so the
+# Service name is visible there. Passwords in those URLs are the laptop
+# placeholders from deploy/compose/docker-compose.yml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: commerce-config
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+data:
+  RABBITMQ_TIMEOUT_SECONDS: "5"
+  DB_CONNECT_TIMEOUT_SECONDS: "5"
+  DB_STATEMENT_TIMEOUT_MS: "10000"
+  ODOO_TIMEOUT_SECONDS: "5"
+  ORDER_SERVICE_TIMEOUT_SECONDS: "5"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+  PYTHONUNBUFFERED: "1"

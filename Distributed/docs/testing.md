@@ -39,7 +39,7 @@ A test that sleeps for "eventual consistency" without a bound is a flake. Prefer
 
 - Multi-node RabbitMQ partitions
 - A real card network
-- Kubernetes scheduling, before Phase 18
+- Kubernetes scheduling drills. Phase 13 checks the manifests. It does not break pods on purpose.
 - Load that would size production hardware
 
 A single happy-path click in the browser is not a substitute for the transition table. It is still useful once the UI exists, as one journey test, not as the only test.

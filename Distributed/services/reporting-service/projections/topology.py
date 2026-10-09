@@ -26,7 +26,7 @@ DLQ_ROUTING_KEY = "reporting.projection"
 # docs/rabbitmq.md. Attempt 6 is the DLQ, not another delay.
 RETRY_DELAYS_MS: tuple[int, ...] = (5_000, 30_000, 120_000, 600_000, 1_800_000)
 
-# docs/rabbitmq.md: start at 10. Fixed. One consumer does not stretch this.
+# docs/rabbitmq.md: start at 10. Fixed per process. A second replica does not raise it.
 PREFETCH_COUNT = 10
 
 _EXCHANGES = (

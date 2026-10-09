@@ -1,4 +1,7 @@
-"""Consume q.reporting.projection. One process, prefetch 10, manual ack.
+"""Consume q.reporting.projection. Prefetch 10 per process, manual ack.
+
+A second replica is another consumer on the same queue. processed_events
+dedupes event_id.
 
 Shutdown stops new deliveries, lets the callback already inside
 process_data_events finish or leave its message unacked, then closes the

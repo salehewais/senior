@@ -140,7 +140,7 @@ So:
 
 - Handlers must be safe under redelivery (idempotency).
 - Handlers that care about order must use `aggregate_version`, described in [events.md](events.md).
-- Early implementation may run one consumer. That is a learning default, not a license to skip version checks. The checks are cheap and are the real design.
+- Phase 14 runs two `order-inventory-consumer` pods and two `reporting-consumer` pods. Prefetch stays 10 on each process. The outbox publisher stays one process so publish order follows `created_at`. Version checks stay required. They are cheap, and they are the real design.
 
 Odoo's confirmed-order queue can also have competing consumers inside Odoo. Creating the sales order must be idempotent on the commerce `order_id`, because two workers must not create two sales orders for one event.
 

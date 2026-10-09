@@ -1,6 +1,6 @@
 # Docker Compose
 
-**Status: Phase 11 ships the platform file at `deploy/compose/docker-compose.yml`.** Phase 10's gateway-only file remains at `deploy/gateway/compose.yaml` for apps already running on the host. The per-service files under `services/` remain for the same reason. Kubernetes is Phase 13 and is not started here.
+**Status: Phase 11 ships the platform file at `deploy/compose/docker-compose.yml`.** Phase 10's gateway-only file remains at `deploy/gateway/compose.yaml` for apps already running on the host. The per-service files under `services/` remain for the same reason. Kubernetes is Phase 13, in `deploy/kind`, and is not this Compose file.
 
 Compose is the first runtime. kind comes only after the same images behave correctly here. [ADR-008](adr/ADR-008-why-kubernetes.md) explains why the order is fixed.
 

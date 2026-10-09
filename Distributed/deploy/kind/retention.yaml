@@ -1,0 +1,52 @@
+# Daily retention for order_db. One batch commits before the next starts.
+# Does not publish Postgres. Does not scale the API. The order Deployment
+# replicas and the order-service HPA are unchanged.
+# DATABASE_URL is the same laptop placeholder the order Deployment uses.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: order-retention
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: order-retention
+spec:
+  # 03:30 UTC every day. A quiet hour on a one-node learning cluster.
+  schedule: "30 3 * * *"
+  concurrencyPolicy: Forbid
+  # A missed 03:30 may still start within an hour. After that, wait for tomorrow.
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      # Kill a run that is still going after 10 minutes. Earlier batches stay committed.
+      activeDeadlineSeconds: 600
+      backoffLimit: 2
+      template:
+        spec:
+          automountServiceAccountToken: false
+          restartPolicy: OnFailure
+          containers:
+            - name: order-retention
+              image: commerce/order-service:0.1.0
+              imagePullPolicy: IfNotPresent
+              command: ["python", "-m", "order_service.infrastructure.database.retention"]
+              envFrom:
+                - configMapRef:
+                    name: commerce-config
+              env:
+                - name: DATABASE_URL
+                  value: postgresql+psycopg://order_service:order_service@order-postgres:5432/order_db
+                - name: ORDER_RETENTION_DAYS
+                  value: "365"
+                - name: ORDER_RETENTION_BATCH_SIZE
+                  value: "100"
+                - name: ORDER_RETENTION_MAX_BATCHES
+                  value: "20"
+              resources:
+                requests:
+                  cpu: 25m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi

@@ -108,6 +108,10 @@ def _inventory_body(*, event_id: uuid.UUID, product_id: uuid.UUID, version: int,
 
 
 def test_duplicate_event_id_does_not_apply_twice() -> None:
+    """Two workers, or one redelivery, apply a given event_id once.
+
+    processed_events.event_id is the primary key. The second apply is a duplicate.
+    """
     store = MemoryStore()
     event_id = uuid.uuid4()
     product_id = uuid.uuid4()

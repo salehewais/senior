@@ -25,7 +25,7 @@ Grafana is not an alerting path. Prometheus rules plus Alertmanager remain the o
 
 ## Consequences
 
-- Dashboards drift if they are edited only in the UI. Phase 12 commits the JSON. The names in the doc stay the contract. A Kubernetes board waits for Phase 13.
+- Dashboards drift if they are edited only in the UI. Phase 12 commits the JSON. The names in the doc stay the contract. A Kubernetes board was not added in Phase 13.
 - Grafana credentials come from the environment, not from this repository.
 - A SQL data source pointed at `order_db` is forbidden. It would bypass the reporting service and put a long query on the writer. Boards read Prometheus, and traces, and if needed the reporting HTTP API.
 - Grafana down does not stop alerts and does not stop checkout. It stops the shared picture. Drills should say that out loud so nobody "fixes" a Grafana outage by failing the deploy.

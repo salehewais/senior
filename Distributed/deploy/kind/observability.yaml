@@ -1,0 +1,776 @@
+# Prometheus, Grafana, Alertmanager, and the OpenTelemetry collector.
+# Config file bytes come from deploy/observability. apply.sh creates the
+# ConfigMaps. A Kubernetes Grafana board is not part of this phase.
+# Grafana's admin password is the laptop placeholder Compose uses when
+# GRAFANA_ADMIN_PASSWORD is unset. Anonymous Admin is on, same as Compose.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: otel-collector
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: otel-collector
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector:0.114.0
+          imagePullPolicy: IfNotPresent
+          # The collector file has no HTTP health port, so this process has no probe.
+          args: ["--config=/etc/otel/collector.yaml"]
+          ports:
+            - name: otlp-grpc
+              containerPort: 4317
+            - name: otlp-http
+              containerPort: 4318
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otel
+              readOnly: true
+          resources:
+            requests:
+              cpu: 15m
+              memory: 48Mi
+            limits:
+              memory: 128Mi
+      volumes:
+        - name: config
+          configMap:
+            name: otel-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: otel-collector
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: otel-collector
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: otlp-grpc
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: tempo
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tempo
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: tempo
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: tempo
+          image: grafana/tempo:2.6.1
+          imagePullPolicy: IfNotPresent
+          args: ["-config.file=/etc/tempo.yaml"]
+          ports:
+            - name: http
+              containerPort: 3200
+            - name: otlp-grpc
+              containerPort: 4317
+          volumeMounts:
+            - name: config
+              mountPath: /etc/tempo.yaml
+              subPath: tempo.yaml
+              readOnly: true
+            - name: data
+              mountPath: /var/tempo
+          startupProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 3
+            timeoutSeconds: 3
+            failureThreshold: 20
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 15m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: config
+          configMap:
+            name: tempo-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: tempo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tempo
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: tempo
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: tempo
+  ports:
+    - name: http
+      port: 3200
+      targetPort: http
+    - name: otlp-grpc
+      port: 4317
+      targetPort: otlp-grpc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert-webhook
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: alert-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: alert-webhook
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: alert-webhook
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: alert-webhook
+          image: python:3.12-alpine
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-u", "/hook.py"]
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: script
+              mountPath: /hook.py
+              subPath: hook.py
+              readOnly: true
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 15
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+      volumes:
+        - name: script
+          configMap:
+            name: alert-webhook-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alert-webhook
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: alert-webhook
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: alert-webhook
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: alertmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: alertmanager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: alertmanager
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: alertmanager
+          image: prom/alertmanager:v0.27.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - --config.file=/etc/alertmanager/alertmanager.yml
+          ports:
+            - name: http
+              containerPort: 9093
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alertmanager/alertmanager.yml
+              subPath: alertmanager.yml
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 15
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+      volumes:
+        - name: config
+          configMap:
+            name: alertmanager-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: alertmanager
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: alertmanager
+  ports:
+    - name: http
+      port: 9093
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: prometheus
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: prometheus
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 65534
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.55.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --storage.tsdb.retention.time=3d
+          ports:
+            - name: http
+              containerPort: 9090
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus
+              readOnly: true
+            - name: data
+              mountPath: /prometheus
+          startupProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            periodSeconds: 3
+            timeoutSeconds: 3
+            failureThreshold: 20
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: prometheus
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: prometheus
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: prometheus
+  ports:
+    - name: http
+      port: 9090
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: grafana
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: grafana
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: grafana
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 472
+      initContainers:
+        - name: data-dir
+          image: busybox:1.36
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "mkdir -p /var/lib/grafana/dashboards"]
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/grafana
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 32Mi
+      containers:
+        - name: grafana
+          image: grafana/grafana:11.3.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Admin
+            - name: GF_AUTH_DISABLE_LOGIN_FORM
+              value: "false"
+            - name: GF_USERS_ALLOW_SIGN_UP
+              value: "false"
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: local-grafana
+            - name: GF_ANALYTICS_REPORTING_ENABLED
+              value: "false"
+          volumeMounts:
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
+              readOnly: true
+            - name: dashboard-provider
+              mountPath: /etc/grafana/provisioning/dashboards
+              readOnly: true
+            - name: dashboards
+              mountPath: /var/lib/grafana/dashboards
+              readOnly: true
+            - name: data
+              mountPath: /var/lib/grafana
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 3
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: datasources
+          configMap:
+            name: grafana-datasources
+        - name: dashboard-provider
+          configMap:
+            name: grafana-dashboard-provider
+        - name: dashboards
+          configMap:
+            name: grafana-dashboards
+        - name: data
+          persistentVolumeClaim:
+            claimName: grafana
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: grafana
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: grafana
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-exporter-order
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: postgres-exporter-order
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres-exporter-order
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: postgres-exporter-order
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: exporter
+          image: prometheuscommunity/postgres-exporter:v0.16.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: metrics
+              containerPort: 9187
+          env:
+            - name: DATA_SOURCE_NAME
+              value: postgresql://order_service:order_service@order-postgres:5432/order_db?sslmode=disable
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 20
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-exporter-order
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: postgres-exporter-order
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: postgres-exporter-order
+  ports:
+    - name: metrics
+      port: 9187
+      targetPort: metrics
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-exporter-reporting
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: postgres-exporter-reporting
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres-exporter-reporting
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: postgres-exporter-reporting
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: exporter
+          image: prometheuscommunity/postgres-exporter:v0.16.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: metrics
+              containerPort: 9187
+          env:
+            - name: DATA_SOURCE_NAME
+              value: postgresql://reporting_service:reporting_service@reporting-postgres:5432/reporting_db?sslmode=disable
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 20
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-exporter-reporting
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: postgres-exporter-reporting
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: postgres-exporter-reporting
+  ports:
+    - name: metrics
+      port: 9187
+      targetPort: metrics
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-exporter
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: redis-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: redis-exporter
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: exporter
+          image: oliver006/redis_exporter:v1.66.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: metrics
+              containerPort: 9121
+          env:
+            - name: REDIS_ADDR
+              value: redis://redis:6379
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 15
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-exporter
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: redis-exporter
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: redis-exporter
+  ports:
+    - name: metrics
+      port: 9121
+      targetPort: metrics

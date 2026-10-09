@@ -1,0 +1,262 @@
+# Three Postgres servers, one database each. ClusterIP only.
+# Laptop-only passwords match deploy/compose/docker-compose.yml.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-postgres
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: order-postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: order-postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: order-postgres
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: order_service
+            - name: POSTGRES_PASSWORD
+              value: order_service
+            - name: POSTGRES_DB
+              value: order_db
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          startupProbe:
+            exec:
+              command: ["pg_isready", "-U", "order_service", "-d", "order_db"]
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "order_service", "-d", "order_db"]
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "order_service", "-d", "order_db"]
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: order-postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-postgres
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: order-postgres
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: order-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reporting-postgres
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: reporting-postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: reporting-postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: reporting-postgres
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: reporting_service
+            - name: POSTGRES_PASSWORD
+              value: reporting_service
+            - name: POSTGRES_DB
+              value: reporting_db
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          startupProbe:
+            exec:
+              command: ["pg_isready", "-U", "reporting_service", "-d", "reporting_db"]
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "reporting_service", "-d", "reporting_db"]
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "reporting_service", "-d", "reporting_db"]
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: reporting-postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reporting-postgres
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: reporting-postgres
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: reporting-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: odoo-postgres
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: odoo-postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: odoo-postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: odoo-postgres
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: odoo
+            - name: POSTGRES_PASSWORD
+              value: odoo
+            - name: POSTGRES_DB
+              value: odoo_db
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          startupProbe:
+            exec:
+              command: ["pg_isready", "-U", "odoo", "-d", "odoo_db"]
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "odoo", "-d", "odoo_db"]
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "odoo", "-d", "odoo_db"]
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: odoo-postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: odoo-postgres
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: odoo-postgres
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: odoo-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres

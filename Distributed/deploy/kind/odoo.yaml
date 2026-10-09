@@ -1,0 +1,312 @@
+# Odoo HTTP, OrderConfirmed consumer, and inventory publisher. Same image as Compose.
+# The database host is the odoo-postgres Service. Filestore is a PVC.
+# Laptop-only passwords match deploy/compose/docker-compose.yml.
+# odoo.conf is mounted from services/odoo/config/odoo.conf by apply.sh.
+# The consumer and publisher have no HTTP listener, so they have no probe.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: odoo
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: odoo
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: odoo
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: odoo
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      initContainers:
+        - name: filestore
+          image: commerce/odoo:18.0.1
+          imagePullPolicy: IfNotPresent
+          command: ["chown", "-R", "odoo:odoo", "/var/lib/odoo"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: filestore
+              mountPath: /var/lib/odoo
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+      containers:
+        - name: odoo
+          image: commerce/odoo:18.0.1
+          imagePullPolicy: IfNotPresent
+          # args keep the image entrypoint, which waits for HOST and passes db_*.
+          args:
+            - odoo
+            - --config=/etc/odoo/odoo.conf
+            - -d
+            - odoo_db
+            - -i
+            - commerce_connector
+            - --without-demo=all
+            - --http-port=8069
+          ports:
+            - name: http
+              containerPort: 8069
+          envFrom:
+            - configMapRef:
+                name: commerce-config
+          env:
+            - name: HOST
+              value: odoo-postgres
+            - name: PORT
+              value: "5432"
+            - name: USER
+              value: odoo
+            - name: PASSWORD
+              value: odoo
+            - name: ODOO_URL
+              value: http://odoo:8069
+            - name: ODOO_DB
+              value: odoo_db
+            - name: ODOO_USER
+              value: admin
+            - name: ODOO_PASSWORD
+              value: admin
+            - name: ODOO_DATABASE_URL
+              value: postgresql://odoo:odoo@odoo-postgres:5432/odoo_db
+            - name: RABBITMQ_URL
+              value: amqp://order_service:order_service@rabbitmq:5672/%2F
+            - name: ORDER_SERVICE_URL
+              value: http://order-service:8000
+            - name: INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: commerce-secrets
+                  key: INTERNAL_SERVICE_TOKEN
+          volumeMounts:
+            - name: config
+              mountPath: /etc/odoo/odoo.conf
+              subPath: odoo.conf
+              readOnly: true
+            - name: filestore
+              mountPath: /var/lib/odoo
+          startupProbe:
+            httpGet:
+              path: /web/health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /web/health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /web/health
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 768Mi
+      volumes:
+        - name: config
+          configMap:
+            name: odoo-config
+        - name: filestore
+          persistentVolumeClaim:
+            claimName: odoo-filestore
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: odoo
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: odoo
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: odoo
+  ports:
+    - name: http
+      port: 8069
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: odoo-consumer
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: odoo-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: odoo-consumer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: odoo-consumer
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 20
+      containers:
+        - name: odoo-consumer
+          image: commerce/odoo:18.0.1
+          imagePullPolicy: IfNotPresent
+          args: ["python3", "-m", "commerce_erp.consumer"]
+          envFrom:
+            - configMapRef:
+                name: commerce-config
+          env:
+            - name: HOST
+              value: odoo-postgres
+            - name: PORT
+              value: "5432"
+            - name: USER
+              value: odoo
+            - name: PASSWORD
+              value: odoo
+            - name: ODOO_URL
+              value: http://odoo:8069
+            - name: ODOO_DB
+              value: odoo_db
+            - name: ODOO_USER
+              value: admin
+            - name: ODOO_PASSWORD
+              value: admin
+            - name: ODOO_DATABASE_URL
+              value: postgresql://odoo:odoo@odoo-postgres:5432/odoo_db
+            - name: RABBITMQ_URL
+              value: amqp://order_service:order_service@rabbitmq:5672/%2F
+            - name: ORDER_SERVICE_URL
+              value: http://order-service:8000
+            - name: INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: commerce-secrets
+                  key: INTERNAL_SERVICE_TOKEN
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: odoo-consumer
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: odoo-consumer
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: odoo-consumer
+  ports:
+    - name: unused
+      port: 9
+      targetPort: 9
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: odoo-publisher
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: odoo-publisher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: odoo-publisher
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: odoo-publisher
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 20
+      containers:
+        - name: odoo-publisher
+          image: commerce/odoo:18.0.1
+          imagePullPolicy: IfNotPresent
+          args: ["python3", "-m", "commerce_erp.publisher"]
+          envFrom:
+            - configMapRef:
+                name: commerce-config
+          env:
+            - name: HOST
+              value: odoo-postgres
+            - name: PORT
+              value: "5432"
+            - name: USER
+              value: odoo
+            - name: PASSWORD
+              value: odoo
+            - name: ODOO_URL
+              value: http://odoo:8069
+            - name: ODOO_DB
+              value: odoo_db
+            - name: ODOO_USER
+              value: admin
+            - name: ODOO_PASSWORD
+              value: admin
+            - name: ODOO_DATABASE_URL
+              value: postgresql://odoo:odoo@odoo-postgres:5432/odoo_db
+            - name: RABBITMQ_URL
+              value: amqp://order_service:order_service@rabbitmq:5672/%2F
+            - name: ORDER_SERVICE_URL
+              value: http://order-service:8000
+            - name: INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: commerce-secrets
+                  key: INTERNAL_SERVICE_TOKEN
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: odoo-publisher
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: odoo-publisher
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: odoo-publisher
+  ports:
+    - name: unused
+      port: 9
+      targetPort: 9

@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     rate_limit_window_seconds: int = 60
     # In-flight duplicate suppressor only. After this, a retry can create another order.
     order_create_lock_ttl_seconds: int = 15
+    # Retention CronJob. Terminal orders older than this many days, in committed batches.
+    order_retention_days: int = 365
+    order_retention_batch_size: int = 100
+    order_retention_max_batches: int = 20
 
 
 @lru_cache

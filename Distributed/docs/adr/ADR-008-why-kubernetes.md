@@ -1,6 +1,6 @@
 # ADR-008: Why Kubernetes, and why kind after Compose
 
-**Status: Phase 0 design; not implemented.** Accepted for this learning project.
+**Status: Accepted. Implemented in Phase 13** as `deploy/kind`. Compose remains the first runtime. The kind cluster is not production.
 
 ## Context
 
@@ -16,7 +16,7 @@ Use Kubernetes only after Docker Compose runs the business path. The local distr
 
 kind runs upstream Kubernetes nodes as Docker containers, so the Docker install from the Compose phases is reused. Clusters are disposable. Images can be loaded directly onto nodes before we operate a registry. kind does not preinstall our gateway, so Traefik remains an explicit install.
 
-Compose remains the required first runtime. Phase 18 is the earliest phase that may create a cluster.
+Compose remains the required first runtime. Phase 13 is the earliest phase that may create a cluster.
 
 ## Alternatives
 

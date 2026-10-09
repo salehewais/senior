@@ -1,0 +1,293 @@
+# Two Traefik processes, both traefik:v3.5.0.
+# ingress publishes HTTP and forwards every public path to the gateway Service.
+# gateway loads deploy/compose/dynamic.yaml, including the rule that excludes
+# fulfillment callbacks. jwt-check is the ForwardAuth target in that file.
+# ConfigMaps gateway-config, gateway-plugin, and ingress-config are created
+# by deploy/kind/apply.sh from the existing gateway files.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingress
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: ingress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ingress
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: ingress
+    spec:
+      serviceAccountName: ingress
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: traefik
+          image: traefik:v3.5.0
+          imagePullPolicy: IfNotPresent
+          args: ["--configFile=/etc/traefik/traefik.yaml"]
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: config
+              mountPath: /etc/traefik
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 15
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 48Mi
+            limits:
+              memory: 128Mi
+      volumes:
+        - name: config
+          configMap:
+            name: ingress-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: ingress
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: ingress
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      nodePort: 30080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jwt-check
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: jwt-check
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jwt-check
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: jwt-check
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: jwt-check
+          image: commerce/jwt-check:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8081
+          env:
+            - name: JWT_PUBLIC_KEY_PATH
+              value: /keys/jwt_public.pem
+          volumeMounts:
+            - name: jwt
+              mountPath: /keys
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 15
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+      volumes:
+        - name: jwt
+          secret:
+            secretName: commerce-secrets
+            items:
+              - key: jwt_public.pem
+                path: jwt_public.pem
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jwt-check
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: jwt-check
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: jwt-check
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: gateway
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 10
+      initContainers:
+        - name: plugins
+          image: busybox:1.36
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /plugins/src/github.com/commerce/edgeheaders
+              cp /src/edgeheaders.go /src/go.mod /plugins/src/github.com/commerce/edgeheaders/
+              cp /src/traefik.yml /plugins/src/github.com/commerce/edgeheaders/.traefik.yml
+          volumeMounts:
+            - name: plugin-src
+              mountPath: /src
+              readOnly: true
+            - name: plugins
+              mountPath: /plugins
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 32Mi
+      containers:
+        - name: traefik
+          image: traefik:v3.5.0
+          imagePullPolicy: IfNotPresent
+          workingDir: /
+          args: ["--configFile=/etc/traefik/traefik.yaml"]
+          ports:
+            - name: http
+              containerPort: 80
+            - name: metrics
+              containerPort: 8082
+          volumeMounts:
+            - name: config
+              mountPath: /etc/traefik
+              readOnly: true
+            - name: plugins
+              mountPath: /plugins-local
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 15
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+      volumes:
+        - name: config
+          configMap:
+            name: gateway-config
+        - name: plugin-src
+          configMap:
+            name: gateway-plugin
+        - name: plugins
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: gateway
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: gateway
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+    - name: metrics
+      port: 8082
+      targetPort: metrics

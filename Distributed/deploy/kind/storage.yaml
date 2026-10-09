@@ -1,0 +1,275 @@
+# Static hostPath volumes on the kind node. kind does not ship a provisioner.
+# A pod restart mounts the same claim. Deleting the cluster deletes the node
+# disk, and these directories go with it.
+# Redis has no volume. It is a cache.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: commerce-hostpath
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: Immediate
+reclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: commerce-order-postgres
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: commerce-hostpath
+  hostPath:
+    path: /var/local/commerce/order-postgres
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: order-postgres
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: commerce-hostpath
+  volumeName: commerce-order-postgres
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: commerce-reporting-postgres
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: commerce-hostpath
+  hostPath:
+    path: /var/local/commerce/reporting-postgres
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: reporting-postgres
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: commerce-hostpath
+  volumeName: commerce-reporting-postgres
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: commerce-odoo-postgres
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: commerce-hostpath
+  hostPath:
+    path: /var/local/commerce/odoo-postgres
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: odoo-postgres
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: commerce-hostpath
+  volumeName: commerce-odoo-postgres
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: commerce-rabbitmq
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: commerce-hostpath
+  hostPath:
+    path: /var/local/commerce/rabbitmq
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rabbitmq
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: commerce-hostpath
+  volumeName: commerce-rabbitmq
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: commerce-odoo-filestore
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: commerce-hostpath
+  hostPath:
+    path: /var/local/commerce/odoo-filestore
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: odoo-filestore
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: commerce-hostpath
+  volumeName: commerce-odoo-filestore
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: commerce-prometheus
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: commerce-hostpath
+  hostPath:
+    path: /var/local/commerce/prometheus
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: commerce-hostpath
+  volumeName: commerce-prometheus
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: commerce-grafana
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: commerce-hostpath
+  hostPath:
+    path: /var/local/commerce/grafana
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: commerce-hostpath
+  volumeName: commerce-grafana
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: commerce-tempo
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: commerce-hostpath
+  hostPath:
+    path: /var/local/commerce/tempo
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tempo
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: commerce-hostpath
+  volumeName: commerce-tempo
+  resources:
+    requests:
+      storage: 1Gi

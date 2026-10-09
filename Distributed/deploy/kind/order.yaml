@@ -1,0 +1,371 @@
+# Order HTTP API, outbox publisher, and inventory consumer. Same image as Compose.
+# DATABASE_URL, RABBITMQ_URL, and REDIS_URL use Kubernetes Service names.
+# Laptop-only passwords match deploy/compose/docker-compose.yml.
+# Orders are rows in order_db. This process does not keep them in memory.
+# The Service below has no session affinity. Either replica can serve a request.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: order-service
+spec:
+  # Starting count. The HPA below owns the live count between 2 and 4.
+  # Applying this file again sets the count back to 2 until the HPA reconciles.
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: order-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: order-service
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 20
+      initContainers:
+        - name: migrate
+          image: commerce/order-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "until alembic upgrade head; do sleep 2; done"]
+          env:
+            - name: DATABASE_URL
+              value: postgresql+psycopg://order_service:order_service@order-postgres:5432/order_db
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      containers:
+        - name: order-service
+          image: commerce/order-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["uvicorn", "order_service.presentation.app:app", "--host", "0.0.0.0", "--port", "8000"]
+          ports:
+            - name: http
+              containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: commerce-config
+          env:
+            - name: DATABASE_URL
+              value: postgresql+psycopg://order_service:order_service@order-postgres:5432/order_db
+            - name: RABBITMQ_URL
+              value: amqp://order_service:order_service@rabbitmq:5672/%2F
+            - name: REDIS_URL
+              value: redis://redis:6379/0
+            - name: OTEL_SERVICE_NAME
+              value: order-service
+            - name: JWT_PRIVATE_KEY_PATH
+              value: /keys/jwt_private.pem
+            - name: JWT_PUBLIC_KEY_PATH
+              value: /keys/jwt_public.pem
+            - name: INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: commerce-secrets
+                  key: INTERNAL_SERVICE_TOKEN
+          volumeMounts:
+            - name: jwt
+              mountPath: /keys
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: jwt
+          secret:
+            secretName: commerce-secrets
+            items:
+              - key: jwt_private.pem
+                path: jwt_private.pem
+              - key: jwt_public.pem
+                path: jwt_public.pem
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: order-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: order-service
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+---
+# One replica on purpose. SqlOutboxLease claims with
+# SELECT ... FOR UPDATE SKIP LOCKED ordered by created_at, id, so a second
+# process would not lock the same row. It would still publish its own batch
+# while this process publishes another, so a later created_at can reach the
+# broker before an earlier one (aggregate version 2 before version 1).
+# Publish order follows created_at only while one process runs the loop.
+# Partitioning by aggregate_id is not implemented. See docs/outbox.md.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-outbox-publisher
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: order-outbox-publisher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: order-outbox-publisher
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: order-outbox-publisher
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 20
+      initContainers:
+        - name: migrate
+          image: commerce/order-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "until alembic upgrade head; do sleep 2; done"]
+          env:
+            - name: DATABASE_URL
+              value: postgresql+psycopg://order_service:order_service@order-postgres:5432/order_db
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      containers:
+        - name: order-outbox-publisher
+          image: commerce/order-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "order_service.infrastructure.messaging.outbox_publisher"]
+          ports:
+            - name: metrics
+              containerPort: 9100
+          envFrom:
+            - configMapRef:
+                name: commerce-config
+          env:
+            - name: DATABASE_URL
+              value: postgresql+psycopg://order_service:order_service@order-postgres:5432/order_db
+            - name: RABBITMQ_URL
+              value: amqp://order_service:order_service@rabbitmq:5672/%2F
+            - name: REDIS_URL
+              value: redis://redis:6379/0
+            - name: OTEL_SERVICE_NAME
+              value: order-outbox-publisher
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-outbox-publisher
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: order-outbox-publisher
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: order-outbox-publisher
+  ports:
+    - name: metrics
+      port: 9100
+      targetPort: metrics
+---
+# Competing consumers on q.order.inventory. Prefetch stays 10 per process.
+# A redelivery of the same event_id hits processed_events (primary key) and
+# is acked as a duplicate. requeue=true is not set.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-inventory-consumer
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: order-inventory-consumer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: order-inventory-consumer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: order-inventory-consumer
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 20
+      initContainers:
+        - name: migrate
+          image: commerce/order-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "until alembic upgrade head; do sleep 2; done"]
+          env:
+            - name: DATABASE_URL
+              value: postgresql+psycopg://order_service:order_service@order-postgres:5432/order_db
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      containers:
+        - name: order-inventory-consumer
+          image: commerce/order-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "order_service.infrastructure.messaging.consumer"]
+          ports:
+            - name: metrics
+              containerPort: 9100
+          envFrom:
+            - configMapRef:
+                name: commerce-config
+          env:
+            - name: DATABASE_URL
+              value: postgresql+psycopg://order_service:order_service@order-postgres:5432/order_db
+            - name: RABBITMQ_URL
+              value: amqp://order_service:order_service@rabbitmq:5672/%2F
+            - name: REDIS_URL
+              value: redis://redis:6379/0
+            - name: OTEL_SERVICE_NAME
+              value: order-inventory-consumer
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-inventory-consumer
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: order-inventory-consumer
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: order-inventory-consumer
+  ports:
+    - name: metrics
+      port: 9100
+      targetPort: metrics
+---
+# CPU of the order-service API pods. This does not watch queue depth.
+# A consumer can be idle on CPU while its RabbitMQ queue grows, and this
+# object will not add consumer pods. metrics-server (resource metrics only)
+# has to be running or the replica count stays where the Deployment left it.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: order-service
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: order-service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: order-service
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

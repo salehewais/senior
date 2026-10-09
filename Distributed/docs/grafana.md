@@ -6,7 +6,7 @@ Grafana is how a person looks at Prometheus metrics and, later, traces. It is no
 
 ## Dashboards
 
-Names stay stable so lessons and screenshots match. The JSON is provisioned from the repo. A Kubernetes board is out of scope until Phase 13. Container CPU and memory are not on these boards: cAdvisor is not in the Compose file, and this phase does not pretend to have node metrics.
+Names stay stable so lessons and screenshots match. The JSON is provisioned from the repo. A Kubernetes board was not added in Phase 13. Container CPU and memory are not on these boards: cAdvisor is not in the Compose file, and this phase does not pretend to have node metrics.
 
 | Dashboard | Question it answers |
 | --- | --- |

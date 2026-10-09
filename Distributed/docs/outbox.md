@@ -72,7 +72,7 @@ Recovery: if the broker was down, restore it and leave the rows `pending`; the p
 
 ## Concurrent publishing
 
-**Learning default:** run one publisher. Combined with `ORDER BY created_at, id`, one worker preserves outbox order, which makes early report projections easier to debug.
+**Learning default:** run one publisher. Combined with `ORDER BY created_at, id`, one worker preserves outbox order, which makes early report projections easier to debug. Phase 14 keeps the kind Deployment `order-outbox-publisher` at 1 replica for that reason. `SKIP LOCKED` is already in `SqlOutboxLease`. It is not enough, by itself, to make a second replica preserve order.
 
 **Design the table for more than one anyway.** `SKIP LOCKED` means a second publisher takes a different batch instead of blocking or double-reading the same row. Without `SKIP LOCKED`, two publishers can grab the same pending rows, send duplicates (consumers must still tolerate those), and deadlock on row locks.
 

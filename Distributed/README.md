@@ -1,8 +1,8 @@
 # Commerce platform (learning project)
 
-This repository is a learning project for a small commerce platform. It is designed with the same boundaries a production system would need. Phase 0 fixed the vocabulary. Phase 1 is the FastAPI order service in `services/order-service`: the domain, `order_db`, and the HTTP API. Phase 2 adds authentication and authorization on that service. Phase 3 is the React storefront in `services/frontend`. It calls the order service over HTTP. Phase 4 publishes domain events to RabbitMQ. Phase 5 makes the order service's inventory consumer idempotent and routes failed deliveries through retry queues into a dead-letter queue. Phase 6 writes each of those events into an outbox row in the same `order_db` transaction, and a separate publisher process sends pending rows to RabbitMQ. Phase 7 is the Django reporting service in `services/reporting-service`. Phase 8 is Odoo in `services/odoo`: a confirmed order becomes one ERP sales order, and a stock change comes back as `InventoryUpdated`. Phase 9 adds Redis beside the order service for the product cache and the shared login, register, and order-create limits. The gateway and Kubernetes are not built yet.
+This repository is a learning project for a small commerce platform. It is designed with the same boundaries a production system would need. Phase 0 fixed the vocabulary. Phase 1 is the FastAPI order service in `services/order-service`: the domain, `order_db`, and the HTTP API. Phase 2 adds authentication and authorization on that service. Phase 3 is the React storefront in `services/frontend`. It calls the order service over HTTP. Phase 4 publishes domain events to RabbitMQ. Phase 5 makes the order service's inventory consumer idempotent and routes failed deliveries through retry queues into a dead-letter queue. Phase 6 writes each of those events into an outbox row in the same `order_db` transaction, and a separate publisher process sends pending rows to RabbitMQ. Phase 7 is the Django reporting service in `services/reporting-service`. Phase 8 is Odoo in `services/odoo`: a confirmed order becomes one ERP sales order, and a stock change comes back as `InventoryUpdated`. Phase 9 adds Redis beside the order service for the product cache and the shared login, register, and order-create limits. Later phases add the gateway, the full Compose file, observability, and a local kind cluster.
 
-Nothing here is production-ready. The order service can run against local Postgres, RabbitMQ, and Redis containers. The storefront is a Vite dev server. Reporting and Odoo each have their own Compose file and their own database. The gateway and Kubernetes do not run.
+Nothing here is production-ready. The order service can run against local Postgres, RabbitMQ, and Redis containers. The storefront is a Vite dev server. Reporting and Odoo each have their own Compose file and their own database. Compose is the first runtime. The kind cluster in Phase 13 is a second packaging of the same images, and it is not a production deploy.
 
 ## Learning goal
 
@@ -67,7 +67,7 @@ Read in this order. Later files assume the earlier decisions.
 Use the remaining docs when you reach the phase that implements them. They are design stubs: the decision is recorded, the software is not built.
 
 - [docs/docker.md](docs/docker.md) — Compose first
-- [docs/kubernetes.md](docs/kubernetes.md) — kind later
+- [docs/kubernetes.md](docs/kubernetes.md) — kind, Phase 13, after Compose
 - [docs/observability.md](docs/observability.md), [docs/prometheus.md](docs/prometheus.md), [docs/grafana.md](docs/grafana.md), [docs/alerting.md](docs/alerting.md) — how we see failure
 - [docs/testing.md](docs/testing.md) — what is worth testing before the cluster exists
 - [docs/failure-scenarios.md](docs/failure-scenarios.md) — expected behavior when a dependency dies
@@ -95,7 +95,7 @@ The full table, including what we refused to add, is in [docs/architecture.md](d
 
 ## Phase plan
 
-Phases 0 through 11 are done. Later phases are not started. This checklist is the authoritative order from the project specification. Some design notes still mention an earlier draft numbering (Compose-only as phase 1, observability as phase 17, kind as phase 18). When a sentence and this list disagree, follow this list. Kubernetes does not start before the system runs under Docker Compose.
+Phases 0 through 13 are done. Later phases are not started. This checklist is the authoritative order from the project specification. Some design notes still mention an earlier draft numbering (Compose-only as phase 1, observability as phase 17, kind as phase 18). When a sentence and this list disagree, follow this list. Kubernetes does not start before the system runs under Docker Compose.
 
 - [x] **Phase 0 — Architecture.** Boundaries, events, state machine, communication matrix, ADRs. No application code.
 - [x] **Phase 1 — FastAPI foundation.** Clean Architecture, MVC at the HTTP edge, PostgreSQL, SQLAlchemy, Alembic, domain model, order state machine, basic REST APIs, unit tests. See [How to run Phase 1](#how-to-run-phase-1).
@@ -110,9 +110,9 @@ Phases 0 through 11 are done. Later phases are not started. This checklist is th
 - [x] **Phase 10 — API gateway.** Traefik: routing, CORS, request IDs, authentication enforcement, rate limiting. See [How to run Phase 10](#how-to-run-phase-10).
 - [x] **Phase 11 — Docker Compose.** The full local stack, after the applications already work. See [How to run the full stack](#how-to-run-the-full-stack).
 - [x] **Phase 12 — Observability.** Structured logs, Prometheus, Grafana, Alertmanager, OpenTelemetry. See [How to look at observability](#how-to-look-at-observability).
-- [ ] **Phase 13 — Kubernetes.** kind, after Compose. Namespace, deployments, services, ConfigMaps, Secrets, PVCs, Ingress, probes.
-- [ ] **Phase 14 — Scaling.** FastAPI replicas, competing consumers, HPA, queue-backlog monitoring.
-- [ ] **Phase 15 — CronJobs.** Retention, batched cleanup.
+- [x] **Phase 13 — Kubernetes.** kind, after Compose. Namespace, deployments, services, ConfigMaps, Secrets, PVCs, Ingress, probes. See [How to run on kind](#how-to-run-on-kind).
+- [x] **Phase 14 — Scaling.** FastAPI replicas, competing consumers, HPA, queue-backlog monitoring. See [Scaling (Phase 14)](#scaling-phase-14).
+- [x] **Phase 15 — CronJobs.** Retention, batched cleanup. See [Retention (Phase 15)](#retention-phase-15).
 - [ ] **Phase 16 — CI/CD.** Lint, tests, security scans, image build and scan.
 - [ ] **Phase 17 — Load testing.** Product browse, order create, order read.
 - [ ] **Phase 18 — Failure lab.** Break RabbitMQ, PostgreSQL, Redis, Django, Odoo, and FastAPI pods on purpose.
@@ -733,7 +733,7 @@ Images built here are tagged `commerce/order-service:0.1.0`, `commerce/reporting
 Commands are the exec form, so the HTTP servers and the consumers are the process that receives SIGTERM.
 
 > **Learning simplification.** One laptop, HTTP at the gateway, three database containers, private ports for RabbitMQ management and the Odoo UI.
-> **Production would require.** TLS at the gateway, no learning passwords, a registry, and the cluster in Phase 13. This file is not that deploy.
+> **Production would require.** TLS at the gateway, no learning passwords, and a registry. Phase 13 packages the same images for kind. Neither description is a production deploy.
 
 ## How to look at observability
 
@@ -757,7 +757,7 @@ docker compose -f deploy/compose/docker-compose.yml up -d --build
 
 Open Grafana at `http://127.0.0.1:3000`. Anonymous Admin is on for this laptop, so the boards load without a login. The admin password is `GRAFANA_ADMIN_PASSWORD` if you turn that off. It is not printed here. Prometheus is `http://127.0.0.1:9090`. Alertmanager is `http://127.0.0.1:9093`. Both are bound to `127.0.0.1`. The Prometheus UI is not published on `0.0.0.0`.
 
-The folder in Grafana is Commerce. The boards are Platform overview, Order path, Outbox and broker, Reporting lag, Payment, and Dependencies. A Kubernetes board is Phase 13 and is not here. Traces are in Grafana's Explore view with the Tempo datasource, after one request has been served while the collector is up.
+The folder in Grafana is Commerce. The boards are Platform overview, Order path, Outbox and broker, Reporting lag, Payment, and Dependencies. A Kubernetes board is not part of this Compose file. Phase 14 installs metrics-server on kind for CPU only. Custom metrics, including queue depth, are not installed. Traces are in Grafana's Explore view with the Tempo datasource, after one request has been served while the collector is up.
 
 Alert rules are starting points for a quiet laptop. They will be wrong under load. Notifications go to the `alert-webhook` container log (`docker compose -f deploy/compose/docker-compose.yml logs alert-webhook`). There is no email account.
 
@@ -766,4 +766,109 @@ docker compose -f deploy/compose/docker-compose.yml logs -f order-service report
 ```
 
 Each line is JSON with `timestamp`, `service`, `level`, and `message`, plus `request_id`, `correlation_id`, `trace_id`, and `span_id` when that request or message has them.
+
+## How to run on kind
+
+Phase 13 packages the Compose stack for a local kind cluster. Read [How to run the full stack](#how-to-run-the-full-stack) first. Compose stays the first runtime. The manifests are in `deploy/kind`, namespace `commerce`. This is one node, HTTP, and images loaded with `kind load docker-image`. It is not production.
+
+Stop the Compose stack first if it holds `127.0.0.1:8080`. Generate the JWT PEMs the same way as Compose (`deploy/compose/secrets/`). Set `INTERNAL_SERVICE_TOKEN` in the environment or in `deploy/compose/.env`. `bash deploy/kind/apply.sh` runs the sequence below. It does not delete a cluster. If a cluster named `commerce` already exists, the script leaves it and loads images into it. If the Docker daemon is down, the script exits and does not create a cluster.
+
+```bash
+kind create cluster --config deploy/kind/kind-config.yaml
+docker build -t commerce/order-service:0.1.0 services/order-service
+docker build -t commerce/reporting-service:0.1.0 services/reporting-service
+docker build -t commerce/frontend:0.1.0 --build-arg VITE_API_BASE_URL=http://127.0.0.1:8080 services/frontend
+docker build -t commerce/jwt-check:0.1.0 -f deploy/gateway/jwt-check/Dockerfile deploy/gateway
+docker build -t commerce/odoo:18.0.1 services/odoo
+kind load docker-image --name commerce commerce/order-service:0.1.0
+kind load docker-image --name commerce commerce/reporting-service:0.1.0
+kind load docker-image --name commerce commerce/frontend:0.1.0
+kind load docker-image --name commerce commerce/jwt-check:0.1.0
+kind load docker-image --name commerce commerce/odoo:18.0.1
+kubectl apply -k deploy/kind
+```
+
+Before `kubectl apply`, the script creates ConfigMaps from `deploy/observability`, `deploy/gateway`, and `deploy/compose/dynamic.yaml`, and it creates the Secret with `deploy/kind/create-secrets.sh`.
+
+```bash
+python3 deploy/kind/test_manifests.py
+kubectl apply -k deploy/kind --dry-run=client
+```
+
+The storefront and `/api/v1` are `http://127.0.0.1:8080`. kind maps that port to a NodePort on the ingress controller, and the only Ingress sends every public path to the gateway Service. The gateway still uses `deploy/compose/dynamic.yaml`, so fulfillment callbacks are not routed. Postgres, Redis, and RabbitMQ have no Ingress and their Services are ClusterIP.
+
+Grafana, Prometheus, Alertmanager, the Odoo UI, and RabbitMQ management stay inside the cluster. Reach them with `kubectl -n commerce port-forward` (`svc/grafana` 3000, `svc/prometheus` 9090, `svc/alertmanager` 9093, `svc/odoo` 8069, `svc/rabbitmq` 15672). Do not publish them on the Ingress.
+
+`order-service` reads `DATABASE_URL` from the environment. The Deployment sets the host to the Service `order-postgres`. RabbitMQ is `rabbitmq`, Redis is `redis`, and reporting uses `reporting-postgres`. Those are not `localhost` and not the Compose name `postgres`.
+
+startup means the process has finished booting.
+readiness means it can take traffic.
+liveness means it should be restarted.
+
+The order HTTP process uses `/health/live` for startup and liveness, and `/health/ready` for readiness, so a dead `order_db` removes it from the Service and does not restart it. The Odoo consumer and publisher have no HTTP listener, so they have no probe. Redis has no PVC. Persistence is off. It is still a cache, and a restart drops the keys.
+
+A pod restart mounts the same PVC, so Postgres, RabbitMQ, the Odoo filestore, Prometheus, Grafana, and Tempo keep their files. Deleting the kind cluster deletes the node disk, and these hostPath volumes go with it.
+
+The Secret is `commerce-secrets`. `deploy/kind/secrets.example.yaml` lists the keys with an empty token and a PEM placeholder. Do not apply that file and do not commit a private key or a filled token. `deploy/kind/create-secrets.sh` reads the host PEM paths and `INTERNAL_SERVICE_TOKEN` and applies the Secret. Database passwords in the Deployments are the laptop-only placeholders from Compose (`order_service`, `reporting_service`, `odoo`).
+
+> **Learning simplification.** One node, HTTP, local images loaded into kind.
+> **Production would require.** A registry, TLS, network policy, and a real secret store. This cluster is not that.
+
+## Scaling (Phase 14)
+
+Phase 14 sets replica counts and one HorizontalPodAutoscaler in `deploy/kind`. It does not add a load generator or a queue-based autoscaler. The retention CronJob is Phase 15. The cluster is still one kind node. It is not production.
+
+**Replicas and the HPA.** `order-service` starts at 2 replicas. The Service has no session affinity, so either pod can take a request. Orders are rows in `order_db`. The HPA named `order-service` watches CPU on those API pods: minimum 2, maximum 4, target 70 percent of the CPU request. The API container requests `100m` CPU and `128Mi` memory so that percentage has a denominator. `deploy/kind/metrics-server.yaml` is upstream metrics-server v0.9.0 plus `--kubelet-insecure-tls`, because kind's kubelet certificate is not one metrics-server trusts. Without a running metrics-server, the HPA object is present and the replica count does not move. Applying the Deployment again sets `replicas` back to 2 until the HPA reconciles.
+
+Watch the count. This is not a load test:
+
+```bash
+kubectl -n commerce get deploy order-service order-inventory-consumer reporting-consumer order-outbox-publisher
+kubectl -n commerce get hpa order-service
+kubectl -n commerce top pods -l app.kubernetes.io/name=order-service
+```
+
+`kubectl top` needs metrics-server to be Ready. The kind node pulls `registry.k8s.io/metrics-server/metrics-server:v0.9.0`. If Docker or kind is down, `python3 deploy/kind/test_manifests.py` is the check. A green test is not a scaled cluster.
+
+**Competing consumers.** `order-inventory-consumer` and `reporting-consumer` run 2 replicas each. RabbitMQ gives each message on `q.order.inventory` and on `q.reporting.projection` to one of the workers on that queue. Prefetch stays 10 per process. `requeue=true` is not used. A second worker is safe because a redelivery of the same `event_id` hits `processed_events` (primary key `event_id`) and is acked as a duplicate. The inventory case is `test_duplicate_event_id_does_not_apply_twice` in `services/order-service/tests/unit/test_reliability.py`. The reporting case is `test_duplicate_event_id_does_not_double_the_count` in `services/reporting-service/projections/tests/test_apply.py`. Without that key, two workers can both apply one fact after a crash before ack, and a stock snapshot or a report count moves twice.
+
+**Outbox publisher.** `order-outbox-publisher` stays at 1 replica. `SqlOutboxLease` already claims with `SELECT ... FOR UPDATE SKIP LOCKED` ordered by `created_at`, `id`, so a second process would not lock the same row. It would still publish its own batch while the first process publishes another, so a later `created_at` can leave the broker before an earlier one, including version 2 of an aggregate before version 1. One process is what keeps publish order equal to `created_at`. Partitioning by `aggregate_id` is the scale path in [docs/outbox.md](docs/outbox.md) and is not implemented.
+
+### What you would scale on queue depth
+
+The HPA watches CPU of the order API. A consumer can be waiting on the broker or on Postgres with CPU near idle while `rabbitmq_detailed_queue_messages` for `q.order.inventory` or `q.reporting.projection` climbs. Utilization then stays under 70 percent, so this HPA does not add consumer pods. That backlog is already the "RabbitMQ primary backlog" panel on the Platform overview board, the queue-depth panels on the Outbox and broker board, and the Prometheus rule `RabbitQueueGrowth` (a primary queue above 100 messages for 5 minutes) in `deploy/observability/prometheus/alerts.yml`. A queue scaler would use that series as an external metric, keep a minimum of 2 replicas, and target the consumer Deployment. This phase does not install a Prometheus adapter or KEDA.
+
+> **Learning simplification.** Two API replicas, a CPU HPA with a ceiling of 4, two competing consumers, one publisher, and metrics-server with insecure kubelet TLS.
+> **Production would require.** A kubelet certificate metrics-server trusts, a queue-depth scaler with a tested maximum, and the aggregate partition before a second publisher. This phase is not that.
+
+## Retention (Phase 15)
+
+Phase 15 adds one CronJob that deletes old terminal orders from `order_db` in batches. It does not add CI, a load test, a backup, or a second autoscaler. The cluster is still one kind node. It is not production.
+
+**What is deleted.** An order is eligible when `orders.created_at` is earlier than now minus `ORDER_RETENTION_DAYS` (default 365) and `status` is `DELIVERED` or `CANCELLED`. The job deletes that order's `order_items` rows, then the order. `PENDING`, `CONFIRMED`, `PROCESSING`, and `SHIPPED` stay, however old they are. A delivered or cancelled order newer than the cutoff stays. An old in-flight order is an operator problem, not garbage: deleting it would hide a checkout or a shipment that never finished.
+
+**Why not one DELETE.** One statement that removes every old order holds row locks until the statement ends, asks replicas to apply one huge change, and a crash in the middle rolls the whole statement back. The operator then does not know which rows a retry will see, and the lock was held the entire time. `ORDER_RETENTION_BATCH_SIZE` (default 100) is the most order ids one statement selects. The job deletes items and orders for that id list and commits. The next batch is a new transaction, so a failure keeps the batches already committed and does not hold one lock across the backlog. `ORDER_RETENTION_MAX_BATCHES` (default 20) stops each table's loop even when every batch came back full. That cap applies separately to orders, published outbox rows, and `processed_events`, so one run deletes at most 2000 rows of each. The next night continues. A short batch ends that table's loop.
+
+**Outbox.** `outbox.aggregate_id` is not a foreign key to `orders`. Pending and failed rows are never deleted. A pending row has not been confirmed by the broker. A failed row exhausted publish attempts and needs an operator. Published rows are removed in their own batches when `created_at` is older than the same cutoff, or when `aggregate_type` is `order` and that order row is already gone. A recent published row for an order that is still in the table stays.
+
+**processed_events.** Rows in `order_db.processed_events` with `processed_at` earlier than the cutoff are removed in their own batches. That table records `InventoryUpdated` deliveries for the inventory consumer. A redelivery after the row is gone runs the snapshot apply again. An older `source_version` does not overwrite a newer snapshot, and that handler does not insert orders, so it cannot bring a deleted order back. Reporting's `processed_events` live in `reporting_db` and are not touched. Those rows dedupe order facts. Deleting them would let a redelivery apply `OrderCreated` again and put the order back in the report. This job opens only `order_db`. Inventory snapshots, customers, products, and accounts stay. They are not order history.
+
+**CronJob.** The name is `order-retention`, namespace `commerce`. The schedule is `30 3 * * *` (03:30 UTC). `concurrencyPolicy: Forbid` so a slow run is not started twice. The pod `restartPolicy` is `OnFailure`. `startingDeadlineSeconds: 3600` means a missed 03:30 can still start within an hour and is skipped after that. `activeDeadlineSeconds: 600` kills a run that is still going after 10 minutes. Batches committed before the kill stay committed. The container is `commerce/order-service:0.1.0`. The command is `python -m order_service.infrastructure.database.retention`. It is not a shell that builds SQL. `DATABASE_URL` is the same `order-postgres` / `order_db` value the order Deployment uses. There is no new password. Postgres, Redis, and RabbitMQ stay off NodePort and LoadBalancer.
+
+Check the manifests and the unit tests without a cluster. From `services/order-service`:
+
+```bash
+python3 -m pytest tests/unit -q
+```
+
+From the repository root:
+
+```bash
+python3 deploy/kind/test_manifests.py
+```
+
+This environment did not create a kind cluster and did not run the Job. Docker was down, so there was no cluster to schedule `order-retention`.
+
+> **Learning simplification.** One daily job, a 365-day cutoff, batches of 100, and at most 20 batches of each table per night. Laptop database passwords. No archive table.
+> **Production would require.** A tested restore, a way to pause the job when a row must be kept, and a cutoff agreed with the people who still need the orders. This phase is not that.
 

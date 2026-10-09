@@ -108,6 +108,7 @@ class ProjectionTests(TestCase):
         )
 
     def test_duplicate_event_id_does_not_double_the_count(self) -> None:
+        """Two workers, or one redelivery, apply a given event_id once."""
         order_id = uuid.uuid4()
         created = envelope("OrderCreated", order_id, order_payload(order_id, status="PENDING", version=1))
         first = apply_envelope(created)

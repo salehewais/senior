@@ -1,0 +1,45 @@
+# The ingress controller reads Ingress and Service objects. Application pods
+# do not get this account.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ingress
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: ingress
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: commerce-ingress
+  labels:
+    app.kubernetes.io/part-of: commerce
+rules:
+  - apiGroups: [""]
+    resources: ["services", "endpoints", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "ingressclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses/status"]
+    verbs: ["update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: commerce-ingress
+  labels:
+    app.kubernetes.io/part-of: commerce
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: commerce-ingress
+subjects:
+  - kind: ServiceAccount
+    name: ingress
+    namespace: commerce

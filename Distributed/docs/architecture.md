@@ -261,7 +261,7 @@ flowchart TB
     c_obs[prometheus_grafana_alertmanager_otel]
   end
 
-  subgraph kindcluster [Phase_18_kind]
+  subgraph kindcluster [Phase_13_kind]
     k_ing[Traefik_ingress]
     k_api[Deployment_order_service]
     k_rep[Deployment_reporting]
@@ -386,14 +386,14 @@ ADRs: [001](adr/ADR-001-why-fastapi.md) through [012](adr/ADR-012-why-api-gatewa
 | --- | --- | --- |
 | React | Static assets behind the gateway or a CDN | The API is not the place to scale HTML |
 | Traefik | More replicas, with the limit that in-memory rate limits are per replica | A limit that worked on one node stops being a global limit |
-| Order service | More API replicas behind the gateway. One outbox publisher at first; later, publishers partitioned by aggregate | Two publishers without `SKIP LOCKED` can double-send or deadlock |
-| Reporting consumers | Competing consumers once handlers version-gate | Unordered applies corrupt totals |
+| Order service | Phase 14: 2 API replicas behind the gateway, CPU HPA from 2 to 4. One outbox publisher until publishers are partitioned by aggregate | Two publishers without `SKIP LOCKED` can double-send or deadlock. Two publishers with `SKIP LOCKED` can still publish version 2 before version 1 |
+| Reporting consumers | Phase 14: 2 competing consumers. Handlers version-gate and dedupe on `event_id` | Unordered applies corrupt totals |
 | Odoo | Odoo's own workers. Our connector stays a module, not a new service | A separate connector service would be another database and another deploy |
 | Postgres | Bigger instance per database, then read replicas for reporting only | A replica of `order_db` used for checkout writes splits the brain |
 | RabbitMQ | Quorum queues when we leave the laptop | A single broker disk is a single point of failure |
 | Redis | One primary is enough while it is a cache | Promoting Redis to source of truth makes eviction a data-loss bug |
 
-> **Learning simplification.** Single replicas, one broker node, classic queues, one publisher, prefetch small enough to reason about.
+> **Learning simplification.** Phase 14 runs two API replicas, a CPU HPA, two competing consumers, one publisher, one broker node, classic queues, prefetch 10.
 > **Production would require.** Quorum queues, a defined publisher partition scheme, per-database capacity tests, and a CDN for the SPA.
 
 ## Related documents

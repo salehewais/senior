@@ -1,0 +1,249 @@
+# Reporting HTTP API and consume_events worker. Same image as Compose.
+# REPORTING_DATABASE_URL uses the reporting-postgres Service, not localhost.
+# DJANGO_SECRET_KEY is the laptop placeholder from Compose.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reporting-service
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: reporting-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: reporting-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: reporting-service
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 20
+      initContainers:
+        - name: migrate
+          image: commerce/reporting-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "until python -u manage.py migrate --noinput; do sleep 2; done"]
+          env:
+            - name: REPORTING_DATABASE_URL
+              value: postgresql://reporting_service:reporting_service@reporting-postgres:5432/reporting_db
+            - name: DJANGO_SECRET_KEY
+              value: local-reporting-dev-only
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      containers:
+        - name: reporting-service
+          image: commerce/reporting-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-u", "manage.py", "runserver", "0.0.0.0:8001", "--noreload"]
+          ports:
+            - name: http
+              containerPort: 8001
+          envFrom:
+            - configMapRef:
+                name: commerce-config
+          env:
+            - name: REPORTING_DATABASE_URL
+              value: postgresql://reporting_service:reporting_service@reporting-postgres:5432/reporting_db
+            - name: RABBITMQ_URL
+              value: amqp://order_service:order_service@rabbitmq:5672/%2F
+            - name: DJANGO_SECRET_KEY
+              value: local-reporting-dev-only
+            - name: DJANGO_ALLOWED_HOSTS
+              value: reporting-service,localhost,127.0.0.1
+            - name: JWT_PUBLIC_KEY_PATH
+              value: /keys/jwt_public.pem
+            - name: OTEL_SERVICE_NAME
+              value: reporting-service
+          volumeMounts:
+            - name: jwt
+              mountPath: /keys
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: reporting-service
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            exec:
+              command:
+                - python
+                - -c
+                - "import urllib.error, urllib.request\ntry:\n    urllib.request.urlopen('http://127.0.0.1:8001/api/v1/reports/orders/summary', timeout=3)\nexcept urllib.error.HTTPError as exc:\n    raise SystemExit(0 if exc.code in (401, 403) else 1)\n"
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: reporting-service
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: jwt
+          secret:
+            secretName: commerce-secrets
+            items:
+              - key: jwt_public.pem
+                path: jwt_public.pem
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reporting-service
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: reporting-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: reporting-service
+  ports:
+    - name: http
+      port: 8001
+      targetPort: http
+---
+# Competing consumers on q.reporting.projection. Prefetch stays 10 per process.
+# processed_events.event_id is the primary key, so a second worker applying
+# the same event_id is a duplicate. requeue=true is not set.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reporting-consumer
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: reporting-consumer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: reporting-consumer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: commerce
+        app.kubernetes.io/name: reporting-consumer
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 20
+      initContainers:
+        - name: migrate
+          image: commerce/reporting-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "until python -u manage.py migrate --noinput; do sleep 2; done"]
+          env:
+            - name: REPORTING_DATABASE_URL
+              value: postgresql://reporting_service:reporting_service@reporting-postgres:5432/reporting_db
+            - name: DJANGO_SECRET_KEY
+              value: local-reporting-dev-only
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      containers:
+        - name: reporting-consumer
+          image: commerce/reporting-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-u", "manage.py", "consume_events"]
+          ports:
+            - name: metrics
+              containerPort: 9100
+          envFrom:
+            - configMapRef:
+                name: commerce-config
+          env:
+            - name: REPORTING_DATABASE_URL
+              value: postgresql://reporting_service:reporting_service@reporting-postgres:5432/reporting_db
+            - name: RABBITMQ_URL
+              value: amqp://order_service:order_service@rabbitmq:5672/%2F
+            - name: DJANGO_SECRET_KEY
+              value: local-reporting-dev-only
+            - name: JWT_PUBLIC_KEY_PATH
+              value: /keys/jwt_public.pem
+            - name: OTEL_SERVICE_NAME
+              value: reporting-consumer
+          volumeMounts:
+            - name: jwt
+              mountPath: /keys
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: jwt
+          secret:
+            secretName: commerce-secrets
+            items:
+              - key: jwt_public.pem
+                path: jwt_public.pem
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reporting-consumer
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+    app.kubernetes.io/name: reporting-consumer
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: reporting-consumer
+  ports:
+    - name: metrics
+      port: 9100
+      targetPort: metrics

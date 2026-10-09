@@ -1,4 +1,7 @@
-"""One consumer. The process entrypoint listens on q.order.inventory.
+"""Inventory consumer process. The entrypoint listens on q.order.inventory.
+
+Phase 14 may run more than one of these processes on that queue. They compete
+for deliveries. Prefetch stays 10 per process. processed_events dedupes event_id.
 
 That queue is the order service's queue: it receives InventoryUpdated.
 q.reporting.projection belongs to reporting. The same settlement path can
@@ -72,7 +75,7 @@ from order_service.observability.tracing import consumer_span
 
 logger = logging.getLogger("order_service.consumer")
 
-# docs/rabbitmq.md: start at 10. One consumer, not a throughput setting.
+# docs/rabbitmq.md: start at 10. Bounded per process. A second replica does not raise it.
 PREFETCH_COUNT = 10
 
 EventHandler = Callable[[dict[str, object]], DeliveryResult | DeliveryOutcome | None]

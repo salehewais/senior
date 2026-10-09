@@ -1,0 +1,29 @@
+# Ingress controller only. It does not load deploy/compose/dynamic.yaml.
+# The only Ingress in this namespace sends public HTTP to the gateway Service.
+# Route rules stay in the gateway's file provider.
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+api:
+  dashboard: false
+  insecure: false
+
+ping:
+  entryPoint: web
+
+log:
+  level: INFO
+
+entryPoints:
+  web:
+    address: ":80"
+    forwardedHeaders:
+      insecure: false
+
+providers:
+  kubernetesIngress:
+    ingressClass: traefik
+    namespaces:
+      - commerce

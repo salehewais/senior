@@ -1,0 +1,22 @@
+# Workloads for the commerce namespace. The example Secret file is not a resource.
+# apply.sh creates the ConfigMaps that mount files from deploy/observability,
+# deploy/gateway, and deploy/compose/dynamic.yaml before this is applied.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - storage.yaml
+  - rbac.yaml
+  - postgres.yaml
+  - rabbitmq.yaml
+  - redis.yaml
+  - order.yaml
+  - retention.yaml
+  - reporting.yaml
+  - odoo.yaml
+  - frontend.yaml
+  - gateway.yaml
+  - observability.yaml
+  - ingress.yaml
+  - metrics-server.yaml

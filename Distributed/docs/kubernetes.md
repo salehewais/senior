@@ -1,8 +1,8 @@
 # Kubernetes
 
-**Status: Phase 0 design; not implemented.**
+**Status: Phase 14.** Manifests are in `deploy/kind`, namespace `commerce`. Compose is still the first runtime. This is one kind node on a laptop. Phase 14 adds API replicas, competing consumers, and a CPU HorizontalPodAutoscaler. It is not production.
 
-The cluster is a later packaging of the same system. It is not a different architecture. Phase 18 is the first phase allowed to create a cluster. Compose must already run the business path.
+The cluster is a packaging of the same system. It is not a different architecture. Phase 13 is the first phase allowed to create a cluster. Compose must already run the business path.
 
 ## Choice: kind
 
@@ -33,7 +33,7 @@ Alternatives, and why they wait:
 
 Starting in YAML before any of that works teaches the control plane and hides the bug.
 
-## Intended shape (Phase 18)
+## Intended shape (Phase 13)
 
 | Kubernetes idea | What it maps from |
 | --- | --- |
@@ -46,7 +46,7 @@ Starting in YAML before any of that works teaches the control plane and hides th
 | Resource requests | Small, explicit, so a local cluster does not overcommit silently |
 | ConfigMap and Secret | Non-secret config versus credentials. Secrets are still not committed. |
 
-One replica of each business service is enough to prove the port. A second order-service replica is the optional stretch, to show that rate limits and outbox publishing need the designs in [outbox.md](outbox.md) and [ADR-007](adr/ADR-007-why-redis.md).
+Phase 13 proved the port with one replica of each business service. Phase 14 is the replica count. The order API starts at 2, behind the existing Service, with no session affinity. Orders stay in `order_db`. Login and order-create limits stay in Redis, which is why a second API replica does not reset the budget ([ADR-007](adr/ADR-007-why-redis.md)). The outbox publisher stays at 1 replica: the claim uses `FOR UPDATE SKIP LOCKED`, and a second publisher would still break `created_at` order ([outbox.md](outbox.md)).
 
 ## Failure
 
@@ -56,11 +56,28 @@ Application failure modes do not change: a dead `order_db` still must not block 
 
 ## What we are not adding
 
-No service mesh. Three services behind one gateway do not repay the operational cost of sidecar injection, mTLS automation, and mesh upgrades. Network policy plus the gateway is the isolation tool. A mesh can be an ADR later if the service count grows. It is not a Phase 18 default.
+No service mesh. Three services behind one gateway do not repay the operational cost of sidecar injection, mTLS automation, and mesh upgrades. Network policy plus the gateway is the isolation tool. A mesh can be an ADR later if the service count grows. It is not a Phase 13 default.
 
-No horizontal pod autoscaler until something has been measured. Autoscaling an empty metric is theater.
+## Scaling (Phase 14)
 
-> **Learning simplification.** Single-node kind, images loaded locally, HTTP ingress, one replica, no mesh.
+| Workload | Replicas | What changes the count |
+| --- | --- | --- |
+| `order-service` | 2 at start | HPA `order-service`, CPU, min 2, max 4, target 70% of the `100m` request |
+| `order-inventory-consumer` | 2 | Fixed. Competing consumers on `q.order.inventory` |
+| `reporting-consumer` | 2 | Fixed. Competing consumers on `q.reporting.projection` |
+| `order-outbox-publisher` | 1 | Fixed, so publish order follows `created_at` |
+
+The API container requests `100m` CPU and `128Mi` memory. The HPA cannot compute a utilization percentage without a request. `deploy/kind/metrics-server.yaml` is metrics-server v0.9.0 with `--kubelet-insecure-tls`, the usual kind workaround. It serves resource metrics. It does not serve queue depth. A Kubernetes Grafana board is still not installed.
+
+CPU on the API is the wrong signal for a consumer that is idle while its queue grows. The metric for that exercise is `rabbitmq_detailed_queue_messages` on the primary queues. It is already graphed (Platform overview, "RabbitMQ primary backlog"; Outbox and broker) and alerted (`RabbitQueueGrowth`). This phase does not install KEDA or a custom metrics adapter. The README section "What you would scale on queue depth" is the exercise.
+
+No CronJob in this phase. Probes are unchanged from Phase 13.
+
+startup means the process has finished booting. readiness means it can take traffic. liveness means it should be restarted.
+
+A pod restart mounts the same PVC. Deleting the cluster deletes the kind node disk, including these hostPath volumes. Redis has no PVC. It is a cache.
+
+> **Learning simplification.** Single-node kind, images loaded locally, HTTP ingress, two API replicas, a CPU HPA, two competing consumers, one publisher, no mesh.
 > **Production would require.** Multiple nodes, a registry, TLS, network policies that enforce database-per-service routing, separate data-service operations, and someone on call. This repository will not become that environment by adding manifests.
 
 ## Related documents

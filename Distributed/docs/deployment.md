@@ -1,13 +1,13 @@
 # Deployment
 
-**Status: Phase 0 design; not implemented.**
+**Status: Phase 14.** Compose remains the first runtime. `deploy/kind` is the cluster packaging. The order API Deployment starts at 2 replicas. The outbox publisher stays at 1.
 
-Deployment means moving a known revision onto Compose, and later onto kind, without inventing configuration on the host by hand. Phase 0 does not ship anything.
+Deployment means moving a known revision onto Compose, and then onto kind, without inventing configuration on the host by hand.
 
 ## Order of runtimes
 
 1. Developer machine, Docker Compose, Phase 1 onward.
-2. kind, Phase 18, using the images Compose already ran.
+2. kind, Phase 13, using the images Compose already ran. Manifests are in `deploy/kind`.
 3. Nothing beyond that is in scope. No cloud account is assumed.
 
 Skipping to kind copies untested process assumptions into manifests. [kubernetes.md](kubernetes.md) keeps that gate.
@@ -27,7 +27,7 @@ Skipping to kind copies untested process assumptions into manifests. [kubernetes
 
 Stateless API replicas can be replaced one at a time once more than one replica exists. Database migrations must be compatible with the code still running during the rollout (expand, then switch, then contract). A migration that drops a column and a deploy that still reads it will fail in the window where both are alive. That window always exists once you run two replicas or a slow restart.
 
-The outbox publisher should be one replica until the partition scheme in [outbox.md](outbox.md) exists. Deploying two publishers by copying the API deployment is a bug, not high availability.
+The outbox publisher stays one replica until the partition scheme in [outbox.md](outbox.md) exists. Phase 14 does not copy the API replica count onto that Deployment. Two publishers would be a bug, not high availability.
 
 Odoo upgrades are the riskiest local step because they mix a module update with `odoo_db`. Take the backup in [disaster-recovery.md](disaster-recovery.md) first, even on a laptop, once you care about the data.
 

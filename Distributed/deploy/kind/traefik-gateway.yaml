@@ -1,0 +1,65 @@
+# Gateway static config for kind. Route rules are deploy/compose/dynamic.yaml,
+# mounted beside this file. The Docker socket is not mounted.
+# Metrics and tracing match the flags on the Compose gateway service.
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+api:
+  dashboard: false
+  insecure: false
+
+ping:
+  entryPoint: web
+
+log:
+  level: INFO
+
+accessLog:
+  format: json
+  fields:
+    headers:
+      defaultMode: drop
+      names:
+        X-Correlation-Id: keep
+        Authorization: drop
+
+entryPoints:
+  web:
+    address: ":80"
+    forwardedHeaders:
+      insecure: false
+    transport:
+      respondingTimeouts:
+        readTimeout: 30s
+        writeTimeout: 60s
+        idleTimeout: 90s
+  metrics:
+    address: ":8082"
+
+providers:
+  file:
+    filename: /etc/traefik/dynamic.yaml
+    watch: true
+
+metrics:
+  prometheus:
+    entryPoint: metrics
+    addEntryPointsLabels: true
+    addServicesLabels: true
+
+tracing:
+  serviceName: gateway
+  sampleRate: 1
+  capturedRequestHeaders:
+    - X-Correlation-Id
+  otlp:
+    grpc:
+      endpoint: otel-collector:4317
+      insecure: true
+
+experimental:
+  localPlugins:
+    edgeheaders:
+      moduleName: github.com/commerce/edgeheaders
