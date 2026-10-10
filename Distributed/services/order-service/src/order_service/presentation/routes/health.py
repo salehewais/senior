@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-from sqlalchemy import text
-from sqlalchemy.exc import OperationalError
 
+from order_service.infrastructure.database.engine import database_ready
 from order_service.presentation.errors import error_body
 
 router = APIRouter(tags=["health"])
@@ -28,10 +27,7 @@ def ready(request: Request):
                 correlation_id=correlation_id,
             ),
         )
-    try:
-        with engine.connect() as connection:
-            connection.execute(text("SELECT 1"))
-    except OperationalError:
+    if not database_ready(engine):
         return JSONResponse(
             status_code=503,
             content=error_body(

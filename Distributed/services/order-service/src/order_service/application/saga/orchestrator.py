@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import datetime
 
 from order_service.application.outbox import PENDING, OutboxRecord
@@ -37,22 +38,23 @@ def advance(
     payment: PaymentPort,
     erp: ErpPort,
     now: datetime,
+    trace_carrier: Mapping[str, str] | None = None,
 ) -> list[OutboxRecord]:
     """Move the saga by at most one remote call. Terminal sagas stay where they are."""
 
     if saga.is_terminal():
         return []
     if saga.status is SagaStatus.STARTED:
-        records = _reserve(saga, order, inventory, now)
+        records = _reserve(saga, order, inventory, now, trace_carrier)
     elif saga.status is SagaStatus.INVENTORY_RESERVED:
         records = _pay(saga, order, payment, now)
     elif saga.status is SagaStatus.PAYMENT_CONFIRMED:
-        records = _create_erp(saga, order, erp, now)
+        records = _create_erp(saga, order, erp, now, trace_carrier)
     elif saga.status is SagaStatus.ODOO_ORDER_CREATED:
         saga.complete(now)
         records = []
     elif saga.status is SagaStatus.COMPENSATING:
-        records = _compensate(saga, order, inventory, payment, erp, now)
+        records = _compensate(saga, order, inventory, payment, erp, now, trace_carrier)
     else:
         records = []
     order.set_saga_status(saga.status.value)
@@ -64,6 +66,7 @@ def _reserve(
     order: Order,
     inventory: InventoryPort,
     now: datetime,
+    trace_carrier: Mapping[str, str] | None = None,
 ) -> list[OutboxRecord]:
     if saga.awaiting(STEP_RESERVE):
         looked = inventory.lookup_reservation(str(order.id.value))
@@ -76,7 +79,7 @@ def _reserve(
             saga.reserve_failed(looked.reason or "reserve_failed", now)
             return []
         saga.clear_pending(now)
-    command = _command(saga, order, RESERVE_INVENTORY, _reserve_payload(order, saga), now)
+    command = _command(saga, order, RESERVE_INVENTORY, _reserve_payload(order, saga), now, trace_carrier)
     payload = _payload(command)
     result = inventory.reserve(payload)
     _apply_forward(
@@ -130,6 +133,7 @@ def _create_erp(
     order: Order,
     erp: ErpPort,
     now: datetime,
+    trace_carrier: Mapping[str, str] | None = None,
 ) -> list[OutboxRecord]:
     if saga.awaiting(STEP_CREATE_ERP):
         looked = erp.lookup_sales_order(str(order.id.value))
@@ -142,7 +146,7 @@ def _create_erp(
             saga.erp_failed(looked.reason or "erp_create_failed", now)
             return []
         saga.clear_pending(now)
-    command = _command(saga, order, CREATE_ERP_ORDER, _erp_payload(order, saga), now)
+    command = _command(saga, order, CREATE_ERP_ORDER, _erp_payload(order, saga), now, trace_carrier)
     result = erp.create_sales_order(_payload(command))
     _apply_forward(
         saga,
@@ -162,13 +166,14 @@ def _compensate(
     payment: PaymentPort,
     erp: ErpPort,
     now: datetime,
+    trace_carrier: Mapping[str, str] | None = None,
 ) -> list[OutboxRecord]:
     if saga.has_step(STEP_CREATE_ERP) and not saga.has_step(STEP_CANCEL_ERP):
-        return _cancel_erp(saga, order, erp, now)
+        return _cancel_erp(saga, order, erp, now, trace_carrier)
     if saga.has_step(STEP_PAYMENT) and not saga.has_step(STEP_REFUND):
         return _refund(saga, order, payment, now)
     if saga.has_step(STEP_RESERVE) and not saga.has_step(STEP_RELEASE):
-        return _release(saga, order, inventory, now)
+        return _release(saga, order, inventory, now, trace_carrier)
     saga.compensation_finished(now)
     return []
 
@@ -178,6 +183,7 @@ def _release(
     order: Order,
     inventory: InventoryPort,
     now: datetime,
+    trace_carrier: Mapping[str, str] | None = None,
 ) -> list[OutboxRecord]:
     if saga.awaiting(STEP_RELEASE):
         looked = inventory.lookup_reservation(str(order.id.value))
@@ -200,6 +206,7 @@ def _release(
             "idempotency_key": step_idempotency_key(str(saga.id), STEP_RELEASE),
         },
         now,
+        trace_carrier,
     )
     result = inventory.release(_payload(command))
     _apply_compensation(saga, result, STEP_RELEASE, "release_failed", now)
@@ -232,6 +239,7 @@ def _cancel_erp(
     order: Order,
     erp: ErpPort,
     now: datetime,
+    trace_carrier: Mapping[str, str] | None = None,
 ) -> list[OutboxRecord]:
     if saga.awaiting(STEP_CANCEL_ERP):
         looked = erp.lookup_sales_order(str(order.id.value))
@@ -253,6 +261,7 @@ def _cancel_erp(
             "idempotency_key": step_idempotency_key(str(saga.id), STEP_CANCEL_ERP),
         },
         now,
+        trace_carrier,
     )
     result = erp.cancel_sales_order(_payload(command))
     _apply_compensation(saga, result, STEP_CANCEL_ERP, "cancel_erp_failed", now)
@@ -345,6 +354,7 @@ def _command(
     event_type: str,
     payload: dict[str, object],
     now: datetime,
+    trace_carrier: Mapping[str, str] | None = None,
 ) -> OutboxRecord:
     message = command_message(
         event_id=uuid7(),
@@ -354,6 +364,7 @@ def _command(
         correlation_id=saga.correlation_id,
         causation_id=saga.id,
         payload=payload,
+        trace_carrier=trace_carrier,
     )
     return OutboxRecord(
         id=message.event_id,

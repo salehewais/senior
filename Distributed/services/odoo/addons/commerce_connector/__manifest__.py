@@ -15,7 +15,9 @@ in the same transaction. Fulfillment buttons call the order service over HTTP.
     "data": [
         "security/ir.model.access.csv",
         "views/sale_order_views.xml",
-        "views/commerce_views.xml",
+        "views/inventory_state_views.xml",
+        "views/processed_event_views.xml",
+        "views/menus.xml",
     ],
     "installable": True,
     "application": False,

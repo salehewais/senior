@@ -1,0 +1,1 @@
+"""notification_db access."""

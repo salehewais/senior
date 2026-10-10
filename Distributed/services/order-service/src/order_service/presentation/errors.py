@@ -5,7 +5,6 @@ import uuid
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from sqlalchemy.exc import IntegrityError, OperationalError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from order_service.domain.exceptions import DomainError
@@ -125,30 +124,6 @@ def install_error_handlers(app: FastAPI) -> None:
                 message="The request body or query is not valid.",
                 correlation_id=correlation_id_of(request),
                 details=details,
-            ),
-        )
-
-    @app.exception_handler(IntegrityError)
-    async def integrity_error(request: Request, exc: IntegrityError) -> JSONResponse:
-        logger.info("integrity conflict correlation_id=%s", correlation_id_of(request))
-        return JSONResponse(
-            status_code=409,
-            content=error_body(
-                code="CONFLICT",
-                message="The request conflicts with data already stored.",
-                correlation_id=correlation_id_of(request),
-            ),
-        )
-
-    @app.exception_handler(OperationalError)
-    async def database_unavailable(request: Request, exc: OperationalError) -> JSONResponse:
-        logger.exception("database unavailable correlation_id=%s", correlation_id_of(request))
-        return JSONResponse(
-            status_code=503,
-            content=error_body(
-                code="DEPENDENCY_UNAVAILABLE",
-                message="The order database is unavailable.",
-                correlation_id=correlation_id_of(request),
             ),
         )
 

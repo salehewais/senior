@@ -19,6 +19,7 @@ from order_service.observability.metrics import (
     inc,
     orders_created_total,
 )
+from order_service.observability.tracing import current_trace_carrier
 
 
 def test_defining_a_metric_rejects_a_forbidden_label() -> None:
@@ -93,7 +94,7 @@ def test_traceparent_does_not_replace_correlation_id() -> None:
     )
     tracer = trace.get_tracer("test.observability")
     with tracer.start_as_current_span("order.request"):
-        message = to_outbound(event)
+        message = to_outbound(event, current_trace_carrier())
     assert message.body["correlation_id"] == str(correlation_id)
     traceparent = message.body.get("traceparent")
     assert isinstance(traceparent, str)

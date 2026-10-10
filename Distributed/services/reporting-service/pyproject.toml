@@ -33,6 +33,10 @@ DJANGO_SETTINGS_MODULE = "reporting.settings_test"
 pythonpath = ["."]
 testpaths = ["projections/tests", "tests"]
 addopts = "-q"
+markers = [
+    "integration: needs Postgres and RabbitMQ",
+    "cross_service: shells out to order-service",
+]
 
 [tool.ruff]
 line-length = 120

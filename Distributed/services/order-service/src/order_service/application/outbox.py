@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import uuid
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
@@ -35,7 +36,11 @@ class OutboxRecord:
     status: str
 
 
-def stage_outbox_records(*aggregates: RecordsEvents, now: datetime | None = None) -> list[OutboxRecord]:
+def stage_outbox_records(
+    *aggregates: RecordsEvents,
+    now: datetime | None = None,
+    trace_carrier: Mapping[str, str] | None = None,
+) -> list[OutboxRecord]:
     """One pending row per domain event still recorded on these aggregates.
 
     Clears the aggregates' pending events so a second call does not insert them again.
@@ -46,7 +51,7 @@ def stage_outbox_records(*aggregates: RecordsEvents, now: datetime | None = None
     records: list[OutboxRecord] = []
     for aggregate in aggregates:
         for event in aggregate.pending_events():
-            envelope = to_outbound(event).body
+            envelope = to_outbound(event, trace_carrier).body
             records.append(
                 OutboxRecord(
                     id=event.event_id,

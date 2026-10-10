@@ -11,10 +11,9 @@ from datetime import UTC, datetime
 from odoo import api, fields, models
 from psycopg2.extras import Json
 
-from .bootstrap import import_commerce_erp
+from commerce_erp.domain import inventory as _inventory
 
 _logger = logging.getLogger(__name__)
-_erp = import_commerce_erp()
 
 
 class CommerceInventoryState(models.Model):
@@ -41,7 +40,7 @@ class CommerceInventoryState(models.Model):
     ]
 
     def init(self):
-        for statement in _erp.inventory.OUTBOX_STATEMENTS:
+        for statement in _inventory.OUTBOX_STATEMENTS:
             self.env.cr.execute(statement)
 
     @api.model
@@ -54,8 +53,8 @@ class CommerceInventoryState(models.Model):
             if not commerce_product_id or not sku:
                 continue
             product.invalidate_recordset(["qty_available", "free_qty"])
-            on_hand = _erp.inventory.quantity_for_catalog(product.qty_available)
-            free = _erp.inventory.quantity_for_catalog(product.free_qty)
+            on_hand = _inventory.quantity_for_catalog(product.qty_available)
+            free = _inventory.quantity_for_catalog(product.free_qty)
             reserved = on_hand - free if on_hand > free else 0
             state = self.search([("product_id", "=", product.id)], limit=1)
             version = 1 if not state else state.version + 1
@@ -72,7 +71,7 @@ class CommerceInventoryState(models.Model):
                 state.write(values)
             else:
                 self.create(values)
-            envelope = _erp.inventory.build_inventory_updated(
+            envelope = _inventory.build_inventory_updated(
                 product_id=commerce_product_id,
                 sku=sku,
                 on_hand=on_hand,
@@ -92,7 +91,7 @@ class CommerceInventoryState(models.Model):
                 (
                     envelope["event_id"],
                     envelope["event_type"],
-                    _erp.inventory.AGGREGATE_TYPE,
+                    _inventory.AGGREGATE_TYPE,
                     envelope["aggregate_id"],
                     Json(envelope),
                     datetime.now(UTC),

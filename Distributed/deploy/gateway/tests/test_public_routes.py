@@ -88,6 +88,25 @@ class PublicRouterTests(unittest.TestCase):
         for forbidden in ("5432", "6379", "5672", "15672"):
             self.assertNotIn(forbidden, compose)
 
+    def test_staff_pages_are_public_and_the_notification_list_stays_behind_jwt(self) -> None:
+        compose = Path(__file__).resolve().parents[2] / "compose" / "dynamic.yaml"
+        for text in (self.text, compose.read_text(encoding="utf-8")):
+            rules = "\n".join(_rule_lines(text))
+            self.assertIn("PathPrefix(`/reporting`)", rules)
+            self.assertIn("PathPrefix(`/notifications`)", rules)
+            self.assertIn("Path(`/api/v1/notifications`) || PathPrefix(`/api/v1/notifications/`)", rules)
+            self.assertIn("!Path(`/api/v1/notifications`)", rules)
+            self.assertIn("!PathPrefix(`/api/v1/notifications/`)", rules)
+            reporting_page = text.split("reporting-page:", 1)[1].split("notification-page:", 1)[0]
+            notification_page = text.split("notification-page:", 1)[1].split("frontend:", 1)[0]
+            deliveries = text.split("notification-deliveries:", 1)[1].split("auth-public:", 1)[0]
+            self.assertNotIn("jwt-access", reporting_page)
+            self.assertNotIn("jwt-access", notification_page)
+            self.assertIn("service: reporting", reporting_page)
+            self.assertIn("service: notification", notification_page)
+            self.assertIn("jwt-access", deliveries)
+            self.assertIn("service: notification", deliveries)
+
     def test_rate_limit_is_traefik_memory_not_a_redis_reimplementation(self) -> None:
         self.assertIn("rateLimit:", self.text)
         self.assertNotIn("redis", self.text.lower())

@@ -7,8 +7,8 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from notification_service.models import Base
-from notification_service.settings import notification_database_url
+from notification_service.config import notification_database_url
+from notification_service.persistence.models import Base
 
 config = context.config
 if config.config_file_name is not None:

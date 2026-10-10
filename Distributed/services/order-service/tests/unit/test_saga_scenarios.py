@@ -9,11 +9,6 @@ import pytest
 from tests.support.memory import InMemoryUnitOfWork, MemoryStore
 
 from order_service.application.saga.orchestrator import advance
-from order_service.application.saga.payment import (
-    CHARGE_DECLINE,
-    REFUND_FAIL,
-    SimulatedPayment,
-)
 from order_service.application.saga.results import StepResult, absent, failed, succeeded, unknown
 from order_service.domain.entities.order import Order
 from order_service.domain.entities.order_item import OrderItem
@@ -23,6 +18,11 @@ from order_service.domain.entities.saga_status import SagaStatus
 from order_service.domain.exceptions import InvalidStateTransition
 from order_service.domain.ids import CustomerId, OrderId, ProductId
 from order_service.domain.value_objects import Money, Quantity
+from order_service.infrastructure.saga.payment import (
+    CHARGE_DECLINE,
+    REFUND_FAIL,
+    SimulatedPayment,
+)
 
 NOW = datetime(2026, 10, 9, 12, 0, tzinfo=UTC)
 

@@ -1,5 +1,6 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, sessionmaker
 
 from order_service.infrastructure.settings import Settings
@@ -20,3 +21,14 @@ def make_engine(settings: Settings) -> Engine:
 
 def make_session_factory(engine: Engine) -> sessionmaker[Session]:
     return sessionmaker(bind=engine, expire_on_commit=False, autoflush=False)
+
+
+def database_ready(engine: Engine) -> bool:
+    """True when order_db accepts a connection. Operational failures are not ready."""
+
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except OperationalError:
+        return False
+    return True

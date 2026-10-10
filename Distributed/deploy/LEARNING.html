@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مسار تعلم deploy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ["Cairo", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"]
+      },
+      colors: {
+        ink: "#1c1915",
+        paper: "#f4f0e6",
+        tide: "#0e4d5c",
+        tideSoft: "#e5f1f3"
+      }
+    }
+  }
+};
+</script>
+<script>
+(function () {
+  var lang = "ar";
+  try {
+    var saved = localStorage.getItem("deploy-learning-lang");
+    if (saved === "en" || saved === "ar") lang = saved;
+  } catch (e) {}
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+})();
+</script>
+<style>
+  html[lang="ar"] .en { display: none !important; }
+  html[lang="en"] .ar { display: none !important; }
+  .steps { top: var(--bar, 4.75rem); }
+  section { scroll-margin-top: calc(var(--bar, 4.75rem) + 4.25rem); }
+  @media (min-width: 1024px) {
+    section { scroll-margin-top: calc(var(--bar, 4.75rem) + 1rem); }
+  }
+  .step-link[aria-current="location"] {
+    background: #0e4d5c;
+    color: #f4f0e6;
+    border-color: #0e4d5c;
+  }
+</style>
+</head>
+<body class="bg-paper text-ink font-sans antialiased">
+<header class="sticky top-0 z-40 border-b border-stone-300/80 bg-ink text-paper">
+  <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+    <div class="min-w-0">
+      <h1 class="text-lg font-bold leading-tight sm:text-xl">
+        <span class="ar">مسار تعلم deploy</span>
+        <span class="en">deploy/ learning path</span>
+      </h1>
+      <p class="mt-0.5 max-w-xl text-sm text-stone-300">
+        <span class="ar">سبعة أقسام من البوابة حتى Kind. خريطة الملفات في <a class="underline decoration-stone-500 underline-offset-2 hover:text-white" href="STRUCTURE.html">STRUCTURE.html</a>.</span>
+        <span class="en">Seven steps from the gateway to Kind. The folder map stays in <a class="underline decoration-stone-500 underline-offset-2 hover:text-white" href="STRUCTURE.html">STRUCTURE.html</a>.</span>
+      </p>
+    </div>
+    <div class="langs flex gap-2" role="group" aria-label="اللغة">
+      <button type="button" data-set-lang="ar" aria-pressed="true" class="rounded-full border border-stone-500 px-3 py-1.5 text-sm font-semibold text-paper aria-pressed:border-paper aria-pressed:bg-paper aria-pressed:text-ink">العربية</button>
+      <button type="button" data-set-lang="en" aria-pressed="false" class="rounded-full border border-stone-500 px-3 py-1.5 text-sm font-semibold text-paper aria-pressed:border-paper aria-pressed:bg-paper aria-pressed:text-ink">English</button>
+    </div>
+  </div>
+</header>
+
+<div class="mx-auto grid w-full min-w-0 max-w-6xl grid-cols-1 lg:grid-cols-[15.5rem_minmax(0,1fr)] lg:items-start">
+<nav class="steps sticky z-30 min-w-0 border-b border-stone-300 bg-paper/95 backdrop-blur lg:max-h-[calc(100vh-var(--bar,4.75rem))] lg:overflow-auto lg:border-b-0 lg:border-e lg:bg-transparent lg:backdrop-blur-none" aria-label="الخطوات">
+  <ol class="flex min-w-0 gap-2 overflow-x-auto px-4 py-3 lg:flex-col lg:overflow-visible lg:px-4 lg:py-6">
+    <li><a class="step-link flex items-center gap-2 whitespace-nowrap rounded-full border border-stone-300 bg-white px-3 py-1.5 text-sm font-semibold shadow-sm lg:rounded-xl" href="#gateway"><span aria-hidden="true">🚪</span> <span class="ar">1 البوابة</span><span class="en">1 Gateway</span></a></li>
+    <li><a class="step-link flex items-center gap-2 whitespace-nowrap rounded-full border border-stone-300 bg-white px-3 py-1.5 text-sm font-semibold shadow-sm lg:rounded-xl" href="#compose"><span aria-hidden="true">📦</span> <span class="ar">2 الحاويات</span><span class="en">2 Compose</span></a></li>
+    <li><a class="step-link flex items-center gap-2 whitespace-nowrap rounded-full border border-stone-300 bg-white px-3 py-1.5 text-sm font-semibold shadow-sm lg:rounded-xl" href="#observability"><span aria-hidden="true">📊</span> <span class="ar">3 المخططات</span><span class="en">3 Observability</span></a></li>
+    <li><a class="step-link flex items-center gap-2 whitespace-nowrap rounded-full border border-stone-300 bg-white px-3 py-1.5 text-sm font-semibold shadow-sm lg:rounded-xl" href="#backup"><span aria-hidden="true">💾</span> <span class="ar">4 النسخة</span><span class="en">4 Backup</span></a></li>
+    <li><a class="step-link flex items-center gap-2 whitespace-nowrap rounded-full border border-stone-300 bg-white px-3 py-1.5 text-sm font-semibold shadow-sm lg:rounded-xl" href="#load"><span aria-hidden="true">⚡</span> <span class="ar">5 الضغط</span><span class="en">5 Load</span></a></li>
+    <li><a class="step-link flex items-center gap-2 whitespace-nowrap rounded-full border border-stone-300 bg-white px-3 py-1.5 text-sm font-semibold shadow-sm lg:rounded-xl" href="#failure"><span aria-hidden="true">🛑</span> <span class="ar">6 العطل</span><span class="en">6 Failure lab</span></a></li>
+    <li><a class="step-link flex items-center gap-2 whitespace-nowrap rounded-full border border-stone-300 bg-white px-3 py-1.5 text-sm font-semibold shadow-sm lg:rounded-xl" href="#kind"><span aria-hidden="true">☸️</span> <span class="ar">7 العنقود</span><span class="en">7 Kind</span></a></li>
+  </ol>
+</nav>
+
+<main class="min-w-0 px-4 py-6 sm:px-6 lg:py-8">
+  <p class="mb-6 max-w-3xl text-base leading-relaxed text-stone-700">
+        <span class="ar">اقرأ بهذا الترتيب. الطلب يدخل من البوابة، والمكدس المحلي يجمع الخدمات، ثم ترى المقاييس قبل أن تنسخ قاعدة، وتضغط المسار، وتوقف خدمة واحدة، وأخيراً تعيد الأحمال نفسها داخل عنقود. مفاتيح <span dir="ltr">secrets/</span> غير معروضة.</span>
+        <span class="en">Read in this order. A request enters at the gateway, Compose gathers the services, then you watch metrics before copying a database, load the path, stop one service, and finally place the same workloads in a cluster. Keys under <span dir="ltr">secrets/</span> are not shown.</span>
+  </p>
+
+  <section id="gateway" class="mb-10">
+    <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200 sm:p-6">
+      <div class="flex flex-wrap items-start gap-3">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-tideSoft text-2xl" aria-hidden="true">🚪</span>
+        <div>
+          <p class="text-sm font-semibold text-tide"><span class="ar">الخطوة 1</span><span class="en">Step 1</span></p>
+          <h2 class="text-2xl font-bold"><span class="ar">البوابة</span><span class="en">Gateway</span></h2>
+        </div>
+      </div>
+      <p class="mt-4 leading-relaxed">
+        <span class="ar">كل طلب يمر من هنا قبل أي خدمة. Traefik ثابت من ملف، بلا مقبس Docker، فلا يكتشف الحاويات. المسارات في ملف ثانٍ. فحص الرمز يثبت التوقيع ولا يقرأ الدور. إضافة <span dir="ltr">edgeheaders</span> تحذف ترويسات الهوية وتضبط CORS ومعرّف الارتباط.</span>
+        <span class="en">Every request passes here before any service. Traefik is a static file, with no Docker socket, so it does not discover containers. Routes live in a second file. The token check verifies the signature and does not read a role. The edgeheaders plugin drops identity headers and sets CORS plus the correlation id.</span>
+      </p>
+    </article>
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="gateway/traefik.yaml">gateway/traefik.yaml</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">إعداد ثابت للبوابة التعليمية. مزوّد الملفات فقط، والملف يُراقب. مقبس Docker غير مركّب، فـ Traefik لا يكتشف الحاويات الأخرى. لوحة التحكم مغلقة. <span dir="ltr">insecure</span> معطّل، فترويسة <span dir="ltr">X-Forwarded-For</span> من العميل ليست عنوانه. سجل الوصول JSON: يُسقط <span dir="ltr">Authorization</span> ويبقي <span dir="ltr">X-Correlation-Id</span>.</span>
+          <span class="en">Static configuration for the learning gateway. File provider only, and the file is watched. The Docker socket is not mounted, so Traefik does not discover other containers. The dashboard is off. insecure is false, so a client-supplied X-Forwarded-For is not the client IP. The access log is JSON: Authorization is dropped and X-Correlation-Id is kept.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">البوابة لا ترى إلا ما كُتب في الملف. إغلاق الاكتشاف يمنع مساراً يظهر لأن حاوية بدأت، لا لأن أحداً قصده.</span>
+          <span class="en">The gateway sees only what the file names. Turning discovery off keeps a route from appearing because a container started, rather than because someone meant it.</span>
+        </p>
+      </article>
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="gateway/dynamic.yaml">gateway/dynamic.yaml</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">مسارات عامة نحو عمليات على الجهاز عبر <span dir="ltr">host.docker.internal</span>: خدمة الطلب على 8000، والتقارير على 8001، والواجهة على 5173. تلك العمليات ليست جزءاً من مشروع Compose هذا. التقارير مسار بأولوية أعلى، ومسار الطلب يستبعد البادئة نفسها. حد المعدل في ذاكرة Traefik: عداد لكل عملية، وغالباً عداد لعنوان الجسر، وليس ميزانية الدخول أو إنشاء الطلب داخل خدمة الطلب. <span dir="ltr">edge-prepare</span> يحذف ترويسات الهوية قبل <span dir="ltr">ForwardAuth</span> نحو <span dir="ltr">jwt-check</span>.</span>
+          <span class="en">Public routers toward host processes through host.docker.internal: the order service on 8000, reporting on 8001, and the frontend on 5173. Those processes are not part of this Compose project. Reports are a higher-priority router, and the order router excludes that prefix. The rate limit is Traefik’s in-memory limiter: one counter per process, often one counter for the bridge address, and it is not the login or order-create budget inside the order service. edge-prepare strips identity headers before ForwardAuth to jwt-check.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">هذا الملف يعلّم البوابة وهي تتحدث مع عمليات المضيف. المكدس الكامل يستبدله بملف يوجّه داخل الشبكة.</span>
+          <span class="en">This file teaches the gateway while it talks to host processes. The full stack replaces it with a file that routes inside the network.</span>
+        </p>
+      </article>
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="gateway/jwt_check.py">gateway/jwt_check.py</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">فحص RS256 يستدعيه Traefik عبر ForwardAuth. العملية معها المفتاح العام لخدمة الطلب فقط، ولا تصدر رموزاً. لا تقرأ دوراً ولا سعراً ولا رقم مخزون ولا طلباً. الرمز يجب أن يحمل <span dir="ltr">exp</span> و<span dir="ltr">iat</span> و<span dir="ltr">sub</span> وأن يكون <span dir="ltr">token_type=access</span>. ما يمر هنا تتحقق منه خدمة الطلب أو التقارير مرة أخرى.</span>
+          <span class="en">An RS256 check used by Traefik ForwardAuth. The process has the order-service public key only and does not issue tokens. It does not read a role, a price, a stock figure, or an order. The token must carry exp, iat, and sub, and token_type must be access. A request that passes here is verified again by the order service or the reporting service.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">الحافة تثبت أن التوقيع صحيح. سياسة «من يحق له هذا الفعل» تبقى داخل الخدمة، لأن البوابة لا تعرف الدور.</span>
+          <span class="en">The edge proves the signature is valid. Who may take an action stays inside the service, because the gateway does not know the role.</span>
+        </p>
+      </article>
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="gateway/plugins-local/src/github.com/commerce/edgeheaders/edgeheaders.go">edgeheaders.go</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">وسيط Traefik محلي. وضع <span dir="ltr">prepare</span> يحذف ترويسات هوية العميل، يطبّع <span dir="ltr">X-Correlation-Id</span>، ويختم ذلك المعرّف مع ترويسات CORS الخاصة بواجهة المتجر على الاستجابة. وضع <span dir="ltr">cors</span> يجيب <span dir="ltr">OPTIONS</span> هنا حتى لا يصل preflight إلى فحص JWT ولا إلى الخدمة. قائمة الأصول ليست <span dir="ltr">*</span>. الحزمة لا تقرأ طلبات ولا أسعاراً ولا مخزوناً ولا أدواراً.</span>
+          <span class="en">A local Traefik middleware. prepare drops client identity headers, normalizes X-Correlation-Id, and stamps that id plus the storefront CORS headers onto the response. cors answers OPTIONS here so a browser preflight never reaches the JWT check or an upstream. The allow-list is not *. The package does not read orders, prices, stock, or roles.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">العميل لا يختار هويته بترويسة. طلب المتصفح التمهيدي يتوقف عند الحافة ولا يُحسب فحصاً للرمز.</span>
+          <span class="en">A client does not choose an identity with a header. The browser preflight stops at the edge and is not counted as a token check.</span>
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section id="compose" class="mb-10">
+    <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200 sm:p-6">
+      <div class="flex flex-wrap items-start gap-3">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-tideSoft text-2xl" aria-hidden="true">📦</span>
+        <div>
+          <p class="text-sm font-semibold text-tide"><span class="ar">الخطوة 2</span><span class="en">Step 2</span></p>
+          <h2 class="text-2xl font-bold"><span class="ar">الحاويات</span><span class="en">Compose</span></h2>
+        </div>
+      </div>
+      <p class="mt-4 leading-relaxed">
+        <span class="ar">المكدس المحلي الكامل على شبكة واحدة اسمها <span dir="ltr">commerce</span>. المنفذ العام الوحيد هو البوابة. سكربت التشغيل ينشئ مفاتيح JWT وملف <span dir="ltr">.env</span> ثم يشغّل المكدس. ملف التوجيه هنا يصل إلى أسماء داخل الشبكة، لا إلى عمليات المضيف.</span>
+        <span class="en">The full local stack sits on one network named commerce. The only public port is the gateway. The start script creates JWT keys and a .env file, then starts the stack. The route file here reaches names inside the network, not host processes.</span>
+      </p>
+    </article>
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200 md:col-span-2">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="compose/docker-compose.yml">compose/docker-compose.yml</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">شبكة واحدة، <span dir="ltr">commerce</span>، والحاويات تجد بعضها باسم DNS في Compose. مسار HTTP العام هو منفذ البوابة فقط. إدارة RabbitMQ وواجهة Odoo منافذ تعلم خاصة على <span dir="ltr">127.0.0.1</span>. Postgres و Redis غير منشورين، فـ Postgres على المضيف عند 5432 لا يصطدم بهذا الملف. الصور المبنية موسومة <span dir="ltr">0.1.0</span> (و Odoo <span dir="ltr">18.0.1</span>)، ووسم <span dir="ltr">latest</span> غير مستخدم. لا تشغّل <span dir="ltr">deploy/gateway/compose.yaml</span> في الوقت نفسه: كلاهما ينشر <span dir="ltr">127.0.0.1:8080</span>. HTTP على localhost، وهذا ليس نشراً إنتاجياً.</span>
+          <span class="en">One network, commerce. Containers find each other by Compose DNS name. Only the gateway HTTP port is the public path. RabbitMQ management and the Odoo UI are private learning ports on 127.0.0.1. Postgres and Redis are not published, so a host Postgres on 5432 does not collide with this file. Built images are tagged 0.1.0 (Odoo 18.0.1). The tag latest is not used. Do not run deploy/gateway/compose.yaml at the same time: both publish 127.0.0.1:8080. HTTP on localhost. This is not a production deploy.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">المكدس الكامل يغلق قواعد البيانات والذاكرة عن الجهاز، ويبقي باباً واحداً. ملفات الخدمة الواحدة تبقى لتجربة جزء، وهذا الملف يجمعها.</span>
+          <span class="en">The full stack keeps databases and the cache off the host and leaves one door. The single-service files stay for trying one piece; this file gathers them.</span>
+        </p>
+      </article>
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="compose/up.sh">compose/up.sh</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">يشغّل مكدس Compose الكامل من جذر المستودع. ينشئ مفاتيح JWT و<span dir="ltr">deploy/compose/.env</span> حين يغيبان. لا يحذف المجلدات. يخرج بغير صفر إذا كان Docker متوقفاً أو فشل Compose. المفاتيح الموجودة لا تُستبدل.</span>
+          <span class="en">Starts the full Compose stack from the repository root. Creates JWT keys and deploy/compose/.env when they are missing. Does not delete volumes. Exits non-zero when Docker is down or Compose fails. Keys that already exist are not replaced.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">التشغيل المتكرر آمن: ينقصه السر فينشئه، ويجده فيتركه، ولا يمسح بيانات من تشغيل سابق.</span>
+          <span class="en">A second run is safe: a missing secret is created, an existing one is left alone, and data from an earlier run is not wiped.</span>
+        </p>
+      </article>
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="compose/dynamic.yaml">compose/dynamic.yaml</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">مسارات المكدس الكامل. الوجهات أسماء DNS في Compose على شبكة <span dir="ltr">commerce</span>. <span dir="ltr">deploy/gateway/dynamic.yaml</span> هو الملف الآخر، ويصل إلى عمليات على المضيف. نداءات التنفيذ غير مذكورة: Odoo ينادي خدمة الطلب على <span dir="ltr">http://order-service:8000</span> داخل هذه الشبكة.</span>
+          <span class="en">Public routers for the full stack. Upstreams are Compose DNS names on the commerce network. deploy/gateway/dynamic.yaml is the other file: it reaches processes on the host. Fulfillment callbacks are not listed. Odoo calls the order service at http://order-service:8000 on this network.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">داخل المكدس، العنوان اسم خدمة. ما يحدث بين Odoo وخدمة الطلب لا يُنشر على البوابة.</span>
+          <span class="en">Inside the stack, the address is a service name. What happens between Odoo and the order service is not published on the gateway.</span>
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section id="observability" class="mb-10">
+    <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200 sm:p-6">
+      <div class="flex flex-wrap items-start gap-3">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-tideSoft text-2xl" aria-hidden="true">📊</span>
+        <div>
+          <p class="text-sm font-semibold text-tide"><span class="ar">الخطوة 3</span><span class="en">Step 3</span></p>
+          <h2 class="text-2xl font-bold"><span class="ar">المخططات</span><span class="en">Observability</span></h2>
+        </div>
+      </div>
+      <p class="mt-4 leading-relaxed">
+        <span class="ar">Prometheus يسحب <span dir="ltr">/metrics</span> مباشرة. المجمّع يمرّر التتبع فقط إلى Tempo. Grafana تعرض اللوحات. Alertmanager يرسل إلى خطاف يطبع سطراً JSON، بلا بريد.</span>
+        <span class="en">Prometheus scrapes /metrics directly. The collector forwards traces only, to Tempo. Grafana shows the boards. Alertmanager sends to a hook that prints one JSON line, with no mail.</span>
+      </p>
+    </article>
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="observability/prometheus/prometheus.yml">observability/prometheus/prometheus.yml</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">قائمة سحب المرحلة 12. الفاصل 15 ثانية، والاحتفاظ قصير. هذه العملية ليست مطلوبة لإتمام الشراء. كل مهمة تطلب <span dir="ltr">/metrics</span> من الخدمة نفسها، ثم تُرسل القواعد إلى Alertmanager.</span>
+          <span class="en">The phase 12 scrape list. The interval is 15 seconds and retention is short. This process is not required for checkout. Each job asks /metrics of the service itself, then the rules go to Alertmanager.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">المقاييس لا تمر بالمجمّع. عطل التتبع لا يخفي معدل الخطأ، والشراء لا ينتظر Prometheus.</span>
+          <span class="en">Metrics do not pass through the collector. A tracing outage cannot hide an error rate, and checkout does not wait on Prometheus.</span>
+        </p>
+      </article>
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="observability/otel/collector.yaml">observability/otel/collector.yaml</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">تتبع فقط. مقاييس التطبيق يسحبها Prometheus مباشرة حتى لا يخفي عطل المجمّع معدل الخطأ. المستقبل OTLP، والمعالج دفعة، والمصدّر يرسل إلى <span dir="ltr">tempo:4317</span>.</span>
+          <span class="en">Traces only. Application /metrics are scraped by Prometheus directly so a collector outage cannot hide an error rate. The receiver is OTLP, the processor is a batch, and the exporter sends to tempo:4317.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">خطان منفصلان: رقم يُسحب، وأثر يُدفع. سقوط أحدهما لا يُسقط الآخر.</span>
+          <span class="en">Two separate lines: a number that is pulled, and a trace that is pushed. One falling does not drop the other.</span>
+        </p>
+      </article>
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="observability/grafana/provisioning/datasources/datasources.yml">observability/grafana/provisioning/datasources/datasources.yml</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">Grafana تقرأ Prometheus مصدراً افتراضياً على <span dir="ltr">http://prometheus:9090</span>، وTempo على <span dir="ltr">http://tempo:3200</span>. اللوحات الجاهزة في <span dir="ltr">observability/grafana/dashboards/</span>: نظرة المنصة، التبعيات، مسار الطلب، الدفع، تأخر التقارير، والـ outbox مع الوسيط.</span>
+          <span class="en">Grafana reads Prometheus as the default source at http://prometheus:9090, and Tempo at http://tempo:3200. The prepared boards live in observability/grafana/dashboards/: platform overview, dependencies, the order path, payment, reporting lag, and the outbox with the broker.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">اللوحة لا تجمع. هي نافذة على ما سحبه Prometheus وما خزّنه Tempo.</span>
+          <span class="en">A board does not collect. It is a window onto what Prometheus scraped and what Tempo stored.</span>
+        </p>
+      </article>
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="observability/webhook/hook.py">observability/webhook/hook.py</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">مصبّ خطاف Alertmanager. يكتب سطراً JSON واحداً لكل تنبيه إلى stdout: الحالة، والاسم، والشدة، والملخص، والوصف. بلا بريد، وبلا سر، وبلا نداء خارج هذه العملية. السجل هو <span dir="ltr">docker logs</span>. في <span dir="ltr">alertmanager.yml</span> مستقبل واحد يجمع حسب اسم التنبيه حتى لا يصبح هدف واحد خمسين إشعاراً.</span>
+          <span class="en">Alertmanager webhook sink. It writes one JSON line per alert to stdout: status, name, severity, summary, and description. No email, no secret, and no call out of this process. docker logs is the record. In alertmanager.yml one receiver groups by alert name so one down target does not become fifty notifications.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">التنبيه يُشاهَد أولاً في السجل. القناة الخارجية تأتي لاحقاً، بعد أن يفهم المسار.</span>
+          <span class="en">An alert is seen first in the log. An outside channel comes later, after the path is understood.</span>
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section id="backup" class="mb-10">
+    <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200 sm:p-6">
+      <div class="flex flex-wrap items-start gap-3">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-tideSoft text-2xl" aria-hidden="true">💾</span>
+        <div>
+          <p class="text-sm font-semibold text-tide"><span class="ar">الخطوة 4</span><span class="en">Step 4</span></p>
+          <h2 class="text-2xl font-bold"><span class="ar">النسخة الاحتياطية</span><span class="en">Backup</span></h2>
+        </div>
+      </div>
+      <p class="mt-4 leading-relaxed">
+        <span class="ar">نسخة واحدة من Postgres بصيغة custom: <span dir="ltr">order_db</span> أو <span dir="ltr">reporting_db</span> أو <span dir="ltr">odoo_db</span>. الاستعادة تطلب <span dir="ltr">--yes</span>. Redis و RabbitMQ لا يُنسخان.</span>
+        <span class="en">One Postgres copy in custom format: order_db, reporting_db, or odoo_db. Restore requires --yes. Redis and RabbitMQ are not copied.</span>
+      </p>
+    </article>
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="backup/dump.sh">backup/dump.sh</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">ينسخ قاعدة Postgres واحدة في Compose بصيغة custom عبر <span dir="ltr">pg_dump</span>. Redis ذاكرة تخزين مؤقت ولا يُنسخ. RabbitMQ لا يُنسخ. القاعدتان الأخريان لا تدخلان الأمر نفسه. الاسم المقبول هو <span dir="ltr">order_db</span> أو <span dir="ltr">reporting_db</span> أو <span dir="ltr">odoo_db</span>، وكل واحدة على خدمة Postgres الخاصة بها. اسم الملف ليس اسم القاعدة، والاسم يُقرأ من ترويسة الأرشيف.</span>
+          <span class="en">Dumps one Compose Postgres database in custom format with pg_dump. Redis is a cache and is not dumped. RabbitMQ is not dumped. The other two databases are not dumped. The accepted name is order_db, reporting_db, or odoo_db, each on its own Postgres service. The file name is not the database name; the name is read from the archive header.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">النسخ قرار عن قاعدة واحدة. الكاش والوسيط ليسا مصدر الحقيقة، فلا يُعاملان كنسخة.</span>
+          <span class="en">A dump is a choice of one database. The cache and the broker are not the source of truth, so they are not treated as a copy.</span>
+        </p>
+      </article>
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="backup/restore.sh">backup/restore.sh</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">يستبدل الكائنات داخل قاعدة Postgres واحدة من ملف custom. يتطلب <span dir="ltr">--yes</span> ويطبع اسم القاعدة التي سيُستبدل محتواها. لا يسقط القاعدتين الأخريين، ولا يسقط بيانات RabbitMQ أو Redis. Redis لا يُستعاد. الاستعادة ليست إرجاعاً للوسيط.</span>
+          <span class="en">Replaces objects inside one Compose Postgres database from a custom-format dump. It requires --yes and prints the database name it is about to replace. It does not drop the other two databases, and it does not drop RabbitMQ or Redis data. Redis is not restored. A restore is not a rewind of the broker.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar"><span dir="ltr">--yes</span> يمنع استبدالاً صامتاً. إعادة القاعدة لا تعيد الطوابير إلى لحظة النسخ.</span>
+          <span class="en">--yes blocks a silent replace. Putting a database back does not put the queues back to the moment of the dump.</span>
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section id="load" class="mb-10">
+    <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200 sm:p-6">
+      <div class="flex flex-wrap items-start gap-3">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-tideSoft text-2xl" aria-hidden="true">⚡</span>
+        <div>
+          <p class="text-sm font-semibold text-tide"><span class="ar">الخطوة 5</span><span class="en">Step 5</span></p>
+          <h2 class="text-2xl font-bold"><span class="ar">الضغط</span><span class="en">Load</span></h2>
+        </div>
+      </div>
+      <p class="mt-4 leading-relaxed">
+        <span class="ar">مسار لطيف: مستخدمان، انتظار 15 ثانية، تحت حدود Redis. مسار إغراق يتجاوز حد إنشاء الطلب. Locust ينفّذ المسار عبر البوابة على <span dir="ltr">127.0.0.1:8080</span>.</span>
+        <span class="en">A gentle path: two users, a 15-second wait, under the Redis limits. A flood path crosses the order-create limit. Locust runs the path through the gateway at 127.0.0.1:8080.</span>
+      </p>
+    </article>
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="load/scenario.py">load/scenario.py</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">خطة تصفح العميل وإنشاء الطلب لاختبار الحمل. هذه الوحدة لا تفتح مقبساً، وملف Locust يستدعيها. الحدود هي ما تفرضه خدمة الطلب و Traefik أصلاً، والملف لا يغيّرها. اللطيف: مستخدمان وانتظار 15 ثانية. الإغراق: مستخدم واحد وانتظار 0.2 ثانية ومحاولات إنشاء تتجاوز 10 في الدقيقة بخمس. الدخول والتسجيل 5 في الدقيقة، وإنشاء الطلب 10 في الدقيقة، ومحدد Traefik في الذاكرة 30 طلباً في الثانية. العنوان الافتراضي <span dir="ltr">http://127.0.0.1:8080</span>.</span>
+          <span class="en">The customer browse and order-create plan for the load test. This module does not open a socket; the Locust file calls it. The limits are the ones the order service and Traefik already enforce, and this file does not change them. Gentle: two users and a 15-second wait. Flood: one user, a 0.2-second wait, and create attempts that pass 10 per minute by five. Login and register are 5 per minute, order create is 10 per minute, and Traefik’s in-memory limiter is 30 requests per second. The default address is http://127.0.0.1:8080.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">الاختبار يصف الميزانية ولا يرفعها. اللطيف يبقى تحت حد Redis، والإغراق يعبر حد إنشاء الطلب عمداً.</span>
+          <span class="en">The test describes the budget and does not raise it. Gentle stays under the Redis limit, and flood crosses the order-create limit on purpose.</span>
+        </p>
+      </article>
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="load/locustfile.py">load/locustfile.py</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">مسار عميل واحد: تسجيل أو إعادة استخدام، ثم دخول، وتصفح المنتجات، وإنشاء طلب واحد، وقراءته. الوضع اللطيف يبقى تحت حد Redis لإنشاء الطلب. وضع الإغراق يعبره. لا أحد منهما ينادي مساراً داخلياً. التشغيل عبر البوابة.</span>
+          <span class="en">One customer path: register or reuse, log in, browse products, create one order, and read it. Gentle mode stays under the Redis order-create limit. Flood mode crosses it. Neither mode calls an internal route. The run goes through the gateway.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">Locust ينفّذ الخطة من خارج البوابة كما يفعل المتصفح. الضغط لا يقفز إلى منفذ خدمة داخلي.</span>
+          <span class="en">Locust runs the plan from outside the gateway, the way a browser does. The load does not jump to an internal service port.</span>
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section id="failure" class="mb-10">
+    <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200 sm:p-6">
+      <div class="flex flex-wrap items-start gap-3">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-tideSoft text-2xl" aria-hidden="true">🛑</span>
+        <div>
+          <p class="text-sm font-semibold text-tide"><span class="ar">الخطوة 6</span><span class="en">Step 6</span></p>
+          <h2 class="text-2xl font-bold"><span class="ar">مختبر العطل</span><span class="en">Failure lab</span></h2>
+        </div>
+      </div>
+      <p class="mt-4 leading-relaxed">
+        <span class="ar"><span dir="ltr">lib.sh</span> يسمح فقط بـ <span dir="ltr">stop</span> أو <span dir="ltr">start</span> لخدمة واحدة. إيقاف RabbitMQ يُبقي صف الـ outbox معلقاً. إيقاف Redis يجعل تسجيل الدخول وإنشاء الطلب يفشلان بشكل مغلق، بينما قراءة الكتالوج تبقى من Postgres.</span>
+        <span class="en">lib.sh allows only stop or start for one service. Stopping RabbitMQ leaves the outbox row pending. Stopping Redis makes login and order create fail closed, while a catalog read still comes from Postgres.</span>
+      </p>
+    </article>
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200 md:col-span-2">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="failure-lab/lib.sh">failure-lab/lib.sh</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">مساعدات مشتركة لمختبر العطل. سكربتات التجربة تستورد هذا الملف، وهو ليس تجربة بذاته. فشل <span dir="ltr">docker info</span> يعود قبل أي إيقاف أو تشغيل في Compose. الدالة تقبل <span dir="ltr">stop</span> أو <span dir="ltr">start</span> فقط، ولخدمة واحدة هي <span dir="ltr">SERVICE</span> التي سمّاها السكربت. أي أمر آخر أو خدمة أخرى يُرفض.</span>
+          <span class="en">Shared helpers for the failure lab. Experiment scripts source this file. It is not a drill by itself. A failing docker info returns before any Compose stop or start. The helper accepts only stop or start, and only the one service named SERVICE by that script. Any other command or service is refused.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">المختبر لا يملك أمراً يُسقط المكدس. العطل المقصود خدمة واحدة، حتى يبقى الباقي شاهداً على ما تغيّر.</span>
+          <span class="en">The lab has no command that drops the stack. The intended fault is one service, so the rest stays up as a witness to what changed.</span>
+        </p>
+      </article>
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="failure-lab/rabbitmq.sh">failure-lab/rabbitmq.sh</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">يوقف RabbitMQ فقط. نداء HTTP للطلب ما زال يُثبَّت في <span dir="ltr">order_db</span>. صف الـ outbox يبقى <span dir="ltr">pending</span>. خدمة الطلب وناشر الـ outbox يبقيان يعملان، لأن الواجهة لا تنادي الوسيط مباشرة. تشغيل الوسيط من جديد يفرّغ الناشر الصف. بعد خمس محاولات فاشلة يصبح الصف <span dir="ltr">failed</span>، وهذا ليس طابور رسائل ميتة لدى المستهلك.</span>
+          <span class="en">Stops RabbitMQ only. The order HTTP call still commits in order_db. The outbox row stays pending. The order service and the outbox publisher stay up, because the API does not call the broker. Starting the broker again lets the publisher drain the row. After five failed attempts the row becomes failed, and that is not a consumer dead-letter queue.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">نجاح الطلب لا يعني أن الحدث غادر القاعدة. الصف يعلّق حتى يعود الوسيط، والصف التجاري نفسه لا يتغير.</span>
+          <span class="en">A successful order does not mean the event left the database. The row waits until the broker returns, and the business row itself does not change.</span>
+        </p>
+      </article>
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="failure-lab/redis.sh">failure-lab/redis.sh</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">يوقف Redis فقط. قراءة الكتالوج ما زالت تستخدم <span dir="ltr">order_db</span>: ذاكرة المنتجات تعامل Redis الميت كإخفاق وتقرأ من Postgres. تسجيل الدخول وإنشاء الطلب يفشلان مغلقاً بـ 503 و<span dir="ltr">DEPENDENCY_UNAVAILABLE</span> قبل كتابة صف طلب، ومدقق كلمة المرور لا يعمل. <span dir="ltr">jwt-check</span> لا يستخدم Redis. التأكيد وقراءة الطلب والتحديث والخروج لا تستخدم Redis. الطلبات لم تُخزَّن فيه أصلاً.</span>
+          <span class="en">Stops Redis only. Catalog reads still use order_db: the product cache treats a dead Redis as a miss and reads Postgres. Login and order create fail closed with 503 and DEPENDENCY_UNAVAILABLE, before an order row is written, and the password checker does not run. jwt-check does not use Redis. Confirm, order read, refresh, and logout do not use Redis. Orders were never stored in Redis.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">الفشل المغلق يرفض الكتابة حين يغيب حد المعدل. القراءة ترجع إلى القاعدة، والرمز الذي صدر قبل العطل يبقى صالحاً للمسارات التي لا تحتاج Redis.</span>
+          <span class="en">Fail closed refuses a write when the rate-limit store is gone. A read falls back to the database, and a token issued before the fault still works on routes that do not need Redis.</span>
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section id="kind" class="mb-4">
+    <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200 sm:p-6">
+      <div class="flex flex-wrap items-start gap-3">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-tideSoft text-2xl" aria-hidden="true">☸️</span>
+        <div>
+          <p class="text-sm font-semibold text-tide"><span class="ar">الخطوة 7</span><span class="en">Step 7</span></p>
+          <h2 class="text-2xl font-bold"><span class="ar">العنقود</span><span class="en">Kind</span></h2>
+        </div>
+      </div>
+      <p class="mt-4 leading-relaxed">
+        <span class="ar"><span dir="ltr">apply.sh</span> يبني الصور ويحمّلها في العنقود ثم يطبّق <span dir="ltr">kustomization.yaml</span>. Compose يبقى بيئة التشغيل الأولى. السكربت لا يحذف عنقوداً موجوداً.</span>
+        <span class="en">apply.sh builds the images, loads them into the cluster, then applies kustomization.yaml. Compose stays the first runtime. The script does not delete a cluster that already exists.</span>
+      </p>
+    </article>
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="kind/apply.sh">kind/apply.sh</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">يبني وسوم صور Compose، يحمّلها في kind، ويطبّق <span dir="ltr">deploy/kind</span>. لا يحذف عنقوداً. Compose يبقى بيئة التشغيل الأولى. إن وُجد العنقود <span dir="ltr">commerce</span> يُترك كما هو. إن غاب Docker أو kind أو kubectl لا يُنشأ عنقود.</span>
+          <span class="en">Builds the Compose image tags, loads them into kind, and applies deploy/kind. Does not delete a cluster. Compose remains the first runtime. If the commerce cluster already exists, it is left as it is. If Docker, kind, or kubectl is missing, a cluster is not created.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">Kubernetes هنا هدف ثانٍ بعد أن يعمل المكدس محلياً. إعادة السكربت لا تمسح عنقوداً قائماً لتعيد البناء من صفر.</span>
+          <span class="en">Kubernetes here is a second target after the stack already runs locally. Running the script again does not wipe a living cluster to start from zero.</span>
+        </p>
+      </article>
+      <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <h3 class="break-all font-mono text-sm font-semibold" dir="ltr"><a class="text-tide underline decoration-tide/30 underline-offset-2" href="kind/kustomization.yaml">kind/kustomization.yaml</a></h3>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">الوظيفة التقنية</span><span class="en">Technical role</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">أحمال مساحة الاسم <span dir="ltr">commerce</span>: التخزين، والقواعد، والوسيط، والذاكرة، والخدمات، والواجهة، والبوابة، والمراقبة، والدخول. ملف Secret المثال ليس مورداً. <span dir="ltr">apply.sh</span> ينشئ ConfigMaps من ملفات <span dir="ltr">deploy/observability</span> و<span dir="ltr">deploy/gateway</span> و<span dir="ltr">deploy/compose/dynamic.yaml</span> قبل تطبيق هذا الملف.</span>
+          <span class="en">Workloads for the commerce namespace: storage, databases, the broker, the cache, the services, the frontend, the gateway, observability, and ingress. The example Secret file is not a resource. apply.sh creates the ConfigMaps that mount files from deploy/observability, deploy/gateway, and deploy/compose/dynamic.yaml before this is applied.</span>
+        </p>
+        <h4 class="mt-3 text-xs font-bold uppercase tracking-wide text-stone-500"><span class="ar">قيمة التعلم</span><span class="en">What to learn</span></h4>
+        <p class="mt-1 text-sm leading-relaxed">
+          <span class="ar">العنقود يعيد استخدام توجيه Compose وملفات المراقبة. الأسرار المثال ليست جزءاً من التطبيق.</span>
+          <span class="en">The cluster reuses the Compose routes and the observability files. The example secrets are not part of the apply.</span>
+        </p>
+      </article>
+    </div>
+  </section>
+</main>
+</div>
+<script>
+(function () {
+  var KEY = "deploy-learning-lang";
+  var header = document.querySelector("header");
+  var buttons = document.querySelectorAll("[data-set-lang]");
+  var langGroup = document.querySelector(".langs");
+  var steps = document.querySelector(".steps");
+  var titles = { ar: "مسار تعلم deploy", en: "deploy/ learning path" };
+  var groupLabel = { ar: "اللغة", en: "Language" };
+  var stepsLabel = { ar: "الخطوات", en: "Steps" };
+
+  function apply(lang) {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    document.title = titles[lang];
+    if (langGroup) langGroup.setAttribute("aria-label", groupLabel[lang]);
+    if (steps) steps.setAttribute("aria-label", stepsLabel[lang]);
+    buttons.forEach(function (btn) {
+      btn.setAttribute("aria-pressed", btn.getAttribute("data-set-lang") === lang ? "true" : "false");
+    });
+    try { localStorage.setItem(KEY, lang); } catch (e) {}
+    measure();
+  }
+
+  function measure() {
+    if (!header) return;
+    document.documentElement.style.setProperty("--bar", header.offsetHeight + "px");
+  }
+
+  buttons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      apply(btn.getAttribute("data-set-lang"));
+    });
+  });
+
+  var links = Array.prototype.slice.call(document.querySelectorAll(".step-link"));
+  var sections = links.map(function (link) {
+    return document.querySelector(link.getAttribute("href"));
+  }).filter(Boolean);
+
+  if ("IntersectionObserver" in window && sections.length) {
+    var visible = new Map();
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        visible.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0);
+      });
+      var current = sections[0].id;
+      var best = 0;
+      sections.forEach(function (section) {
+        var ratio = visible.get(section.id) || 0;
+        if (ratio > best) {
+          best = ratio;
+          current = section.id;
+        }
+      });
+      links.forEach(function (link) {
+        var on = link.getAttribute("href") === "#" + current;
+        if (on) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      });
+    }, { rootMargin: "-20% 0px -55% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] });
+    sections.forEach(function (section) { observer.observe(section); });
+  }
+
+  apply(document.documentElement.lang === "en" ? "en" : "ar");
+  window.addEventListener("resize", measure);
+})();
+</script>
+</body>
+</html>

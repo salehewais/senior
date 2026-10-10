@@ -174,7 +174,7 @@ spec:
         - name: odoo-consumer
           image: commerce/odoo:18.0.1
           imagePullPolicy: IfNotPresent
-          args: ["python3", "-m", "commerce_erp.consumer"]
+          args: ["python3", "-m", "commerce_erp.workers.consumer"]
           envFrom:
             - configMapRef:
                 name: commerce-config
@@ -255,7 +255,7 @@ spec:
         - name: odoo-publisher
           image: commerce/odoo:18.0.1
           imagePullPolicy: IfNotPresent
-          args: ["python3", "-m", "commerce_erp.publisher"]
+          args: ["python3", "-m", "commerce_erp.workers.publisher"]
           envFrom:
             - configMapRef:
                 name: commerce-config

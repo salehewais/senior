@@ -68,7 +68,7 @@ groups:
           description: "A primary queue has more than 100 messages. Open docs/rabbitmq.md. Check the consumer logs. A growing queue is not the same as a dead-letter queue. The order-service HPA watches API CPU, so an idle consumer and a growing queue do not add consumer pods."
 
       - alert: DeadLetterBacklog
-        expr: sum by (queue) (rabbitmq_detailed_queue_messages{queue=~".+\.dlq"}) > 0
+        expr: sum by (queue) (rabbitmq_detailed_queue_messages{queue=~".+[.]dlq"}) > 0
         for: 5m
         labels:
           severity: page

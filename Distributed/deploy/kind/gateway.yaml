@@ -78,12 +78,14 @@ metadata:
     app.kubernetes.io/part-of: commerce
     app.kubernetes.io/name: ingress
 spec:
-  type: NodePort
+  # NodePort 30080 is what kind-config.yaml publishes as host port 8080.
+  # LoadBalancer port 8080 is what Docker Desktop Kubernetes publishes on localhost.
+  type: LoadBalancer
   selector:
     app.kubernetes.io/name: ingress
   ports:
     - name: http
-      port: 80
+      port: 8080
       targetPort: http
       nodePort: 30080
 ---
@@ -115,6 +117,8 @@ spec:
             - name: http
               containerPort: 8081
           env:
+            - name: JWT_CHECK_PORT
+              value: "8081"
             - name: JWT_PUBLIC_KEY_PATH
               value: /keys/jwt_public.pem
           volumeMounts:

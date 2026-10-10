@@ -2,6 +2,8 @@
 
 Extension Phase 3. Flask, `notification_db`, and a RabbitMQ consumer. Email and push are mocks. The design is [docs/flask-notification-service.md](../../docs/flask-notification-service.md).
 
+`config.py` reads the environment and still refuses any database other than `notification_db`. HTTP routes live in `api` and call `services` instead of the store. `persistence` owns the tables. `messaging` owns the queue, settlement, and consumer loop. The process commands stay `python -m notification_service.http` and `python -m notification_service.consumer`.
+
 This machine has Python 3.12.3 at `/usr/bin/python3`. The commands below were run from this directory on 9 October 2026. `python -m pytest` reported 9 passed and 2 skipped. Docker was not running, so the Compose database and the broker were not started. The skipped tests are `test_notification_db_stores_a_device_token` (nothing was listening on `127.0.0.1:5435`) and `test_broker_declares_the_notification_queue` (nothing was listening on `127.0.0.1:5672`).
 
 ## Unit tests

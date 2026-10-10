@@ -10,9 +10,7 @@ import os
 from odoo import fields, models
 from odoo.exceptions import UserError
 
-from .bootstrap import import_commerce_erp
-
-_erp = import_commerce_erp()
+from commerce_erp.clients import fulfillment as _fulfillment
 
 
 class SaleOrder(models.Model):
@@ -52,7 +50,7 @@ class SaleOrder(models.Model):
             if not order.commerce_order_id:
                 raise UserError("This sales order has no commerce order id.")
             try:
-                result = _erp.fulfillment.post_milestone(
+                result = _fulfillment.post_milestone(
                     order_service_url=base_url,
                     token=token,
                     order_id=order.commerce_order_id,
@@ -60,13 +58,13 @@ class SaleOrder(models.Model):
                     tracking_reference=order.commerce_tracking_reference or None,
                     timeout=timeout,
                 )
-            except _erp.fulfillment.MissingToken as exc:
+            except _fulfillment.MissingToken as exc:
                 raise UserError(
                     "INTERNAL_SERVICE_TOKEN is unset. The order service was not called."
                 ) from exc
-            if result.result is _erp.fulfillment.MilestoneResult.ACCEPTED:
+            if result.result is _fulfillment.MilestoneResult.ACCEPTED:
                 continue
-            if result.result is _erp.fulfillment.MilestoneResult.NOT_READY:
+            if result.result is _fulfillment.MilestoneResult.NOT_READY:
                 raise UserError(
                     "The previous milestone is not applied yet. Retry this button later. "
                     "The order service did not skip a step."

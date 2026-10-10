@@ -7,6 +7,9 @@
 #
 # Reports are their own router with a higher priority, and the order router
 # also excludes that prefix, so a report path is not forwarded to FastAPI.
+# Staff HTML at /reporting and /notifications is public so the login form can
+# load. /api/v1/notifications is its own router, with jwt-access, and the
+# order router excludes that prefix.
 #
 # Dial, response-header, and idle timeouts are set on the shared transport.
 # The rate limit is Traefik's in-memory limiter: one counter per process, and
@@ -86,6 +89,17 @@ http:
         - edge-cors
         - jwt-access
       service: notification
+    notification-deliveries:
+      rule: "Path(`/api/v1/notifications`) || PathPrefix(`/api/v1/notifications/`)"
+      priority: 300
+      entryPoints:
+        - web
+      middlewares:
+        - edge-prepare
+        - coarse-limit
+        - edge-cors
+        - jwt-access
+      service: notification
     auth-public:
       rule: "Method(`POST`) && (Path(`/api/v1/auth/register`) || Path(`/api/v1/auth/login`) || Path(`/api/v1/auth/refresh`) || Path(`/api/v1/auth/logout`))"
       priority: 250
@@ -97,7 +111,7 @@ http:
         - edge-cors
       service: order
     order-api:
-      rule: "PathPrefix(`/api/v1`) && !PathPrefix(`/api/v1/internal`) && !Path(`/api/v1/reports`) && !PathPrefix(`/api/v1/reports/`) && !Path(`/api/v1/device-tokens`) && !PathPrefix(`/api/v1/device-tokens/`)"
+      rule: "PathPrefix(`/api/v1`) && !PathPrefix(`/api/v1/internal`) && !Path(`/api/v1/reports`) && !PathPrefix(`/api/v1/reports/`) && !Path(`/api/v1/device-tokens`) && !PathPrefix(`/api/v1/device-tokens/`) && !Path(`/api/v1/notifications`) && !PathPrefix(`/api/v1/notifications/`)"
       priority: 200
       entryPoints:
         - web
@@ -107,6 +121,26 @@ http:
         - edge-cors
         - jwt-access
       service: order
+    reporting-page:
+      rule: "PathPrefix(`/reporting`)"
+      priority: 100
+      entryPoints:
+        - web
+      middlewares:
+        - edge-prepare
+        - coarse-limit
+        - edge-cors
+      service: reporting
+    notification-page:
+      rule: "PathPrefix(`/notifications`)"
+      priority: 100
+      entryPoints:
+        - web
+      middlewares:
+        - edge-prepare
+        - coarse-limit
+        - edge-cors
+      service: notification
     frontend:
       rule: "!PathPrefix(`/api`) && !Path(`/ping`)"
       priority: 1

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_commerce_root" name="Commerce" parent="sale.sale_menu_root" sequence="80"/>
+    <menuitem id="menu_commerce_inventory" name="Stock snapshots" parent="menu_commerce_root"
+              action="action_commerce_inventory_state" sequence="10"/>
+    <menuitem id="menu_commerce_processed" name="Processed events" parent="menu_commerce_root"
+              action="action_commerce_processed_event" sequence="20"/>
+</odoo>

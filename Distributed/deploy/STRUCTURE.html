@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>deploy/ structure map</title>
+<style>
+  :root {
+    --ink: #1c1915;
+    --muted: #5e574c;
+    --paper: #f4f0e6;
+    --card: #fffdf8;
+    --line: #ddd4c4;
+    --accent: #0e4d5c;
+    --accent-soft: #e5f1f3;
+    --ar-bg: #f7efe4;
+    --warn: #6b3a12;
+    --shadow: 0 1px 0 rgba(28, 25, 21, 0.04);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--paper);
+    font: 17px/1.55 "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+  }
+  body[data-view="en"] .lang-ar { display: none; }
+  body[data-view="ar"] .lang-en { display: none; }
+  a { color: var(--accent); }
+  code, .path {
+    font-family: "IBM Plex Mono", "Source Code Pro", ui-monospace, monospace;
+    font-size: 0.86em;
+  }
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    background: #1c1915;
+    color: #f4f0e6;
+  }
+  .top h1 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .top p { margin: 0.15rem 0 0; font-size: 0.82rem; color: #cfc6b6; }
+  .langs { display: flex; gap: 0.35rem; }
+  .langs button {
+    font: inherit;
+    font-size: 0.9rem;
+    border: 1px solid #8d8374;
+    background: transparent;
+    color: #f4f0e6;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .langs button[aria-pressed="true"] {
+    background: #f4f0e6;
+    color: #1c1915;
+    border-color: #f4f0e6;
+  }
+  .shell {
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) 1fr;
+    align-items: start;
+  }
+  .toc {
+    position: sticky;
+    top: 4.4rem;
+    max-height: calc(100vh - 4.8rem);
+    overflow: auto;
+    padding: 1rem 0.9rem 2rem 1.1rem;
+    border-inline-end: 1px solid var(--line);
+  }
+  .toc h2 {
+    margin: 0.8rem 0 0.35rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .toc a {
+    display: block;
+    text-decoration: none;
+    color: var(--ink);
+    padding: 0.18rem 0;
+    font-size: 0.92rem;
+  }
+  .toc a:hover { color: var(--accent); }
+  .toc a.nested { padding-inline-start: 0.85rem; color: var(--muted); font-size: 0.84rem; }
+  .toc a.deep { padding-inline-start: 1.6rem; font-size: 0.8rem; }
+  main { padding: 1.25rem 1.6rem 4rem; min-width: 0; }
+  article {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.15rem 1.25rem 1.3rem;
+    margin: 0 0 0.85rem;
+    box-shadow: var(--shadow);
+  }
+  article.lang-ar {
+    background: var(--ar-bg);
+    font-family: "Noto Naskh Arabic", "Noto Sans Arabic", Amiri, "DejaVu Sans", Tahoma, sans-serif;
+    font-size: 1.05rem;
+    line-height: 1.75;
+  }
+  h2 { margin: 0 0 0.6rem; font-size: 1.45rem; }
+  h3 { margin: 1.15rem 0 0.4rem; font-size: 1.12rem; }
+  p { margin: 0.45rem 0; }
+  ul { margin: 0.4rem 0 0.6rem; padding-inline-start: 1.2rem; }
+  li { margin: 0.25rem 0; }
+  .pair { scroll-margin-top: 5rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.6rem;
+    font-size: 0.95rem;
+    table-layout: fixed;
+  }
+  th, td {
+    text-align: start;
+    vertical-align: top;
+    border-bottom: 1px solid var(--line);
+    padding: 0.55rem 0.55rem;
+    overflow-wrap: anywhere;
+  }
+  th:nth-child(1), td:nth-child(1) { width: 26%; }
+  th:nth-child(2), td:nth-child(2) { width: 24%; }
+  th:nth-child(3), td:nth-child(3) { width: 50%; }
+  th {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  tr:last-child td { border-bottom: 0; }
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+    margin: 0.8rem 0 0.4rem;
+  }
+  .node {
+    background: var(--accent-soft);
+    border: 1px solid #b7d4d8;
+    border-radius: 8px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.88rem;
+    min-width: 7rem;
+  }
+  .node strong { display: block; }
+  .node.side { background: #f3ead8; border-color: #e0d0b0; }
+  .arrow { color: var(--muted); font-size: 1.1rem; }
+  .note {
+    border-inline-start: 3px solid var(--warn);
+    padding-inline-start: 0.75rem;
+    color: var(--warn);
+  }
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: 1fr; }
+    .toc {
+      position: static;
+      max-height: none;
+      border-inline-end: 0;
+      border-bottom: 1px solid var(--line);
+    }
+  }
+</style>
+</head>
+<body data-view="both">
+<header class="top">
+  <div>
+    <h1 class="lang-en">deploy/ structure map</h1>
+    <h1 class="lang-ar" lang="ar" dir="rtl">خريطة مجلد deploy/</h1>
+    <p class="lang-en">Local commerce runtime. Seven folders. No root README.</p>
+    <p class="lang-ar" lang="ar" dir="rtl">بيئة التشغيل المحلية لمنصة التجارة. سبعة مجلدات. بلا README في الجذر.</p>
+  </div>
+  <div class="langs" role="group" aria-label="Language">
+    <button type="button" data-set-lang="en" aria-pressed="false">English</button>
+    <button type="button" data-set-lang="ar" aria-pressed="false">العربية</button>
+    <button type="button" data-set-lang="both" aria-pressed="true">Both / الاثنان</button>
+  </div>
+</header>
+<div class="shell">
+<nav class="toc" aria-label="Contents">
+  <h2 class="lang-en">Contents</h2>
+  <h2 class="lang-ar" lang="ar" dir="rtl">المحتويات</h2>
+  <a href="#overview"><span class="lang-en">Overview</span><span class="lang-ar" lang="ar" dir="rtl">نظرة عامة</span></a>
+  <a href="#traffic"><span class="lang-en">Traffic</span><span class="lang-ar" lang="ar" dir="rtl">مسار الحركة</span></a>
+  <a href="#how"><span class="lang-en">How it works</span><span class="lang-ar" lang="ar" dir="rtl">كيف يعمل</span></a>
+  <a href="#compose">compose/</a>
+  <a class="nested" href="#compose-secrets">compose/secrets/</a>
+  <a class="nested" href="#compose-pycache">compose/__pycache__/</a>
+  <a href="#gateway">gateway/</a>
+  <a class="nested" href="#gateway-jwt-check">gateway/jwt-check/</a>
+  <a class="nested" href="#gateway-plugins">gateway/plugins-local/</a>
+  <a class="deep" href="#gateway-edgeheaders">…/edgeheaders/</a>
+  <a class="nested" href="#gateway-tests">gateway/tests/</a>
+  <a class="nested" href="#gateway-pycache">gateway/__pycache__/</a>
+  <a class="nested" href="#gateway-tests-pycache">gateway/tests/__pycache__/</a>
+  <a href="#kind">kind/</a>
+  <a class="nested" href="#kind-pycache">kind/__pycache__/</a>
+  <a href="#observability">observability/</a>
+  <a class="nested" href="#observability-prometheus">observability/prometheus/</a>
+  <a class="nested" href="#observability-alertmanager">observability/alertmanager/</a>
+  <a class="nested" href="#observability-webhook">observability/webhook/</a>
+  <a class="nested" href="#observability-otel">observability/otel/</a>
+  <a class="nested" href="#observability-tempo">observability/tempo/</a>
+  <a class="nested" href="#observability-rabbitmq">observability/rabbitmq/</a>
+  <a class="nested" href="#observability-grafana">observability/grafana/</a>
+  <a class="deep" href="#observability-dashboards">…/dashboards/</a>
+  <a class="deep" href="#observability-provisioning">…/provisioning/</a>
+  <a href="#backup">backup/</a>
+  <a href="#load">load/</a>
+  <a class="nested" href="#load-pycache">load/__pycache__/</a>
+  <a href="#failure-lab">failure-lab/</a>
+</nav>
+<main>
+
+<section class="pair" id="overview">
+<article class="lang-en" lang="en">
+  <h2>Overview</h2>
+  <p><code>deploy/</code> is the local runtime for the commerce platform. It has no README of its own. Compose is the first runtime. Kind is a second packaging of the same image tags. Checkout does not wait on the observability stack.</p>
+  <ul>
+    <li><strong>compose/</strong> — primary stack, project <code>commerce</code>, network <code>commerce</code>. <code>up.sh</code> creates JWT keys and <code>.env</code> when they are missing, then runs <code>docker compose up -d --build</code>. The only public HTTP door is Traefik on <code>127.0.0.1:8080</code>.</li>
+    <li><strong>gateway/</strong> — Traefik static config, JWT ForwardAuth, and the <code>edgeheaders</code> plugin. <code>gateway/compose.yaml</code> is a host-process gateway and must not run at the same time as the full stack. Both bind port 8080. Kind and Compose reuse the plugin, the JWT image, and <code>compose/dynamic.yaml</code>.</li>
+    <li><strong>kind/</strong> — one-node cluster named <code>commerce</code>. <code>apply.sh</code> loads the same image tags and applies manifests. Host <code>127.0.0.1:8080</code> maps to NodePort <code>30080</code>, then an ingress Traefik forwards every public path to a second Traefik, the gateway.</li>
+    <li><strong>observability/</strong> — Prometheus, Alertmanager, a log-only webhook, the OpenTelemetry collector, Tempo, Grafana dashboards, and RabbitMQ plugins. Compose bind-mounts these files. Kind turns them into ConfigMaps.</li>
+    <li><strong>backup/</strong> — <code>pg_dump</code> and <code>pg_restore</code> for <code>order_db</code>, <code>reporting_db</code>, and <code>odoo_db</code> only. Redis, RabbitMQ, and <code>notification_db</code> are not backed up.</li>
+    <li><strong>load/</strong> — Locust customer path against <code>http://127.0.0.1:8080</code>. Gentle mode stays under Redis limits. Flood mode expects HTTP 429.</li>
+    <li><strong>failure-lab/</strong> — stops or starts one Compose service at a time (reporting consumer, RabbitMQ, Redis, inventory consumer) and prints what should still work.</li>
+  </ul>
+  <p class="note">Secret files are named here by role. This page does not copy PEM bodies or the value of <code>INTERNAL_SERVICE_TOKEN</code>.</p>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>نظرة عامة</h2>
+  <p>مجلد <code>deploy/</code> هو بيئة التشغيل المحلية لمنصة التجارة. ليس له ملف README خاص. Compose هو وقت التشغيل الأول. Kind تغليف ثانٍ لنفس وسوم الصور. إتمام الشراء لا ينتظر مكدس المراقبة.</p>
+  <ul>
+    <li><strong>compose/</strong> — المكدس الأساسي، المشروع <code>commerce</code>، الشبكة <code>commerce</code>. ينشئ <code>up.sh</code> مفاتيح JWT وملف <code>.env</code> إن غابا، ثم يشغّل <code>docker compose up -d --build</code>. الباب العام الوحيد لـ HTTP هو Traefik على <code>127.0.0.1:8080</code>.</li>
+    <li><strong>gateway/</strong> — إعداد Traefik الثابت، وفحص JWT عبر ForwardAuth، وإضافة <code>edgeheaders</code>. ملف <code>gateway/compose.yaml</code> بوابة لعمليات على الجهاز المضيف، ولا يُشغَّل مع المكدس الكامل في الوقت نفسه. كلاهما يربط المنفذ 8080. تعيد Kind وCompose استخدام الإضافة وصورة JWT وملف <code>compose/dynamic.yaml</code>.</li>
+    <li><strong>kind/</strong> — عنقود من عقدة واحدة اسمه <code>commerce</code>. يحمّل <code>apply.sh</code> وسوم الصور نفسها ويطبّق البيانات. يُقابل <code>127.0.0.1:8080</code> على المضيف منفذ العقدة <code>30080</code>، ثم يمرّر Traefik الدخول كل مسار عام إلى Traefik ثانٍ هو البوابة.</li>
+    <li><strong>observability/</strong> — Prometheus وAlertmanager وخطاف يسجّل في السجل فقط، ومجمّع OpenTelemetry، وTempo، ولوحات Grafana، وإضافات RabbitMQ. يربط Compose هذه الملفات مباشرة. تحوّلها Kind إلى ConfigMaps.</li>
+    <li><strong>backup/</strong> — <code>pg_dump</code> و<code>pg_restore</code> لقواعد <code>order_db</code> و<code>reporting_db</code> و<code>odoo_db</code> فقط. Redis وRabbitMQ و<code>notification_db</code> غير مشمولة بالنسخ.</li>
+    <li><strong>load/</strong> — مسار زبون Locust نحو <code>http://127.0.0.1:8080</code>. الوضع الهادئ يبقى تحت حدود Redis. وضع الغمر يتوقع HTTP 429.</li>
+    <li><strong>failure-lab/</strong> — يوقف أو يشغّل خدمة Compose واحدة في كل مرة (مستهلك التقارير، RabbitMQ، Redis، مستهلك المخزون) ويطبع ما يُفترض أن يبقى عاملاً.</li>
+  </ul>
+  <p class="note">تُذكر ملفات الأسرار هنا بدورها فقط. هذه الصفحة لا تنسخ متن PEM ولا قيمة <code>INTERNAL_SERVICE_TOKEN</code>.</p>
+</article>
+</section>
+
+<section class="pair" id="traffic">
+<article class="lang-en" lang="en">
+  <h2>Traffic</h2>
+  <p>A browser reaches one door. Traefik forwards public routes. The order process talks to its database, Redis, and RabbitMQ. Consumers and Odoo read the broker. Odoo fulfillment calls <code>order-service</code> on the private network and is not on the gateway.</p>
+  <div class="flow" aria-label="Request path">
+    <div class="node"><strong>Browser</strong>127.0.0.1:8080</div>
+    <span class="arrow" aria-hidden="true">→</span>
+    <div class="node"><strong>Gateway Traefik</strong>public routers</div>
+    <span class="arrow" aria-hidden="true">→</span>
+    <div class="node"><strong>jwt-check</strong>RS256 access token</div>
+  </div>
+  <div class="flow">
+    <div class="node"><strong>order-service</strong>:8000</div>
+    <div class="node"><strong>reporting-service</strong>:8001</div>
+    <div class="node"><strong>notification-service</strong>:8002</div>
+    <div class="node"><strong>frontend</strong>storefront</div>
+  </div>
+  <div class="flow">
+    <div class="node side"><strong>order_db</strong>Postgres</div>
+    <div class="node side"><strong>redis</strong>cache and limits</div>
+    <div class="node side"><strong>rabbitmq</strong>broker</div>
+    <span class="arrow" aria-hidden="true">→</span>
+    <div class="node side"><strong>Consumers and Odoo</strong>private network</div>
+  </div>
+  <h3>Public routes</h3>
+  <p>From <code>compose/dynamic.yaml</code>, which Kind mounts as the gateway file provider:</p>
+  <ul>
+    <li>Reports go to reporting on port 8001, with JWT.</li>
+    <li>Device tokens go to notification on port 8002, with JWT.</li>
+    <li>Public auth POSTs (register, login, refresh, logout) go to order on port 8000 without JWT.</li>
+    <li>Other <code>/api/v1</code> paths, except <code>/api/v1/internal</code>, go to order with JWT.</li>
+    <li>Everything else, except <code>/api</code> and <code>/ping</code>, goes to the frontend.</li>
+  </ul>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>مسار الحركة</h2>
+  <p>يصل المتصفح إلى باب واحد. يمرّر Traefik المسارات العامة. تتحدث عملية الطلبات مع قاعدتها وRedis وRabbitMQ. يقرأ المستهلكون وOdoo الوسيط. استدعاءات تنفيذ Odoo تتجه إلى <code>order-service</code> على الشبكة الخاصة وليست على البوابة.</p>
+  <div class="flow" aria-label="مسار الطلب">
+    <div class="node"><strong>المتصفح</strong>127.0.0.1:8080</div>
+    <span class="arrow" aria-hidden="true">←</span>
+    <div class="node"><strong>بوابة Traefik</strong>الموجّهات العامة</div>
+    <span class="arrow" aria-hidden="true">←</span>
+    <div class="node"><strong>jwt-check</strong>رمز وصول RS256</div>
+  </div>
+  <div class="flow">
+    <div class="node"><strong>order-service</strong>المنفذ 8000</div>
+    <div class="node"><strong>reporting-service</strong>المنفذ 8001</div>
+    <div class="node"><strong>notification-service</strong>المنفذ 8002</div>
+    <div class="node"><strong>الواجهة</strong>المتجر</div>
+  </div>
+  <div class="flow">
+    <div class="node side"><strong>order_db</strong>Postgres</div>
+    <div class="node side"><strong>redis</strong>ذاكرة وحدود</div>
+    <div class="node side"><strong>rabbitmq</strong>الوسيط</div>
+    <span class="arrow" aria-hidden="true">←</span>
+    <div class="node side"><strong>المستهلكون وOdoo</strong>الشبكة الخاصة</div>
+  </div>
+  <h3>المسارات العامة</h3>
+  <p>من <code>compose/dynamic.yaml</code>، الذي تركّبه Kind كمزوّد ملفات البوابة:</p>
+  <ul>
+    <li>التقارير إلى reporting على المنفذ 8001، مع JWT.</li>
+    <li>رموز الأجهزة إلى notification على المنفذ 8002، مع JWT.</li>
+    <li>طلبات POST العامة للمصادقة (تسجيل، دخول، تجديد، خروج) إلى order على المنفذ 8000 بلا JWT.</li>
+    <li>بقية مسارات <code>/api/v1</code>، ما عدا <code>/api/v1/internal</code>، إلى order مع JWT.</li>
+    <li>كل ما عدا ذلك، ما عدا <code>/api</code> و<code>/ping</code>، إلى الواجهة.</li>
+  </ul>
+</article>
+</section>
+
+<section class="pair" id="how">
+<article class="lang-en" lang="en">
+  <h2>How it works</h2>
+  <h3>Compose services and keys</h3>
+  <p>One Docker network named <code>commerce</code>. Containers find each other by Compose DNS. Published ports bind <code>127.0.0.1</code> only: gateway <code>8080</code>, RabbitMQ management <code>15672</code>, Odoo <code>8069</code>, Grafana <code>3000</code>, Prometheus <code>9090</code>, Alertmanager <code>9093</code>. Postgres and Redis are not published.</p>
+  <p>The private JWT PEM is mounted only into the order HTTP process. The public PEM is mounted into <code>jwt-check</code>, the order HTTP process, reporting (migrate, API, consumer), and notification (API and consumer). The frontend does not receive either key or <code>INTERNAL_SERVICE_TOKEN</code>. That token is shared by the order HTTP process and the Odoo connector so fulfillment can call the order service on the private network. An empty token makes those routes return 503.</p>
+  <p>Images we build use tag <code>0.1.0</code> (Odoo <code>18.0.1</code>). <code>latest</code> is not used. <code>up.sh</code> does not delete volumes. The saga worker is not a Compose service.</p>
+  <h3>Gateway middlewares</h3>
+  <p><code>edge-prepare</code> strips client identity headers (user, role, account, and <code>X-Internal-Token</code>), normalizes <code>X-Correlation-Id</code> to a UUID, and stamps an allow-list CORS response. Allowed origins are localhost and <code>127.0.0.1</code> on ports 8080 and 5173. The allow-list is not <code>*</code>. <code>edge-cors</code> answers OPTIONS with 204 so a preflight never reaches JWT or an upstream. <code>coarse-limit</code> is Traefik’s in-memory limiter: average 30 requests per second, burst 60, one counter per process. It is not the Redis login or order-create budget. <code>jwt-access</code> is ForwardAuth to <code>jwt-check:8081/verify</code>. The checker accepts an RS256 Bearer access token with <code>exp</code>, <code>iat</code>, and <code>sub</code>. It does not enforce roles. The order and reporting services verify the token again.</p>
+  <h3>Kind differences</h3>
+  <p>Postgres Service names are <code>order-postgres</code>, <code>reporting-postgres</code>, <code>notification-postgres</code>, and <code>odoo-postgres</code> (Compose calls the order database service <code>postgres</code> and the Odoo database <code>odoo-db</code>). Grafana, Prometheus, Odoo, and RabbitMQ management stay ClusterIP. The only host door is still <code>127.0.0.1:8080</code>. Static hostPath volumes hold Postgres, RabbitMQ, Odoo filestore, Prometheus, Grafana, and Tempo. Redis has no volume.</p>
+  <h3>Order path</h3>
+  <p>An init container or a one-shot service runs Alembic migrate, then the HTTP API starts. Orders are rows in <code>order_db</code>. One outbox publisher claims rows with <code>FOR UPDATE SKIP LOCKED</code> and stays at one replica so publish order follows <code>created_at</code>. Inventory consumers compete on <code>q.order.inventory</code>. On Kind the order API starts at 2 replicas and an HPA holds it between 2 and 4 on CPU at 70 percent. The HPA does not watch queue depth. A CronJob at 03:30 UTC runs nightly retention (365 days, batches of 100, at most 20 batches) and does not scale the API.</p>
+  <h3>Trace path</h3>
+  <p>Order processes, reporting, and the gateway send OTLP to <code>otel-collector:4317</code>. The collector forwards traces to Tempo and keeps them about 24 hours. Prometheus scrapes <code>/metrics</code> directly so a collector outage cannot hide an error rate. Alertmanager groups by alert name and posts to the webhook, which writes one JSON line per alert to stdout. There is no email and no secret in that hop. Checkout does not wait on this stack.</p>
+  <h3>Backup, failure lab, and load bars</h3>
+  <p><code>dump.sh</code> takes one argument, <code>order_db</code>, <code>reporting_db</code>, or <code>odoo_db</code>, and writes a custom-format dump. <code>restore.sh</code> needs that name, a dump file, and <code>--yes</code>. The archive header must name the same database. A restore is not a rewind of RabbitMQ or Redis.</p>
+  <p>Each failure-lab script accepts <code>stop</code> or <code>start</code> for one service and prints what to look at. Stopping the reporting consumer still lets confirm succeed; the projection catches up on start. Stopping RabbitMQ still lets the order HTTP call commit; the outbox row stays pending. Stopping Redis leaves catalog reads on Postgres and makes login and order create fail closed. Stopping the inventory consumer still lets confirm succeed; <code>q.order.inventory</code> grows when inventory events are published.</p>
+  <p>Gentle load: 2 users, 15 seconds between attempts, no failures, no HTTP 429, and p95 under 2000 ms. Flood load: 1 user, 0.2 seconds between attempts, 15 order creates, at least one HTTP 429 with code <code>RATE_LIMITED</code>, and no other failure. <code>RESULTS.md</code> records that this environment had not run Locust because Docker was down.</p>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>كيف يعمل</h2>
+  <h3>خدمات Compose والمفاتيح</h3>
+  <p>شبكة Docker واحدة اسمها <code>commerce</code>. تجد الحاويات بعضها بأسماء DNS في Compose. المنافذ المنشورة مربوطة بـ <code>127.0.0.1</code> فقط: البوابة <code>8080</code>، وإدارة RabbitMQ <code>15672</code>، وOdoo <code>8069</code>، وGrafana <code>3000</code>، وPrometheus <code>9090</code>، وAlertmanager <code>9093</code>. Postgres وRedis غير منشورين.</p>
+  <p>يُركَّب ملف PEM الخاص لـ JWT في عملية HTTP للطلبات فقط. يُركَّب الملف العام في <code>jwt-check</code> وعملية HTTP للطلبات والتقارير (الترحيل وواجهة البرمجة والمستهلك) والإشعارات (واجهة البرمجة والمستهلك). الواجهة لا تتلقى أي المفتاحين ولا <code>INTERNAL_SERVICE_TOKEN</code>. يتشارك هذا الرمز عملية HTTP للطلبات وموصّل Odoo حتى يستدعي التنفيذ خدمة الطلبات على الشبكة الخاصة. الرمز الفارغ يجعل تلك المسارات تُرجع 503.</p>
+  <p>الصور التي نبنيها تستخدم الوسم <code>0.1.0</code> (وOdoo <code>18.0.1</code>). الوسم <code>latest</code> غير مستخدم. <code>up.sh</code> لا يحذف المجلدات. عامل الساجا ليس خدمة Compose.</p>
+  <h3>وسائط البوابة</h3>
+  <p>يزيل <code>edge-prepare</code> ترويسات هوية العميل (المستخدم والدور والحساب و<code>X-Internal-Token</code>)، ويطبّع <code>X-Correlation-Id</code> إلى UUID، ويختم استجابة CORS من قائمة مسموحة. الأصول المسموحة هي localhost و<code>127.0.0.1</code> على المنفذين 8080 و5173. القائمة ليست <code>*</code>. يجيب <code>edge-cors</code> على OPTIONS بالحالة 204 حتى لا يصل طلب التحضير إلى JWT أو إلى خدمة خلفية. <code>coarse-limit</code> محدّد Traefik في الذاكرة: متوسط 30 طلباً في الثانية ودفعة 60، وعداد واحد لكل عملية. ليس ميزانية الدخول أو إنشاء الطلب في Redis. <code>jwt-access</code> هو ForwardAuth إلى <code>jwt-check:8081/verify</code>. يقبل الفاحص رمز وصول Bearer بتوقيع RS256 وفيه <code>exp</code> و<code>iat</code> و<code>sub</code>. لا يفرض الأدوار. تعيد خدمتا الطلبات والتقارير التحقق من الرمز.</p>
+  <h3>فروق Kind</h3>
+  <p>أسماء خدمات Postgres هي <code>order-postgres</code> و<code>reporting-postgres</code> و<code>notification-postgres</code> و<code>odoo-postgres</code> (في Compose اسم خدمة قاعدة الطلبات <code>postgres</code> واسم قاعدة Odoo <code>odoo-db</code>). تبقى Grafana وPrometheus وOdoo وإدارة RabbitMQ من نوع ClusterIP. الباب الوحيد على المضيف يبقى <code>127.0.0.1:8080</code>. مجلدات hostPath الثابتة تحفظ Postgres وRabbitMQ ومخزن ملفات Odoo وPrometheus وGrafana وTempo. Redis بلا مجلد.</p>
+  <h3>مسار الطلب</h3>
+  <p>يشغّل حاوية تهيئة أو خدمة لمرة واحدة ترحيل Alembic، ثم تبدأ واجهة HTTP. الطلبات صفوف في <code>order_db</code>. ناشر صندوق الصادر واحد يحجز الصفوف بـ <code>FOR UPDATE SKIP LOCKED</code> ويبقى بنسخة واحدة حتى يتبع النشر ترتيب <code>created_at</code>. يتنافس مستهلكو المخزون على <code>q.order.inventory</code>. في Kind تبدأ واجهة الطلبات بنسختين ويبقيها HPA بين 2 و4 حسب المعالج عند 70 بالمئة. لا يراقب HPA عمق الطابور. مهمة مجدولة عند 03:30 بالتوقيت العالمي تشغّل الاحتفاظ الليلي (365 يوماً، دفعات من 100، وعلى الأكثر 20 دفعة) ولا توسّع الواجهة.</p>
+  <h3>مسار التتبع</h3>
+  <p>ترسل عمليات الطلبات والتقارير والبوابة OTLP إلى <code>otel-collector:4317</code>. يمرّر المجمّع الآثار إلى Tempo ويحتفظ بها نحو 24 ساعة. يسحب Prometheus المسار <code>/metrics</code> مباشرة حتى لا يخفي تعطل المجمّع معدّل الأخطاء. يجمع Alertmanager حسب اسم التنبيه ويرسل إلى الخطاف، الذي يكتب سطراً واحداً من JSON لكل تنبيه على المخرج القياسي. لا بريد ولا سر في هذه القفزة. إتمام الشراء لا ينتظر هذا المكدس.</p>
+  <h3>النسخ، ومختبر الأعطال، وعتبات الحمل</h3>
+  <p>يأخذ <code>dump.sh</code> وسيطاً واحداً: <code>order_db</code> أو <code>reporting_db</code> أو <code>odoo_db</code>، ويكتب نسخة بصيغة custom. يحتاج <code>restore.sh</code> إلى ذلك الاسم وملف النسخة و<code>--yes</code>. يجب أن يسمّي ترويسة الأرشيف قاعدة البيانات نفسها. الاستعادة ليست إرجاعاً لـ RabbitMQ أو Redis.</p>
+  <p>يقبل كل سكربت في مختبر الأعطال <code>stop</code> أو <code>start</code> لخدمة واحدة ويطبع ما يُنظر إليه. إيقاف مستهلك التقارير يُبقي التأكيد ناجحاً، ويلحق الإسقاط عند التشغيل. إيقاف RabbitMQ يُبقي استدعاء HTTP للطلب ملتزماً في القاعدة، ويبقى صف صندوق الصادر معلّقاً. إيقاف Redis يُبقي قراءة الفهرس من Postgres ويجعل الدخول وإنشاء الطلب يفشلان مغلَقين. إيقاف مستهلك المخزون يُبقي التأكيد ناجحاً، وينمو <code>q.order.inventory</code> عند نشر أحداث المخزون.</p>
+  <p>الحمل الهادئ: مستخدمان، و15 ثانية بين المحاولات، وبلا إخفاقات، وبلا HTTP 429، وp95 تحت 2000 مللي ثانية. حمل الغمر: مستخدم واحد، و0.2 ثانية بين المحاولات، و15 إنشاء طلب، وعلى الأقل HTTP 429 بالرمز <code>RATE_LIMITED</code>، وبلا إخفاق آخر. يسجّل <code>RESULTS.md</code> أن هذه البيئة لم تشغّل Locust لأن Docker كان متوقفاً.</p>
+</article>
+</section>
+
+<section class="pair" id="compose">
+<article class="lang-en" lang="en">
+  <h2>compose/</h2>
+  <p>Primary local stack. Project name <code>commerce</code>, network name <code>commerce</code>. Do not run <code>gateway/compose.yaml</code> at the same time.</p>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="compose"><td class="path">compose/</td><td>Full stack definition and its starter.</td><td>Holds Compose, the public router file, the starter script, tests, and the secrets directory.</td></tr>
+      <tr data-path="compose/docker-compose.yml"><td class="path">docker-compose.yml</td><td>Every container in the full stack.</td><td>Builds order, reporting, notification, Odoo, frontend, and jwt-check. Runs migrations, one outbox publisher, consumers, Traefik, and the observability processes. Health checks gate startup. Published ports are localhost only.</td></tr>
+      <tr data-path="compose/dynamic.yaml"><td class="path">dynamic.yaml</td><td>Public routers for the full stack.</td><td>Upstreams are Compose DNS names. Middlewares strip identity headers, apply CORS and the coarse rate limit, and call ForwardAuth except on public auth POSTs and the storefront. <code>/api/v1/internal</code> is excluded. Kind mounts this same file.</td></tr>
+      <tr data-path="compose/up.sh"><td class="path">up.sh</td><td>Start the stack from the repository root.</td><td>Requires Docker. Creates a 2048-bit RSA key pair under <code>secrets/</code> when either PEM is missing, copies <code>.env.example</code> when <code>.env</code> is missing, and fills an empty internal token so Odoo fulfillment is not left returning 503. Then <code>docker compose up -d --build</code>. Does not delete volumes.</td></tr>
+      <tr data-path="compose/.env.example"><td class="path">.env.example</td><td>Template for the gitignored environment file.</td><td>Documents that the private PEM is for the order service and the public PEM is for the gateway check and reporting. Leaves <code>INTERNAL_SERVICE_TOKEN</code> empty on purpose.</td></tr>
+      <tr data-path="compose/.env"><td class="path">.env</td><td>Local environment file. Gitignored.</td><td>Read by Compose for <code>INTERNAL_SERVICE_TOKEN</code> and optional key path overrides. This page does not copy its values. <code>up.sh</code> creates it from the example when it is absent.</td></tr>
+      <tr data-path="compose/test_stack.py"><td class="path">test_stack.py</td><td>Text checks for the stack contract.</td><td>Does not start Docker. Asserts localhost-only published ports, no <code>host.docker.internal</code> in the full stack, fulfillment kept off the public routers, and separate worker services.</td></tr>
+      <tr data-path="compose/secrets"><td class="path">secrets/</td><td>Host JWT key files.</td><td>Created by <code>up.sh</code>. Not committed. See the next section.</td></tr>
+      <tr data-path="compose/__pycache__"><td class="path">__pycache__/</td><td>Generated bytecode for the stack test.</td><td>Produced by running pytest. Not part of the runtime. See the bytecode section.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>compose/</h2>
+  <p>المكدس المحلي الأساسي. اسم المشروع <code>commerce</code>، واسم الشبكة <code>commerce</code>. لا تشغّل <code>gateway/compose.yaml</code> في الوقت نفسه.</p>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">compose/</td><td>تعريف المكدس الكامل ومشغّله.</td><td>يحمل Compose وملف الموجّهات العامة وسكربت التشغيل والاختبارات ومجلد الأسرار.</td></tr>
+      <tr><td class="path">docker-compose.yml</td><td>كل حاوية في المكدس الكامل.</td><td>يبني الطلبات والتقارير والإشعارات وOdoo والواجهة وjwt-check. يشغّل الترحيل وناشر صندوق الصادر الواحد والمستهلكين وTraefik وعمليات المراقبة. فحوص الصحة تحكم البدء. المنافذ المنشورة على المضيف المحلي فقط.</td></tr>
+      <tr><td class="path">dynamic.yaml</td><td>الموجّهات العامة للمكدس الكامل.</td><td>الخدمات الخلفية أسماء DNS في Compose. الوسائط تزيل ترويسات الهوية وتطبّق CORS والحد الخشن وتستدعي ForwardAuth إلا على POST المصادقة العامة والمتجر. <code>/api/v1/internal</code> مستبعد. تركّب Kind هذا الملف نفسه.</td></tr>
+      <tr><td class="path">up.sh</td><td>تشغيل المكدس من جذر المستودع.</td><td>يشترط Docker. ينشئ زوج مفاتيح RSA بطول 2048 بت تحت <code>secrets/</code> إن غاب أحد ملفي PEM، وينسخ <code>.env.example</code> إن غاب <code>.env</code>، ويملأ الرمز الداخلي الفارغ حتى لا يبقى تنفيذ Odoo يُرجع 503. ثم <code>docker compose up -d --build</code>. لا يحذف المجلدات.</td></tr>
+      <tr><td class="path">.env.example</td><td>قالب ملف البيئة المستبعد من git.</td><td>يوثّق أن PEM الخاص لخدمة الطلبات والعام لفحص البوابة والتقارير. يترك <code>INTERNAL_SERVICE_TOKEN</code> فارغاً عمداً.</td></tr>
+      <tr><td class="path">.env</td><td>ملف البيئة المحلي. مستبعد من git.</td><td>يقرأه Compose من أجل <code>INTERNAL_SERVICE_TOKEN</code> وتجاوزات اختيارية لمسار المفتاح. هذه الصفحة لا تنسخ قيمه. ينشئه <code>up.sh</code> من المثال إن غاب.</td></tr>
+      <tr><td class="path">test_stack.py</td><td>فحوص نصية لعقد المكدس.</td><td>لا يشغّل Docker. يتحقق من أن المنافذ المنشورة على المضيف المحلي فقط، ومن غياب <code>host.docker.internal</code> في المكدس الكامل، ومن إبقاء التنفيذ خارج الموجّهات العامة، ومن فصل خدمات العمال.</td></tr>
+      <tr><td class="path">secrets/</td><td>ملفات مفاتيح JWT على المضيف.</td><td>ينشئه <code>up.sh</code>. غير مُودَع. انظر القسم التالي.</td></tr>
+      <tr><td class="path">__pycache__/</td><td>رمز بايت مولَّد لاختبار المكدس.</td><td>ينتج عن تشغيل pytest. ليس جزءاً من وقت التشغيل. انظر قسم الرمز المولَّد.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="compose-secrets">
+<article class="lang-en" lang="en">
+  <h2>compose/secrets/</h2>
+  <p>Host key files. Described by filename and role. The PEM bodies are not on this page.</p>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="compose/secrets"><td class="path">compose/secrets/</td><td>Directory for the JWT pair.</td><td><code>up.sh</code> creates it and writes keys with OpenSSL only when a file is missing. Existing keys are not replaced. Mode is made world-readable so containers can mount them.</td></tr>
+      <tr data-path="compose/secrets/jwt_private.pem"><td class="path">jwt_private.pem</td><td>Private signing key for access tokens.</td><td>Mounted read-only into the order HTTP process at <code>/keys/jwt_private.pem</code>. Not mounted into the gateway, reporting, notification, frontend, or Odoo. Kind copies the host file into Secret <code>commerce-secrets</code> without writing it back to git.</td></tr>
+      <tr data-path="compose/secrets/jwt_public.pem"><td class="path">jwt_public.pem</td><td>Public key that checks access tokens.</td><td>Mounted read-only into jwt-check, the order HTTP process, reporting, and notification. <code>jwt_check.py</code> refuses to start unless the file is a PEM public key. It does not issue tokens.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>compose/secrets/</h2>
+  <p>ملفات المفاتيح على المضيف. تُوصف باسم الملف والدور. متن PEM ليس في هذه الصفحة.</p>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">compose/secrets/</td><td>مجلد زوج JWT.</td><td>ينشئه <code>up.sh</code> ويكتب المفاتيح بـ OpenSSL فقط عند غياب ملف. المفاتيح الموجودة لا تُستبدل. يُجعل الوضع قابلاً للقراءة حتى تستطيع الحاويات تركيبها.</td></tr>
+      <tr><td class="path">jwt_private.pem</td><td>مفتاح التوقيع الخاص لرموز الوصول.</td><td>يُركَّب للقراءة فقط في عملية HTTP للطلبات عند <code>/keys/jwt_private.pem</code>. لا يُركَّب في البوابة ولا التقارير ولا الإشعارات ولا الواجهة ولا Odoo. تنسخ Kind ملف المضيف إلى السر <code>commerce-secrets</code> دون إعادته إلى git.</td></tr>
+      <tr><td class="path">jwt_public.pem</td><td>المفتاح العام الذي يفحص رموز الوصول.</td><td>يُركَّب للقراءة فقط في jwt-check وعملية HTTP للطلبات والتقارير والإشعارات. يرفض <code>jwt_check.py</code> البدء ما لم يكن الملف مفتاحاً عاماً بصيغة PEM. لا يصدر رموزاً.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="compose-pycache">
+<article class="lang-en" lang="en">
+  <h2>compose/__pycache__/</h2>
+  <p>Generated bytecode. Safe to delete. Recreated when the test is imported.</p>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="compose/__pycache__"><td class="path">compose/__pycache__/</td><td>CPython cache for this folder.</td><td>Not read by Compose or by the running stack.</td></tr>
+      <tr data-path="compose/__pycache__/test_stack.cpython-312-pytest-9.1.1.pyc"><td class="path">test_stack.cpython-312-pytest-9.1.1.pyc</td><td>Generated bytecode for <code>test_stack.py</code>.</td><td>CPython 3.12 cache written by pytest 9.1.1. It is not source and not a runtime input.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>compose/__pycache__/</h2>
+  <p>رمز بايت مولَّد. حذفه آمن. يُعاد إنشاؤه عند استيراد الاختبار.</p>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">compose/__pycache__/</td><td>ذاكرة CPython المؤقتة لهذا المجلد.</td><td>لا يقرؤها Compose ولا المكدس وهو يعمل.</td></tr>
+      <tr><td class="path">test_stack.cpython-312-pytest-9.1.1.pyc</td><td>رمز بايت مولَّد لـ <code>test_stack.py</code>.</td><td>ذاكرة CPython 3.12 كتبها pytest 9.1.1. ليست مصدراً وليست دخلاً لوقت التشغيل.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="gateway">
+<article class="lang-en" lang="en">
+  <h2>gateway/</h2>
+  <p>Learning gateway for processes already on the host, plus the JWT checker and the local Traefik plugin that the full stack and Kind reuse.</p>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="gateway"><td class="path">gateway/</td><td>Edge process, plugin, and checks.</td><td>Project name <code>commerce-gateway</code>. Publishing <code>127.0.0.1:8080</code> collides with the full stack.</td></tr>
+      <tr data-path="gateway/compose.yaml"><td class="path">compose.yaml</td><td>Host-process gateway only.</td><td>Runs Traefik and jwt-check. Adds <code>host.docker.internal</code> via <code>host-gateway</code> so Linux can reach order <code>:8000</code>, reporting <code>:8001</code>, notification <code>:8002</code>, and Vite <code>:5173</code>. Requires <code>JWT_PUBLIC_KEY_PATH</code>. The private key is not mounted. Postgres, Redis, and RabbitMQ are not in this file.</td></tr>
+      <tr data-path="gateway/compose.check.yaml"><td class="path">compose.check.yaml</td><td>Live-check overlay.</td><td>Replaces host upstreams with three echo containers so routing assertions do not need the real apps. <code>GATEWAY_DYNAMIC_FILE</code> points Traefik at a rewritten router file.</td></tr>
+      <tr data-path="gateway/dynamic.yaml"><td class="path">dynamic.yaml</td><td>Routers for the learning gateway.</td><td>Same rules and middlewares as <code>compose/dynamic.yaml</code>. Upstreams are <code>host.docker.internal</code> instead of Compose DNS, and the storefront is Vite on port 5173. The in-memory limit is one counter per process, often the bridge address, and is not the Redis budget.</td></tr>
+      <tr data-path="gateway/traefik.yaml"><td class="path">traefik.yaml</td><td>Static Traefik config. File provider only.</td><td>Dashboard off. Docker socket not mounted. Ping on the web entrypoint. Access logs are JSON and drop <code>Authorization</code> while keeping <code>X-Correlation-Id</code>. Client-supplied <code>X-Forwarded-For</code> is not trusted. Loads the local <code>edgeheaders</code> plugin.</td></tr>
+      <tr data-path="gateway/jwt_check.py"><td class="path">jwt_check.py</td><td>RS256 ForwardAuth checker.</td><td>Listens on <code>0.0.0.0:8081</code>. <code>GET /ready</code> is the health check. <code>GET /verify</code> returns 204 when the Bearer access token verifies, otherwise 401 with code <code>UNAUTHENTICATED</code>. Role is not inspected. Logs the request line only.</td></tr>
+      <tr data-path="gateway/echo_upstream.py"><td class="path">echo_upstream.py</td><td>Tiny upstream for the live check.</td><td>Answers GET, POST, and PATCH with the upstream name, path, and whether identity headers arrived. Used to prove those headers were stripped.</td></tr>
+      <tr data-path="gateway/live_check.py"><td class="path">live_check.py</td><td>Config assertions, then an optional Docker curl.</td><td>Runs the JWT and public-route unit tests. If Docker is up, starts the echo overlay and curls <code>127.0.0.1:8080</code>. If Docker is down, that half is skipped and the process can still exit 0.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>gateway/</h2>
+  <p>بوابة تعلّم لعمليات تعمل أصلاً على المضيف، مع فاحص JWT والإضافة المحلية لـ Traefik التي يعيد المكدس الكامل وKind استخدامها.</p>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">gateway/</td><td>عملية الحافة والإضافة والفحوص.</td><td>اسم المشروع <code>commerce-gateway</code>. نشر <code>127.0.0.1:8080</code> يصطدم بالمكدس الكامل.</td></tr>
+      <tr><td class="path">compose.yaml</td><td>بوابة عمليات المضيف فقط.</td><td>يشغّل Traefik وjwt-check. يضيف <code>host.docker.internal</code> عبر <code>host-gateway</code> حتى يصل لينكس إلى الطلبات على <code>:8000</code> والتقارير على <code>:8001</code> والإشعارات على <code>:8002</code> وVite على <code>:5173</code>. يشترط <code>JWT_PUBLIC_KEY_PATH</code>. المفتاح الخاص غير مركَّب. Postgres وRedis وRabbitMQ ليسا في هذا الملف.</td></tr>
+      <tr><td class="path">compose.check.yaml</td><td>طبقة فحص حي.</td><td>يستبدل الخدمات على المضيف بثلاث حاويات صدى حتى لا تحتاج تأكيدات التوجيه إلى التطبيقات الحقيقية. يشير <code>GATEWAY_DYNAMIC_FILE</code> بـ Traefik إلى ملف موجّهات معاد كتابته.</td></tr>
+      <tr><td class="path">dynamic.yaml</td><td>موجّهات بوابة التعلّم.</td><td>القواعد والوسائط نفسها كما في <code>compose/dynamic.yaml</code>. الخدمات الخلفية هي <code>host.docker.internal</code> بدل DNS في Compose، والمتجر هو Vite على المنفذ 5173. الحد في الذاكرة عداد واحد لكل عملية، وغالباً عنوان الجسر، وليس ميزانية Redis.</td></tr>
+      <tr><td class="path">traefik.yaml</td><td>إعداد Traefik الثابت. مزوّد ملفات فقط.</td><td>لوحة التحكم مطفأة. مقبس Docker غير مركَّب. Ping على نقطة الدخول web. سجلات الوصول JSON وتُسقط <code>Authorization</code> وتُبقي <code>X-Correlation-Id</code>. لا يُوثَق <code>X-Forwarded-For</code> القادم من العميل. يحمّل إضافة <code>edgeheaders</code> المحلية.</td></tr>
+      <tr><td class="path">jwt_check.py</td><td>فاحص ForwardAuth بتوقيع RS256.</td><td>يستمع على <code>0.0.0.0:8081</code>. <code>GET /ready</code> فحص الصحة. <code>GET /verify</code> يُرجع 204 عند نجاح فحص رمز الوصول، وإلا 401 بالرمز <code>UNAUTHENTICATED</code>. الدور لا يُفحص. يسجّل سطر الطلب فقط.</td></tr>
+      <tr><td class="path">echo_upstream.py</td><td>خدمة خلفية صغيرة للفحص الحي.</td><td>يجيب على GET وPOST وPATCH باسم الخدمة والمسار وما إذا وصلت ترويسات الهوية. يُستخدم لإثبات أن تلك الترويسات أُزيلت.</td></tr>
+      <tr><td class="path">live_check.py</td><td>تأكيدات الإعداد ثم curl اختياري عبر Docker.</td><td>يشغّل اختبارات الوحدة لـ JWT والمسارات العامة. إن كان Docker يعمل، يشغّل طبقة الصدى ويستدعي <code>127.0.0.1:8080</code>. إن كان Docker متوقفاً يُتخطى ذلك النصف ويمكن أن تخرج العملية بالرمز 0.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="gateway-jwt-check">
+<article class="lang-en" lang="en">
+  <h2>gateway/jwt-check/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="gateway/jwt-check"><td class="path">gateway/jwt-check/</td><td>Image build for the checker.</td><td>Compose and Kind both tag the result <code>commerce/jwt-check:0.1.0</code>. The build context is <code>gateway/</code> so <code>jwt_check.py</code> is copied in.</td></tr>
+      <tr data-path="gateway/jwt-check/Dockerfile"><td class="path">Dockerfile</td><td>Image for the ForwardAuth process.</td><td><code>python:3.12-slim</code>, installs <code>pyjwt[crypto]==2.10.1</code>, copies <code>jwt_check.py</code>, runs as <code>nobody</code>, exposes 8081.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>gateway/jwt-check/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">gateway/jwt-check/</td><td>بناء صورة الفاحص.</td><td>يوسم Compose وKind الناتج <code>commerce/jwt-check:0.1.0</code>. سياق البناء هو <code>gateway/</code> حتى يُنسخ <code>jwt_check.py</code>.</td></tr>
+      <tr><td class="path">Dockerfile</td><td>صورة عملية ForwardAuth.</td><td><code>python:3.12-slim</code>، تثبّت <code>pyjwt[crypto]==2.10.1</code>، تنسخ <code>jwt_check.py</code>، تعمل بصفة <code>nobody</code>، وتفتح 8081.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="gateway-plugins">
+<article class="lang-en" lang="en">
+  <h2>gateway/plugins-local/</h2>
+  <p>Traefik local-plugin tree. Nested module folders are listed, not collapsed. Kind copies the three files under <code>edgeheaders/</code> into ConfigMap <code>gateway-plugin</code>.</p>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="gateway/plugins-local"><td class="path">gateway/plugins-local/</td><td>Plugin root mounted at <code>/plugins-local</code>.</td><td>Traefik <code>localPlugins</code> loads modules from <code>src/</code> under this directory.</td></tr>
+      <tr data-path="gateway/plugins-local/src"><td class="path">src/</td><td>Go source root for local plugins.</td><td>Empty of its own files. Holds the module path below.</td></tr>
+      <tr data-path="gateway/plugins-local/src/github.com"><td class="path">src/github.com/</td><td>First segment of the module path.</td><td>Matches <code>moduleName: github.com/commerce/edgeheaders</code>.</td></tr>
+      <tr data-path="gateway/plugins-local/src/github.com/commerce"><td class="path">src/github.com/commerce/</td><td>Second segment of the module path.</td><td>Namespace folder only. The plugin code is one level down.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>gateway/plugins-local/</h2>
+  <p>شجرة الإضافة المحلية لـ Traefik. مجلدات الوحدة المتداخلة مذكورة دون طي. تنسخ Kind الملفات الثلاثة تحت <code>edgeheaders/</code> إلى ConfigMap اسمه <code>gateway-plugin</code>.</p>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">gateway/plugins-local/</td><td>جذر الإضافة المركَّب عند <code>/plugins-local</code>.</td><td>تحمّل <code>localPlugins</code> في Traefik الوحدات من <code>src/</code> تحت هذا المجلد.</td></tr>
+      <tr><td class="path">src/</td><td>جذر مصدر Go للإضافات المحلية.</td><td>بلا ملفات خاصة به. يحمل مسار الوحدة أدناه.</td></tr>
+      <tr><td class="path">src/github.com/</td><td>القطعة الأولى من مسار الوحدة.</td><td>يطابق <code>moduleName: github.com/commerce/edgeheaders</code>.</td></tr>
+      <tr><td class="path">src/github.com/commerce/</td><td>القطعة الثانية من مسار الوحدة.</td><td>مجلد فضاء اسم فقط. رمز الإضافة في المستوى التالي.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="gateway-edgeheaders">
+<article class="lang-en" lang="en">
+  <h2>gateway/plugins-local/src/github.com/commerce/edgeheaders/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="gateway/plugins-local/src/github.com/commerce/edgeheaders"><td class="path">edgeheaders/</td><td>Local middleware package.</td><td>Two modes, <code>prepare</code> and <code>cors</code>. Does not read orders, prices, stock, or roles.</td></tr>
+      <tr data-path="gateway/plugins-local/src/github.com/commerce/edgeheaders/edgeheaders.go"><td class="path">edgeheaders.go</td><td>Header stripping, correlation ids, and CORS.</td><td><code>prepare</code> deletes the configured identity headers, replaces a non-UUID correlation id, and writes CORS headers only for an allow-listed Origin. <code>cors</code> answers OPTIONS with 204 and otherwise calls the next handler.</td></tr>
+      <tr data-path="gateway/plugins-local/src/github.com/commerce/edgeheaders/go.mod"><td class="path">go.mod</td><td>Go module file.</td><td>Module <code>github.com/commerce/edgeheaders</code>, Go 1.22. No third-party requirements.</td></tr>
+      <tr data-path="gateway/plugins-local/src/github.com/commerce/edgeheaders/.traefik.yml"><td class="path">.traefik.yml</td><td>Plugin manifest Traefik reads.</td><td>Declares a middleware imported as <code>github.com/commerce/edgeheaders</code>. Summary: correlation ids, identity-header stripping, and storefront CORS.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>gateway/plugins-local/src/github.com/commerce/edgeheaders/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">edgeheaders/</td><td>حزمة الوسيط المحلي.</td><td>وضعان: <code>prepare</code> و<code>cors</code>. لا تقرأ الطلبات ولا الأسعار ولا المخزون ولا الأدوار.</td></tr>
+      <tr><td class="path">edgeheaders.go</td><td>إزالة الترويسات ومعرّفات الارتباط وCORS.</td><td>يحذف <code>prepare</code> ترويسات الهوية المضبوطة، ويستبدل معرّف ارتباط ليس UUID، ويكتب ترويسات CORS فقط لأصل في القائمة. يجيب <code>cors</code> على OPTIONS بالحالة 204 وإلا يستدعي المعالج التالي.</td></tr>
+      <tr><td class="path">go.mod</td><td>ملف وحدة Go.</td><td>الوحدة <code>github.com/commerce/edgeheaders</code>، وGo 1.22. بلا متطلبات طرف ثالث.</td></tr>
+      <tr><td class="path">.traefik.yml</td><td>بيان الإضافة الذي يقرأه Traefik.</td><td>يعلن وسيطاً يُستورد كـ <code>github.com/commerce/edgeheaders</code>. الملخص: معرّفات الارتباط، وإزالة ترويسات الهوية، وCORS للمتجر.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="gateway-tests">
+<article class="lang-en" lang="en">
+  <h2>gateway/tests/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="gateway/tests"><td class="path">gateway/tests/</td><td>Unit tests for the edge.</td><td>No Docker in these modules. <code>live_check.py</code> imports them.</td></tr>
+      <tr data-path="gateway/tests/test_jwt_check.py"><td class="path">test_jwt_check.py</td><td>Signature checks for the verifier.</td><td>Loads <code>jwt_check.py</code> and checks RS256 access tokens. No role policy. Skips when PyJWT is not installed on the host.</td></tr>
+      <tr data-path="gateway/tests/test_public_routes.py"><td class="path">test_public_routes.py</td><td>Router contract.</td><td>The public Traefik file must not route fulfillment callbacks. Reports and device tokens stay on their own higher-priority routers.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>gateway/tests/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">gateway/tests/</td><td>اختبارات وحدة للحافة.</td><td>بلا Docker في هذه الوحدات. يستوردها <code>live_check.py</code>.</td></tr>
+      <tr><td class="path">test_jwt_check.py</td><td>فحوص التوقيع للفاحص.</td><td>يحمّل <code>jwt_check.py</code> ويفحص رموز وصول RS256. بلا سياسة أدوار. يتخطى إن لم يكن PyJWT مثبتاً على المضيف.</td></tr>
+      <tr><td class="path">test_public_routes.py</td><td>عقد الموجّهات.</td><td>يجب ألا يوجّه ملف Traefik العام نداءات التنفيذ. تبقى التقارير ورموز الأجهزة على موجّهاتها ذات الأولوية الأعلى.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="gateway-pycache">
+<article class="lang-en" lang="en">
+  <h2>gateway/__pycache__/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="gateway/__pycache__"><td class="path">gateway/__pycache__/</td><td>Generated bytecode for the checker module.</td><td>Not copied into the image by the Dockerfile, which copies <code>jwt_check.py</code> only.</td></tr>
+      <tr data-path="gateway/__pycache__/jwt_check.cpython-312.pyc"><td class="path">jwt_check.cpython-312.pyc</td><td>Generated bytecode for <code>jwt_check.py</code>.</td><td>CPython 3.12 import cache. Not source.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>gateway/__pycache__/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">gateway/__pycache__/</td><td>رمز بايت مولَّد لوحدة الفاحص.</td><td>لا ينسخه Dockerfile إلى الصورة، فهو ينسخ <code>jwt_check.py</code> فقط.</td></tr>
+      <tr><td class="path">jwt_check.cpython-312.pyc</td><td>رمز بايت مولَّد لـ <code>jwt_check.py</code>.</td><td>ذاكرة استيراد CPython 3.12. ليس مصدراً.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="gateway-tests-pycache">
+<article class="lang-en" lang="en">
+  <h2>gateway/tests/__pycache__/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="gateway/tests/__pycache__"><td class="path">gateway/tests/__pycache__/</td><td>Generated bytecode for the gateway tests.</td><td>Written when the tests are imported or collected. Not a runtime input.</td></tr>
+      <tr data-path="gateway/tests/__pycache__/test_jwt_check.cpython-312.pyc"><td class="path">test_jwt_check.cpython-312.pyc</td><td>Generated bytecode.</td><td>CPython 3.12 cache of <code>test_jwt_check.py</code>.</td></tr>
+      <tr data-path="gateway/tests/__pycache__/test_jwt_check.cpython-312-pytest-9.1.1.pyc"><td class="path">test_jwt_check.cpython-312-pytest-9.1.1.pyc</td><td>Generated bytecode.</td><td>pytest 9.1.1 cache of the same module.</td></tr>
+      <tr data-path="gateway/tests/__pycache__/test_public_routes.cpython-312.pyc"><td class="path">test_public_routes.cpython-312.pyc</td><td>Generated bytecode.</td><td>CPython 3.12 cache of <code>test_public_routes.py</code>.</td></tr>
+      <tr data-path="gateway/tests/__pycache__/test_public_routes.cpython-312-pytest-9.1.1.pyc"><td class="path">test_public_routes.cpython-312-pytest-9.1.1.pyc</td><td>Generated bytecode.</td><td>pytest 9.1.1 cache of the same module.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>gateway/tests/__pycache__/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">gateway/tests/__pycache__/</td><td>رمز بايت مولَّد لاختبارات البوابة.</td><td>يُكتب عند استيراد الاختبارات أو جمعها. ليس دخلاً لوقت التشغيل.</td></tr>
+      <tr><td class="path">test_jwt_check.cpython-312.pyc</td><td>رمز بايت مولَّد.</td><td>ذاكرة CPython 3.12 لـ <code>test_jwt_check.py</code>.</td></tr>
+      <tr><td class="path">test_jwt_check.cpython-312-pytest-9.1.1.pyc</td><td>رمز بايت مولَّد.</td><td>ذاكرة pytest 9.1.1 للوحدة نفسها.</td></tr>
+      <tr><td class="path">test_public_routes.cpython-312.pyc</td><td>رمز بايت مولَّد.</td><td>ذاكرة CPython 3.12 لـ <code>test_public_routes.py</code>.</td></tr>
+      <tr><td class="path">test_public_routes.cpython-312-pytest-9.1.1.pyc</td><td>رمز بايت مولَّد.</td><td>ذاكرة pytest 9.1.1 للوحدة نفسها.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="kind">
+<article class="lang-en" lang="en">
+  <h2>kind/</h2>
+  <p>One-node cluster <code>commerce</code>. Compose stays the first runtime. <code>apply.sh</code> does not delete an existing cluster. This packaging is HTTP, local images, and one node.</p>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="kind"><td class="path">kind/</td><td>Manifests and the apply script.</td><td>Kustomize lists the workload files. The example Secret is not a resource. ConfigMaps for gateway and observability files are created by <code>apply.sh</code> before <code>kubectl apply -k</code>.</td></tr>
+      <tr data-path="kind/apply.sh"><td class="path">apply.sh</td><td>Build, load, and apply.</td><td>Requires Docker, kind, and kubectl. Creates cluster <code>commerce</code> from <code>kind-config.yaml</code> only if it is absent. Builds the same tags as Compose, including the frontend with <code>VITE_API_BASE_URL=http://127.0.0.1:8080</code> and jwt-check from <code>gateway/jwt-check/Dockerfile</code>. Loads images, writes ConfigMaps from the existing files (including <code>compose/dynamic.yaml</code> and the edgeheaders sources), runs <code>create-secrets.sh</code>, then applies the kustomization.</td></tr>
+      <tr data-path="kind/kind-config.yaml"><td class="path">kind-config.yaml</td><td>Cluster shape.</td><td>One control-plane node. Maps container port 30080 to host <code>127.0.0.1:8080</code>. Postgres, Redis, and RabbitMQ are not mapped.</td></tr>
+      <tr data-path="kind/kustomization.yaml"><td class="path">kustomization.yaml</td><td>Resource list.</td><td>Namespace, config, storage, RBAC, data stores, order, retention, reporting, notification, Odoo, frontend, gateway, observability, ingress, and metrics-server. Omits <code>secrets.example.yaml</code>.</td></tr>
+      <tr data-path="kind/namespace.yaml"><td class="path">namespace.yaml</td><td>Namespace <code>commerce</code>.</td><td>Label <code>app.kubernetes.io/part-of: commerce</code>. Applied on its own before ConfigMaps, and again via kustomize.</td></tr>
+      <tr data-path="kind/configmap.yaml"><td class="path">configmap.yaml</td><td>Non-secret settings.</td><td>Timeouts and <code>OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317</code>. Database, broker, and Redis hostnames stay on each Deployment so the Service name is visible there.</td></tr>
+      <tr data-path="kind/storage.yaml"><td class="path">storage.yaml</td><td>Static hostPath volumes.</td><td>Kind has no provisioner here. StorageClass <code>commerce-hostpath</code> with <code>no-provisioner</code>. Claims for the three application databases, Odoo, RabbitMQ, Prometheus, Grafana, and Tempo. A pod restart remounts the same claim. Deleting the cluster deletes the node disk. Redis has no volume.</td></tr>
+      <tr data-path="kind/rbac.yaml"><td class="path">rbac.yaml</td><td>Ingress controller account.</td><td>ServiceAccount <code>ingress</code> can get, list, and watch Services, Endpoints, Secrets, EndpointSlices, and Ingress objects, and update Ingress status. Application pods do not use this account.</td></tr>
+      <tr data-path="kind/postgres.yaml"><td class="path">postgres.yaml</td><td>Four Postgres servers, ClusterIP only.</td><td>Deployments and Services <code>order-postgres</code>, <code>reporting-postgres</code>, <code>notification-postgres</code>, and <code>odoo-postgres</code>. One database each. Recreate strategy. Probes use <code>pg_isready</code>. Laptop passwords match Compose. These names replace Compose’s <code>postgres</code> and <code>odoo-db</code>.</td></tr>
+      <tr data-path="kind/redis.yaml"><td class="path">redis.yaml</td><td>Cache and shared rate limits.</td><td>No PVC and no password. Protected mode off because clients are other pods. Persistence off, same as Compose. A restart drops keys. ClusterIP.</td></tr>
+      <tr data-path="kind/rabbitmq.yaml"><td class="path">rabbitmq.yaml</td><td>Broker. Management stays inside the cluster.</td><td>Image <code>rabbitmq:3.13-management-alpine</code>. Service is ClusterIP with AMQP 5672, management 15672, and Prometheus 15692. <code>enabled_plugins</code> comes from the observability file via ConfigMap. Not on the Ingress.</td></tr>
+      <tr data-path="kind/order.yaml"><td class="path">order.yaml</td><td>Order API, one publisher, inventory consumers, and the HPA.</td><td>API starts at 2 replicas with no session affinity. Init container loops <code>alembic upgrade head</code> against <code>order-postgres</code>. Both PEM files mount from Secret <code>commerce-secrets</code>. The token comes from that Secret by key name only. Publisher replicas stay 1. Inventory consumers compete with prefetch 10. HPA min 2, max 4, CPU 70 percent. It does not add consumer pods when a queue grows.</td></tr>
+      <tr data-path="kind/retention.yaml"><td class="path">retention.yaml</td><td>Nightly order retention.</td><td>CronJob <code>30 3 * * *</code>, concurrency Forbid, deadline 10 minutes. Runs <code>order_service.infrastructure.database.retention</code> with 365 days, batch size 100, max 20 batches. Does not change the API replica count.</td></tr>
+      <tr data-path="kind/reporting.yaml"><td class="path">reporting.yaml</td><td>Reporting API and <code>consume_events</code> worker.</td><td>Database URL uses Service <code>reporting-postgres</code>. Public JWT key only. Competing consumers on <code>q.reporting.projection</code>, prefetch 10. A repeated <code>event_id</code> is a duplicate because it is the primary key. <code>requeue=true</code> is not set.</td></tr>
+      <tr data-path="kind/notification.yaml"><td class="path">notification.yaml</td><td>Notification API and delivery consumer.</td><td>Database URL uses <code>notification-postgres</code>. Public JWT key only. Competing consumers on <code>q.notification.delivery</code>, prefetch 10. Same duplicate-ack rule as the other consumers.</td></tr>
+      <tr data-path="kind/odoo.yaml"><td class="path">odoo.yaml</td><td>Odoo HTTP, order-confirmed consumer, and inventory publisher.</td><td>Database host is Service <code>odoo-postgres</code>. UI port 8069 is ClusterIP, not a host port and not an Ingress. Filestore is a PVC. <code>odoo.conf</code> is mounted from the Odoo service tree by <code>apply.sh</code>. Consumer and publisher have no HTTP probe. They call the order service on the private network with the internal token.</td></tr>
+      <tr data-path="kind/frontend.yaml"><td class="path">frontend.yaml</td><td>Storefront.</td><td>Image built with the API base URL <code>http://127.0.0.1:8080</code> so the browser calls the host port mapped to the Ingress. ClusterIP. The gateway file sends non-API paths here.</td></tr>
+      <tr data-path="kind/gateway.yaml"><td class="path">gateway.yaml</td><td>Two Traefik processes and jwt-check.</td><td>Ingress Deployment reads ConfigMap <code>ingress-config</code> and is exposed as NodePort 30080. Gateway Deployment loads <code>traefik-gateway.yaml</code> plus <code>compose/dynamic.yaml</code> and the plugin ConfigMap. jwt-check mounts only the public PEM and is the ForwardAuth target. Gateway Service is ClusterIP on port 80, which is what the Ingress backend points at.</td></tr>
+      <tr data-path="kind/ingress.yaml"><td class="path">ingress.yaml</td><td>The only public Ingress.</td><td>IngressClass <code>traefik</code>. Path <code>/</code> prefix to Service <code>gateway</code> port 80. Fulfillment is not listed. Postgres, Redis, and RabbitMQ have no Ingress. The gateway file still drops <code>/api/v1/internal</code>.</td></tr>
+      <tr data-path="kind/traefik-ingress.yaml"><td class="path">traefik-ingress.yaml</td><td>Static config for the outer Traefik.</td><td>Kubernetes Ingress provider for class <code>traefik</code> in namespace <code>commerce</code>. Does not load <code>dynamic.yaml</code>. Ping on <code>:80</code>. Forwarded headers are not trusted from the client.</td></tr>
+      <tr data-path="kind/traefik-gateway.yaml"><td class="path">traefik-gateway.yaml</td><td>Static config for the inner Traefik.</td><td>File provider watches <code>/etc/traefik/dynamic.yaml</code>. Metrics entrypoint <code>:8082</code>. Tracing service name <code>gateway</code>, sample rate 1, OTLP to <code>otel-collector:4317</code> insecure, capturing <code>X-Correlation-Id</code>. Same local plugin module name.</td></tr>
+      <tr data-path="kind/observability.yaml"><td class="path">observability.yaml</td><td>In-cluster metrics, traces, and dashboards.</td><td>Collector, Tempo, Prometheus, Alertmanager, the log webhook, Grafana, and the Postgres and Redis exporters. Grafana and Prometheus Services are ClusterIP. Anonymous Grafana admin matches Compose. Checkout does not depend on these pods.</td></tr>
+      <tr data-path="kind/metrics-server.yaml"><td class="path">metrics-server.yaml</td><td>CPU and memory metrics for the HPA.</td><td>metrics-server v0.9.0 in <code>kube-system</code> with <code>--kubelet-insecure-tls</code> because kind’s kubelet certificate is not trusted by the server. Resource metrics only. Without it, <code>kubectl top</code> and the order HPA have no samples and the replica count stays at the Deployment value.</td></tr>
+      <tr data-path="kind/create-secrets.sh"><td class="path">create-secrets.sh</td><td>Build Secret <code>commerce-secrets</code> from the host.</td><td>Reads the two PEM paths (defaulting to <code>compose/secrets/</code>) and <code>INTERNAL_SERVICE_TOKEN</code> from the environment or from <code>compose/.env</code>. Applies a dry-run Secret. Does not write the key or the token into the git tree. Exits if either PEM is missing.</td></tr>
+      <tr data-path="kind/secrets.example.yaml"><td class="path">secrets.example.yaml</td><td>Shape of the Secret. Do not apply it.</td><td>Shows the key names: the internal token and the two PEM filenames, with empty and placeholder text. Not listed in <code>kustomization.yaml</code>. A filled copy must not be committed.</td></tr>
+      <tr data-path="kind/test_manifests.py"><td class="path">test_manifests.py</td><td>Manifest checks.</td><td>Does not start a cluster. Reads the YAML and checks the kind packaging contract.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>kind/</h2>
+  <p>عنقود من عقدة واحدة اسمه <code>commerce</code>. يبقى Compose وقت التشغيل الأول. <code>apply.sh</code> لا يحذف عنقوداً موجوداً. هذا التغليف HTTP وصور محلية وعقدة واحدة.</p>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">kind/</td><td>البيانات وسكربت التطبيق.</td><td>يسرد Kustomize ملفات الأحمال. السر المثال ليس مورداً. تنشأ ConfigMaps لملفات البوابة والمراقبة بواسطة <code>apply.sh</code> قبل <code>kubectl apply -k</code>.</td></tr>
+      <tr><td class="path">apply.sh</td><td>البناء والتحميل والتطبيق.</td><td>يشترط Docker وkind وkubectl. ينشئ العنقود <code>commerce</code> من <code>kind-config.yaml</code> فقط إن غاب. يبني الوسوم نفسها كما في Compose، بما فيها الواجهة مع <code>VITE_API_BASE_URL=http://127.0.0.1:8080</code> وjwt-check من <code>gateway/jwt-check/Dockerfile</code>. يحمّل الصور، ويكتب ConfigMaps من الملفات الموجودة (ومنها <code>compose/dynamic.yaml</code> ومصادر edgeheaders)، ويشغّل <code>create-secrets.sh</code>، ثم يطبّق kustomization.</td></tr>
+      <tr><td class="path">kind-config.yaml</td><td>شكل العنقود.</td><td>عقدة مستوى تحكم واحدة. يقابل منفذ الحاوية 30080 على المضيف <code>127.0.0.1:8080</code>. Postgres وRedis وRabbitMQ غير مقابلة.</td></tr>
+      <tr><td class="path">kustomization.yaml</td><td>قائمة الموارد.</td><td>النطاق والإعداد والتخزين وRBAC ومخازن البيانات والطلبات والاحتفاظ والتقارير والإشعارات وOdoo والواجهة والبوابة والمراقبة والدخول وmetrics-server. يستبعد <code>secrets.example.yaml</code>.</td></tr>
+      <tr><td class="path">namespace.yaml</td><td>النطاق <code>commerce</code>.</td><td>التسمية <code>app.kubernetes.io/part-of: commerce</code>. يُطبَّق وحده قبل ConfigMaps، ثم مرة أخرى عبر kustomize.</td></tr>
+      <tr><td class="path">configmap.yaml</td><td>إعدادات غير سرية.</td><td>مهلات و<code>OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317</code>. أسماء مضيف القاعدة والوسيط وRedis تبقى على كل Deployment حتى يبقى اسم الخدمة ظاهراً هناك.</td></tr>
+      <tr><td class="path">storage.yaml</td><td>مجلدات hostPath ثابتة.</td><td>لا موفّر تخزين هنا في Kind. صنف <code>commerce-hostpath</code> مع <code>no-provisioner</code>. مطالبات لقواعد التطبيقات الثلاث وOdoo وRabbitMQ وPrometheus وGrafana وTempo. إعادة تشغيل الكبسولة تعيد تركيب المطالبة نفسها. حذف العنقود يحذف قرص العقدة. Redis بلا مجلد.</td></tr>
+      <tr><td class="path">rbac.yaml</td><td>حساب متحكّم الدخول.</td><td>يستطيع ServiceAccount <code>ingress</code> قراءة الخدمات والنهايات والأسرار وEndpointSlices وكائنات الدخول وتحديث حالة الدخول. كبسولات التطبيقات لا تستخدم هذا الحساب.</td></tr>
+      <tr><td class="path">postgres.yaml</td><td>أربع خوادم Postgres، ClusterIP فقط.</td><td>نشر وخدمات <code>order-postgres</code> و<code>reporting-postgres</code> و<code>notification-postgres</code> و<code>odoo-postgres</code>. قاعدة واحدة لكل منها. استراتيجية Recreate. المجسات تستخدم <code>pg_isready</code>. كلمات مرور الحاسوب المحمول تطابق Compose. هذه الأسماء تحل محل <code>postgres</code> و<code>odoo-db</code> في Compose.</td></tr>
+      <tr><td class="path">redis.yaml</td><td>ذاكرة مؤقتة وحدود معدّل مشتركة.</td><td>بلا PVC وبلا كلمة مرور. الوضع المحمي مطفأ لأن العملاء كبسولات أخرى. الاستمرارية مطفأة كما في Compose. إعادة التشغيل تُسقط المفاتيح. ClusterIP.</td></tr>
+      <tr><td class="path">rabbitmq.yaml</td><td>الوسيط. الإدارة تبقى داخل العنقود.</td><td>الصورة <code>rabbitmq:3.13-management-alpine</code>. الخدمة ClusterIP مع AMQP 5672 والإدارة 15672 وPrometheus 15692. يأتي <code>enabled_plugins</code> من ملف المراقبة عبر ConfigMap. ليس على الدخول.</td></tr>
+      <tr><td class="path">order.yaml</td><td>واجهة الطلبات وناشر واحد ومستهلكو المخزون وHPA.</td><td>تبدأ الواجهة بنسختين بلا التصاق جلسة. حلقة حاوية التهيئة <code>alembic upgrade head</code> ضد <code>order-postgres</code>. يُركَّب ملفّا PEM من السر <code>commerce-secrets</code>. يأتي الرمز من ذلك السر باسم المفتاح فقط. نسخ الناشر تبقى 1. يتنافس مستهلكو المخزون مع جلب مسبق 10. حد HPA الأدنى 2 والأقصى 4 والمعالج 70 بالمئة. لا يضيف كبسولات مستهلك عندما ينمو الطابور.</td></tr>
+      <tr><td class="path">retention.yaml</td><td>احتفاظ ليلي بالطلبات.</td><td>مهمة <code>30 3 * * *</code>، والتزامن Forbid، والمهلة 10 دقائق. تشغّل <code>order_service.infrastructure.database.retention</code> لـ 365 يوماً وحجم دفعة 100 وبحد 20 دفعة. لا تغيّر عدد نسخ الواجهة.</td></tr>
+      <tr><td class="path">reporting.yaml</td><td>واجهة التقارير وعامل <code>consume_events</code>.</td><td>عنوان القاعدة يستخدم الخدمة <code>reporting-postgres</code>. مفتاح JWT العام فقط. مستهلكون متنافسون على <code>q.reporting.projection</code> بجلب مسبق 10. تكرار <code>event_id</code> تكرار لأنه المفتاح الأساسي. <code>requeue=true</code> غير مضبوط.</td></tr>
+      <tr><td class="path">notification.yaml</td><td>واجهة الإشعارات ومستهلك التسليم.</td><td>عنوان القاعدة يستخدم <code>notification-postgres</code>. مفتاح JWT العام فقط. مستهلكون متنافسون على <code>q.notification.delivery</code> بجلب مسبق 10. قاعدة إقرار التكرار نفسها كما في المستهلكين الآخرين.</td></tr>
+      <tr><td class="path">odoo.yaml</td><td>HTTP لـ Odoo ومستهلك تأكيد الطلب وناشر المخزون.</td><td>مضيف القاعدة هو الخدمة <code>odoo-postgres</code>. منفذ الواجهة 8069 من نوع ClusterIP، ليس منفذ مضيف وليس دخولاً. مخزن الملفات PVC. يُركَّب <code>odoo.conf</code> من شجرة خدمة Odoo بواسطة <code>apply.sh</code>. المستهلك والناشر بلا مجس HTTP. يستدعيان خدمة الطلبات على الشبكة الخاصة بالرمز الداخلي.</td></tr>
+      <tr><td class="path">frontend.yaml</td><td>المتجر.</td><td>تُبنى الصورة بعنوان أساس للواجهة <code>http://127.0.0.1:8080</code> حتى يستدعي المتصفح منفذ المضيف المقابل للدخول. ClusterIP. يرسل ملف البوابة المسارات غير API إلى هنا.</td></tr>
+      <tr><td class="path">gateway.yaml</td><td>عمليتا Traefik وjwt-check.</td><td>يقرأ نشر الدخول ConfigMap <code>ingress-config</code> ويُعرض كمنفذ عقدة 30080. يحمّل نشر البوابة <code>traefik-gateway.yaml</code> مع <code>compose/dynamic.yaml</code> وConfigMap الإضافة. يركّب jwt-check PEM العام فقط وهو هدف ForwardAuth. خدمة البوابة ClusterIP على المنفذ 80، وهو ما يشير إليه خلف الدخول.</td></tr>
+      <tr><td class="path">ingress.yaml</td><td>الدخول العام الوحيد.</td><td>صنف الدخول <code>traefik</code>. المسار <code>/</code> ببادئة إلى خدمة <code>gateway</code> المنفذ 80. التنفيذ غير مذكور. Postgres وRedis وRabbitMQ بلا دخول. ملف البوابة ما زال يُسقط <code>/api/v1/internal</code>.</td></tr>
+      <tr><td class="path">traefik-ingress.yaml</td><td>الإعداد الثابت لـ Traefik الخارجي.</td><td>مزوّد دخول Kubernetes للصنف <code>traefik</code> في النطاق <code>commerce</code>. لا يحمّل <code>dynamic.yaml</code>. Ping على <code>:80</code>. ترويسات التحويل غير موثوقة من العميل.</td></tr>
+      <tr><td class="path">traefik-gateway.yaml</td><td>الإعداد الثابت لـ Traefik الداخلي.</td><td>مزوّد الملفات يراقب <code>/etc/traefik/dynamic.yaml</code>. نقطة مقاييس <code>:8082</code>. اسم تتبع <code>gateway</code> ومعدّل عيّنة 1 وOTLP إلى <code>otel-collector:4317</code> بلا TLS، مع التقاط <code>X-Correlation-Id</code>. اسم وحدة الإضافة المحلية نفسه.</td></tr>
+      <tr><td class="path">observability.yaml</td><td>المقاييس والآثار واللوحات داخل العنقود.</td><td>المجمّع وTempo وPrometheus وAlertmanager وخطاف السجل وGrafana ومصدّرو Postgres وRedis. خدمتا Grafana وPrometheus من نوع ClusterIP. مدير Grafana المجهول يطابق Compose. إتمام الشراء لا يعتمد على هذه الكبسولات.</td></tr>
+      <tr><td class="path">metrics-server.yaml</td><td>مقاييس المعالج والذاكرة لـ HPA.</td><td>metrics-server v0.9.0 في <code>kube-system</code> مع <code>--kubelet-insecure-tls</code> لأن شهادة kubelet في kind غير موثوقة لدى الخادم. مقاييس موارد فقط. من دونه لا عينات لـ <code>kubectl top</code> ولا لـ HPA الطلبات، ويبقى عدد النسخ عند قيمة النشر.</td></tr>
+      <tr><td class="path">create-secrets.sh</td><td>يبني السر <code>commerce-secrets</code> من المضيف.</td><td>يقرأ مساري PEM (الافتراضي <code>compose/secrets/</code>) و<code>INTERNAL_SERVICE_TOKEN</code> من البيئة أو من <code>compose/.env</code>. يطبّق سراً عبر dry-run. لا يكتب المفتاح ولا الرمز في شجرة git. يخرج إن غاب أحد ملفي PEM.</td></tr>
+      <tr><td class="path">secrets.example.yaml</td><td>شكل السر. لا تطبّقه.</td><td>يُظهر أسماء المفاتيح: الرمز الداخلي واسمي ملفي PEM، مع نص فارغ ونائب. غير مذكور في <code>kustomization.yaml</code>. يجب ألا تُودَع نسخة مملوءة.</td></tr>
+      <tr><td class="path">test_manifests.py</td><td>فحوص البيانات.</td><td>لا يشغّل عنقوداً. يقرأ YAML ويتحقق من عقد تغليف Kind.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="kind-pycache">
+<article class="lang-en" lang="en">
+  <h2>kind/__pycache__/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="kind/__pycache__"><td class="path">kind/__pycache__/</td><td>Generated bytecode for the manifest test.</td><td>Not applied to the cluster.</td></tr>
+      <tr data-path="kind/__pycache__/test_manifests.cpython-312.pyc"><td class="path">test_manifests.cpython-312.pyc</td><td>Generated bytecode.</td><td>CPython 3.12 cache of <code>test_manifests.py</code>.</td></tr>
+      <tr data-path="kind/__pycache__/test_manifests.cpython-312-pytest-9.1.1.pyc"><td class="path">test_manifests.cpython-312-pytest-9.1.1.pyc</td><td>Generated bytecode.</td><td>pytest 9.1.1 cache of the same module.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>kind/__pycache__/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">kind/__pycache__/</td><td>رمز بايت مولَّد لاختبار البيانات.</td><td>لا يُطبَّق على العنقود.</td></tr>
+      <tr><td class="path">test_manifests.cpython-312.pyc</td><td>رمز بايت مولَّد.</td><td>ذاكرة CPython 3.12 لـ <code>test_manifests.py</code>.</td></tr>
+      <tr><td class="path">test_manifests.cpython-312-pytest-9.1.1.pyc</td><td>رمز بايت مولَّد.</td><td>ذاكرة pytest 9.1.1 للوحدة نفسها.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="observability">
+<article class="lang-en" lang="en">
+  <h2>observability/</h2>
+  <p>Files only. Compose bind-mounts them. Kind turns them into ConfigMaps. Nothing here has to be up for a checkout to commit.</p>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="observability"><td class="path">observability/</td><td>Shared config for metrics, traces, alerts, and dashboards.</td><td>One tree consumed by both runtimes so the scrape list and the dashboards do not fork.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>observability/</h2>
+  <p>ملفات فقط. يركّبها Compose مباشرة. تحوّلها Kind إلى ConfigMaps. لا شيء هنا يلزم أن يعمل حتى يلتزم إتمام الشراء.</p>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">observability/</td><td>إعداد مشترك للمقاييس والآثار والتنبيهات واللوحات.</td><td>شجرة واحدة يستهلكها وقتا التشغيل حتى لا تتفرع قائمة السحب واللوحات.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="observability-prometheus">
+<article class="lang-en" lang="en">
+  <h2>observability/prometheus/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="observability/prometheus"><td class="path">observability/prometheus/</td><td>Scrape config and alert rules.</td><td>Mounted into Prometheus. Retention on the Compose command is 3 days. The process is not required for checkout.</td></tr>
+      <tr data-path="observability/prometheus/prometheus.yml"><td class="path">prometheus.yml</td><td>Scrape list.</td><td>Every 15 seconds. Targets are app <code>/metrics</code> ports, the outbox and consumer metric ports 9100, RabbitMQ 15692 (coarse queue families only), three Postgres exporters, the Redis exporter, gateway <code>:8082</code>, Alertmanager, and Prometheus itself. Alertmanager target is <code>alertmanager:9093</code>.</td></tr>
+      <tr data-path="observability/prometheus/alerts.yml"><td class="path">alerts.yml</td><td>Laptop starting points, not a paging policy.</td><td>Records <code>projection_lag_versions</code>. Alerts include target down, order scrape down, gateway 5xx above 5 percent, p95 above 1 second, primary queue depth above 100, any DLQ backlog, outbox pending older than 60 seconds, a failed outbox row, payment circuit open, reporting lag above 20 versions, RabbitMQ scrape down, and Redis exporter down. Thresholds will be wrong under load.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>observability/prometheus/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">observability/prometheus/</td><td>إعداد السحب وقواعد التنبيه.</td><td>يُركَّب في Prometheus. الاحتفاظ في أمر Compose ثلاثة أيام. العملية ليست لازمة لإتمام الشراء.</td></tr>
+      <tr><td class="path">prometheus.yml</td><td>قائمة السحب.</td><td>كل 15 ثانية. الأهداف منافذ <code>/metrics</code> للتطبيقات، ومنافذ مقاييس صندوق الصادر والمستهلكين 9100، وRabbitMQ 15692 (عائلات الطابور الخشنة فقط)، وثلاثة مصدّري Postgres، ومصدّر Redis، والبوابة <code>:8082</code>، وAlertmanager، وPrometheus نفسه. هدف Alertmanager هو <code>alertmanager:9093</code>.</td></tr>
+      <tr><td class="path">alerts.yml</td><td>نقاط بداية لحاسوب محمول، وليست سياسة استدعاء.</td><td>يسجّل <code>projection_lag_versions</code>. تشمل التنبيهات سقوط الهدف، وسقوط سحب الطلبات، وأخطاء البوابة 5xx فوق 5 بالمئة، وp95 فوق ثانية، وعمق طابور أساسي فوق 100، وأي تراكم في طابور الرسائل الميتة، وصف صندوق صادر معلّق أقدم من 60 ثانية، وصف فاشل، ودائرة دفع مفتوحة، وتأخر تقارير فوق 20 إصداراً، وسقوط سحب RabbitMQ، وسقوط مصدّر Redis. العتبات ستكون خاطئة تحت الحمل.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="observability-alertmanager">
+<article class="lang-en" lang="en">
+  <h2>observability/alertmanager/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="observability/alertmanager"><td class="path">observability/alertmanager/</td><td>Alert routing config.</td><td>One receiver. No email account.</td></tr>
+      <tr data-path="observability/alertmanager/alertmanager.yml"><td class="path">alertmanager.yml</td><td>Route every alert to the log webhook.</td><td>Groups by <code>alertname</code> so one down target does not become fifty notifications. Waits 30 seconds, repeats at 4 hours, posts to <code>http://alert-webhook:8080/hook</code> including resolved alerts.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>observability/alertmanager/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">observability/alertmanager/</td><td>إعداد توجيه التنبيهات.</td><td>مستقبِل واحد. بلا حساب بريد.</td></tr>
+      <tr><td class="path">alertmanager.yml</td><td>يوجّه كل تنبيه إلى خطاف السجل.</td><td>يجمّع حسب <code>alertname</code> حتى لا يصبح هدف ساقط واحد خمسين إشعاراً. ينتظر 30 ثانية، ويكرر كل 4 ساعات، ويرسل إلى <code>http://alert-webhook:8080/hook</code> بما فيها التنبيهات المنحلّة.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="observability-webhook">
+<article class="lang-en" lang="en">
+  <h2>observability/webhook/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="observability/webhook"><td class="path">observability/webhook/</td><td>Log-only alert sink.</td><td>Compose runs it from the stock Python image with this file mounted. No host port.</td></tr>
+      <tr data-path="observability/webhook/hook.py"><td class="path">hook.py</td><td>Write one JSON line per alert to stdout.</td><td>POST on port 8080. Prints status, alert name, severity, summary, and description. Returns 204. Does not send email, store a secret, or call out. <code>docker logs</code> is the record. Its own access log is silenced.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>observability/webhook/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">observability/webhook/</td><td>مصرف تنبيهات يسجّل فقط.</td><td>يشغّله Compose من صورة Python الجاهزة مع تركيب هذا الملف. بلا منفذ على المضيف.</td></tr>
+      <tr><td class="path">hook.py</td><td>يكتب سطراً واحداً من JSON لكل تنبيه على المخرج القياسي.</td><td>POST على المنفذ 8080. يطبع الحالة واسم التنبيه والشدة والملخص والوصف. يُرجع 204. لا يرسل بريداً ولا يخزّن سراً ولا يتصل بالخارج. <code>docker logs</code> هو السجل. سجل وصوله نفسه مُسكَت.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="observability-otel">
+<article class="lang-en" lang="en">
+  <h2>observability/otel/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="observability/otel"><td class="path">observability/otel/</td><td>Collector config.</td><td>Traces only. Application <code>/metrics</code> stay on the Prometheus scrape path.</td></tr>
+      <tr data-path="observability/otel/collector.yaml"><td class="path">collector.yaml</td><td>OTLP in, Tempo out.</td><td>Receives gRPC on 4317 and HTTP on 4318, batches, and exports OTLP to <code>tempo:4317</code> without TLS. A missing collector must not be required for a gateway request: Traefik tracing is best-effort beside the request path.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>observability/otel/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">observability/otel/</td><td>إعداد المجمّع.</td><td>آثار فقط. تبقى <code>/metrics</code> للتطبيق على مسار سحب Prometheus.</td></tr>
+      <tr><td class="path">collector.yaml</td><td>OTLP دخولاً وTempo خروجاً.</td><td>يستقبل gRPC على 4317 وHTTP على 4318، ويجمّع دفعات، ويصدّر OTLP إلى <code>tempo:4317</code> بلا TLS. لا يجوز أن يكون غياب المجمّع شرطاً لطلب البوابة: تتبع Traefik جهد إضافي بجانب مسار الطلب.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="observability-tempo">
+<article class="lang-en" lang="en">
+  <h2>observability/tempo/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="observability/tempo"><td class="path">observability/tempo/</td><td>Local trace store config.</td><td>Queried by Grafana on the commerce network. No host port in Compose.</td></tr>
+      <tr data-path="observability/tempo/tempo.yaml"><td class="path">tempo.yaml</td><td>Short-retention local backend.</td><td>HTTP 3200, gRPC 9095, OTLP gRPC 4317. Blocks stay 24 hours under <code>/var/tempo</code>. Not a long-term trace backend.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>observability/tempo/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">observability/tempo/</td><td>إعداد مخزن الآثار المحلي.</td><td>تستعلمه Grafana على شبكة commerce. بلا منفذ مضيف في Compose.</td></tr>
+      <tr><td class="path">tempo.yaml</td><td>خلفية محلية باحتفاظ قصير.</td><td>HTTP 3200 وgRPC 9095 وOTLP gRPC 4317. تبقى الكتل 24 ساعة تحت <code>/var/tempo</code>. ليست خلفية آثار طويلة الأمد.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="observability-rabbitmq">
+<article class="lang-en" lang="en">
+  <h2>observability/rabbitmq/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="observability/rabbitmq"><td class="path">observability/rabbitmq/</td><td>Broker plugin list.</td><td>Mounted over <code>/etc/rabbitmq/enabled_plugins</code> in Compose and as a ConfigMap in Kind.</td></tr>
+      <tr data-path="observability/rabbitmq/enabled_plugins"><td class="path">enabled_plugins</td><td>Enable management and Prometheus.</td><td>The file contains <code>[rabbitmq_management,rabbitmq_prometheus].</code> Management serves the UI. The Prometheus plugin serves <code>/metrics</code> and the detailed queue families Prometheus scrapes. No per-channel Erlang pid series.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>observability/rabbitmq/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">observability/rabbitmq/</td><td>قائمة إضافات الوسيط.</td><td>يُركَّب فوق <code>/etc/rabbitmq/enabled_plugins</code> في Compose وكـ ConfigMap في Kind.</td></tr>
+      <tr><td class="path">enabled_plugins</td><td>تفعيل الإدارة وPrometheus.</td><td>يحوي الملف <code>[rabbitmq_management,rabbitmq_prometheus].</code> تخدم الإدارة الواجهة. تخدم إضافة Prometheus المسار <code>/metrics</code> وعائلات الطابور التفصيلية التي يسحبها Prometheus. بلا سلاسل معرف عملية Erlang لكل قناة.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="observability-grafana">
+<article class="lang-en" lang="en">
+  <h2>observability/grafana/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="observability/grafana"><td class="path">observability/grafana/</td><td>Provisioning and dashboard JSON.</td><td>Compose mounts <code>provisioning/</code> and <code>dashboards/</code>. Kind splits them into three ConfigMaps. Anonymous org role is Admin. UI edits to provisioned boards are disabled.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>observability/grafana/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">observability/grafana/</td><td>التهيئة وJSON اللوحات.</td><td>يركّب Compose المجلدين <code>provisioning/</code> و<code>dashboards/</code>. تقسمها Kind إلى ثلاث ConfigMaps. دور المنظمة المجهولة هو Admin. تعديلات الواجهة على اللوحات المهيأة معطّلة.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="observability-dashboards">
+<article class="lang-en" lang="en">
+  <h2>observability/grafana/dashboards/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="observability/grafana/dashboards"><td class="path">dashboards/</td><td>Folder of board JSON files.</td><td>Provider path <code>/var/lib/grafana/dashboards</code>, folder name Commerce, refresh every 30 seconds.</td></tr>
+      <tr data-path="observability/grafana/dashboards/platform-overview.json"><td class="path">platform-overview.json</td><td>Board “Platform overview”.</td><td>Up/down for order, reporting, gateway, RabbitMQ, Redis, and order_db, plus HTTP rate, errors, p95, primary broker backlog, and product-cache hits, misses, errors, and duration.</td></tr>
+      <tr data-path="observability/grafana/dashboards/order-path.json"><td class="path">order-path.json</td><td>Board “Order path”.</td><td>Request rate, errors, latency p50/p95/p99, and counts for created, confirmed, cancelled, shipped, and delivered orders.</td></tr>
+      <tr data-path="observability/grafana/dashboards/outbox-and-broker.json"><td class="path">outbox-and-broker.json</td><td>Board “Outbox and broker”.</td><td>Publish and consume rates, queue depth, unacked, consumers, retries, DLQ depth and publishes, outbox pending, published, failed rows, publish latency, and oldest pending age.</td></tr>
+      <tr data-path="observability/grafana/dashboards/reporting-lag.json"><td class="path">reporting-lag.json</td><td>Board “Reporting lag”.</td><td>Reporting request rate, errors, p95, events consumed, event failures, and projection lag versions.</td></tr>
+      <tr data-path="observability/grafana/dashboards/dependencies.json"><td class="path">dependencies.json</td><td>Board “Dependencies”.</td><td>Postgres connections and cache hit ratio, Redis keyspace hit ratio and <code>redis_up</code>, exporter up, and the product-cache series.</td></tr>
+      <tr data-path="observability/grafana/dashboards/payment.json"><td class="path">payment.json</td><td>Board “Payment”.</td><td>Shows <code>payment_circuit_state</code>. No payment provider is wired, so the gauge stays 0 until a later phase sets it. The board text says not to close a real circuit by hand as the first move.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>observability/grafana/dashboards/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">dashboards/</td><td>مجلد ملفات JSON للوحات.</td><td>مسار المزوّد <code>/var/lib/grafana/dashboards</code>، واسم المجلد Commerce، والتحديث كل 30 ثانية.</td></tr>
+      <tr><td class="path">platform-overview.json</td><td>لوحة «Platform overview».</td><td>صعود وهبوط للطلبات والتقارير والبوابة وRabbitMQ وRedis وorder_db، مع معدل HTTP والأخطاء وp95 وتراكم الوسيط الأساسي وضربات ذاكرة المنتجات وإخفاقاتها وأخطاؤها ومدتها.</td></tr>
+      <tr><td class="path">order-path.json</td><td>لوحة «Order path».</td><td>معدل الطلبات والأخطاء وزمن p50 وp95 وp99، وعدادات الطلبات المنشأة والمؤكَّدة والملغاة والمشحونة والمسلَّمة.</td></tr>
+      <tr><td class="path">outbox-and-broker.json</td><td>لوحة «Outbox and broker».</td><td>معدلا النشر والاستهلاك، وعمق الطابور، وغير المقَر، والمستهلكون، وإعادة المحاولة، وعمق طابور الرسائل الميتة ونشره، والمعلّق والمنشور والصفوف الفاشلة في صندوق الصادر، وزمن النشر، وعمر أقدم معلّق.</td></tr>
+      <tr><td class="path">reporting-lag.json</td><td>لوحة «Reporting lag».</td><td>معدل طلبات التقارير والأخطاء وp95 والأحداث المستهلكة وإخفاقات الأحداث وتأخر الإصدار في الإسقاط.</td></tr>
+      <tr><td class="path">dependencies.json</td><td>لوحة «Dependencies».</td><td>اتصالات Postgres ونسبة إصابة الذاكرة، ونسبة إصابة مساحة مفاتيح Redis و<code>redis_up</code>، وصعود المصدّر، وسلاسل ذاكرة المنتجات.</td></tr>
+      <tr><td class="path">payment.json</td><td>لوحة «Payment».</td><td>تعرض <code>payment_circuit_state</code>. لا موفّر دفع موصول، فيبقى المقياس 0 حتى تضبطه مرحلة لاحقة. يقول نص اللوحة ألا تُغلق دائرة حقيقية باليد كأول خطوة.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="observability-provisioning">
+<article class="lang-en" lang="en">
+  <h2>observability/grafana/provisioning/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="observability/grafana/provisioning"><td class="path">provisioning/</td><td>Grafana file provisioning root.</td><td>Two child folders, datasources and dashboards. Grafana reads them from <code>/etc/grafana/provisioning</code>.</td></tr>
+      <tr data-path="observability/grafana/provisioning/datasources"><td class="path">datasources/</td><td>Datasource provisioning folder.</td><td>Holds the single datasource file.</td></tr>
+      <tr data-path="observability/grafana/provisioning/datasources/datasources.yml"><td class="path">datasources.yml</td><td>Prometheus and Tempo datasources.</td><td>Prometheus at <code>http://prometheus:9090</code> is the default and is not editable. Tempo at <code>http://tempo:3200</code> points trace-to-logs at the Prometheus datasource uid.</td></tr>
+      <tr data-path="observability/grafana/provisioning/dashboards"><td class="path">dashboards/</td><td>Dashboard provider folder.</td><td>Holds the provider file, not the board JSON.</td></tr>
+      <tr data-path="observability/grafana/provisioning/dashboards/dashboards.yml"><td class="path">dashboards.yml</td><td>File provider named commerce.</td><td>Org 1, folder Commerce, path <code>/var/lib/grafana/dashboards</code>, deletion disabled, UI updates disabled, update every 30 seconds.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>observability/grafana/provisioning/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">provisioning/</td><td>جذر تهيئة ملفات Grafana.</td><td>مجلدان فرعيان: مصادر البيانات واللوحات. تقرأها Grafana من <code>/etc/grafana/provisioning</code>.</td></tr>
+      <tr><td class="path">datasources/</td><td>مجلد تهيئة مصادر البيانات.</td><td>يحمل ملف مصدر البيانات الوحيد.</td></tr>
+      <tr><td class="path">datasources.yml</td><td>مصدرا Prometheus وTempo.</td><td>Prometheus عند <code>http://prometheus:9090</code> هو الافتراضي وغير قابل للتعديل. Tempo عند <code>http://tempo:3200</code> يوجّه الآثار إلى السجلات نحو معرّف مصدر Prometheus.</td></tr>
+      <tr><td class="path">dashboards/</td><td>مجلد مزوّد اللوحات.</td><td>يحمل ملف المزوّد، لا JSON اللوحات.</td></tr>
+      <tr><td class="path">dashboards.yml</td><td>مزوّد ملفات اسمه commerce.</td><td>المنظمة 1، والمجلد Commerce، والمسار <code>/var/lib/grafana/dashboards</code>، والحذف معطّل، وتحديثات الواجهة معطّلة، والتحديث كل 30 ثانية.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="backup">
+<article class="lang-en" lang="en">
+  <h2>backup/</h2>
+  <p>Compose Postgres only. <code>notification_db</code>, Redis, and RabbitMQ are out of scope. Dumps land in <code>backup/dumps/</code>, which the scripts create on demand and which is not in the tree until a dump runs.</p>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="backup"><td class="path">backup/</td><td>Dump and restore helpers.</td><td>Scripts source <code>lib.sh</code> and talk to Compose services <code>postgres</code>, <code>reporting-postgres</code>, and <code>odoo-db</code>.</td></tr>
+      <tr data-path="backup/lib.sh"><td class="path">lib.sh</td><td>Shared checks. Not a backup by itself.</td><td>Refuses any database name other than the three. Reads <code>POSTGRES_DB</code> inside the container and refuses a mismatch. Reads the archive header with <code>pg_restore --list</code> and refuses a cross-database dump. A failing <code>docker info</code> returns before any dump or restore. The file name is not the database name.</td></tr>
+      <tr data-path="backup/dump.sh"><td class="path">dump.sh</td><td>One custom-format dump.</td><td>Usage: <code>dump.sh order_db|reporting_db|odoo_db</code>. Runs <code>pg_dump --format=custom --no-owner --no-acl</code> inside that service. Writes a partial file first and removes it on failure. Prints the final path <code>dumps/&lt;db&gt;-&lt;utc&gt;.dump</code>.</td></tr>
+      <tr data-path="backup/restore.sh"><td class="path">restore.sh</td><td>Replace objects inside one database.</td><td>Usage: <code>restore.sh &lt;db&gt; &lt;dump-file&gt; --yes</code>. Refuses a missing <code>--yes</code>, an unknown option, or a missing file. <code>pg_restore --clean --if-exists --single-transaction</code> replaces objects in that database only. Records start, end, and elapsed seconds in <code>dumps/last-restore.txt</code>.</td></tr>
+      <tr data-path="backup/test_backup.py"><td class="path">test_backup.py</td><td>Static checks.</td><td>Does not dump or restore a database. Reads the scripts and checks the Phase 19 contract.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>backup/</h2>
+  <p>Postgres في Compose فقط. <code>notification_db</code> وRedis وRabbitMQ خارج النطاق. تقع النسخ في <code>backup/dumps/</code>، وينشئه السكربت عند الطلب وليس في الشجرة قبل تشغيل نسخة.</p>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">backup/</td><td>مساعدات النسخ والاستعادة.</td><td>تستورد السكربتات <code>lib.sh</code> وتتحدث إلى خدمات Compose المسماة <code>postgres</code> و<code>reporting-postgres</code> و<code>odoo-db</code>.</td></tr>
+      <tr><td class="path">lib.sh</td><td>فحوص مشتركة. ليست نسخة بذاتها.</td><td>يرفض أي اسم قاعدة غير الثلاثة. يقرأ <code>POSTGRES_DB</code> داخل الحاوية ويرفض عدم التطابق. يقرأ ترويسة الأرشيف بـ <code>pg_restore --list</code> ويرفض نسخة بين قاعدتين. فشل <code>docker info</code> يعود قبل أي نسخ أو استعادة. اسم الملف ليس اسم القاعدة.</td></tr>
+      <tr><td class="path">dump.sh</td><td>نسخة واحدة بصيغة custom.</td><td>الاستخدام: <code>dump.sh order_db|reporting_db|odoo_db</code>. يشغّل <code>pg_dump --format=custom --no-owner --no-acl</code> داخل تلك الخدمة. يكتب ملفاً جزئياً أولاً ويحذفه عند الفشل. يطبع المسار النهائي <code>dumps/&lt;db&gt;-&lt;utc&gt;.dump</code>.</td></tr>
+      <tr><td class="path">restore.sh</td><td>يستبدل الكائنات داخل قاعدة واحدة.</td><td>الاستخدام: <code>restore.sh &lt;db&gt; &lt;dump-file&gt; --yes</code>. يرفض غياب <code>--yes</code> أو خياراً مجهولاً أو ملفاً غائباً. <code>pg_restore --clean --if-exists --single-transaction</code> يستبدل الكائنات في تلك القاعدة فقط. يسجّل البداية والنهاية والثواني في <code>dumps/last-restore.txt</code>.</td></tr>
+      <tr><td class="path">test_backup.py</td><td>فحوص ثابتة.</td><td>لا ينسخ ولا يستعيد قاعدة. يقرأ السكربتات ويتحقق من عقد المرحلة 19.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="load">
+<article class="lang-en" lang="en">
+  <h2>load/</h2>
+  <p>One customer path through the public gateway. The scenario module does not open a socket. Locust does.</p>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="load"><td class="path">load/</td><td>Locust plan and the last written note.</td><td>Default base URL <code>http://127.0.0.1:8080</code>. Override with <code>LOAD_BASE_URL</code>. Mode is <code>LOAD_MODE</code>, <code>gentle</code> or <code>flood</code>.</td></tr>
+      <tr data-path="load/scenario.py"><td class="path">scenario.py</td><td>Paths, pacing, and pass bars.</td><td>Register, login, list products, create one order, read it. Does not create products and does not call internal routes. Login and register budgets are 5 per minute. Order create is 10 per minute. Traefik’s coarse limit is 30 per second. Gentle is 2 users and a 15 second wait. Flood is 1 user, a 0.2 second wait, and 15 order attempts. Gentle passes with no failures, no 429, and p95 at or under 2000 ms. Flood passes when order create returns at least one 429 <code>RATE_LIMITED</code> and nothing else failed. Optional <code>LOAD_EMAIL</code> and <code>LOAD_PASSWORD</code> must be set together. A password is not stored in the file.</td></tr>
+      <tr data-path="load/locustfile.py"><td class="path">locustfile.py</td><td>The Locust user.</td><td>One <code>CustomerUser</code>. On start it registers or reuses an account, logs in, and browses for a product id. The task browses, creates, and reads. Counts attempts, HTTP 201, and 429. Writes <code>RESULTS.md</code> from the process totals when the run ends. Neither mode calls an internal route.</td></tr>
+      <tr data-path="load/test_scenario.py"><td class="path">test_scenario.py</td><td>Static checks for the plan.</td><td>Does not start Locust and does not call the API.</td></tr>
+      <tr data-path="load/RESULTS.md"><td class="path">RESULTS.md</td><td>Last run note.</td><td>States that this environment did not run the test: Docker was down, no requests were sent, and no latency was measured. A later Locust run replaces the file with that process’s counts.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>load/</h2>
+  <p>مسار زبون واحد عبر البوابة العامة. وحدة السيناريو لا تفتح مقبساً. Locust يفعل ذلك.</p>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">load/</td><td>خطة Locust وآخر ملاحظة مكتوبة.</td><td>عنوان الأساس الافتراضي <code>http://127.0.0.1:8080</code>. التجاوز بـ <code>LOAD_BASE_URL</code>. الوضع <code>LOAD_MODE</code> وهو <code>gentle</code> أو <code>flood</code>.</td></tr>
+      <tr><td class="path">scenario.py</td><td>المسارات والإيقاع وعتبات النجاح.</td><td>تسجيل ودخول وقائمة منتجات وإنشاء طلب واحد وقراءته. لا ينشئ منتجات ولا يستدعي مسارات داخلية. ميزانية الدخول والتسجيل 5 في الدقيقة. إنشاء الطلب 10 في الدقيقة. الحد الخشن في Traefik 30 في الثانية. الهادئ مستخدمان وانتظار 15 ثانية. الغمر مستخدم واحد وانتظار 0.2 ثانية و15 محاولة طلب. ينجح الهادئ بلا إخفاقات وبلا 429 وp95 عند 2000 مللي ثانية أو دونها. ينجح الغمر عندما يُرجع إنشاء الطلب 429 واحداً على الأقل بالرمز <code>RATE_LIMITED</code> ولا يفشل شيء آخر. <code>LOAD_EMAIL</code> و<code>LOAD_PASSWORD</code> الاختياريان يُضبطان معاً. كلمة المرور غير مخزّنة في الملف.</td></tr>
+      <tr><td class="path">locustfile.py</td><td>مستخدم Locust.</td><td><code>CustomerUser</code> واحد. عند البدء يسجّل أو يعيد استخدام حساب، ويدخل، ويتصفح من أجل معرّف منتج. المهمة تتصفح وتنشئ وتقرأ. تعد المحاولات وHTTP 201 و429. يكتب <code>RESULTS.md</code> من مجاميع العملية عند انتهاء التشغيل. لا يستدعي أي الوضعَين مساراً داخلياً.</td></tr>
+      <tr><td class="path">test_scenario.py</td><td>فحوص ثابتة للخطة.</td><td>لا يشغّل Locust ولا يستدعي الواجهة.</td></tr>
+      <tr><td class="path">RESULTS.md</td><td>ملاحظة آخر تشغيل.</td><td>يقول إن هذه البيئة لم تشغّل الاختبار: Docker كان متوقفاً، ولم تُرسل طلبات، ولم يُقس زمن. تشغيل Locust لاحق يستبدل الملف بعدّادات تلك العملية.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="load-pycache">
+<article class="lang-en" lang="en">
+  <h2>load/__pycache__/</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="load/__pycache__"><td class="path">load/__pycache__/</td><td>Generated bytecode for the load modules.</td><td>Not read by Locust as configuration. Locust imports the <code>.py</code> files.</td></tr>
+      <tr data-path="load/__pycache__/locustfile.cpython-312.pyc"><td class="path">locustfile.cpython-312.pyc</td><td>Generated bytecode.</td><td>CPython 3.12 cache of <code>locustfile.py</code>.</td></tr>
+      <tr data-path="load/__pycache__/scenario.cpython-312.pyc"><td class="path">scenario.cpython-312.pyc</td><td>Generated bytecode.</td><td>CPython 3.12 cache of <code>scenario.py</code>.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>load/__pycache__/</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">load/__pycache__/</td><td>رمز بايت مولَّد لوحدات الحمل.</td><td>لا يقرأه Locust كإعداد. يستورد Locust ملفات <code>.py</code>.</td></tr>
+      <tr><td class="path">locustfile.cpython-312.pyc</td><td>رمز بايت مولَّد.</td><td>ذاكرة CPython 3.12 لـ <code>locustfile.py</code>.</td></tr>
+      <tr><td class="path">scenario.cpython-312.pyc</td><td>رمز بايت مولَّد.</td><td>ذاكرة CPython 3.12 لـ <code>scenario.py</code>.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+<section class="pair" id="failure-lab">
+<article class="lang-en" lang="en">
+  <h2>failure-lab/</h2>
+  <p>One Compose service at a time. The helpers refuse any command other than <code>stop</code> or <code>start</code>, and refuse a service name other than the one that script owns. A failing <code>docker info</code> returns before anything is stopped.</p>
+  <table>
+    <thead><tr><th>Path</th><th>Responsibility</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr data-path="failure-lab"><td class="path">failure-lab/</td><td>Stop/start drills against <code>deploy/compose</code>.</td><td>Each script prints the expected HTTP result and the queue or table to look at. They do not change limits or delete rows.</td></tr>
+      <tr data-path="failure-lab/lib.sh"><td class="path">lib.sh</td><td>Shared guard. Not a drill by itself.</td><td>Resolves the Compose file next door. <code>compose</code> accepts only <code>stop</code> or <code>start</code> and only the <code>SERVICE</code> variable that script set.</td></tr>
+      <tr data-path="failure-lab/reporting-consumer.sh"><td class="path">reporting-consumer.sh</td><td>Drill for <code>reporting-consumer</code>.</td><td>Stop: confirm still returns 200 and status CONFIRMED. <code>q.reporting.projection</code> grows because the publisher still sends. Reporting can answer from rows already in <code>reporting_db</code>. Start: the consumer drains the queue and a duplicate <code>event_id</code> is acked without a second projection write.</td></tr>
+      <tr data-path="failure-lab/rabbitmq.sh"><td class="path">rabbitmq.sh</td><td>Drill for <code>rabbitmq</code>.</td><td>Stop: create and confirm still commit in <code>order_db</code>. The outbox row stays pending. After five failed publish attempts the row becomes <code>failed</code> and is not claimed again until a person sets it back to pending. Start: pending rows publish. Already published rows are not invented again. This is not a rewind of the broker.</td></tr>
+      <tr data-path="failure-lab/redis.sh"><td class="path">redis.sh</td><td>Drill for <code>redis</code>.</td><td>Stop: product list still returns 200 from Postgres. Login, register, and order create return 503 <code>DEPENDENCY_UNAVAILABLE</code> before a session or an order row is written. Confirm, order read, refresh, and logout do not use Redis. jwt-check does not use Redis. Start: those routes work again and the Redis limits apply again (login 5 per minute, order create 10 per minute).</td></tr>
+      <tr data-path="failure-lab/inventory-consumer.sh"><td class="path">inventory-consumer.sh</td><td>Drill for <code>order-inventory-consumer</code>.</td><td>Stop: confirm still succeeds. Confirm is not routed to <code>q.order.inventory</code>. That queue grows when <code>odoo-publisher</code> sends <code>InventoryUpdated</code>. Start: one <code>event_id</code> updates the inventory snapshot once. A second delivery is acked as a duplicate.</td></tr>
+      <tr data-path="failure-lab/test_lab.py"><td class="path">test_lab.py</td><td>Static checks.</td><td>Does not start Docker and does not stop a service. Reads the scripts and checks the Phase 18 contract.</td></tr>
+    </tbody>
+  </table>
+</article>
+<article class="lang-ar" lang="ar" dir="rtl">
+  <h2>failure-lab/</h2>
+  <p>خدمة Compose واحدة في كل مرة. يرفض المساعد أي أمر غير <code>stop</code> أو <code>start</code>، ويرفض اسم خدمة غير التي يملكها ذلك السكربت. فشل <code>docker info</code> يعود قبل إيقاف أي شيء.</p>
+  <table>
+    <thead><tr><th>المسار</th><th>المسؤولية</th><th>كيف يعمل</th></tr></thead>
+    <tbody>
+      <tr><td class="path">failure-lab/</td><td>تمارين إيقاف وتشغيل ضد <code>deploy/compose</code>.</td><td>يطبع كل سكربت نتيجة HTTP المتوقعة والطابور أو الجدول الذي يُنظر إليه. لا تغيّر الحدود ولا تحذف صفوفاً.</td></tr>
+      <tr><td class="path">lib.sh</td><td>حارس مشترك. ليس تمريناً بذاته.</td><td>يحل ملف Compose المجاور. يقبل <code>compose</code> فقط <code>stop</code> أو <code>start</code> وفقط متغير <code>SERVICE</code> الذي ضبطه السكربت.</td></tr>
+      <tr><td class="path">reporting-consumer.sh</td><td>تمرين <code>reporting-consumer</code>.</td><td>الإيقاف: التأكيد ما زال يُرجع 200 والحالة CONFIRMED. ينمو <code>q.reporting.projection</code> لأن الناشر ما زال يرسل. تستطيع التقارير الإجابة من صفوف موجودة في <code>reporting_db</code>. التشغيل: يفرّغ المستهلك الطابور ويُقَر <code>event_id</code> المكرر دون كتابة إسقاط ثانية.</td></tr>
+      <tr><td class="path">rabbitmq.sh</td><td>تمرين <code>rabbitmq</code>.</td><td>الإيقاف: الإنشاء والتأكيد ما زالا يلتزمان في <code>order_db</code>. يبقى صف صندوق الصادر معلّقاً. بعد خمس محاولات نشر فاشلة يصبح الصف <code>failed</code> ولا يُحجز ثانية حتى يعيده شخص إلى معلّق. التشغيل: تُنشر الصفوف المعلّقة. الصفوف المنشورة أصلاً لا تُختلق من جديد. هذا ليس إرجاعاً للوسيط.</td></tr>
+      <tr><td class="path">redis.sh</td><td>تمرين <code>redis</code>.</td><td>الإيقاف: قائمة المنتجات ما زالت تُرجع 200 من Postgres. الدخول والتسجيل وإنشاء الطلب تُرجع 503 بالرمز <code>DEPENDENCY_UNAVAILABLE</code> قبل كتابة جلسة أو صف طلب. التأكيد وقراءة الطلب والتجديد والخروج لا تستخدم Redis. jwt-check لا يستخدم Redis. التشغيل: تعمل تلك المسارات ثانية وتُطبَّق حدود Redis ثانية (الدخول 5 في الدقيقة، وإنشاء الطلب 10 في الدقيقة).</td></tr>
+      <tr><td class="path">inventory-consumer.sh</td><td>تمرين <code>order-inventory-consumer</code>.</td><td>الإيقاف: التأكيد ما زال ينجح. التأكيد لا يُوجَّه إلى <code>q.order.inventory</code>. ينمو ذلك الطابور عندما يرسل <code>odoo-publisher</code> حدث <code>InventoryUpdated</code>. التشغيل: يحدّث <code>event_id</code> واحد لقطة المخزون مرة واحدة. التسليم الثاني يُقَر كتكرار.</td></tr>
+      <tr><td class="path">test_lab.py</td><td>فحوص ثابتة.</td><td>لا يشغّل Docker ولا يوقف خدمة. يقرأ السكربتات ويتحقق من عقد المرحلة 18.</td></tr>
+    </tbody>
+  </table>
+</article>
+</section>
+
+</main>
+</div>
+<script>
+(function () {
+  var allowed = { en: true, ar: true, both: true };
+  function apply(mode) {
+    if (!allowed[mode]) mode = "both";
+    document.body.setAttribute("data-view", mode);
+    var buttons = document.querySelectorAll("[data-set-lang]");
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].setAttribute("aria-pressed", buttons[i].getAttribute("data-set-lang") === mode ? "true" : "false");
+    }
+    try { localStorage.setItem("deploy-structure-lang", mode); } catch (e) {}
+  }
+  document.addEventListener("click", function (event) {
+    var button = event.target.closest("[data-set-lang]");
+    if (!button) return;
+    apply(button.getAttribute("data-set-lang"));
+  });
+  var saved = "both";
+  try { saved = localStorage.getItem("deploy-structure-lang") || "both"; } catch (e) {}
+  apply(saved);
+})();
+</script>
+</body>
+</html>

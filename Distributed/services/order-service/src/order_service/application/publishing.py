@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Protocol
@@ -75,7 +75,7 @@ class EventPublisher(Protocol):
         """Publish to the commerce.events exchange. Raise if the broker does not confirm."""
 
 
-def to_outbound(event: DomainEvent) -> OutboundMessage:
+def to_outbound(event: DomainEvent, trace_carrier: Mapping[str, str] | None = None) -> OutboundMessage:
     event_type = event.event_type
     try:
         routing_key = ROUTING_KEYS[event_type]
@@ -93,7 +93,9 @@ def to_outbound(event: DomainEvent) -> OutboundMessage:
         "payload": _payload(event),
     }
     # traceparent is the technical id. correlation_id above is unchanged.
-    body.update(_trace_carrier())
+    # The caller supplies the carrier. This module does not read OpenTelemetry.
+    if trace_carrier:
+        body.update(trace_carrier)
     return OutboundMessage(
         event_id=event.event_id,
         event_type=event_type,
@@ -234,6 +236,7 @@ def command_message(
     correlation_id: uuid.UUID,
     causation_id: uuid.UUID,
     payload: dict[str, object],
+    trace_carrier: Mapping[str, str] | None = None,
 ) -> OutboundMessage:
     """One saga command envelope. It is not a catalog event and not a report fact."""
 
@@ -252,7 +255,8 @@ def command_message(
         "version": SCHEMA_VERSION,
         "payload": payload,
     }
-    body.update(_trace_carrier())
+    if trace_carrier:
+        body.update(trace_carrier)
     return OutboundMessage(
         event_id=event_id,
         event_type=event_type,
@@ -280,12 +284,6 @@ def _order_lines(event: OrderCreated | OrderConfirmed, status: str) -> dict[str,
         "total": event.total.as_dict(),
         "aggregate_version": event.aggregate_version,
     }
-
-
-def _trace_carrier() -> dict[str, str]:
-    from order_service.observability.tracing import current_trace_carrier
-
-    return current_trace_carrier()
 
 
 def _occurred_at(value: datetime) -> str:

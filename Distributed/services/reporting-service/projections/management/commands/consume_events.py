@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from projections.consumer import main
+from projections.messaging.consumer import main
 
 
 class Command(BaseCommand):

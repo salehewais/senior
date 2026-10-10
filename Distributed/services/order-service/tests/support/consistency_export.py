@@ -15,13 +15,13 @@ from tests.support.memory import InMemoryUnitOfWork, MemoryStore
 
 from order_service.application.actor import Actor
 from order_service.application.saga.orchestrator import advance
-from order_service.application.saga.payment import SimulatedPayment
 from order_service.application.saga.results import StepResult, absent, succeeded
 from order_service.application.use_cases.catalog import CreateCustomer, CreateProduct
 from order_service.application.use_cases.orders import ConfirmOrder, CreateOrder
 from order_service.domain.entities.saga_status import SagaStatus
 from order_service.domain.ids import OrderId
 from order_service.domain.roles import Role
+from order_service.infrastructure.saga.payment import SimulatedPayment
 
 ORDER_EVENTS = ("OrderCreated", "OrderConfirmed", "PaymentConfirmed", "PaymentFailed", "OrderDelivered")
 _SAGA_NOW = datetime(2026, 10, 8, 12, 0, tzinfo=UTC)

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_commerce_inventory_state_list" model="ir.ui.view">
+        <field name="name">commerce.inventory.state.list</field>
+        <field name="model">commerce.inventory.state</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sku"/>
+                <field name="commerce_product_id"/>
+                <field name="on_hand"/>
+                <field name="reserved"/>
+                <field name="warehouse_code"/>
+                <field name="version"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_commerce_inventory_state" model="ir.actions.act_window">
+        <field name="name">Stock snapshots</field>
+        <field name="res_model">commerce.inventory.state</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

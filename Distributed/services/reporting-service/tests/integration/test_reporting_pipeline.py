@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import os
 import signal
-import socket
 import subprocess
 import sys
 import time
@@ -16,51 +15,10 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 
-
-def _port_open(host: str, port: int) -> bool:
-    try:
-        with socket.create_connection((host, port), timeout=1):
-            return True
-    except OSError:
-        return False
-
-
-def _postgres_up() -> bool:
-    if not _port_open("127.0.0.1", 5433):
-        return False
-    try:
-        import psycopg
-    except ImportError:
-        return False
-    try:
-        with psycopg.connect(
-            "postgresql://reporting_service:reporting_service@127.0.0.1:5433/reporting_db",
-            connect_timeout=2,
-        ) as connection:
-            connection.execute("SELECT 1")
-    except Exception:
-        return False
-    return True
-
-
-def _rabbit_up() -> bool:
-    if not _port_open("127.0.0.1", 5672):
-        return False
-    try:
-        from projections.broker import close_connection, open_connection
-    except Exception:
-        return False
-    try:
-        connection = open_connection("amqp://order_service:order_service@127.0.0.1:5672/%2F", 2)
-    except Exception:
-        return False
-    close_connection(connection, timeout_seconds=2)
-    return True
+pytestmark = pytest.mark.integration
 
 
 def test_published_order_is_projected() -> None:
-    if not _postgres_up() or not _rabbit_up():
-        pytest.skip("reporting Postgres on 127.0.0.1:5433 or RabbitMQ on 127.0.0.1:5672 is not running.")
     env = os.environ.copy()
     env["DJANGO_SETTINGS_MODULE"] = "reporting.settings"
     env["REPORTING_DATABASE_URL"] = "postgresql://reporting_service:reporting_service@127.0.0.1:5433/reporting_db"
@@ -103,8 +61,8 @@ def test_published_order_is_projected() -> None:
             "aggregate_version": 1,
         },
     }
-    from projections.broker import close_connection, open_connection
-    from projections.topology import EXCHANGE_COMMERCE_EVENTS, declare_reporting_topology
+    from projections.messaging.broker import close_connection, open_connection
+    from projections.messaging.topology import EXCHANGE_COMMERCE_EVENTS, declare_reporting_topology
 
     broker_url = env.get("RABBITMQ_URL", "amqp://order_service:order_service@127.0.0.1:5672/%2F")
     connection = open_connection(broker_url, 2)

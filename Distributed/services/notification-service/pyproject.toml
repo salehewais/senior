@@ -26,10 +26,16 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+notification_service = ["templates/*.html"]
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "-q"
+markers = [
+    "integration: live Postgres on 5435 and RabbitMQ on 5672",
+]
 
 [tool.ruff]
 line-length = 120

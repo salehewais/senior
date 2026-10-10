@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Reporting</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; color: #1a1a1a; }
+    h1 { font-size: 1.4rem; }
+    form, section { margin: 1.5rem 0; }
+    label { display: block; margin: 0.4rem 0; }
+    table { border-collapse: collapse; width: 100%; margin-top: 0.5rem; }
+    th, td { border: 1px solid #ccc; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+    th { background: #f4f4f4; }
+    .message { min-height: 1.2rem; }
+  </style>
+</head>
+<body>
+  <h1>Reporting</h1>
+  <p>Read-only. Sign in with a staff account. The access token stays in this tab.</p>
+  <form id="login">
+    <label>Email <input id="email" type="email" name="email" value="admin@admin.com" autocomplete="username" required></label>
+    <label>Password <input id="password" type="password" name="password" autocomplete="current-password" required></label>
+    <button type="submit">Sign in</button>
+    <button type="button" id="sign-out">Sign out</button>
+  </form>
+  <p id="message" class="message"></p>
+
+  <section>
+    <h2>Orders by status</h2>
+    <p id="summary-as-of"></p>
+    <table id="summary">
+      <thead><tr><th>Status</th><th>Count</th><th>Total</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+  <section>
+    <h2>Orders</h2>
+    <p id="orders-as-of"></p>
+    <table id="orders">
+      <thead><tr><th>Order</th><th>Status</th><th>Lines</th><th>Total</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+  <section>
+    <h2>Revenue</h2>
+    <p id="revenue-as-of"></p>
+    <table id="revenue">
+      <thead><tr><th>Confirmed payments</th><th>Failed payments</th><th>Confirmed totals</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+  <section>
+    <h2>Inventory</h2>
+    <p id="inventory-as-of"></p>
+    <table id="inventory">
+      <thead><tr><th>SKU</th><th>On hand</th><th>Reserved</th><th>Warehouse</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <script>
+    const TOKEN_KEY = "staff.access_token";
+    const message = document.getElementById("message");
+
+    function money(total) {
+      if (!total) return "";
+      return String(total.amount_minor) + " " + String(total.currency || "");
+    }
+
+    function fill(table, rows, cells) {
+      const body = table.querySelector("tbody");
+      body.replaceChildren();
+      if (!rows.length) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = table.querySelectorAll("th").length;
+        td.textContent = "No rows.";
+        tr.append(td);
+        body.append(tr);
+        return;
+      }
+      for (const row of rows) {
+        const tr = document.createElement("tr");
+        for (const value of cells(row)) {
+          const td = document.createElement("td");
+          td.textContent = value;
+          tr.append(td);
+        }
+        body.append(tr);
+      }
+    }
+
+    async function readError(response) {
+      try {
+        const body = await response.json();
+        if (body.error && body.error.message) return body.error.message;
+      } catch (err) {
+        return "Request failed (" + response.status + ").";
+      }
+      return "Request failed (" + response.status + ").";
+    }
+
+    async function getJson(path, token) {
+      const response = await fetch(path, { headers: { Authorization: "Bearer " + token } });
+      if (!response.ok) throw new Error(await readError(response));
+      return response.json();
+    }
+
+    function showReports(summary, orders, revenue, inventory) {
+      document.getElementById("summary-as-of").textContent = summary.as_of ? "As of " + summary.as_of : "";
+      fill(document.getElementById("summary"), summary.by_status || [], function (row) {
+        return [row.status, String(row.count), money(row.total)];
+      });
+      document.getElementById("orders-as-of").textContent = orders.as_of ? "As of " + orders.as_of : "";
+      fill(document.getElementById("orders"), orders.items || [], function (row) {
+        const lines = (row.items || []).map(function (item) {
+          return item.sku + " x " + item.quantity + " @ " + money(item.unit_price);
+        }).join("; ");
+        return [row.order_id, row.status, lines, money(row.total)];
+      });
+      document.getElementById("revenue-as-of").textContent = revenue.as_of ? "As of " + revenue.as_of : "";
+      const totals = (revenue.confirmed_totals || []).map(money).join(", ");
+      fill(document.getElementById("revenue"), [revenue], function (row) {
+        return [String(row.confirmed_count), String(row.failed_count), totals];
+      });
+      document.getElementById("inventory-as-of").textContent = inventory.as_of ? "As of " + inventory.as_of : "";
+      fill(document.getElementById("inventory"), inventory.items || [], function (row) {
+        return [row.sku, String(row.quantity_on_hand), String(row.quantity_reserved), row.warehouse_code || ""];
+      });
+    }
+
+    async function load(token) {
+      const summary = await getJson("/api/v1/reports/orders/summary", token);
+      const orders = await getJson("/api/v1/reports/orders", token);
+      const revenue = await getJson("/api/v1/reports/revenue", token);
+      const inventory = await getJson("/api/v1/reports/inventory", token);
+      showReports(summary, orders, revenue, inventory);
+      message.textContent = "Signed in.";
+    }
+
+    document.getElementById("login").addEventListener("submit", async function (event) {
+      event.preventDefault();
+      message.textContent = "Signing in…";
+      const response = await fetch("/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: document.getElementById("email").value,
+          password: document.getElementById("password").value,
+        }),
+      });
+      if (!response.ok) {
+        message.textContent = await readError(response);
+        return;
+      }
+      const body = await response.json();
+      sessionStorage.setItem(TOKEN_KEY, body.access_token);
+      document.getElementById("password").value = "";
+      try {
+        await load(body.access_token);
+      } catch (err) {
+        message.textContent = err.message;
+      }
+    });
+
+    document.getElementById("sign-out").addEventListener("click", function () {
+      sessionStorage.removeItem(TOKEN_KEY);
+      message.textContent = "Signed out.";
+    });
+
+    const existing = sessionStorage.getItem(TOKEN_KEY);
+    if (existing) {
+      load(existing).catch(function (err) {
+        message.textContent = err.message;
+      });
+    }
+  </script>
+</body>
+</html>

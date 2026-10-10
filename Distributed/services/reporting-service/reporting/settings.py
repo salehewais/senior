@@ -29,9 +29,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "projections.middleware.ObservabilityMiddleware",
-    "projections.middleware.CorrelationIdMiddleware",
-    "projections.middleware.ApiErrorMiddleware",
+    "projections.observability.middleware.ObservabilityMiddleware",
+    "projections.observability.middleware.CorrelationIdMiddleware",
+    "projections.observability.middleware.ApiErrorMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
 ]
@@ -39,6 +39,18 @@ MIDDLEWARE = [
 ROOT_URLCONF = "reporting.urls"
 WSGI_APPLICATION = "reporting.wsgi.application"
 ASGI_APPLICATION = "reporting.asgi.application"
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+            ],
+        },
+    },
+]
 
 DATABASES = {"default": django_database()}
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -64,7 +76,7 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "json": {"()": "projections.jsonlog.JsonFormatter"},
+        "json": {"()": "projections.observability.jsonlog.JsonFormatter"},
     },
     "handlers": {
         "console": {"class": "logging.StreamHandler", "formatter": "json"},

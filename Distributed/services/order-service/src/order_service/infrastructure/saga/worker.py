@@ -18,13 +18,14 @@ import time
 from datetime import UTC, datetime
 
 from order_service.application.saga.orchestrator import advance
-from order_service.application.saga.payment import SimulatedPayment
 from order_service.application.saga.results import StepResult, unknown
 from order_service.domain.ids import OrderId
 from order_service.infrastructure.database.engine import make_engine, make_session_factory
 from order_service.infrastructure.database.unit_of_work import SqlUnitOfWork
+from order_service.infrastructure.saga.payment import SimulatedPayment
 from order_service.infrastructure.settings import get_settings
 from order_service.observability.metrics import set_payment_circuit_state
+from order_service.observability.tracing import current_trace_carrier
 
 logger = logging.getLogger("order_service.saga")
 
@@ -74,6 +75,7 @@ def advance_one(uow: SqlUnitOfWork, payment: SimulatedPayment, now: datetime) ->
         payment=payment,
         erp=WaitingErp(),
         now=now,
+        trace_carrier=current_trace_carrier(),
     )
     uow.sagas.add(saga)
     uow.orders.add(order)

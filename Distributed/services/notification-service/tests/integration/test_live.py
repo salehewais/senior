@@ -7,10 +7,10 @@ import uuid
 
 import pytest
 
-from notification_service.models import Base
-from notification_service.settings import rabbitmq_timeout_seconds, rabbitmq_url
-from notification_service.store import SqlStore
-from notification_service.topology import QUEUE_NOTIFICATION, declare_notification_topology
+from notification_service.config import rabbitmq_timeout_seconds, rabbitmq_url
+from notification_service.messaging.topology import QUEUE_NOTIFICATION, declare_notification_topology
+from notification_service.persistence.models import Base
+from notification_service.persistence.store import SqlStore
 
 
 def _open(host: str, port: int) -> bool:
@@ -19,6 +19,9 @@ def _open(host: str, port: int) -> bool:
             return True
     except OSError:
         return False
+
+
+pytestmark = pytest.mark.integration
 
 
 def test_notification_db_stores_a_device_token() -> None:
@@ -41,7 +44,7 @@ def test_notification_db_stores_a_device_token() -> None:
 def test_broker_declares_the_notification_queue() -> None:
     if not _open("127.0.0.1", 5672):
         pytest.skip("RabbitMQ is not listening on 127.0.0.1:5672")
-    from notification_service.broker import close_connection, open_connection
+    from notification_service.messaging.broker import close_connection, open_connection
 
     timeout = min(rabbitmq_timeout_seconds(), 2.0)
     try:

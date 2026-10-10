@@ -6,6 +6,9 @@ class ProjectionsConfig(AppConfig):
     name = "projections"
 
     def ready(self) -> None:
-        from projections.tracing import configure_tracing
+        from projections.domain.versions import order_projection_max_version
+        from projections.observability.metrics import register_projection_max_version
+        from projections.observability.tracing import configure_tracing
 
         configure_tracing("reporting-service")
+        register_projection_max_version(order_projection_max_version)
