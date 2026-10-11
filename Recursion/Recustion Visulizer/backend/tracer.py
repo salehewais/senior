@@ -12,6 +12,7 @@ function is recorded too, with a snapshot of its local variables.
 from __future__ import annotations
 
 import ast
+import dis
 import inspect
 import io
 import json
@@ -331,6 +332,8 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
     error: str | None = None
     result: Any = None
     last_lines: dict[int, int] = {}
+    last_locals: dict[int, dict[str, str]] = {}
+    arg_index = _ArgIndex(source, call)
 
     def tracer(frame: types.FrameType, event: str, arg: object):  # noqa: ANN202
         nonlocal next_id, call_count, line_count, truncated
@@ -355,7 +358,13 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
                     args = _format_args(fr)
                 except Exception:
                     args = ["?"]
+                params = _entry_params(fr)
+                frame_locals = _snapshot_locals(fr)
+                caller_locals = _caller_snapshot(fr)
                 open_ids.append(node_id)
+                last_locals[node_id] = frame_locals
+                if parent is not None:
+                    last_locals[parent] = caller_locals
                 call_event: dict[str, Any] = {
                     "type": "call",
                     "id": node_id,
@@ -363,6 +372,10 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
                     "name": func_name,
                     "args": args,
                     "depth": len(open_ids) - 1,
+                    "params": params,
+                    "argExprs": arg_index.exprs_for(fr),
+                    "locals": frame_locals,
+                    "callerLocals": caller_locals,
                 }
                 if debug:
                     call_event["line"] = fr.f_lineno
@@ -387,6 +400,7 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
                     previous = state["locals"]
                     changed = [name for name, text in snapshot.items() if previous.get(name) != text]
                     state["locals"] = snapshot
+                    last_locals[node_id] = snapshot
                     _emit(
                         {
                             "type": "event",
@@ -404,11 +418,19 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
                 if open_ids and open_ids[-1] == node_id:
                     open_ids.pop()
                 failed = bool(state["raising"])
+                frame_locals = _snapshot_locals(fr)
+                caller_locals = _caller_snapshot(fr)
+                last_locals[node_id] = frame_locals
+                parent = open_ids[-1] if open_ids else None
+                if parent is not None:
+                    last_locals[parent] = caller_locals
                 return_event: dict[str, Any] = {
                     "type": "return",
                     "id": node_id,
                     "value": "raised" if failed else _safe_repr(value),
                     "error": failed,
+                    "locals": frame_locals,
+                    "callerLocals": caller_locals,
                 }
                 if debug:
                     return_event["line"] = fr.f_lineno
@@ -446,11 +468,14 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
     if error:
         while open_ids:
             node_id = open_ids.pop()
+            parent = open_ids[-1] if open_ids else None
             return_event = {
                 "type": "return",
                 "id": node_id,
                 "value": "raised",
                 "error": True,
+                "locals": last_locals.get(node_id, {}),
+                "callerLocals": last_locals.get(parent, {}) if parent is not None else {},
             }
             if debug and node_id in last_lines:
                 return_event["line"] = last_lines[node_id]
@@ -475,6 +500,185 @@ def _follows(frame_code: types.CodeType, target_code: types.CodeType) -> bool:
     qualname = getattr(frame_code, "co_qualname", "")
     prefix = getattr(target_code, "co_qualname", target_code.co_name) + ".<locals>."
     return qualname.startswith(prefix)
+
+
+_CALL_OPS = {"CALL", "CALL_FUNCTION", "CALL_FUNCTION_KW", "CALL_FUNCTION_EX", "CALL_KW"}
+
+
+class _ArgIndex:
+    """Call nodes from one run, used to recover argument source text.
+
+    The starting call is parsed too, but its text lives outside the editor,
+    so those expressions stay empty.
+    """
+
+    def __init__(self, source: str, call: str) -> None:
+        self.source = source
+        self.calls = _call_nodes(source)
+        try:
+            ast.parse(call, filename="<call>", mode="eval")
+        except SyntaxError:
+            pass
+        self._instructions: dict[int, list[dis.Instruction]] = {}
+
+    def exprs_for(self, frame: types.FrameType) -> list[str]:
+        names = _param_names(frame.f_code)
+        empty = [""] * len(names)
+        caller = frame.f_back
+        if caller is None or getattr(caller.f_code, "co_filename", None) != "<user>":
+            return empty
+        node = self._match_call(caller)
+        if node is None:
+            return empty
+        try:
+            return _align_arg_exprs(frame.f_code, node, self.source)
+        except Exception:
+            return empty
+
+    def _match_call(self, caller: types.FrameType) -> ast.Call | None:
+        position = self._call_position(caller)
+        if position is None:
+            return None
+        lineno, col, end_lineno, end_col = position
+        matches = [
+            node
+            for node in self.calls
+            if _span_contains(node, lineno, col, end_lineno, end_col)
+        ]
+        if not matches:
+            return None
+        matches.sort(key=_span_area)
+        if len(matches) > 1 and _span_area(matches[0]) == _span_area(matches[1]):
+            return None
+        return matches[0]
+
+    def _call_position(
+        self, caller: types.FrameType
+    ) -> tuple[int, int, int, int] | None:
+        # f_lasti sits just past the CALL, often inside its inline cache.
+        # The latest CALL at or before that offset is the one that entered us,
+        # which separates fib(n - 1) from fib(n - 2) on the same line.
+        code = caller.f_code
+        cached = self._instructions.get(id(code))
+        if cached is None:
+            cached = [inst for inst in dis.get_instructions(code) if inst.opname in _CALL_OPS]
+            self._instructions[id(code)] = cached
+        chosen: dis.Instruction | None = None
+        for inst in cached:
+            if inst.offset <= caller.f_lasti:
+                chosen = inst
+            else:
+                break
+        if chosen is None or chosen.positions is None:
+            return None
+        pos = chosen.positions
+        lineno, col = pos.lineno, pos.col_offset
+        end_lineno, end_col = pos.end_lineno, pos.end_col_offset
+        if lineno is None or col is None or end_lineno is None or end_col is None:
+            return None
+        return (lineno, col, end_lineno, end_col)
+
+
+def _call_nodes(source: str) -> list[ast.Call]:
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return []
+    return [node for node in ast.walk(tree) if isinstance(node, ast.Call)]
+
+
+def _span_contains(
+    node: ast.AST, lineno: int, col: int, end_lineno: int, end_col: int
+) -> bool:
+    if node.lineno is None or node.end_lineno is None or node.end_col_offset is None:
+        return False
+    start = (node.lineno, node.col_offset)
+    end = (node.end_lineno, node.end_col_offset)
+    return start <= (lineno, col) and (end_lineno, end_col) <= end
+
+
+def _span_area(node: ast.AST) -> tuple[int, int]:
+    end_line = node.end_lineno if node.end_lineno is not None else node.lineno or 0
+    end_col = node.end_col_offset if node.end_col_offset is not None else node.col_offset
+    start_line = node.lineno or 0
+    return (end_line - start_line, end_col - node.col_offset)
+
+
+def _param_names(code: types.CodeType) -> list[str]:
+    names = list(code.co_varnames[: code.co_argcount + code.co_kwonlyargcount])
+    index = code.co_argcount + code.co_kwonlyargcount
+    if code.co_flags & inspect.CO_VARARGS:
+        names.append(code.co_varnames[index])
+        index += 1
+    if code.co_flags & inspect.CO_VARKEYWORDS:
+        names.append(code.co_varnames[index])
+    return names
+
+
+def _entry_params(frame: types.FrameType) -> dict[str, str]:
+    loc = frame.f_locals
+    params: dict[str, str] = {}
+    for name in _param_names(frame.f_code):
+        params[name] = _safe_repr(loc[name]) if name in loc else "?"
+    return params
+
+
+def _align_arg_exprs(code: types.CodeType, node: ast.Call, source: str) -> list[str]:
+    names = _param_names(code)
+    exprs = {name: "" for name in names}
+    pos_names = list(code.co_varnames[: code.co_argcount])
+    vararg: str | None = None
+    varkw: str | None = None
+    index = code.co_argcount + code.co_kwonlyargcount
+    if code.co_flags & inspect.CO_VARARGS:
+        vararg = code.co_varnames[index]
+        index += 1
+    if code.co_flags & inspect.CO_VARKEYWORDS:
+        varkw = code.co_varnames[index]
+
+    positional = 0
+    seen_star = False
+    extra: list[str] = []
+    for arg in node.args:
+        text = ast.get_source_segment(source, arg) or ""
+        if isinstance(arg, ast.Starred):
+            seen_star = True
+            if vararg and not exprs[vararg]:
+                exprs[vararg] = text
+            continue
+        if seen_star:
+            return [""] * len(names)
+        if positional < len(pos_names):
+            exprs[pos_names[positional]] = text
+            positional += 1
+        else:
+            extra.append(text)
+    if vararg and extra and not exprs[vararg]:
+        exprs[vararg] = ", ".join(extra)
+
+    extra_kw: list[str] = []
+    for keyword in node.keywords:
+        text = ast.get_source_segment(source, keyword.value) or ""
+        if keyword.arg is None:
+            if varkw:
+                exprs[varkw] = text
+            continue
+        if keyword.arg in exprs and keyword.arg != vararg:
+            exprs[keyword.arg] = text
+        else:
+            extra_kw.append(f"{keyword.arg}={text}" if text else keyword.arg)
+    if varkw and extra_kw and not exprs[varkw]:
+        exprs[varkw] = ", ".join(extra_kw)
+    return [exprs[name] for name in names]
+
+
+def _caller_snapshot(frame: types.FrameType) -> dict[str, str]:
+    caller = frame.f_back
+    if caller is None or getattr(caller.f_code, "co_filename", None) != "<user>":
+        return {}
+    if caller.f_code.co_name == "<module>":
+        return {}
+    return _snapshot_locals(caller)
 
 
 def _snapshot_locals(frame: types.FrameType) -> dict[str, str]:

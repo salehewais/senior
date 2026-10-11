@@ -14,6 +14,10 @@ export type CallEvent = {
   args: string[];
   depth: number;
   line?: number;
+  params: Record<string, string>;
+  argExprs: string[];
+  locals: Record<string, string>;
+  callerLocals: Record<string, string>;
 };
 
 export type ReturnEvent = {
@@ -22,6 +26,8 @@ export type ReturnEvent = {
   value: string;
   error: boolean;
   line?: number;
+  locals: Record<string, string>;
+  callerLocals: Record<string, string>;
 };
 
 export type LineEvent = {

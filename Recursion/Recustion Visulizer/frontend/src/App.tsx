@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchExamples, traceSource } from "./api";
+import CallStack from "./components/CallStack";
 import EditorPane from "./components/EditorPane";
 import PlaybackBar from "./components/PlaybackBar";
 import TreeView from "./components/TreeView";
@@ -242,6 +243,7 @@ export default function App() {
             traceKey={traceKey}
             call={call}
           />
+          <CallStack events={events} cursor={cursor} onJump={jump} />
           {mode === "debug" && (
             <VariablesStrip
               events={events}
