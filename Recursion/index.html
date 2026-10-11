@@ -397,6 +397,13 @@
       font-size: 12px;
     }
     .sub a { color: var(--graph); }
+    .concept {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
 
     .badge, .premium {
       font-family: Outfit, sans-serif;
@@ -480,7 +487,7 @@
         <button class="node recursion" type="button" data-jump="recursion">
           <small>1 · الجذر</small>
           <strong>Recursion</strong>
-          <em>العودية · 10 مسائل</em>
+          <em>العودية · 20 مسألة</em>
         </button>
         <button class="node graph" type="button" data-jump="graph">
           <small>5 · من الشجرة</small>
@@ -545,6 +552,21 @@
               ["2", "Add Two Numbers", "Medium", "add-two-numbers"],
               ["95", "Unique Binary Search Trees II", "Medium", "unique-binary-search-trees-ii"],
               ["394", "Decode String", "Medium", "decode-string"]
+            ]
+          },
+          {
+            label: "مسار التدريب",
+            items: [
+              ["1863", "Sum of All Subset XOR Totals", "Easy", "sum-of-all-subset-xor-totals", false, "Recursion and decision branching"],
+              ["1512", "Number of Good Pairs", "Easy", "number-of-good-pairs", false, "Basic loops before recursive thinking"],
+              ["70", "Climbing Stairs", "Easy", "climbing-stairs", false, "Recurrence relation and base cases"],
+              ["104", "Maximum Depth of Binary Tree", "Easy", "maximum-depth-of-binary-tree", false, "Tree recursion"],
+              ["100", "Same Tree", "Easy", "same-tree", false, "Recursive comparison of two trees"],
+              ["226", "Invert Binary Tree", "Easy", "invert-binary-tree", false, "Recursive modification of a tree"],
+              ["112", "Path Sum", "Easy", "path-sum", false, "Recursive traversal and state"],
+              ["78", "Subsets", "Medium", "subsets", false, "Backtracking and recursion trees"],
+              ["46", "Permutations", "Medium", "permutations", false, "Recursive choices and backtracking"],
+              ["39", "Combination Sum", "Medium", "combination-sum", false, "Recursive search with constraints"]
             ]
           }
         ]
@@ -680,7 +702,7 @@
         const groups = topic.groups.map((group) => `
           <h3 class="group-label">${group.label}</h3>
           <ul class="list">
-            ${group.items.map(([num, title, difficulty, slug, premium], index) => {
+            ${group.items.map(([num, title, difficulty, slug, premium, concept], index) => {
               const id = topic.id + "-" + group.label + "-" + index;
               const checked = solved.has(id) ? "checked" : "";
               const done = solved.has(id) ? "done" : "";
@@ -689,6 +711,7 @@
                   <input type="checkbox" data-id="${id}" ${checked} aria-label="تم حل ${title}" />
                   <div class="meta">
                     <span class="title">${title}</span>
+                    ${concept ? `<span class="concept">${concept}</span>` : ""}
                     <span class="sub">
                       <span>#${num}</span>
                       ${premium ? '<span class="premium">Premium</span>' : ""}
