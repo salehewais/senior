@@ -1,0 +1,2413 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recursion Mastery — مرجع تفاعلي</title>
+<meta name="description" content="مرجع تعليمي تفاعلي عن الـ Recursion بالمصري، مع أمثلة Python وتتبع للـ Call Stack واستعداد لـ LeetCode.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f6e6b'/%3E%3Cpath d='M9 22V10h6.2a4.2 4.2 0 0 1 0 8.4H13' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f3efe6;
+    --bg-elev: #fffdf8;
+    --bg-sunken: #e7e1d4;
+    --ink: #1c1915;
+    --ink-soft: #4e493f;
+    --ink-faint: #6f685c;
+    --line: #ddd4c3;
+    --accent: #0f5f5c;
+    --accent-ink: #ffffff;
+    --accent-soft: #e5f4f2;
+    --copper: #9a3412;
+    --copper-soft: #fde8d8;
+    --role-a: #1e4e89;
+    --role-a-bg: #e6f0fb;
+    --role-b: #9a3412;
+    --role-b-bg: #fde8d8;
+    --base: #166534;
+    --base-bg: #e5f6ea;
+    --descent: #3730a3;
+    --descent-bg: #e8e7fb;
+    --unwind: #9f1239;
+    --unwind-bg: #fde7ee;
+    --warn: #92400e;
+    --warn-bg: #fff4e5;
+    --danger: #991b1b;
+    --danger-bg: #fdecec;
+    --code-bg: #161d29;
+    --code-fg: #e7eef8;
+    --shadow: 0 1px 2px rgba(28, 25, 21, .05), 0 10px 28px rgba(28, 25, 21, .06);
+    --radius: 14px;
+    --header: 4.25rem;
+    --sidebar: 18.5rem;
+    --font: "Noto Sans Arabic", "Noto Naskh Arabic", "Segoe UI", Tahoma, sans-serif;
+    --mono: "JetBrains Mono", "Cascadia Code", "Fira Code", "Source Code Pro", ui-monospace, monospace;
+    --max: 52rem;
+    color-scheme: light;
+  }
+  [data-theme="dark"] {
+    --bg: #10151c;
+    --bg-elev: #18212c;
+    --bg-sunken: #0c1117;
+    --ink: #f4efe6;
+    --ink-soft: #d2cbbf;
+    --ink-faint: #a79f92;
+    --line: #2c3848;
+    --accent: #2dd4bf;
+    --accent-ink: #06221f;
+    --accent-soft: #12332f;
+    --copper: #fdba74;
+    --copper-soft: #3b2416;
+    --role-a: #93c5fd;
+    --role-a-bg: #17233b;
+    --role-b: #fdba74;
+    --role-b-bg: #3a2416;
+    --base: #86efac;
+    --base-bg: #0e2818;
+    --descent: #c4b5fd;
+    --descent-bg: #241e3d;
+    --unwind: #fda4af;
+    --unwind-bg: #3a1622;
+    --warn: #fcd34d;
+    --warn-bg: #2c220f;
+    --danger: #fca5a5;
+    --danger-bg: #3a1515;
+    --code-bg: #0b1220;
+    --code-fg: #e7eef8;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 32px rgba(0, 0, 0, .28);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 1.05rem;
+    line-height: 1.85;
+  }
+  .skip {
+    position: absolute;
+    inset-inline-start: .75rem;
+    top: -4rem;
+    background: var(--accent);
+    color: var(--accent-ink);
+    padding: .4rem .8rem;
+    border-radius: 8px;
+    z-index: 20;
+  }
+  .skip:focus { top: .5rem; }
+  .progress {
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    height: 4px;
+    background: transparent;
+    z-index: 40;
+  }
+  .progress > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--accent), var(--copper));
+  }
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    min-height: var(--header);
+    padding: .55rem 1rem;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .menu-btn, .icon-btn {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--bg-elev);
+    color: var(--ink);
+    border-radius: 10px;
+    min-width: 2.6rem;
+    min-height: 2.6rem;
+    padding: .35rem .7rem;
+    font: inherit;
+    cursor: pointer;
+  }
+  .menu-btn { display: none; }
+  .brand { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+  .brand strong { font-size: 1rem; }
+  .brand span { color: var(--ink-faint); font-size: .82rem; }
+  .topbar .spacer { flex: 1; }
+  .shell {
+    display: grid;
+    grid-template-columns: var(--sidebar) minmax(0, 1fr);
+    align-items: start;
+  }
+  .sidebar {
+    position: sticky;
+    top: var(--header);
+    max-height: calc(100vh - var(--header));
+    overflow: auto;
+    padding: 1rem .85rem 2rem;
+    border-inline-end: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 92%, var(--bg-sunken));
+  }
+  .sidebar h2 {
+    margin: .2rem .4rem .6rem;
+    font-size: .78rem;
+    letter-spacing: .04em;
+    color: var(--ink-faint);
+    font-weight: 700;
+  }
+  .toc { list-style: none; margin: 0; padding: 0; }
+  .toc a {
+    display: block;
+    text-decoration: none;
+    color: var(--ink-soft);
+    padding: .32rem .55rem;
+    border-radius: 8px;
+    font-size: .92rem;
+    line-height: 1.45;
+  }
+  .toc a:hover { background: var(--bg-sunken); color: var(--ink); }
+  .toc a.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .toc .sub { padding-inline-start: .85rem; }
+  .toc .sub a { font-size: .84rem; color: var(--ink-faint); }
+  .backdrop { display: none; }
+  main { min-width: 0; padding: 1.25rem 1.25rem 4rem; }
+  .wrap { max-width: var(--max); margin-inline: auto; }
+  .hero {
+    background:
+      radial-gradient(900px 240px at 100% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+      var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius) + 4px);
+    padding: 1.4rem 1.3rem 1.2rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    display: inline-block;
+    margin: 0 0 .4rem;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: .86rem;
+  }
+  h1 { font-size: clamp(1.7rem, 3vw, 2.35rem); line-height: 1.35; margin: 0 0 .6rem; }
+  h2 { font-size: clamp(1.4rem, 2.4vw, 1.85rem); line-height: 1.4; margin: 0; }
+  h3 { font-size: 1.22rem; line-height: 1.45; margin: 1.6rem 0 .4rem; scroll-margin-top: 5.2rem; }
+  h4 { margin: 1rem 0 .3rem; font-size: 1.05rem; }
+  p { margin: .55rem 0; }
+  .lead { font-size: 1.08rem; color: var(--ink-soft); }
+  .chapter { margin-top: 2.4rem; scroll-margin-top: 5.2rem; }
+  .chapter-head { margin-bottom: 1rem; }
+  .kicker {
+    margin: 0 0 .25rem;
+    color: var(--accent);
+    font-weight: 800;
+    font-size: .84rem;
+  }
+  .objective, .callout, .takeaways, .card, .exercise, .diagram, .stepper, .tabs, .cheat {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .objective { padding: .85rem 1rem; margin: .8rem 0 1rem; }
+  .objective strong { color: var(--accent); }
+  .callout { padding: .85rem 1rem; margin: .9rem 0; }
+  .callout.note { border-inline-start: 4px solid var(--accent); }
+  .callout.warn { background: var(--warn-bg); border-color: color-mix(in srgb, var(--warn) 35%, var(--line)); }
+  .callout.ok { background: var(--base-bg); border-color: color-mix(in srgb, var(--base) 35%, var(--line)); }
+  .callout.danger { background: var(--danger-bg); }
+  .callout.role-a { background: var(--role-a-bg); }
+  .callout.role-b { background: var(--role-b-bg); }
+  .callout p:first-child { margin-top: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+  .legend { display: flex; flex-wrap: wrap; gap: .4rem; margin: .8rem 0; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    border-radius: 999px;
+    padding: .12rem .65rem;
+    font-size: .82rem;
+    font-weight: 700;
+    line-height: 1.6;
+    border: 1px solid var(--line);
+    background: var(--bg-sunken);
+  }
+  .badge.a { background: var(--role-a-bg); color: var(--role-a); }
+  .badge.b { background: var(--role-b-bg); color: var(--role-b); }
+  .badge.base { background: var(--base-bg); color: var(--base); }
+  .badge.down { background: var(--descent-bg); color: var(--descent); }
+  .badge.up { background: var(--unwind-bg); color: var(--unwind); }
+  .term, .ltr { direction: ltr; unicode-bidi: isolate; }
+  h1 .term, .lead .term {
+    background: none;
+    font-family: inherit;
+    font-size: inherit;
+    padding: 0;
+    white-space: nowrap;
+  }
+  .term {
+    font-family: var(--mono);
+    font-size: .86em;
+    background: var(--bg-sunken);
+    padding: .05rem .35rem;
+    border-radius: 6px;
+  }
+  .grid-2, .cards { display: grid; gap: .75rem; }
+  @media (min-width: 760px) {
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .cards.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  }
+  .card { padding: .9rem 1rem; }
+  .card h3, .card h4 { margin-top: 0; }
+  .q-list { margin: .4rem 0; padding-inline-start: 1.2rem; }
+  .q-list li { margin: .25rem 0; }
+  .q-list a { color: var(--accent); }
+  .flow, .stack-diagram { margin: .8rem 0; }
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+    align-items: stretch;
+  }
+  .node {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: .55rem .7rem;
+    min-width: 7.5rem;
+    flex: 1 1 8rem;
+  }
+  .node strong { display: block; font-size: .92rem; }
+  .node span { display: block; color: var(--ink-soft); font-size: .86rem; line-height: 1.45; }
+  .node.a { background: var(--role-a-bg); border-color: color-mix(in srgb, var(--role-a) 40%, var(--line)); }
+  .node.b { background: var(--role-b-bg); border-color: color-mix(in srgb, var(--role-b) 40%, var(--line)); }
+  .node.base { background: var(--base-bg); border-color: color-mix(in srgb, var(--base) 40%, var(--line)); }
+  .node.down { background: var(--descent-bg); }
+  .node.up { background: var(--unwind-bg); }
+  .arrow {
+    align-self: center;
+    color: var(--ink-faint);
+    font-weight: 800;
+    direction: ltr;
+  }
+  .stack-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    max-width: 34rem;
+  }
+  .frame {
+    display: flex;
+    justify-content: space-between;
+    gap: .75rem;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--bg-elev);
+    padding: .55rem .75rem;
+  }
+  .frame.top {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+  .frame small { color: var(--ink-faint); }
+  .stack-label { color: var(--ink-faint); font-size: .82rem; margin: 0; }
+  .table-wrap { overflow-x: auto; margin: .8rem 0 1rem; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-elev); }
+  .hint-scroll { margin: 0; padding: .35rem .7rem 0; color: var(--ink-faint); font-size: .78rem; }
+  table { width: 100%; border-collapse: collapse; min-width: 40rem; font-size: .92rem; }
+  table.compact { min-width: 32rem; }
+  th, td { padding: .45rem .6rem; border-bottom: 1px solid var(--line); text-align: start; vertical-align: top; }
+  th { background: var(--bg-sunken); font-size: .82rem; }
+  tr:last-child td { border-bottom: 0; }
+  td.num, th.num { direction: ltr; text-align: start; font-family: var(--mono); font-size: .82rem; }
+  .code-block {
+    margin: .8rem 0 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    border: 1px solid color-mix(in srgb, var(--code-fg) 12%, transparent);
+    direction: ltr;
+  }
+  .code-bar {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .35rem .55rem .35rem .8rem;
+    background: color-mix(in srgb, #000 22%, var(--code-bg));
+    color: #cbd5e1;
+    font-size: .78rem;
+  }
+  .code-bar .spacer { flex: 1; }
+  .copy-btn {
+    appearance: none;
+    border: 1px solid color-mix(in srgb, #fff 18%, transparent);
+    background: transparent;
+    color: #e2e8f0;
+    border-radius: 8px;
+    min-height: 2rem;
+    padding: .15rem .6rem;
+    font: inherit;
+    cursor: pointer;
+  }
+  .copy-btn:hover, .copy-btn:focus-visible { background: color-mix(in srgb, #fff 8%, transparent); }
+  pre {
+    margin: 0;
+    padding: .85rem 1rem 1rem;
+    overflow-x: auto;
+    direction: ltr;
+    text-align: left;
+  }
+  code {
+    font-family: var(--mono);
+    font-size: .86rem;
+    line-height: 1.65;
+  }
+  p code, li code, td code, .term code {
+    font-family: var(--mono);
+    font-size: .84em;
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+  .tok-kw { color: #c4b5fd; }
+  .tok-fn { color: #7dd3fc; }
+  .tok-str { color: #86efac; }
+  .tok-num { color: #fcd34d; }
+  .tok-cmt { color: #94a3b8; }
+  .takeaways { padding: .9rem 1rem 1rem; margin-top: 1rem; }
+  .takeaways h3 { margin-top: 0; }
+  details { margin: .45rem 0; }
+  details summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--accent);
+    padding: .2rem 0;
+  }
+  details summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+  .review { margin-top: .6rem; }
+  .tabs { padding: .75rem; margin: .9rem 0; }
+  .tablist { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .7rem; }
+  .tablist [role="tab"] {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: .3rem .75rem;
+    font: inherit;
+    cursor: pointer;
+    min-height: 2.4rem;
+  }
+  .tablist [role="tab"][aria-selected="true"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+  }
+  .stepper { padding: .9rem; margin: .9rem 0; }
+  .step-layout { display: grid; gap: .75rem; }
+  @media (min-width: 800px) {
+    .step-layout { grid-template-columns: minmax(0, 16rem) minmax(0, 1fr); }
+  }
+  .out-box, .step-copy {
+    background: var(--bg-sunken);
+    border-radius: 10px;
+    padding: .7rem .8rem;
+  }
+  .out-box ol { margin: .3rem 0 0; padding-inline-start: 1.2rem; direction: ltr; text-align: left; font-family: var(--mono); }
+  .controls { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; margin-top: .7rem; }
+  .controls button, .quiz button, .to-top {
+    appearance: none;
+    border: 0;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-radius: 10px;
+    min-height: 2.5rem;
+    padding: .3rem .85rem;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .controls button.secondary, .quiz button.secondary {
+    background: var(--bg-sunken);
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .exercise { padding: 1rem; margin: .8rem 0; }
+  .exercise header { display: flex; justify-content: space-between; gap: .5rem; align-items: center; }
+  .quiz { margin-top: .6rem; }
+  .quiz label { display: flex; gap: .5rem; align-items: flex-start; margin: .35rem 0; }
+  .quiz input[type="text"] {
+    width: min(100%, 24rem);
+    min-height: 2.6rem;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+    padding: .3rem .7rem;
+    direction: ltr;
+    text-align: left;
+  }
+  .quiz-msg { min-height: 1.4rem; font-weight: 700; }
+  .quiz-msg.ok { color: var(--base); }
+  .quiz-msg.bad { color: var(--danger); }
+  .cheat { padding: 1rem; }
+  .to-top {
+    position: fixed;
+    inset-inline-end: 1rem;
+    bottom: 1rem;
+    z-index: 25;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .to-top.show { opacity: 1; pointer-events: auto; }
+  footer.site {
+    max-width: calc(var(--max) + var(--sidebar));
+    margin: 0 auto;
+    padding: 0 1.25rem 2rem;
+    color: var(--ink-faint);
+    font-size: .9rem;
+  }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (max-width: 720px) {
+    .brand span { display: none; }
+    .topbar { gap: .4rem; padding-inline: .55rem; }
+    .icon-btn, .menu-btn {
+      white-space: nowrap;
+      font-size: .82rem;
+      padding-inline: .55rem;
+    }
+  }
+  @media (max-width: 960px) {
+    .menu-btn { display: inline-flex; align-items: center; justify-content: center; }
+    .shell { grid-template-columns: 1fr; }
+    .sidebar {
+      position: fixed;
+      z-index: 35;
+      inset-block: 0;
+      inset-inline-start: 0;
+      width: min(20rem, 88vw);
+      max-height: none;
+      transform: translateX(105%);
+      transition: transform .2s ease;
+      border: 0;
+      box-shadow: var(--shadow);
+    }
+    [dir="ltr"] .sidebar { transform: translateX(-105%); }
+    .sidebar.open { transform: translateX(0); }
+    .backdrop {
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .45);
+      z-index: 34;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .backdrop.show { opacity: 1; pointer-events: auto; }
+    main { padding-inline: .85rem; }
+  }
+  @media print {
+    .topbar, .sidebar, .progress, .to-top, .controls, .copy-btn, .backdrop, .menu-btn { display: none !important; }
+    .shell { display: block; }
+    body { background: white; color: black; }
+    .code-block { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">تخطي إلى المحتوى</a>
+<div class="progress" aria-hidden="true"><span id="progress"></span></div>
+<header class="topbar">
+  <button class="menu-btn" type="button" id="menuBtn" aria-expanded="false" aria-controls="sidebar">الفهرس</button>
+  <div class="brand">
+    <strong>Recursion Mastery</strong>
+    <span>مرجع تفاعلي للتفكير قبل الحفظ</span>
+  </div>
+  <div class="spacer"></div>
+  <button class="icon-btn" type="button" id="themeBtn" aria-pressed="false">الوضع الداكن</button>
+</header>
+<div class="backdrop" id="backdrop" hidden></div>
+<div class="shell">
+  <nav class="sidebar" id="sidebar" aria-label="فهرس الفصول">
+    <h2>المحتوى</h2>
+    <ol class="toc" id="toc">
+      <li><a href="#start">البداية</a></li>
+      <li><a href="#ch1">1. النموذج الذهني</a></li>
+      <li><a href="#ch2">2. تشريح الـ Function</a></li>
+      <li><a href="#ch3">3. الـ Call Stack</a></li>
+      <li><a href="#ch4">4. أدوار الـ Recursive Call</a>
+        <ol class="toc sub">
+          <li><a href="#role-a">Continuation</a></li>
+          <li><a href="#role-b">Result Processing</a></li>
+          <li><a href="#roles-boundary">حدود التصنيف</a></li>
+        </ol>
+      </li>
+      <li><a href="#ch5">5. Tail و Non-Tail</a></li>
+      <li><a href="#ch6">6. الإرجاع وإدارة الحالة</a></li>
+      <li><a href="#ch7">7. الأنماط والعائلات</a></li>
+      <li><a href="#ch8">8. Decode String</a>
+        <ol class="toc sub">
+          <li><a href="#decode-trace">التتبع الكامل</a></li>
+        </ol>
+      </li>
+      <li><a href="#ch9">9. الصحة والتعقيد</a></li>
+      <li><a href="#ch10">10. إطار الحل</a></li>
+      <li><a href="#ch11">11. تدريب تفاعلي</a></li>
+      <li><a href="#ch12">12. مراجعة سريعة</a></li>
+    </ol>
+  </nav>
+  <main id="main">
+    <div class="wrap">
+      <section class="hero" id="start">
+  <p class="eyebrow">مرجع دراسة · Python · LeetCode</p>
+  <h1>افهم الـ <span class="term">Recursion</span> لحد ما تستنتج الحل بنفسك</h1>
+  <p class="lead">الشرح بالمصري، والمصطلحات بالإنجليزي. الهدف مش إنك تحفظ قالب. الهدف إنك تقف قدام مسألة وتعرف تسأل: إيه الحالة، إيه الـ <span class="term">base case</span>، وإيه دور كل نداء.</p>
+  <div class="legend" aria-label="مفتاح الألوان">
+    <span class="badge a">Continuation / State-Progression</span>
+    <span class="badge b">Recursive-Result Processing</span>
+    <span class="badge base">Base Case</span>
+    <span class="badge down">Descent نزول</span>
+    <span class="badge up">Unwinding رجوع</span>
+  </div>
+  <p>العشر أسئلة دول هم خريطة المرجع. كل سؤال له فصل، والفصل 10 بيجمعهم في checklist واحدة.</p>
+  <ol class="q-list">
+    <li><a href="#ch2">إيه المشكلة أو الـ state الحالية؟</a></li>
+    <li><a href="#ch4">الـ recursive call دي بتعمل إيه بالظبط؟</a></li>
+    <li><a href="#ch6">إيه المعلومات اللي لازم تتبعت للـ call الجاية؟</a></li>
+    <li><a href="#ch2">إيه الـ base case؟</a></li>
+    <li><a href="#ch2">إزاي كل call بتقرب من التوقف؟</a></li>
+    <li><a href="#ch4">الـ call بتكمّل الحساب، ولا بتستنى نتيجة وتعالجها؟</a></li>
+    <li><a href="#ch3">إيه اللي بيحصل قبل النداء، وأثناءه، وبعد رجوعه؟</a></li>
+    <li><a href="#ch3">إزاي أتتبع الـ call stack بإيدي؟</a></li>
+    <li><a href="#ch9">إزاي أستنتج الحل وأختبره وألاقي الغلط؟</a></li>
+    <li><a href="#ch7">أنهي نمط recursion مناسب للمسألة؟</a></li>
+  </ol>
+</section>
+
+<section class="chapter" id="ch1">
+  <header class="chapter-head">
+    <p class="kicker">Chapter 1</p>
+    <h2>Recursion Mental Model</h2>
+  </header>
+  <p class="objective"><strong>هدف التعلم:</strong> تقدر تشرح الـ recursion لجملة واحدة، وتفرّق بينه وبين الـ iteration، ومن غير ما تخلط بينه وبين أي function بتنادي function تانية.</p>
+  <p>الـ <span class="term">recursion</span> إن الـ function بتحل المسألة عن طريق نسخة أصغر أو أقرب من <em>نفس نوع المسألة</em>، وتسيب الـ <span class="term">call stack</span> يفتكر كل نسخة لحد ما نسخة صغيرة تقدر تخلص لوحدها.</p>
+  <p>الحلول الـ recursive موجودة لأن في مسائل تعريفها كده أصلًا: مجلد جواه مجلدات، قوس جواه أقواس، شجرة يمينها وشمالها شجر. لما تكتب الحل بنفس شكل المسألة، الكود بيبقى أقصر في التعبير، والـ stack بيبقى هو ذاكرة «أنا كنت فين».</p>
+  <h3>المسألة الكبيرة والنسخة الأصغر</h3>
+  <p>خد مجموع قائمة. مجموع <span class="term">[1, 2, 3]</span> هو <span class="term">1</span> زائد مجموع <span class="term">[2, 3]</span>. نفس السؤال، على قائمة أقصر. لما القائمة تفضى، المجموع صفر. من غير الخطوة الأخيرة دي مفيش مكان تقف فيه.</p>
+  <div class="flow" dir="ltr" aria-label="تدفق مجموع قائمة">
+    <div class="node down"><strong>sum [1,2,3]</strong><span>1 + الباقي</span></div>
+    <div class="arrow">→</div>
+    <div class="node down"><strong>sum [2,3]</strong><span>2 + الباقي</span></div>
+    <div class="arrow">→</div>
+    <div class="node down"><strong>sum [3]</strong><span>3 + الباقي</span></div>
+    <div class="arrow">→</div>
+    <div class="node base"><strong>sum []</strong><span>0 وتبدأ الرجوع</span></div>
+  </div>
+  <h3>الفرق عن الـ iteration</h3>
+  <div class="tabs" data-tabs>
+    <div class="tablist" role="tablist" aria-label="Recursion مقابل Iteration">
+      <button role="tab" id="tab-rec" aria-controls="panel-rec">Recursion</button>
+      <button role="tab" id="tab-iter" aria-controls="panel-iter">Iteration</button>
+    </div>
+    <div role="tabpanel" id="panel-rec" aria-labelledby="tab-rec">
+      <p>كل نداء له <span class="term">stack frame</span> فيها المتغيرات المحلية بتاعتها. النداء الحالي بيتعلّق لما ينادي نسخة أصغر، ويرجع يكمّل لما النسخة دي تخلّص. الـ stack هو اللي حافظ ترتيب الرجوع.</p>
+    </div>
+    <div role="tabpanel" id="panel-iter" aria-labelledby="tab-iter" hidden>
+      <p>الـ loop بيشتغل في frame واحدة. إنت اللي بتحدّث المتغيرات وبتقرر إمتى تخرج. مفيش نداء معلّق. في الـ linear recursion الكتير من الشغل ده يتحول لـ loop، وفي الشجر والأقواس المتداخلة الـ stack الجاهز بيوفّر عليك بناء stack بإيدك.</p>
+    </div>
+  </div>
+  <p>الـ recursion بيبقى أسهل في التعبير لما بنية المسألة متشابهة ذاتيًا: شجرة، أقواس متداخلة، تقسيم لنصين، أو بحث بتجربة خطوة ورجوها. مش كل مسألة كده. لو الحالة عبارة عن عداد بسيط ومافيش نتيجة محتاجة تترجع وتندمج، الـ loop غالبًا أوضح وأرخص في الـ stack.</p>
+  <h3>مثال صغير</h3>
+  <div class="code-block"><div class="code-bar"><span>Python · countdown</span><span class="spacer"></span></div>
+<pre><code class="py">def countdown(n):
+    if n == 0:
+        return
+    print(n)
+    countdown(n - 1)
+</code></pre></div>
+  <p>لو نادينا <span class="term">countdown(3)</span> المخرجات:</p>
+  <div class="code-block"><div class="code-bar"><span>Output</span><span class="spacer"></span></div>
+<pre><code class="py">3
+2
+1
+</code></pre></div>
+  <p>التتبع المختصر: النداء <span class="term">n=3</span> يطبع 3 وينادي <span class="term">n=2</span>، وده يطبع 2 وينادي <span class="term">n=1</span>، وده يطبع 1 وينادي <span class="term">n=0</span>، و<code>n=0</code> ترجع فورًا. مفيش شغل بعد النداء في المثال ده، عشان كده مفيش طباعة وقت الرجوع. الفصل 3 هيضيف شغل قبل النداء وبعده عشان الفرق يبان.</p>
+  <h3>أفكار بتتلخبط كتير</h3>
+  <div class="cards">
+    <article class="card"><h4>نداء function تانية</h4><p><span class="term">a()</span> بتنادي <span class="term">b()</span> من غير ما <span class="term">b</span> ترجع لسلسلة توصل تاني لـ <span class="term">a</span>. ده مش recursion. الـ recursion المباشر إن الـ function تنادي نفسها، وغير المباشر (<span class="term">mutual recursion</span>) إن في دائرة نداءات ترجع لنفس المسألة.</p></article>
+    <article class="card"><h4>وجود base case</h4><p>كتابة شرط توقف من غير ما التنفيذ يقدر يوصله بتسيب النداءات ماشية للأبد لحد <span class="term">RecursionError</span>. التوقف محتاج شرط، ومحتاج تقدم حقيقي ناحيته.</p></article>
+    <article class="card"><h4>فرعين دائمًا</h4><p>في recursion بنداء واحد بس، زي الـ countdown. الفرعين أو أكتر نمط تاني اسمه <span class="term">tree recursion</span>، وبيتشرح في الفصل 7 لوحده.</p></article>
+    <article class="card"><h4>النسيان</h4><p>النداء الأعمق ما بيمسحش النداء اللي فات. النداء القديم معلّق، ومتغيراته لسه موجودة، وهيرجع يكمّل من بعد سطر النداء.</p></article>
+  </div>
+  <div class="callout note">
+    <p>في <span class="term">mutual recursion</span>، <span class="term">is_even</span> تنادي <span class="term">is_odd</span> والعكس. التقدم لسه موجود: <span class="term">n</span> بيقل واحد لحد ما يوصل لصفر.</p>
+  </div>
+  <div class="code-block"><div class="code-bar"><span>Python · mutual recursion</span><span class="spacer"></span></div>
+<pre><code class="py">def is_even(n):
+    if n == 0:
+        return True
+    return is_odd(n - 1)
+
+def is_odd(n):
+    if n == 0:
+        return False
+    return is_even(n - 1)
+</code></pre></div>
+  <p><span class="term">is_even(4)</span> ترجع <span class="term">True</span>. السلسلة: even(4) → odd(3) → even(2) → odd(1) → even(0).</p>
+  <h3>أخطاء شائعة</h3>
+  <ul class="q-list">
+    <li>تعتبر أي كود فيه نداء function إنه recursive.</li>
+    <li>تفتكر إن الـ recursion أبطأ دائمًا أو أجمل دائمًا. الحكم على بنية المسألة وعلى تكلفة الـ stack.</li>
+    <li>تكتب شرط التوقف وتنسى تغيّر الحاجة اللي الشرط بيفحصها.</li>
+  </ul>
+  <div class="review">
+    <h3>أسئلة مراجعة</h3>
+    <details><summary>ليه مجموع القائمة مثال مناسب للـ recursion؟</summary><p>لأن مجموع القائمة = أول عنصر + مجموع الباقي. الباقي نفس المسألة على حجم أصغر، والقائمة الفاضية إجابة جاهزة.</p></details>
+    <details><summary>إيه اللي الـ iteration بتخليه في متغيرات، والـ recursion بتسيبه للـ stack؟</summary><p>مكان الوقوف في المسألة، والقيم المحلية بتاعة كل خطوة لسه محتاجاها بعد الرجوع.</p></details>
+  </div>
+  <aside class="takeaways">
+    <h3>الخلاصة</h3>
+    <ul class="q-list">
+      <li>الـ recursion تعبير عن نفس المسألة على حالة أقرب للتوقف.</li>
+      <li>الـ call stack بيحفظ النداءات المعلّقة. النداء الأعمق ما بيمسحهاش.</li>
+      <li>الـ base case من غير progress مش هيوقف التنفيذ.</li>
+    </ul>
+  </aside>
+</section>
+
+<section class="chapter" id="ch2">
+  <header class="chapter-head">
+    <p class="kicker">Chapter 2</p>
+    <h2>The Anatomy of a Recursive Function</h2>
+  </header>
+  <p class="objective"><strong>هدف التعلم:</strong> تقدر تشاور على أي recursive function وتسمي مكوناتها، وتفهم ليه شرط التوقف لوحده مش كفاية.</p>
+  <p>المكونات دي عدسة للفهم، مش سبع بلوكات لازم تظهر بالترتيب في الكود. أحيانًا سطر واحد فيه الـ state والنداء والتقدم مع بعض.</p>
+  <div class="table-wrap">
+    <p class="hint-scroll">اسحب الجدول أفقيًا لو الشاشة ضيقة.</p>
+    <table class="compact">
+      <thead><tr><th>المكوّن</th><th>السؤال اللي بيجاوب عليه</th><th>مكانه في countdown</th></tr></thead>
+      <tbody>
+        <tr><td>Base Case</td><td>إمتى نخلص من غير نداء جديد؟</td><td><span class="term">n == 0</span></td></tr>
+        <tr><td>Recursive Case</td><td>إمتى لسه محتاجين نسخة أصغر؟</td><td><span class="term">n &gt; 0</span></td></tr>
+        <tr><td>Statement / Logic</td><td>إيه الشغل الخاص بالنداء الحالي؟</td><td><span class="term">print(n)</span></td></tr>
+        <tr><td>Recursive Call</td><td>فين النداء على النسخة الأصغر؟</td><td><span class="term">countdown(n - 1)</span></td></tr>
+        <tr><td>State / Parameters</td><td>إيه اللي وصف المسألة في النداء ده؟</td><td>المعامل <span class="term">n</span></td></tr>
+        <tr><td>Progress Toward Termination</td><td>إيه اللي بيقربنا من الـ base case؟</td><td><span class="term">n</span> بيقل بواحد</td></tr>
+        <tr><td>Return Value</td><td>إيه اللي بيرجع للمستدعي، لو في نتيجة؟</td><td><span class="term">None</span> ضمني. الأثر هنا الطباعة</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="code-block"><div class="code-bar"><span>Python · المكونات على مثال واحد</span><span class="spacer"></span></div>
+<pre><code class="py">def countdown(n):
+    if n == 0:          # base case
+        return          # return value is None
+    print(n)            # logic for this call
+    countdown(n - 1)    # recursive call + progress
+</code></pre></div>
+  <h3>ليه الـ base case لوحده مش ضمان</h3>
+  <p>التقدم يعني إن حالة التنفيذ بتتحرك ناحية شرط توقف صحيح. الشرط المكتوب في أول الـ function بيتنفّذ بس لو مسار النداءات يوصله.</p>
+  <div class="code-block"><div class="code-bar"><span>Python · base case موجودة ومش بتتوصل</span><span class="spacer"></span></div>
+<pre><code class="py">def countdown_broken(n):
+    if n == 0:
+        return
+    print(n)
+    countdown_broken(n + 1)
+</code></pre></div>
+  <div class="callout danger">
+    <p>متشغّلش المثال ده على مدخل كبير. <span class="term">n</span> بيزيد، فشرط <span class="term">n == 0</span> مش هيتحقق. Python هيقف عند حد عمق الـ recursion ويرمي <span class="term">RecursionError</span>. وجود الشرط في الكود غير وصول التنفيذ له.</p>
+  </div>
+  <p>نفس الفكرة لو الـ index واقف مكانه:</p>
+  <div class="code-block"><div class="code-bar"><span>Python · مفيش تقدم في الـ index</span><span class="spacer"></span></div>
+<pre><code class="py">def walk(s, index):
+    if index >= len(s):
+        return
+    walk(s, index)
+</code></pre></div>
+  <p>الـ base case صح، لكن النداء بيعيد نفس الـ index. التقدم هنا كان المفروض يبقى <span class="term">index + 1</span>.</p>
+  <h3>تتبع countdown(2)</h3>
+  <div class="table-wrap">
+    <table class="compact">
+      <thead><tr><th>الترتيب</th><th>n</th><th>إيه حصل</th><th>المخرج</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td class="num">2</td><td>مش base، طباعة، نداء بـ 1</td><td class="num">2</td></tr>
+        <tr><td>2</td><td class="num">1</td><td>مش base، طباعة، نداء بـ 0</td><td class="num">1</td></tr>
+        <tr><td>3</td><td class="num">0</td><td>base case، return</td><td>لا شيء</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>أخطاء شائعة</h3>
+  <ul class="q-list">
+    <li>تحط الـ recursive call في فرع الـ base case نفسه.</li>
+    <li>تغيّر متغير محلي بعد ما تبعت القيمة القديمة للنداء، وتفتكر إن النداء شاف التغيير. اللي اتبعت هو قيمة المعامل ساعة النداء.</li>
+    <li>تعتبر إن <span class="term">return</span> جوه الـ base case بيرجع من كل النداءات المفتوحة مرة واحدة. هو بيرجع من النداء الحالي بس.</li>
+  </ul>
+  <div class="review">
+    <h3>أسئلة مراجعة</h3>
+    <details><summary>إيه الـ state في countdown؟</summary><p>العدد <span class="term">n</span> المتبقي. هو اللي بيوصف «إحنا فين في المسألة».</p></details>
+    <details><summary>إزاي progress في countdown_broken مكسور؟</summary><p>النداء بيزود n، بينما شرط التوقف محتاج n يوصل لصفر. الاتجاه عكس الشرط.</p></details>
+  </div>
+  <aside class="takeaways">
+    <h3>الخلاصة</h3>
+    <ul class="q-list">
+      <li>المكونات عدسة، وممكن تتلم في سطور قليلة.</li>
+      <li>الـ base case لازم يكون reachable عن طريق progress واضح.</li>
+      <li>مش كل function لازم ترجع قيمة محسوبة. أحيانًا الأثر هو الطباعة أو تعديل حالة خارجية، وده له ثمن في سهولة الاختبار.</li>
+    </ul>
+  </aside>
+</section>
+
+<section class="chapter" id="ch3">
+  <header class="chapter-head">
+    <p class="kicker">Chapter 3</p>
+    <h2>Call Stack and Execution Order</h2>
+  </header>
+  <p class="objective"><strong>هدف التعلم:</strong> تقدر ترسم الـ stack بإيدك، وتفرّق بين الشغل وقت النزول والشغل وقت الرجوع.</p>
+  <p>لما Python تنفّذ function، بتفتح <span class="term">stack frame</span> جديدة: مكان للمعاملات والمتغيرات المحلية، ومكان يفتكر السطر اللي المفروض نرجعله. النداء العادي بيعمل كده. النداء الـ recursive بيعمل نفس الحاجة، بس الـ frames بتكدّس نسخ من نفس الـ function.</p>
+  <p>لما النداء الحالي يوصل لسطر recursive call، الإطار بتاعه بيتعلّق. المتغيرات اللي جواه لازم تفضل موجودة، لأن في سطور بعد النداء ممكن تحتاجها. النداء الجديد يشتغل فوقيه. لما النداء الجديد يرجع، الإطار القديم يكمّل من السطر التالي.</p>
+  <h3>نزول ورجوع</h3>
+  <div class="grid-2">
+    <article class="card">
+      <h4><span class="badge down">Descent</span></h4>
+      <p>من النداء الأول لحد الـ base case. الشغل المكتوب <em>قبل</em> الـ recursive call بيظهر في الطريق ده.</p>
+    </article>
+    <article class="card">
+      <h4><span class="badge up">Unwinding</span></h4>
+      <p>من الـ base case رجوعًا للمستدعي الأول. الشغل المكتوب <em>بعد</em> الـ recursive call بيظهر في الطريق ده، والعكس في ترتيب الإطارات.</p>
+    </article>
+  </div>
+  <div class="code-block"><div class="code-bar"><span>Python · before / after</span><span class="spacer"></span></div>
+<pre><code class="py">def countdown(n):
+    if n == 0:
+        print("done")
+        return
+    print("before", n)
+    countdown(n - 1)
+    print("after", n)
+</code></pre></div>
+  <p>مخرجات <span class="term">countdown(3)</span> بالترتيب:</p>
+  <div class="code-block"><div class="code-bar"><span>Output</span><span class="spacer"></span></div>
+<pre><code class="py">before 3
+before 2
+before 1
+done
+after 1
+after 2
+after 3
+</code></pre></div>
+  <p>أعمق لحظة، لما <span class="term">n = 0</span> لسه مارجعتش. قمة الـ stack فوق:</p>
+  <p class="stack-label">قمة الـ Stack</p>
+  <div class="stack-diagram" dir="ltr" aria-label="الستاك عند الوصول للصفر">
+    <div class="frame top"><strong>countdown n = 0</strong><small>base case</small></div>
+    <div class="frame"><strong>countdown n = 1</strong><small>معلّقة قبل print after</small></div>
+    <div class="frame"><strong>countdown n = 2</strong><small>معلّقة قبل print after</small></div>
+    <div class="frame"><strong>countdown n = 3</strong><small>معلّقة قبل print after</small></div>
+  </div>
+  <p class="stack-label">قاع الـ Stack · أول نداء</p>
+  <h3 id="trace-table">جدول التتبع الكامل</h3>
+  <p>الأعمدة المطلوبة عشان تمشي التنفيذ بالترتيب، مش بس شكل الكود.</p>
+  <div class="table-wrap">
+    <p class="hint-scroll">اسحب الجدول أفقيًا لو الشاشة ضيقة.</p>
+    <table>
+      <thead>
+        <tr><th>Call</th><th>n</th><th>Action Before Call</th><th>Next Call</th><th>Return Phase</th><th>Output</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="num">#1</td><td class="num">3</td><td>print before</td><td class="num">#2 countdown(2)</td><td></td><td class="num">before 3</td></tr>
+        <tr><td class="num">#2</td><td class="num">2</td><td>print before</td><td class="num">#3 countdown(1)</td><td></td><td class="num">before 2</td></tr>
+        <tr><td class="num">#3</td><td class="num">1</td><td>print before</td><td class="num">#4 countdown(0)</td><td></td><td class="num">before 1</td></tr>
+        <tr><td class="num">#4</td><td class="num">0</td><td>print done</td><td>—</td><td>return</td><td class="num">done</td></tr>
+        <tr><td class="num">#3</td><td class="num">1</td><td></td><td></td><td>print after ثم return</td><td class="num">after 1</td></tr>
+        <tr><td class="num">#2</td><td class="num">2</td><td></td><td></td><td>print after ثم return</td><td class="num">after 2</td></tr>
+        <tr><td class="num">#1</td><td class="num">3</td><td></td><td></td><td>print after ثم return</td><td class="num">after 3</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>امشِ الخطوات</h3>
+  <div class="stepper" data-stepper="countdown">
+    <div class="step-layout">
+      <div>
+        <p class="stack-label">قمة الـ stack فوق</p>
+        <div data-stack></div>
+      </div>
+      <div>
+        <div class="step-copy" data-copy></div>
+        <div class="out-box"><strong>المخرجات حتى الآن</strong><ol data-output></ol></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button type="button" data-act="prev" class="secondary">السابق</button>
+      <button type="button" data-act="next">التالي</button>
+      <button type="button" data-act="reset" class="secondary">من الأول</button>
+      <span data-count></span>
+    </div>
+  </div>
+  <h3>Stack overflow وحد العمق</h3>
+  <p>كل frame بتاخد ذاكرة. CPython عنده حد افتراضي لعمق الـ recursion، غالبًا 1000، وتقدر تشوفه بـ <span class="term">sys.getrecursionlimit()</span>. لو سلسلة النداءات أطول من الحد، التنفيذ يوقف بـ <span class="term">RecursionError</span> حتى لو الـ base case كانت هتوصل بعد شوية.</p>
+  <p>ده فشل مختلف عن الـ recursion اللي مش بتتقدم. في الحالة الأولى التقدم موجود والحد هو اللي قاطع الطريق. في الحالة التانية مفيش مسار يوصل للشرط حتى لو الذاكرة بلا نهاية. رفع الحد بـ <span class="term">sys.setrecursionlimit</span> مش إصلاح لتصميم بيكسر التقدم، وممكن يخلي العملية تقع بدل ما ترمي استثناء واضح.</p>
+  <h3>أخطاء شائعة</h3>
+  <ul class="q-list">
+    <li>تفتكر إن <span class="term">print</span> بعد النداء هيظهر قبل ما النداءات الأعمق تشتغل.</li>
+    <li>ترسم الـ stack من غير ما تميز القمة. أول نداء هو القاع، وآخر نداء لسه ما رجعش هو القمة.</li>
+    <li>تحسب إن الرجوع من الـ base case بيقفل كل الإطارات من غير ما تنفّذ السطور المؤجلة.</li>
+  </ul>
+  <div class="review">
+    <h3>أسئلة مراجعة</h3>
+    <details><summary>ليه after 1 ظهر قبل after 3؟</summary><p>لأن frame رقم 1 هي آخر واحدة بتعمل unwinding. الشغل المؤجل بيتنفذ من الأعمق للأقدم.</p></details>
+    <details><summary>إيه المعلومات اللي لازم تفضل موجودة والنداء معلّق؟</summary><p>قيمة n المحلية، ومكان السطر التالي، عشان print after يستخدم نفس n بتاع الإطار ده.</p></details>
+  </div>
+  <aside class="takeaways">
+    <h3>الخلاصة</h3>
+    <ul class="q-list">
+      <li>كل نداء له frame. التعليق بيحفظ المتغيرات لحد الرجوع.</li>
+      <li>قبل النداء = وقت النزول. بعد النداء = وقت الرجوع.</li>
+      <li>عمق الـ stack في Python له حد عملي، حتى لو المنطق هيخلّص نظريًا.</li>
+    </ul>
+  </aside>
+</section>
+<section class="chapter" id="ch4">
+  <header class="chapter-head">
+    <p class="kicker">Chapter 4 · الفصل المركزي</p>
+    <h2>Recursive Call Roles</h2>
+  </header>
+  <p class="objective"><strong>هدف التعلم:</strong> تميّز مسؤولية الـ call: هل بتحدّث الحالة وتسلّم التكملة، ولا بتستنى نتيجة subproblem وتعالجها؟ وتسيب التصنيفات الرسمية زي Tail Recursion في فصلها.</p>
+  <p>أثناء تحليل <span class="term">Decode String</span> بيظهر نوعين من الشغل. التسميات تحت دي <strong>عناوين تعلم</strong> عشان نصف المسؤولية. هي مش تصنيف أكاديمي متفق عليه عالميًا، ومش خانات لازم كل خوارزمية تقع في واحدة منهم بس.</p>
+  <div class="callout warn">
+    <p>بعض الشروحات بتستخدم ألفاظ زي Action Recursion و Decision Recursion. الألفاظ دي تعليمية وغير معيارية. سهلة تخلط التقدم نحو التوقف مع «عمل»، أو تخلط معالجة النتيجة مع «قرار بين فرعين». المرجع ده مش بيعتمدهم. التقدم مفهوم لوحده، واتشرح في الفصل 2. القرار بين فرعين اسمه branching، وبيتشرح في الفصل 7.</p>
+  </div>
+  <div class="tabs" data-tabs>
+    <div class="tablist" role="tablist" aria-label="مقارنة الدورين">
+      <button role="tab" id="tab-role-a" aria-controls="panel-role-a">دور الاستمرار</button>
+      <button role="tab" id="tab-role-b" aria-controls="panel-role-b">دور معالجة النتيجة</button>
+    </div>
+    <div role="tabpanel" id="panel-role-a" aria-labelledby="tab-role-a">
+      <p><span class="badge a">Continuation / State-Progression Role</span></p>
+      <p>النداء الحالي بيخلّص شغله على الحرف أو الخطوة، يحدّث الـ state، ويسلّم النسخة الجديدة. نتيجة النداء الجاي بترجع كما هي.</p>
+    </div>
+    <div role="tabpanel" id="panel-role-b" aria-labelledby="tab-role-b" hidden>
+      <p><span class="badge b">Recursive-Result Processing Role</span></p>
+      <p>النداء الحالي بيطلب subproblem، يستنى نتيجتها، يدمجها أو يحوّلها، وبعدين يكمّل. في قيمة راجعة بتتستخدم، مش بس بتتعاد.</p>
+    </div>
+  </div>
+
+  <h3 id="role-a">Role A — Continuation / State-Progression</h3>
+  <div class="callout role-a">
+    <p><strong>بالمصري:</strong> النداء ده بيحدّث الحالة ويمشي المؤشر، وبعدين يسلّم التكملة. هو مش مستني يفك نتيجة عشان يبني منها حاجة جديدة.</p>
+    <p dir="ltr" class="ltr"><strong>English:</strong> This call updates state, advances the input position, passes that state forward, and returns the recursive result directly.</p>
+  </div>
+  <div class="flow" dir="ltr" aria-label="تدفق دور الاستمرار">
+    <div class="node a"><strong>اقرأ</strong><span>الحرف أو الخطوة الحالية</span></div>
+    <div class="arrow">→</div>
+    <div class="node a"><strong>حدّث</strong><span>رقم، نص، أو index</span></div>
+    <div class="arrow">→</div>
+    <div class="node a"><strong>return call</strong><span>النتيجة تعدّي كما هي</span></div>
+  </div>
+  <p>المثال جاي من بناء رقم مكوّن من أكتر من خانة. الحرف الحالي رقم، فندخله في <span class="term">current_num</span> ونزود الـ index.</p>
+  <div class="code-block"><div class="code-bar"><span>Python · استمرار أثناء قراءة رقم</span><span class="spacer"></span></div>
+<pre><code class="py">if char.isdigit():
+    return helper(
+        index + 1,
+        current_num * 10 + int(char),
+        current_str
+    )
+</code></pre></div>
+  <ul class="q-list">
+    <li>الحرف الحالي اتقرأ واتحوّل لرقم.</li>
+    <li>الـ state اتحدثت: <span class="term">current_num * 10 + int(char)</span>.</li>
+    <li>الـ index تقدم واحد. ده progress ناحية نهاية النص.</li>
+    <li>النداء الجاي يكمّل على باقي المدخل بنفس <span class="term">current_str</span>.</li>
+    <li>النداء الحالي بيعمل <span class="term">return</span> لنتيجة النداء مباشرة. مفيش حساب بعده في الإطار ده.</li>
+  </ul>
+  <p>عشان مفيش حساب بعد النداء، النداء ده في <span class="term">tail position</span>. الجملة دي وصف لموضع النداء، والفصل 5 هيشرح الموضع لوحده. الدور هنا وصف للمسؤولية: تسليم حالة محدّثة. اجتماع الاتنين في السطر ده مش بيخلي المصطلحين مترادفين.</p>
+  <h4>تتبع قصير على "12"</h4>
+  <div class="table-wrap">
+    <table class="compact">
+      <thead><tr><th>index</th><th>char</th><th>current_num قبل</th><th>النداء التالي</th><th>الدور</th></tr></thead>
+      <tbody>
+        <tr><td class="num">0</td><td class="num">'1'</td><td class="num">0</td><td class="num">helper(1, 1, "")</td><td>Continuation</td></tr>
+        <tr><td class="num">1</td><td class="num">'2'</td><td class="num">1</td><td class="num">helper(2, 12, "")</td><td>Continuation</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>النداء التاني بياخد 1 مش 2 لوحدها. الخانة القديمة اتضربت في 10 قبل إضافة الخانة الجديدة. من غير الضرب في 10 الرقم "12" هيبقى مجرد آخر رقم اتقرأ.</p>
+  <h4>إزاي تتعرف عليه في كود جديد</h4>
+  <ul class="q-list">
+    <li>النداء آخر شغل الإطار، ونتيجته بترجع مباشرة.</li>
+    <li>المعاملات الجديدة فيها الحالة بعد ما الخطوة الحالية اتطبقت.</li>
+    <li>مفيش متغير بيتخزن فيه ناتج النداء عشان يتعمل عليه عملية بعد كده.</li>
+  </ul>
+  <h4>أخطاء شائعة</h4>
+  <ul class="q-list">
+    <li>تحدّث الرقم وتنسى تزود الـ index، فنفس الحرف يتقرأ للأبد.</li>
+    <li>تعمل <span class="term">current_num + int(char)</span> من غير <span class="term">* 10</span>.</li>
+    <li>تفتكر إن أي نداء بيكمّل للأمام يبقى tail recursion كمصطلح كامل. الموضع بيتأكد من شكل السطر، والدور بيتأكد من المسؤولية.</li>
+  </ul>
+  <h4>حالة حدية</h4>
+  <p>النداء التالي بشكله continuation، لكن التقدم مكسور. الدور ما ينفعش يتقال عليه «سليم» لمجرد إن الشكل <span class="term">return helper(...)</span>.</p>
+  <div class="code-block"><div class="code-bar"><span>Python · شكل استمرار من غير progress</span><span class="spacer"></span></div>
+<pre><code class="py">if char.isdigit():
+    return helper(
+        index,
+        current_num * 10 + int(char),
+        current_str
+    )
+</code></pre></div>
+  <p>الـ index ثابت. الـ base case بتاعة نهاية النص مش هتوصل. التقدم شرط مستقل عن اسم الدور.</p>
+
+  <h3 id="role-b">Role B — Recursive-Result Processing</h3>
+  <div class="callout role-b">
+    <p><strong>بالمصري:</strong> النداء الحالي بيطلب حساب متداخل أو أصغر، يستنى، ياخد الناتج، يركّبه على حالته، وبعدين يكمّل.</p>
+    <p dir="ltr" class="ltr"><strong>English:</strong> This call solves a nested or smaller subproblem, waits for the result, combines that result with its own state, and only then continues.</p>
+  </div>
+  <div class="flow" dir="ltr" aria-label="تدفق معالجة النتيجة">
+    <div class="node b"><strong>اطلب</strong><span>subproblem بحالة جديدة</span></div>
+    <div class="arrow">→</div>
+    <div class="node b"><strong>استنى</strong><span>النص والـ index الراجعين</span></div>
+    <div class="arrow">→</div>
+    <div class="node b"><strong>ادمج</strong><span>التكرار أو الجمع</span></div>
+    <div class="arrow">→</div>
+    <div class="node a"><strong>كمّل</strong><span>نداء بعد موضع الإغلاق</span></div>
+  </div>
+  <div class="code-block"><div class="code-bar"><span>Python · معالجة ناتج قوس متداخل</span><span class="spacer"></span></div>
+<pre><code class="py">sub_str, next_index = helper(index + 1, 0, "")
+
+return helper(
+    next_index,
+    0,
+    current_str + (sub_str * current_num)
+)
+</code></pre></div>
+  <ul class="q-list">
+    <li>النداء الأول بيمشي جوه القوس من عند الحرف اللي بعد <span class="term">'['</span>.</li>
+    <li>الإطار الحالي مستني. <span class="term">current_num</span> و <span class="term">current_str</span> لسه محفوظين عنده، عشان لسه هيستخدمهم.</li>
+    <li>الراجع قيمتين: النص اللي جوه القوس، والـ index اللي التكملة تبدأ منه.</li>
+    <li>الإطار بيكرّر النص الراجع بعدد <span class="term">current_num</span> ويضمّه على نصه.</li>
+    <li>نداء تاني بيكمّل بره القوس. النداء التاني ده continuation، والنداء الأول في نفس الإطار كان result processing.</li>
+  </ul>
+  <p>نفس الـ function، وفي نفس التنفيذ، بتستخدم الدورين. عند الرقم والحرف الدور الأول. عند القوس المفتوح الإطار بيعمل الدور التاني وبعدين يسلّم بالدور الأول.</p>
+  <h4>تتبع على قوس واحد: 2[a]</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Call</th><th>index</th><th>char</th><th>num</th><th>str</th><th>الدور</th><th>الراجع</th></tr></thead>
+      <tbody>
+        <tr><td class="num">#1</td><td class="num">0</td><td class="num">2</td><td class="num">0</td><td class="num">""</td><td>Continuation</td><td>في الآخر aa</td></tr>
+        <tr><td class="num">#2</td><td class="num">1</td><td class="num">[</td><td class="num">2</td><td class="num">""</td><td>Result Processing</td><td>يستلم a ثم يكمّل</td></tr>
+        <tr><td class="num">#3</td><td class="num">2</td><td class="num">a</td><td class="num">0</td><td class="num">""</td><td>Continuation</td><td>نحو الإغلاق</td></tr>
+        <tr><td class="num">#4</td><td class="num">3</td><td class="num">]</td><td class="num">0</td><td class="num">"a"</td><td>إغلاق من غير نداء</td><td class="num">("a", 4)</td></tr>
+        <tr><td class="num">#5</td><td class="num">4</td><td>نهاية</td><td class="num">0</td><td class="num">"aa"</td><td>Base</td><td class="num">("aa", 4)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>ترتيب الانتهاء: #4 تخلّص الأول وترجع <span class="term">("a", 4)</span> لـ #2. #2 تبني <span class="term">"aa"</span> وتنادي #5. #5 ترجع نفس النص، ويطلع للمستدعي. الناتج <span class="term">aa</span>.</p>
+  <h4>إزاي تتعرف عليه في كود جديد</h4>
+  <ul class="q-list">
+    <li>ناتج النداء متخزّن في متغير، أو داخل عملية زي جمع أو ضرب أو لصق نص.</li>
+    <li>بعد السطر ده لسه في استخدام للناتج أو لباقي الـ state القديمة.</li>
+    <li>الإطار محتاج يفضل عايش لأن فيه معلومة لسه ما اتبعتتش للنداء الداخلي، زي عدد التكرار.</li>
+  </ul>
+  <h4>أخطاء شائعة</h4>
+  <ul class="q-list">
+    <li>تتجاهل الـ index الراجع وتكمّل من <span class="term">index + 1</span>، فتقرأ جوه القوس مرتين أو تقف في حتة غلط.</li>
+    <li>تبعت <span class="term">current_num</span> جوه القوس بدل ما تصفّره. الرقم الخارجي عامل تكرار، والرقم الداخلي بيبدأ يتبنى من الصفر.</li>
+    <li>تضرب النص في العدد قبل ما النداء الداخلي يرجع.</li>
+    <li>تسمي أي معالجة نتيجة «قرار». الضرب في العدد دمج، مش اختيار بين فرعين.</li>
+  </ul>
+  <h4>حالة حدية</h4>
+  <p>الـ factorial بتعالج نتيجة نداء واحد. مفيش اختيار بين مسارين. الدور Result Processing، والشكل non-tail، والتقدم إن <span class="term">n</span> بيقل. تلات حاجات جنب بعض، وكل واحدة اسمها لوحدها.</p>
+  <div class="code-block"><div class="code-bar"><span>Python · معالجة نتيجة من غير قرار</span><span class="spacer"></span></div>
+<pre><code class="py">def fact(n):
+    if n == 0:
+        return 1
+    return n * fact(n - 1)
+</code></pre></div>
+  <p><span class="term">fact(3)</span> ترجع 6. <span class="term">fact(3)</span> مستنية <span class="term">fact(2)</span>، ودي مستنية <span class="term">fact(1)</span>، ودي مستنية <span class="term">fact(0)</span> اللي بترجع 1. الرجوع: 1، ثم 1*1، ثم 2*1، ثم 3*2.</p>
+
+  <h3 id="roles-boundary">حدود التصنيف</h3>
+  <div class="cards">
+    <article class="card">
+      <h4>Branching مش Role B</h4>
+      <p>الـ binary search بتختار نصف واحد وتنادي نداء واحد ونتيجته ترجع مباشرة. في قرار قبل النداء. النداء اللي اتنفّذ continuation. مش tree recursion لأن فرع واحد بس هو اللي بيشتغل.</p>
+    </article>
+    <article class="card">
+      <h4>Tree recursion بتستخدم Role B</h4>
+      <p><span class="term">fib</span> بتنادي النداءين وبتجمع النتيجتين. معالجة نتيجة، وشجرة نداءات. مش «قرار» بيختار فرع ويرمي التاني.</p>
+    </article>
+    <article class="card">
+      <h4>دورين في frame واحدة</h4>
+      <p>سطر القوس في Decode String: أول helper معالجة نتيجة، وتاني helper استمرار في tail position. متقسّمش الـ function كلها على دور واحد.</p>
+    </article>
+  </div>
+  <div class="code-block"><div class="code-bar"><span>Python · قرار ثم continuation</span><span class="spacer"></span></div>
+<pre><code class="py">def search(nums, target, lo, hi):
+    if lo &gt; hi:
+        return -1
+    mid = (lo + hi) // 2
+    if nums[mid] == target:
+        return mid
+    if nums[mid] &lt; target:
+        return search(nums, target, mid + 1, hi)
+    return search(nums, target, lo, mid - 1)
+</code></pre></div>
+  <p><span class="term">search([1, 3, 5, 7, 9], 7, 0, 4)</span> ترجع <span class="term">3</span>. <span class="term">search(..., 4, 0, 4)</span> ترجع <span class="term">-1</span>.</p>
+  <div class="review">
+    <h3>أسئلة مراجعة</h3>
+    <details><summary>ليه سطر الرقم في Decode String مش محتاج يخزن ناتج؟</summary><p>لأن الشغل كله اتعمل في تحديث الرقم والـ index. الناتج النهائي هيتبني في نداءات بعد كده، ويرجع كما هو.</p></details>
+    <details><summary>ليه إطار القوس لازم يستنى؟</summary><p>عدد التكرار معروف قبل ما النص الداخلي يتعرف. من غير النص الراجع مفيش حاجة تتكرر، ومن غير الـ index الراجع الإطار مش عارف يكمل منين.</p></details>
+    <details><summary>هل كل continuation تبقى tail recursion؟</summary><p>في الأمثلة اللي بتعمل return للنداء مباشرة، الموضع tail. المصطلحان بيتقابلوا هنا، وبيفضلوا يجاوبوا على سؤالين مختلفين: المسؤولية، والموضع.</p></details>
+  </div>
+  <aside class="takeaways">
+    <h3>الخلاصة</h3>
+    <ul class="q-list">
+      <li>Continuation: حدّث الحالة وسلّمها، وارجع الناتج كما هو.</li>
+      <li>Result Processing: استنى الناتج، ادمجه، وبعدين كمّل.</li>
+      <li>التسميات وصف للمسؤولية. التقدم، والـ tail position، والـ branching تصنيفات تانية.</li>
+    </ul>
+  </aside>
+</section>
+
+<section class="chapter" id="ch5">
+  <header class="chapter-head">
+    <p class="kicker">Chapter 5</p>
+    <h2>Tail Recursion vs Non-Tail Recursion</h2>
+  </header>
+  <p class="objective"><strong>هدف التعلم:</strong> تحكم على موضع النداء من الشغل المؤجل بعده، وتعرف إن CPython مش بيحول الـ tail call لقفزة، فاستهلاك الـ stack بيفضل موجود.</p>
+  <p>الفصل ده مستقل عن الفصل 4. <span class="term">Tail position</span> يعني إن النداء آخر فعل في الإطار، ومفيش حساب بيستخدم ناتجه بعد الرجوع. <span class="term">Pending work</span> هو أي حاجة لازم تتنفذ بعد الرجوع: طباعة، جمع، لصق نص، أو نداء تاني بيعتمد على الناتج.</p>
+  <div class="tabs" data-tabs>
+    <div class="tablist" role="tablist" aria-label="مقارنة tail و non-tail">
+      <button role="tab" id="tab-down" aria-controls="panel-down">print_down · tail</button>
+      <button role="tab" id="tab-up" aria-controls="panel-up">print_up · non-tail</button>
+    </div>
+    <div role="tabpanel" id="panel-down" aria-labelledby="tab-down">
+      <div class="code-block"><div class="code-bar"><span>Python</span><span class="spacer"></span></div>
+<pre><code class="py">def print_down(n):
+    if n == 0:
+        return
+    print(n)
+    return print_down(n - 1)
+</code></pre></div>
+      <p>الطباعة قبل النداء. بعد النداء مفيش غير إن نتيجته هي قيمة الـ return. الموضع tail. مخرجات <span class="term">print_down(4)</span> هي 4 ثم 3 ثم 2 ثم 1.</p>
+    </div>
+    <div role="tabpanel" id="panel-up" aria-labelledby="tab-up" hidden>
+      <div class="code-block"><div class="code-bar"><span>Python</span><span class="spacer"></span></div>
+<pre><code class="py">def print_up(n):
+    if n == 0:
+        return
+    print_up(n - 1)
+    print(n)
+</code></pre></div>
+      <p>النداء مش آخر فعل. <span class="term">print(n)</span> مؤجل لحد الرجوع. الإطار لازم يفضل على الـ stack. مخرجات <span class="term">print_up(4)</span> هي 1 ثم 2 ثم 3 ثم 4.</p>
+    </div>
+  </div>
+  <h3>تتبع print_up(3)</h3>
+  <div class="table-wrap">
+    <table class="compact">
+      <thead><tr><th>المرحلة</th><th>الـ stack من القمة للقاع</th><th>المخرج الجديد</th></tr></thead>
+      <tbody>
+        <tr><td>نزول</td><td class="num">3</td><td>لا شيء. الطباعة لسه</td></tr>
+        <tr><td>نزول</td><td class="num">2 ، 3</td><td>لا شيء</td></tr>
+        <tr><td>نزول</td><td class="num">1 ، 2 ، 3</td><td>لا شيء</td></tr>
+        <tr><td>Base</td><td class="num">0 ، 1 ، 2 ، 3</td><td>رجوع فوري</td></tr>
+        <tr><td>رجوع</td><td class="num">1 ، 2 ، 3</td><td class="num">1</td></tr>
+        <tr><td>رجوع</td><td class="num">2 ، 3</td><td class="num">2</td></tr>
+        <tr><td>رجوع</td><td class="num">3</td><td class="num">3</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>معالجة القيمة الراجعة</h3>
+  <p>في <span class="term">return n * fact(n - 1)</span> الضرب pending work. النداء مش في tail position حتى لو هو النداء الوحيد. لو حبينا ننقل الشغل للمعامل، الشكل يتغير:</p>
+  <div class="code-block"><div class="code-bar"><span>Python · accumulator في tail position</span><span class="spacer"></span></div>
+<pre><code class="py">def fact_acc(n, acc=1):
+    if n == 0:
+        return acc
+    return fact_acc(n - 1, acc * n)
+</code></pre></div>
+  <p><span class="term">fact_acc(5)</span> ترجع 120، زي <span class="term">fact(5)</span>. الضرب حصل قبل النداء، واتخزن في <span class="term">acc</span>. الموضع بقى tail. المسؤولية هنا أقرب لدور الاستمرار: الحالة المحدّثة هي <span class="term">acc</span>. وبرضه ده مش بيخلي Tail Recursion و Continuation اسمين لحاجة واحدة. تقدر تلاقي tail call قراره اتعمل قبل النداء، زي فرع الـ binary search، من غير ما يكون «تحديث رقم خانة».</p>
+  <h3>ليه Python مش بتوفّر الذاكرة تلقائيًا</h3>
+  <p>CPython لا يعمل <span class="term">Tail Call Optimization</span>. النداء في tail position لسه بيفتح frame جديدة، والقديمة بتستنى الرجوع. سلسلة طولها n بتاخد عمق stack من رتبة n، سواء print_down أو fact_acc. الشكل الـ tail في Python فائدته في وضوح «مفيش شغل بعد النداء»، مش في تقليل الذاكرة. حد العمق لسه موجود، و <span class="term">fact_acc(10000)</span> ممكن يرمي <span class="term">RecursionError</span> زي النسخة غير الـ tail.</p>
+  <div class="callout note">
+    <p>لو شيلت <span class="term">return</span> من print_down وخليت النداء آخر سطر، برضه مفيش استخدام للناتج بعد الرجوع. كتابة <span class="term">return print_down(...)</span> بتبيّن الموضع بوضوح. في الحالتين CPython بيحتفظ بالإطار.</p>
+  </div>
+  <h3>أخطاء شائعة</h3>
+  <ul class="q-list">
+    <li>تسمي continuation و tail recursion مترادفين.</li>
+    <li>تفتكر إن نقل الحساب لـ accumulator بيخلّي الحل O(1) stack في Python.</li>
+    <li>تشوف نداء في آخر سطر وتتجاهل عملية على نفس السطر بتستخدم ناتجه، زي <span class="term">return n * fact(n - 1)</span>.</li>
+  </ul>
+  <div class="review">
+    <h3>أسئلة مراجعة</h3>
+    <details><summary>إيه الـ pending work في print_up؟</summary><p>طباعة n بعد رجوع النداء. من غيرها الإطار مش محتاج يستنى حاجة خاصة بيه.</p></details>
+    <details><summary>هل fact_acc أوفر في stack من fact على CPython؟</summary><p>الاتنين عمقهم من رتبة n. الفرق في موضع الحساب، مش في تحسين تلقائي من المترجم.</p></details>
+  </div>
+  <aside class="takeaways">
+    <h3>الخلاصة</h3>
+    <ul class="q-list">
+      <li>Tail position = مفيش شغل بيستخدم الناتج بعد النداء.</li>
+      <li>Non-tail = في pending work، فالإطار جزء من معنى الحساب.</li>
+      <li>في Python الاتنين بيستهلكوا stack. الـ TCO مش موجودة في CPython.</li>
+    </ul>
+  </aside>
+</section>
+
+<section class="chapter" id="ch6">
+  <header class="chapter-head">
+    <p class="kicker">Chapter 6</p>
+    <h2>Return Values and State Management</h2>
+  </header>
+  <p class="objective"><strong>هدف التعلم:</strong> تقرر إيه يمشي للأمام في المعاملات، وإيه يرجع للمستدعي، وإمتى النتيجة تبقى مركبة زي نص مع index.</p>
+  <div class="tabs" data-tabs>
+    <div class="tablist" role="tablist" aria-label="طرق نقل المعلومات">
+      <button role="tab" id="tab-fwd" aria-controls="panel-fwd">للأمام في المعاملات</button>
+      <button role="tab" id="tab-back" aria-controls="panel-back">للخلف في return</button>
+      <button role="tab" id="tab-pair" aria-controls="panel-pair">نتيجة مع موضع</button>
+    </div>
+    <div role="tabpanel" id="panel-fwd" aria-labelledby="tab-fwd">
+      <p>المعلومة اللي النداءات الجاية هتكمل بيها، والنداء الحالي خلّص حسابها، تمشي كمعامل. مثال: <span class="term">acc</span> في fact_acc، و <span class="term">current_num</span> أثناء قراءة الخانات.</p>
+    </div>
+    <div role="tabpanel" id="panel-back" aria-labelledby="tab-back" hidden>
+      <p>المعلومة اللي الإطار الحالي لسه هيدمجها مع حاجة عنده، أو اللي المستدعي الأصلي عايزها، ترجع كـ return. مثال: ناتج fact، ومجموع القائمة.</p>
+    </div>
+    <div role="tabpanel" id="panel-pair" aria-labelledby="tab-pair" hidden>
+      <p>أحيانًا المستدعي محتاج الناتج ومحتاج يعرف التنفيذ وقف فين. Decode String بترجع <span class="term">(string, index)</span>. النص هو المنتج، والـ index هو مكان استئناف القراءة. الفصل 8 هيبني السبب من المسألة نفسها.</p>
+    </div>
+  </div>
+  <h3>تجميع قبل النداء، ودمج بعد النداء</h3>
+  <div class="grid-2">
+    <article class="card">
+      <h4>قبل النداء</h4>
+      <p><span class="term">fact_acc</span> بتضرب في <span class="term">acc</span> وبعدين تنده. الإطار مش هيحتاج الناتج عشان يكمّل حساب.</p>
+    </article>
+    <article class="card">
+      <h4>بعد النداء</h4>
+      <p><span class="term">fact</span> و <span class="term">rsum</span> بيستنوا القيمة ويركبوا عليها شغل الإطار الحالي.</p>
+    </article>
+  </div>
+  <div class="code-block"><div class="code-bar"><span>Python · factorial و sum</span><span class="spacer"></span></div>
+<pre><code class="py">def fact(n):
+    if n == 0:
+        return 1
+    return n * fact(n - 1)
+
+def rsum(nums):
+    if not nums:
+        return 0
+    return nums[0] + rsum(nums[1:])
+</code></pre></div>
+  <p><span class="term">fact(5)</span> ترجع 120. <span class="term">rsum([1, 2, 3, 4])</span> ترجع 10. تتبع الجمع:</p>
+  <div class="table-wrap">
+    <table class="compact">
+      <thead><tr><th>النداء</th><th>يرجع</th></tr></thead>
+      <tbody>
+        <tr><td class="num">rsum([])</td><td class="num">0</td></tr>
+        <tr><td class="num">rsum([4])</td><td class="num">4 + 0 = 4</td></tr>
+        <tr><td class="num">rsum([3, 4])</td><td class="num">3 + 4 = 7</td></tr>
+        <tr><td class="num">rsum([2, 3, 4])</td><td class="num">2 + 7 = 9</td></tr>
+        <tr><td class="num">rsum([1, 2, 3, 4])</td><td class="num">1 + 9 = 10</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>ليه countdown مختلف</h3>
+  <p>نسخة الفصل 1 بتطبع وبتراجع <span class="term">None</span>. مفيش قيمة محتاجة تتدمج. لو حد كتب <span class="term">return countdown(n - 1)</span> القيمة لسه <span class="term">None</span>. الأثر الحقيقي هو ترتيب الطباعة، وده side effect. الـ factorial من غير return مستخدم يضيع الناتج، لأن كل الإطار بيعمل هو إنه يضرب الرقم في ناتج الأصغر.</p>
+  <div class="callout note">
+    <p><span class="term">rsum</span> بتنسخ باقي القائمة في كل مستوى. الزمن والمساحة الإضافية من النسخ مش بس من عدد النداءات. على قائمة طولها n، الشغل الكلي من رتبة n² بسبب <span class="term">nums[1:]</span>. نسخة بـ index بتبقى O(n) زمن و O(n) stack:</p>
+  </div>
+  <div class="code-block"><div class="code-bar"><span>Python · sum بـ index</span><span class="spacer"></span></div>
+<pre><code class="py">def rsum_i(nums, i=0):
+    if i == len(nums):
+        return 0
+    return nums[i] + rsum_i(nums, i + 1)
+</code></pre></div>
+  <h3>أخطاء شائعة</h3>
+  <ul class="q-list">
+    <li>ترجع النص من غير الموضع، والمستدعي يكمل من index قديم.</li>
+    <li>تبعت الحالة للأمام وتنسى تستخدمها، وتحسبها تاني بعد الرجوع بقيم قديمة.</li>
+    <li>تعتمد على تعديل list جوه النداءات من غير ما تحدد مين مالك التعديل. في الـ backtracking التعديل المؤقت بيرجع بالعكس بعد النداء، وده نمط الفصل 7.</li>
+  </ul>
+  <div class="review">
+    <h3>أسئلة مراجعة</h3>
+    <details><summary>إيه اللي راجع من fact، وإيه اللي راجع من countdown؟</summary><p>fact بترجع عدد متبني من النواتج الأصغر. countdown بترجع None، والمطلوب منها أثر الطباعة.</p></details>
+    <details><summary>امتى الـ return يبقى tuple؟</summary><p>لما المستدعي يحتاج أكتر من معلومة عشان يكمّل، زي الناتج ومكان الوقوف في المدخل.</p></details>
+  </div>
+  <aside class="takeaways">
+    <h3>الخلاصة</h3>
+    <ul class="q-list">
+      <li>المعامل بينقل اللي اتحسب خلاص للنداء الجاي.</li>
+      <li>الـ return بينقل اللي الإطار الحالي محتاجه بعد الانتظار.</li>
+      <li>نتيجة مع index بتحل مسألة «الناتج خلّص فين».</li>
+    </ul>
+  </aside>
+</section>
+<section class="chapter" id="ch7">
+  <header class="chapter-head">
+    <p class="kicker">Chapter 7</p>
+    <h2>Recursion Patterns and Algorithmic Families</h2>
+  </header>
+  <p class="objective"><strong>هدف التعلم:</strong> تختار عائلة مناسبة من شكل المسألة، وانت عارف إن العائلات متداخلة ومش تصنيف واحد متنافي.</p>
+  <div class="callout note">
+    <p>القائمة دي مستويات مختلفة: شكل عدد النداءات، وموضع النداء، واستراتيجية المسألة، وبنية البيانات. الحل الواحد ممكن يكون linear و tail في نفس الوقت، أو divide and conquer وشجرة نداءات في نفس الوقت. متختارش خانة واحدة وترمي الباقي.</p>
+  </div>
+  <div class="flow" dir="ltr" aria-label="خريطة أنماط متداخلة">
+    <div class="node"><strong>Linear</strong><span>نداء واحد في سلسلة</span></div>
+    <div class="node"><strong>Tail / Non-tail</strong><span>موضع النداء</span></div>
+    <div class="node"><strong>Branching</strong><span>اختيار فرع</span></div>
+    <div class="node"><strong>Tree</strong><span>فرعين بيتنفذوا</span></div>
+    <div class="node"><strong>D&amp;C</strong><span>قسّم وادمج</span></div>
+    <div class="node"><strong>Backtracking</strong><span>جرّب وارجع</span></div>
+    <div class="node b"><strong>Nested parse</strong><span>ناتج وموضع</span></div>
+    <div class="node"><strong>Memo / DP</strong><span>خزّن الحالة المكررة</span></div>
+  </div>
+
+  <h3>Linear Recursion</h3>
+  <p>كل نداء بيعمل recursive call واحد على حالة أقرب بخطوة. شكل السلسلة خط، مش شجرة. مناسب لما المسألة تتقسم لعنصر حالي وباقي بنفس النوع، زي قائمة أو رقم بيقل بواحد.</p>
+  <p>النداءات بتستنى أو تسلم حسب الكتابة. <span class="term">fact</span> خطية و non-tail. الزمن O(n) والـ stack O(n).</p>
+  <div class="code-block"><div class="code-bar"><span>Python · طول قائمة متصلة</span><span class="spacer"></span></div>
+<pre><code class="py">def length(node):
+    if node is None:
+        return 0
+    return 1 + length(node.next)
+</code></pre></div>
+  <p>غلطة شائعة: تنادي <span class="term">length(node)</span> من غير ما تمشي لـ <span class="term">next</span>. مسألة ممثلة: <span class="term">206. Reverse Linked List</span> بالنسخة الـ recursive، وعمق الـ stack فيها O(n).</p>
+
+  <h3>Tail Recursion</h3>
+  <p>وصف لموضع النداء لما يكون آخر فعل. مناسب لما تقدر تنقل الشغل المؤجل لمعامل قبل النداء. في CPython المساحة لسه O(n) stack. التفاصيل في الفصل 5. مثال: <span class="term">fact_acc</span>. غلطة شائعة: اعتبارها تحسين ذاكرة في Python. مسألة قريبة: أي تجميع بمؤشر ماشي للأمام، زي عدّ الحروف في نص، لما الناتج يتبعت في معامل.</p>
+
+  <h3>Non-Tail Recursion</h3>
+  <p>في pending work بعد النداء. مناسب لما نتيجة الأصغر تتبنى عليها قيمة الإطار الحالي، زي العمق أو المجموع أو الطباعة وقت الرجوع. مثال الفصل 5: <span class="term">print_up</span>. الزمن في المثال O(n) والـ stack O(n). غلطة شائعة: تفتكر إن الطباعة بعد النداء هتظهر أثناء النزول. مسألة ممثلة: <span class="term">104. Maximum Depth of Binary Tree</span>، وهي كمان tree recursion لأن فيها نداءين.</p>
+
+  <h3>Multiple Recursive Calls / Tree Recursion</h3>
+  <p>النداء الواحد بيطلق أكتر من recursive call، والاتنين بيتنفذوا. شجرة النداءات بتتفرع. مناسب لما الجزء الحالي يعتمد على أكتر من subproblem مستقل، زي فروع شجرة أو متتالية بترجع خطوتين.</p>
+  <div class="code-block"><div class="code-bar"><span>Python · fibonacci من غير memo</span><span class="spacer"></span></div>
+<pre><code class="py">def fib(n):
+    if n &lt;= 1:
+        return n
+    return fib(n - 1) + fib(n - 2)
+</code></pre></div>
+  <p><span class="term">fib(5)</span> ترجع 5 بعد 15 نداء. <span class="term">fib(4)</span> ترجع 3 بعد 9 نداءات. الزمن أسي تقريبًا، من رتبة O(φ^n)، والـ stack O(n) بس لأن العمق هو أطول مسار. كتير من النداءات بتعيد نفس n. غلطة شائعة: تحسب عدد الأوراق وتحسب إن المساحة أسية. المساحة تتبع العمق، والزمن يتبع عدد النداءات. مسائل: <span class="term">509. Fibonacci Number</span>، <span class="term">70. Climbing Stairs</span> قبل الـ memo.</p>
+
+  <h3>Divide and Conquer</h3>
+  <p>تقسيم المسألة لنصفين أو أكتر، حل كل جزء، ثم دمج. غالبًا النداءات شجرة متوازنة. مناسب لما الدمج أرخص من إعادة بناء الحل من الصفر، والجزءين مستقلين.</p>
+  <div class="code-block"><div class="code-bar"><span>Python · أكبر عنصر بالتقسيم</span><span class="spacer"></span></div>
+<pre><code class="py">def max_dc(a, lo, hi):
+    if lo == hi:
+        return a[lo]
+    mid = (lo + hi) // 2
+    return max(max_dc(a, lo, mid), max_dc(a, mid + 1, hi))
+</code></pre></div>
+  <p><span class="term">max_dc([3, 1, 8, 2], 0, 3)</span> ترجع 8. الزمن O(n) والـ stack O(log n) لو التقسيم متوازن. <span class="term">pow</span> بالنصف بيقلل عدد الضرب:</p>
+  <div class="code-block"><div class="code-bar"><span>Python · power</span><span class="spacer"></span></div>
+<pre><code class="py">def pow_rec(x, n):
+    if n == 0:
+        return 1
+    if n % 2 == 0:
+        half = pow_rec(x, n // 2)
+        return half * half
+    return x * pow_rec(x, n - 1)
+</code></pre></div>
+  <p><span class="term">pow_rec(2, 10)</span> ترجع 1024. عدد المستويات O(log n). غلطة شائعة في اختيار الوسط: <span class="term">(lo + hi) // 2</span> سليم في Python للأعداد العادية، والمشكلة الكلاسيكية في لغات فيها overflow لما الجمع يعدي الحد. مسائل: <span class="term">50. Pow(x, n)</span>، <span class="term">704. Binary Search</span>. الـ binary search تقسيم، لكنه بينفّذ فرع واحد، فعمق النداءات O(log n) وعددها O(log n) مش O(n).</p>
+
+  <h3>Tree and Graph Traversal</h3>
+  <p>شكل البيانات شجرة أو شبكة، والنداء بيزور عقدة وبعدين جيرانها أو أولادها. مناسب للعمق، والمسارات، والمناطق المتصلة. في الشجرة من غير مشاركة أبناء، كل عقدة بتتزار مرة. في الرسم، من غير تسجيل العقد المزارة، الدورة تعمل نداءات بلا نهاية.</p>
+  <div class="code-block"><div class="code-bar"><span>Python · preorder</span><span class="spacer"></span></div>
+<pre><code class="py">def preorder(node, out):
+    if node is None:
+        return
+    out.append(node.val)
+    preorder(node.left, out)
+    preorder(node.right, out)
+</code></pre></div>
+  <p>على شجرة 1 وولادها 2 و 3، وولاد 2 هم 4 و 5، الناتج <span class="term">[1, 2, 4, 5, 3]</span>. الزمن O(n) والـ stack O(h) حيث h ارتفاع الشجرة. غلطة شائعة: نسيان شرط <span class="term">None</span>. مسائل: <span class="term">94. Binary Tree Inorder Traversal</span>، <span class="term">226. Invert Binary Tree</span>، <span class="term">200. Number of Islands</span> مع مجموعة خلايا متزارة.</p>
+
+  <h3>Backtracking</h3>
+  <p>تجربة قرار، نداء يكمل البناء، وبعد الرجوع تلغي القرار عشان تجرب غيره. مناسب للتباديل والمجموعات والتوليد تحت قيود. النداءات شجرة اختيارات. المسار الحالي غالبًا list واحدة بتتعدل وتترجع، عشان متعملش نسخة في كل مستوى.</p>
+  <div class="code-block"><div class="code-bar"><span>Python · subsets</span><span class="spacer"></span></div>
+<pre><code class="py">def subsets(nums):
+    result = []
+
+    def choose(i, path):
+        if i == len(nums):
+            result.append(path[:])
+            return
+        path.append(nums[i])
+        choose(i + 1, path)
+        path.pop()
+        choose(i + 1, path)
+
+    choose(0, [])
+    return result
+</code></pre></div>
+  <p><span class="term">subsets([1, 2])</span> ترجع <span class="term">[[1, 2], [1], [2], []]</span> بالترتيب ده لأن التضمين بيتجرب قبل الاستبعاد. الزمن من رتبة O(n · 2^n) بسبب نسخ المسار عند الأوراق، والـ stack O(n). غلطة شائعة: تنسى <span class="term">pop</span>، فالاختيار يفضل في المسار. ومشاركة نفس الـ list في النتيجة من غير <span class="term">path[:]</span> تخلي كل الإجابات تتغير مع بعض. مسائل: <span class="term">78. Subsets</span>، <span class="term">46. Permutations</span>، <span class="term">22. Generate Parentheses</span>.</p>
+
+  <h3>Recursive Parsing / Nested Structures</h3>
+  <p>المدخل فيه نطاق جوه نطاق، زي أقواس أو تعبير. النداء الداخلي مسؤوليته «خلّص النطاق ده»، ويرجع الناتج ومكان الوقوف. الإطار الخارجي يستنى، يدمج، ويكمل. ده مكان اجتماع الدورين من الفصل 4. مناسب لما الـ stack الطبيعي يمثل «أنا جوه أنهي قوس».</p>
+  <p>المثال الكامل في الفصل 8: <span class="term">394. Decode String</span>. مسألة قريبة: <span class="term">224. Basic Calculator</span>. غلطة شائعة: تكمّل من index مش راجع من النداء الداخلي، فتقرأ نفس النطاق مرتين أو تبلع القوس الغالط.</p>
+  <div class="code-block"><div class="code-bar"><span>Python · عمق أقواس بتمرير حالة</span><span class="spacer"></span></div>
+<pre><code class="py">def max_depth(s, i=0, depth=0, best=0):
+    if i == len(s):
+        return best
+    if s[i] == "(":
+        return max_depth(s, i + 1, depth + 1, max(best, depth + 1))
+    if s[i] == ")":
+        return max_depth(s, i + 1, depth - 1, best)
+    return max_depth(s, i + 1, depth, best)
+</code></pre></div>
+  <p><span class="term">max_depth("(())()")</span> ترجع 2. المثال ده continuation: الحالة كلها ماشية للأمام. وجود أقواس مش شرط يعمل result processing. المعالجة بتظهر لما النطاق الداخلي ليه ناتج مستقل لازم يتركب على الخارج.</p>
+
+  <h3>Memoization and Recursive Dynamic Programming</h3>
+  <p>نفس الـ state بتتطلب أكتر من مرة، ونتيجتها ثابتة. نخزن أول إجابة ونرجعها. مناسب بعد ما تلاقي شجرة نداءات فيها تكرار، زي fib. الـ recursion هنا لسه موجود، والجدول بيقتص الفروع المكررة.</p>
+  <div class="code-block"><div class="code-bar"><span>Python · fib مع memo</span><span class="spacer"></span></div>
+<pre><code class="py">def fib_memo(n, memo=None):
+    if memo is None:
+        memo = {}
+    if n in memo:
+        return memo[n]
+    if n &lt;= 1:
+        return n
+    memo[n] = fib_memo(n - 1, memo) + fib_memo(n - 2, memo)
+    return memo[n]
+</code></pre></div>
+  <p><span class="term">fib_memo(10)</span> ترجع 55. الزمن O(n) والمساحة O(n) للجدول زائد O(n) لعمق أول سلسلة. غلطة شائعة: <span class="term">memo={}</span> كقيمة افتراضية للمعامل. القاموس بيتشارك بين الاستدعاءات ويستحمل نتايج قديمة. ابدأ بـ <span class="term">None</span> واعمل قاموس جوه الجسم. مسائل: <span class="term">509</span>، <span class="term">70. Climbing Stairs</span>. <span class="term">climb(5)</span> بالطريقة دي، مع <span class="term">climb(1)=1</span> و <span class="term">climb(2)=2</span>، ترجع 8.</p>
+  <div class="review">
+    <h3>أسئلة مراجعة</h3>
+    <details><summary>إيه الفرق بين binary search و fib من ناحية عدد النداءات اللي بتتنفذ؟</summary><p>البحث بينادي فرع واحد بعد القرار. fib بتنفّذ النداءين. الأول عمق لوغاريتمي وعدد نداءات لوغاريتمي. التاني شجرة نداءات.</p></details>
+    <details><summary>ليه backtracking محتاج يرجّع القرار؟</summary><p>المسار مشترك. من غير إلغاء، اختيار المستوى الحالي يفضل ظاهر في أخواته اللي بعد الرجوع.</p></details>
+  </div>
+  <aside class="takeaways">
+    <h3>الخلاصة</h3>
+    <ul class="q-list">
+      <li>اختار العائلة من شكل المسألة: خطوة واحدة، فرعين، تقسيم ودمج، زيارة شجرة، تجربة وإلغاء، نطاق متداخل، أو حالات متكررة.</li>
+      <li>الأسماء بتتقاطع. اكتب الجملة اللي بتحصل في النداء، ومتكتفيش باسم العائلة.</li>
+    </ul>
+  </aside>
+</section>
+
+<section class="chapter" id="ch8">
+  <header class="chapter-head">
+    <p class="kicker">Chapter 8</p>
+    <h2>Deep Case Study: LeetCode 394, Decode String</h2>
+  </header>
+  <p class="objective"><strong>هدف التعلم:</strong> تستنتج ليه الحالة والـ return شكلهم كده، وتمشي <span class="term">3[a2[c]]</span> لحد <span class="term">accaccacc</span> من غير ما تحفظ السطور.</p>
+  <p>المسألة: نص فيه حروف وأرقام وأقواس مربعة. الرقم قبل القوس يعني كرّر اللي جوه. الأقواس تتداخل. <span class="term">3[a2[c]]</span> يعني تلات مرات <span class="term">a</span> وبعديها <span class="term">c</span> متكررة مرتين، فالناتج <span class="term">accaccacc</span>.</p>
+
+  <h3>اكتشاف الشكل قبل الكود</h3>
+  <p>السؤال الأول: إيه الـ state؟ عشان نقرأ من الشمال لليمين محتاجين موضع في النص. عشان الرقم ممكن يكون أكتر من خانة، محتاجين العدد اللي اتبنى لحد دلوقتي. وعشان الناتج بيتبني حتة حتة، محتاجين النص اللي خلّصناه في المستوى الحالي. يبقى المعاملات: <span class="term">index</span>، <span class="term">current_num</span>، <span class="term">current_str</span>.</p>
+  <p>أصغر حالة: النص خلّص. ساعتها المستوى الحالي يرجّع النص اللي جمعه، ومعاه الـ index عشان المستدعي يعرف إن القراءة وقفت هنا.</p>
+  <p>الحرف الرقم مش مسألة جديدة. هو تحديث للعدد وتقدم بخطوة. الحرف العادي كده برضه: ضمّه على النص وكمّل. الاتنين continuation.</p>
+  <p>القوس المفتوح مختلف. اللي جواه نطاق له نصه وله أرقامه. الإطار الحالي لسه محتاج يحتفظ بالعدد اللي قبل القوس، لأنه عدد تكرار مش جزء من الداخل. يبقى ينادي نداء داخلي بحالة فاضية: index بعد القوس، رقم 0، نص فاضي. ويستنى. ده result processing.</p>
+  <p>القوس المقفل معناها إن النطاق الحالي خلّص، مش إن المسألة كلها خلّصت. نرجّع النص المتجمع، والـ index بعد القوس، من غير تكرار. التكرار شغل الإطار اللي شاف القوس المفتوح، لأنه هو اللي حافظ العدد.</p>
+  <p>بعد ما النص الداخلي يرجع، الإطار الخارجي يكرره ويضمّه، ويكمّل من الـ index الراجع. التكملة دي نداء جديد بحالة محدّثة، ورقم متصفّر لأن العدد اتستهلك في التكرار. من غير الـ index الراجع، الإطار مش يعرف فين الحرف اللي بعد النطاق.</p>
+  <p>لو مفيش أقواس خالص، المسار كله continuation لحد نهاية النص. مفيش إطار بيستنى دمج.</p>
+
+  <h3>الكود بعد الاستنتاج</h3>
+  <div class="code-block"><div class="code-bar"><span>Python · LeetCode 394</span><span class="spacer"></span></div>
+<pre><code class="py">class Solution:
+    def decodeString(self, s: str) -&gt; str:
+        def helper(
+            index: int,
+            current_num: int,
+            current_str: str
+        ) -&gt; tuple[str, int]:
+
+            if index &gt;= len(s):
+                return current_str, index
+
+            char = s[index]
+
+            if char.isdigit():
+                return helper(
+                    index + 1,
+                    current_num * 10 + int(char),
+                    current_str
+                )
+
+            elif char == "[":
+                sub_str, next_index = helper(
+                    index + 1, 0, ""
+                )
+
+                return helper(
+                    next_index,
+                    0,
+                    current_str + (sub_str * current_num)
+                )
+
+            elif char == "]":
+                return current_str, index + 1
+
+            else:
+                return helper(
+                    index + 1,
+                    current_num,
+                    current_str + char
+                )
+
+        return helper(0, 0, "")[0]
+</code></pre></div>
+  <div class="table-wrap">
+    <table class="compact">
+      <thead><tr><th>الحاجة</th><th>معناها في الحل</th></tr></thead>
+      <tbody>
+        <tr><td>index</td><td>أول حرف لسه متقراش</td></tr>
+        <tr><td>current_num</td><td>عدد التكرار اللي بيبني من الخانات. صفر لو لسه مفيش رقم</td></tr>
+        <tr><td>current_str</td><td>النص المفكوك في المستوى الحالي بس</td></tr>
+        <tr><td>القيمة الراجعة</td><td>نص المستوى، وأول موضع بعد النطاق ده</td></tr>
+        <tr><td>helper(...)[0]</td><td>المستدعي الأصلي عايز النص بس</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>خانات الرقم: <span class="term">current_num * 10 + int(char)</span>. على <span class="term">10[a]</span> الناتج عشرة حروف a. على <span class="term">12[ab]</span> الناتج <span class="term">ab</span> متكرر 12 مرة. <span class="term">isdigit</span> هنا كافية لمدخلات المسألة لأن الأرقام ASCII. الحل بيفترض نمطًا صحيحًا زي قيود المسألة، ومش بيغطي نص مكسور.</p>
+  <p>ليه النداء الداخلي يبدأ فاضي؟ لو بعنا له <span class="term">current_num</span> بتاع بره، هيعتبر الرقم الخارجي بداية لرقم داخلي. لو بعنا له النص الخارجي، هيلصق الناتج الخارجي جوه النطاق ويرجعه كأنه جزء من التكرار.</p>
+  <p>الأقواس المتداخلة نفس القاعدة مرتين. كل <span class="term">'['</span> يفتح مستوى يستنى، وكل <span class="term">']'</span> يقفل المستوى اللي هو فيه بس.</p>
+
+  <h3>موضع النداءات في الكود ده</h3>
+  <ul class="q-list">
+    <li>فرع الرقم: <span class="term">return helper(...)</span> في tail position، ودوره continuation.</li>
+    <li>فرع الحرف: نفس الشيء.</li>
+    <li>فرع <span class="term">'['</span>: النداء الأول مش tail. ناتجه بيتفك في متغيرين وبعدين يتستخدم. الدور result processing.</li>
+    <li>نفس الفرع، النداء التاني: tail position، ودوره continuation بعد الدمج.</li>
+    <li>فرع <span class="term">']'</span>: مفيش recursive call.</li>
+  </ul>
+  <p>في CPython إطار القوس بيفضل على الـ stack طول ما النداء التاني ما رجعش، حتى لو النداء في tail position. الفصل 5 هو مرجع النقطة دي.</p>
+
+  <h3 id="decode-trace">تتبع 3[a2[c]]</h3>
+  <p>مواضع الحروف: 0=<span class="term">3</span> ، 1=<span class="term">[</span> ، 2=<span class="term">a</span> ، 3=<span class="term">2</span> ، 4=<span class="term">[</span> ، 5=<span class="term">c</span> ، 6=<span class="term">]</span> ، 7=<span class="term">]</span> ، والطول 8.</p>
+  <div class="table-wrap">
+    <p class="hint-scroll">اسحب الجدول أفقيًا لو الشاشة ضيقة.</p>
+    <table>
+      <thead>
+        <tr><th>#</th><th>index</th><th>char</th><th>num</th><th>current_str</th><th>الدور</th><th>إيه اللي بيحصل</th><th>الراجع من النداء ده</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="num">1</td><td class="num">0</td><td class="num">3</td><td class="num">0</td><td class="num">""</td><td>Continuation</td><td>يبني 3 ويسلّم index 1</td><td class="num">("accaccacc", 8)</td></tr>
+        <tr><td class="num">2</td><td class="num">1</td><td class="num">[</td><td class="num">3</td><td class="num">""</td><td>Result Processing</td><td>يستنى الداخل من index 2 بحالة فاضية</td><td>يستلم ("acc", 8) ثم يسلّم التكرار</td></tr>
+        <tr><td class="num">3</td><td class="num">2</td><td class="num">a</td><td class="num">0</td><td class="num">""</td><td>Continuation</td><td>يضيف a</td><td class="num">("acc", 8)</td></tr>
+        <tr><td class="num">4</td><td class="num">3</td><td class="num">2</td><td class="num">0</td><td class="num">"a"</td><td>Continuation</td><td>يبني الرقم 2</td><td class="num">("acc", 8)</td></tr>
+        <tr><td class="num">5</td><td class="num">4</td><td class="num">[</td><td class="num">2</td><td class="num">"a"</td><td>Result Processing</td><td>يستنى جوه القوس الداخلي</td><td>يستلم ("c", 7) ثم يبني acc</td></tr>
+        <tr><td class="num">6</td><td class="num">5</td><td class="num">c</td><td class="num">0</td><td class="num">""</td><td>Continuation</td><td>يضيف c</td><td class="num">("c", 7)</td></tr>
+        <tr><td class="num">7</td><td class="num">6</td><td class="num">]</td><td class="num">0</td><td class="num">"c"</td><td>إغلاق</td><td>مفيش نداء. أول نطاق داخلي خلّص</td><td class="num">("c", 7)</td></tr>
+        <tr><td class="num">8</td><td class="num">7</td><td class="num">]</td><td class="num">0</td><td class="num">"acc"</td><td>إغلاق</td><td>نداء جديد بعد دمج a + c*2. القوس الخارجي الداخلي خلّص</td><td class="num">("acc", 8)</td></tr>
+        <tr><td class="num">9</td><td class="num">8</td><td>END</td><td class="num">0</td><td class="num">"accaccacc"</td><td>Base</td><td>نداء جديد بعد دمج acc*3. نهاية النص</td><td class="num">("accaccacc", 8)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>ترتيب إنهاء النطاقات: النداء 7 يخلّص الأول ويرجع <span class="term">("c", 7)</span>. النداء 6 كان tail فبيرجع نفس الزوج. النداء 5 يدمج ويعمل النداء 8. النداء 8 يرجع <span class="term">("acc", 8)</span>، ويطلع عبر 5 ثم 4 ثم 3 للنداء 2. النداء 2 يدمج ويعمل النداء 9. النداء 9 يرجع الناتج الكامل، ويطلع عبر 2 ثم 1. العنصر الأول <span class="term">accaccacc</span>.</p>
+  <p>النداء 8 مش ابن مباشر للنداء 7. النداء 7 خلّص وتقفل. النداء 8 اتفتح بعد الدمج من النداء 5. نفس العلاقة بين 9 و 2.</p>
+
+  <h3>الـ stack في أعمق لحظة وبعد الدمج</h3>
+  <p>لحظة قراءة أول <span class="term">']'</span>، القمة فوق. الإطاران 2 و 5 مستنيين ناتج داخلي:</p>
+  <p class="stack-label">قمة الـ Stack</p>
+  <div class="stack-diagram" dir="ltr">
+    <div class="frame top"><strong>#7 i=6 ']' str=c</strong><small>هترجع ("c", 7)</small></div>
+    <div class="frame"><strong>#6 i=5 'c'</strong><small>continuation معلّقة</small></div>
+    <div class="frame"><strong>#5 i=4 '[' num=2 str=a</strong><small>مستنية الداخل</small></div>
+    <div class="frame"><strong>#4 i=3 '2'</strong><small>continuation</small></div>
+    <div class="frame"><strong>#3 i=2 'a'</strong><small>continuation</small></div>
+    <div class="frame"><strong>#2 i=1 '[' num=3</strong><small>مستنية الداخل</small></div>
+    <div class="frame"><strong>#1 i=0 '3'</strong><small>continuation</small></div>
+  </div>
+  <p>بعد ما الداخل يرجع والنداء 5 يبني <span class="term">acc</span>، المسار يبقى عند القوس التاني. 6 و 7 اتقفلوا:</p>
+  <div class="stack-diagram" dir="ltr">
+    <div class="frame top"><strong>#8 i=7 ']' str=acc</strong><small>ترجع ("acc", 8)</small></div>
+    <div class="frame"><strong>#5 لسه موجودة في Python</strong><small>tail call من غير TCO</small></div>
+    <div class="frame"><strong>#4 → #3 → #2 → #1</strong><small>لسه مارجعتش</small></div>
+  </div>
+  <p>بعد رجوع <span class="term">acc</span> للنداء 2، القمة تبقى النداء 9 وتحته 2 و 1 بس، لأن 3 و 4 و 5 رجعوا.</p>
+  <div class="flow" dir="ltr" aria-label="مسار الرجوع">
+    <div class="node base"><strong>("c", 7)</strong><span>أول إغلاق</span></div>
+    <div class="arrow">→</div>
+    <div class="node b"><strong>a + cc</strong><span>دمج في #5</span></div>
+    <div class="arrow">→</div>
+    <div class="node base"><strong>("acc", 8)</strong><span>تاني إغلاق</span></div>
+    <div class="arrow">→</div>
+    <div class="node b"><strong>acc × 3</strong><span>دمج في #2</span></div>
+    <div class="arrow">→</div>
+    <div class="node base"><strong>accaccacc</strong><span>نهاية النص</span></div>
+  </div>
+  <h3>امشِ النداءات</h3>
+  <div class="stepper" data-stepper="decode">
+    <div class="step-layout">
+      <div>
+        <p class="stack-label">قمة الـ stack فوق</p>
+        <div data-stack></div>
+      </div>
+      <div>
+        <div class="step-copy" data-copy></div>
+        <div class="out-box"><strong>اللي خلّص</strong><ol data-output></ol></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button type="button" data-act="prev" class="secondary">السابق</button>
+      <button type="button" data-act="next">التالي</button>
+      <button type="button" data-act="reset" class="secondary">من الأول</button>
+      <span data-count></span>
+    </div>
+  </div>
+  <h3>من غير نطاق متداخل، ومع تداخل تاني</h3>
+  <p><span class="term">decode("abc")</span> ترجع <span class="term">abc</span>. المسار نداءات continuation لحروف، ثم base case عند نهاية النص. مفيش فرع قوس.</p>
+  <p><span class="term">3[a]2[bc]</span> ترجع <span class="term">aaabcbc</span>. بعد ما أول قوس يخلّص عند ناتج <span class="term">aaa</span>، النداء التكميلي يلاقي الرقم 2 ويبدأ قوس تاني في نفس المستوى. الرقم بيتصفّر بعد كل تكرار، عشان العدد الجديد يتبنى من الصفر.</p>
+  <p><span class="term">2[]</span> ترجع نص فاضي. الداخل فاضي، والتكرار لسه بيتحسب، والناتج فاضي.</p>
+
+  <h3>التعقيد، بحذر</h3>
+  <p>خلي N طول المدخل، و M طول الناتج، و D أعمق تداخل أقواس.</p>
+  <ul class="q-list">
+    <li>كل حرف بيتقرأ في نداء واحد بيتقدم بعده. عدد النداءات من رتبة N.</li>
+    <li>عمق الـ stack في أسوأ حالة من رتبة N. نص من غير أقواس طوله N بيعمل سلسلة continuation، وCPython مش بيشيل الإطارات. التداخل العميق كمان بيزود الإطارات المستنية.</li>
+    <li>الزمن مش O(N) بس. النصوص في Python غير قابلة للتعديل. <span class="term">current_str + char</span> بينسخ النص المتجمع. على حروف متتالية من غير أقواس التكلفة التقريبية O(N²). في التداخل، الحروف ممكن تتتنسخ مرة لكل مستوى وهي بتطلع للناتج، فحد مفيد للوصف هو إن النسخ مرتبط بـ M و D، ومش بس بعدد الحروف المقروءة.</li>
+    <li>المساحة فيها الناتج O(M) زائد الإطارات. رفع حد الـ recursion مش بديل عن حل بـ stack صريح لو N كبير.</li>
+  </ul>
+  <p>في حل تكراري بـ stack بيعمل نفس فكرة «المستوى الحالي»: تدفع العدد والنص لما تشوف <span class="term">'['</span>، وترجعهم لما تشوف <span class="term">']'</span>. الـ recursion هنا خلت الـ call stack يمثل المستويات. المقابلة ممكن تطلب الاتنين.</p>
+  <h3>أخطاء شائعة</h3>
+  <ul class="q-list">
+    <li>ترجع النص من القوس المقفل من غير <span class="term">index + 1</span>، فالحرف <span class="term">']'</span> يتقرأ تاني.</li>
+    <li>تكرر <span class="term">current_str</span> كلها مش <span class="term">sub_str</span> بس.</li>
+    <li>تنسى تصفير الرقم في النداء التكميلي، فالرقم القديم يلزق في الحروف اللي بعد القوس.</li>
+    <li>تعتبر كل النداءات tail لأن أغلب الفروع فيها <span class="term">return helper</span>. فرع القوس فيه نداء قبل الدمج مش tail.</li>
+  </ul>
+  <div class="review">
+    <h3>أسئلة مراجعة</h3>
+    <details><summary>ليه الرقم مش بيتطبق عند ']'؟</summary><p>الإطار اللي جوه القوس مش شايف الرقم الخارجي. الرقم محفوظ في الإطار اللي فتح القوس، وبيستخدمه بعد الرجوع.</p></details>
+    <details><summary>إيه أول زوج راجع في 3[a2[c]]؟</summary><p>("c", 7) من النداء اللي شاف أول قوس مقفل.</p></details>
+  </div>
+  <aside class="takeaways">
+    <h3>الخلاصة</h3>
+    <ul class="q-list">
+      <li>الحالة: موضع، عدد بيتبنى، نص المستوى الحالي.</li>
+      <li>القوس يفتح subproblem فاضية ويستنى (نص، موضع).</li>
+      <li>الدمج بعد الرجوع، والتكملة نداء بالحالة الجديدة.</li>
+      <li>الناتج على المثال: accaccacc.</li>
+    </ul>
+  </aside>
+</section>
+<section class="chapter" id="ch9">
+  <header class="chapter-head">
+    <p class="kicker">Chapter 9</p>
+    <h2>Correctness, Complexity, and Debugging</h2>
+  </header>
+  <p class="objective"><strong>هدف التعلم:</strong> تمشي قائمة فحص ثابتة على أي حل recursive، وتربط الغلط بشكل الفشل: مش بيوقف، نتيجة غلط، أو عمق كبير.</p>
+  <ol class="q-list">
+    <li><strong>صحة الـ base case.</strong> على أصغر مدخل، القيمة الراجعة هي الإجابة فعلًا. <span class="term">fact(0)</span> لازم ترجع 1 مش 0 لو التعريف الرياضي كده.</li>
+    <li><strong>التقدم والتوقف.</strong> كل مسار نداء يغيّر حاجة الشرط بيعتمد عليها، وفي الاتجاه الصح.</li>
+    <li><strong>الشرط السابق واللاحق.</strong> قبل النداء: إيه اللي الإطار بيضمنه عن المعاملات. بعد الرجوع: إيه اللي يحق يفترضه عن الناتج. في Decode String، ما بعد <span class="term">'['</span> النداء الداخلي بيضمن يبدأ من نطاق جديد، والراجع موضعه بعد القوس المقفل.</li>
+    <li><strong>صحة القيمة الراجعة.</strong> الناتج متركب من نواتج أصغر صح، ومفيش جزء من الحالة اتساب.</li>
+    <li><strong>عمق الـ stack.</strong> أطول سلسلة نداءات قبل الرجوع. قارنها بحد Python، مش بس بتعقيد الزمن.</li>
+    <li><strong>الزمن.</strong> عدد النداءات، وشغل كل نداء. انتبه لنسخ النصوص والقوائم.</li>
+    <li><strong>المساحة المساعدة.</strong> الإطارات، والجداول، والنواتج الوسيطة. ناتج المسألة نفسه يتحسب لو السؤال طالب المساحة الكلية.</li>
+    <li><strong>شجرة النداءات</strong> لما في أكتر من نداء بيتنفذ. ارسمها على مدخل صغير وعدّ التكرار قبل ما تضيف memo.</li>
+  </ol>
+  <h3>أسباب recursion مش بتخلّص</h3>
+  <div class="code-block"><div class="code-bar"><span>Python · اتجاه التقدم مقلوب</span><span class="spacer"></span></div>
+<pre><code class="py">def down(n):
+    if n == 0:
+        return
+    down(n + 1)
+</code></pre></div>
+  <p>التشخيص: الشرط موجود، والمعامل بتتحرك بعيد عنه. ارسم قيم n في أول خمس نداءات. لو السلسلة 5,6,7... المشكلة progress.</p>
+  <h3>غلطة index بواحد</h3>
+  <div class="code-block"><div class="code-bar"><span>Python · الشرط بيتخطى آخر موضع صالح</span><span class="spacer"></span></div>
+<pre><code class="py">def last_or_bug(s, i):
+    if i &gt; len(s):
+        return ""
+    if i == len(s) - 1:
+        return s[i]
+    return last_or_bug(s, i + 1)
+</code></pre></div>
+  <p>على نص فاضي، <span class="term">i</span> يبدأ 0 و <span class="term">len</span> صفر. الشرط <span class="term">i &gt; len</span> مش هيوقف عند 0. النداء هيوصل <span class="term">i == len</span> ويحاول يقرأ <span class="term">s[i]</span> في مقارنة أخيرة أو يعديها حسب الكتابة. شرط نهاية القراءة الآمن لما الموضع هو طول النص: <span class="term">i &gt;= len(s)</span>. شخص الغلط بأصغر مدخل: فاضي، وحرف واحد، وحرفين.</p>
+  <h3>حالة اتبعتت غلط</h3>
+  <div class="code-block"><div class="code-bar"><span>Python · الرقم الخارجي داخل النطاق</span><span class="spacer"></span></div>
+<pre><code class="py">sub_str, next_index = helper(index + 1, current_num, current_str)
+</code></pre></div>
+  <p>المفروض الداخل يبدأ بـ <span class="term">0</span> و <span class="term">""</span>. التشخيص: طبّق السطر على <span class="term">2[a]</span>. لو الناتج بقى أطول من <span class="term">aa</span> أو الرقم اتكرر جوه، الحالة اتسربت للمستوى الغلط.</p>
+  <h3>قيمة راجعة ناقصة</h3>
+  <div class="code-block"><div class="code-bar"><span>Python · index مش راجع</span><span class="spacer"></span></div>
+<pre><code class="py">if char == "]":
+    return current_str
+</code></pre></div>
+  <p>المستدعي كان هيفك زوج. دلوقتي بياخد نص ومش عارف يكمل منين. التشخيص: بعد أول قوس مقفل، اسأل «الموضع الجديد إيه؟». لو السؤال مالوش إجابة في الـ return، التصميم ناقص.</p>
+  <h3>نداء متداخل اتتعامل معاه كتكملة</h3>
+  <div class="code-block"><div class="code-bar"><span>Python · دمج قبل ما الناتج يوجد</span><span class="spacer"></span></div>
+<pre><code class="py">return helper(
+    index + 1,
+    0,
+    current_str + (current_str * current_num)
+)
+</code></pre></div>
+  <p>السطر بيكرّر نص المستوى الحالي وبيكمل خطوة واحدة، من غير ما يستنى النطاق الداخلي. على <span class="term">2[a]</span> مش هيبني <span class="term">aa</span> من ناتج جوه القوس. التشخيص: دور الإطار. لو محتاج ناتج لسه ماتحسبش، يبقى فيه انتظار، مش continuation بس.</p>
+  <h3>جدول تشخيص سريع</h3>
+  <div class="table-wrap">
+    <table class="compact">
+      <thead><tr><th>اللي بتشوفه</th><th>أول حاجة تتفحص</th></tr></thead>
+      <tbody>
+        <tr><td>RecursionError بسرعة والعدد بيجري</td><td>اتجاه الـ progress وقيمة الشرط</td></tr>
+        <tr><td>RecursionError على مدخل كبير والمنطق صغير سليم</td><td>عمق السلسلة مقابل حد Python</td></tr>
+        <tr><td>نتيجة أقصر أو أطول بواحد</td><td>حد الـ index وموضع +1</td></tr>
+        <tr><td>تكرار النطاق الغلط</td><td>إيه اللي اتضرب في العدد: الداخل ولا النص كله</td></tr>
+        <tr><td>القراءة بترجع لحرف قديم</td><td>الـ index الراجع مستخدم ولا متساب</td></tr>
+        <tr><td>كل الإجابات في backtracking متشابهة</td><td>نسخ المسار قبل حفظه، ووجود pop</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="review">
+    <h3>أسئلة مراجعة</h3>
+    <details><summary>إيه الفرق بين recursion لا نهائية وعمق تعدى الحد؟</summary><p>الأولى مفيش مسار يوصل للشرط. التانية الشرط reachable لكن عدد الإطارات المفتوحة أكبر من الحد قبل الوصول.</p></details>
+    <details><summary>أصغر اختبار لكشف index غلط؟</summary><p>المدخل الفاضي، وطوله واحد، وطوله اتنين. الغلط بواحد بيظهر على الحدود قبل ما يظهر في النص.</p></details>
+  </div>
+  <aside class="takeaways">
+    <h3>الخلاصة</h3>
+    <ul class="q-list">
+      <li>افحص الشرط، والتقدم، والضمان قبل النداء وبعده، والتركيب، والعمق، والزمن، والمساحة.</li>
+      <li>شخص من أصغر مدخل بيظهر فيه العرض الغلط.</li>
+    </ul>
+  </aside>
+</section>
+
+<section class="chapter" id="ch10">
+  <header class="chapter-head">
+    <p class="kicker">Chapter 10</p>
+    <h2>Problem-Solving Framework</h2>
+  </header>
+  <p class="objective"><strong>هدف التعلم:</strong> تمشي الاتناشر خطوة على مسألة جديدة لحد ما الكود يبقى نتيجة للقرارات، مش بداية لها.</p>
+  <p>المثال اللي هنمشي عليه: عدّ مرات ظهور حرف في نص. المسألة صغيرة عشان الخطوات تبان، وهي مختلفة عن مجموع القائمة في الفصل 6.</p>
+  <div class="cards">
+    <article class="card"><h4>1. عرّف الـ state</h4><p>موضع القراءة <span class="term">i</span>، والحرف المطلوب <span class="term">ch</span>، والنص ثابت. الإجابة المطلوبة عدد.</p></article>
+    <article class="card"><h4>2. أصغر حالة قابلة للحل</h4><p>لما <span class="term">i == len(s)</span> مفيش حروف. العدد صفر.</p></article>
+    <article class="card"><h4>3. الانتقال</h4><p>الحرف الحالي يساهم بـ 1 أو 0، والباقي نفس المسألة من <span class="term">i + 1</span>.</p></article>
+    <article class="card"><h4>4. شغل النداء الحالي</h4><p>يحسب مساهمة الحرف، ويستنى عدد الباقي، ويجمع. فيه معالجة نتيجة. مفيش قرار بين فرعين؛ المساهمة بتتحسب والاتنين بيتجمعوا.</p></article>
+    <article class="card"><h4>5. إيه يمشي للأمام</h4><p><span class="term">i + 1</span> و <span class="term">ch</span>. مش محتاجين نبعت العدّ الجزئي لو هيرجع بالجمع.</p></article>
+    <article class="card"><h4>6. إيه يرجع</h4><p>عدد صحيح واحد. مفيش موضع راجع لأن التقدم ثابت بمقدار واحد والمستدعي عارف الخطوة.</p></article>
+    <article class="card"><h4>7. في شغل بعد النداء؟</h4><p>أيوه: الجمع. النداء مش في tail position. نسخة بمعامل <span class="term">acc</span> تنقل الجمع لقبل النداء، والموضع يبقى tail، والـ stack في Python يفضل O(n).</p></article>
+    <article class="card"><h4>8. التقدم</h4><p><span class="term">i</span> بيزيد لحد الطول. الشرط reachable.</p></article>
+    <article class="card"><h4>9. تتبع مدخل صغير</h4><p><span class="term">count("ababa", "a")</span>: المساهمات 1,0,1,0,1 والمجموع 3.</p></article>
+    <article class="card"><h4>10. حدود</h4><p>نص فاضي يرجع 0. حرف مش موجود يرجع 0. النص كله نفس الحرف يرجع الطول.</p></article>
+    <article class="card"><h4>11. التعقيد</h4><p>عدد النداءات O(n). كل نداء شغل O(1). الزمن O(n) والـ stack O(n).</p></article>
+    <article class="card"><h4>12. مقارنة ببديل</h4><p>حل الـ loop بعداد أوضح وأقل في الـ stack لنفس المسألة. الـ recursion هنا تمرين على الإطار. الأقواس المتداخلة هي اللي الـ stack بتاع النداءات بيمثلها بشكل مباشر، زي الفصل 8.</p></article>
+  </div>
+  <div class="code-block"><div class="code-bar"><span>Python · الناتج بعد الخطوات</span><span class="spacer"></span></div>
+<pre><code class="py">def count_char(s, ch, i=0):
+    if i == len(s):
+        return 0
+    extra = 1 if s[i] == ch else 0
+    return extra + count_char(s, ch, i + 1)
+</code></pre></div>
+  <p>تتبع <span class="term">"aba"</span> مع <span class="term">"a"</span>: النداء i=2 يرجع 0، و i=1 يضيف 0، و i=0 يضيف 1. الناتج 2. الكود نفسه على <span class="term">"ababa"</span> يرجع 3.</p>
+  <div class="review">
+    <h3>أسئلة مراجعة</h3>
+    <details><summary>ليه المسألة دي مش محتاجة ترجع index؟</summary><p>الخطوة دائمًا +1، والمستدعي عارف الموضع الجاي من غير ما النداء يقوله.</p></details>
+    <details><summary>إيه سؤال الخطوة 7 بالظبط؟</summary><p>بعد ما النداء يرجع، هل الإطار هيعمل حساب بالناتج؟ لو أيوه، النداء مش tail، ودوره معالجة نتيجة.</p></details>
+  </div>
+  <aside class="takeaways">
+    <h3>الخلاصة</h3>
+    <p>الحالة، ثم أصغر حل، ثم الانتقال، ثم شغل الإطار، ثم اتجاه المعلومات، ثم التقدم، ثم تتبع صغير، ثم الحدود، ثم التكلفة، ثم البديل. الكود آخر خطوة.</p>
+  </aside>
+</section>
+
+<section class="chapter" id="ch11">
+  <header class="chapter-head">
+    <p class="kicker">Chapter 11</p>
+    <h2>Interactive Practice</h2>
+  </header>
+  <p class="objective"><strong>هدف التعلم:</strong> تختبر التتبع والتصنيف والإصلاح قبل ما تفتح الحل.</p>
+  <p>اكتب الإجابة أو اختَر، واضغط تحقق. التلميح والشرح موجودين تحت كل تمرين، ومقفولين لحد ما تفتحهم.</p>
+
+  <article class="exercise" id="ex1">
+    <header><h3>1. توقع المخرجات</h3><span class="badge">سهل</span></header>
+    <div class="code-block"><div class="code-bar"><span>Python</span><span class="spacer"></span></div>
+<pre><code class="py">def print_down(n):
+    if n == 0:
+        return
+    print(n)
+    return print_down(n - 1)
+
+print_down(3)
+</code></pre></div>
+    <p>اكتب الأسطر وبينها مسافة واحدة، من غير فواصل.</p>
+    <form class="quiz" data-answer="3 2 1">
+      <input data-input type="text" aria-label="إجابة التمرين 1">
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>الطباعة قبل النداء، فالأكبر يظهر الأول.</p></details>
+    <details><summary>الشرح والحل</summary><p>النزول يطبع 3 ثم 2 ثم 1، والـ base عند 0 صامت. الناتج <span class="term">3 2 1</span>.</p></details>
+  </article>
+
+  <article class="exercise" id="ex2">
+    <header><h3>2. توقع مخرجات الرجوع</h3><span class="badge">سهل</span></header>
+    <div class="code-block"><div class="code-bar"><span>Python</span><span class="spacer"></span></div>
+<pre><code class="py">def print_up(n):
+    if n == 0:
+        return
+    print_up(n - 1)
+    print(n)
+
+print_up(3)
+</code></pre></div>
+    <form class="quiz" data-answer="1 2 3">
+      <input data-input type="text" aria-label="إجابة التمرين 2">
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>الطباعة بعد النداء. أصغر n بيخلّص أولًا.</p></details>
+    <details><summary>الشرح والحل</summary><p>الإطارات بتستنى لحد الصفر، ثم تطبع من 1 لـ 3. الناتج <span class="term">1 2 3</span>.</p></details>
+  </article>
+
+  <article class="exercise" id="ex3">
+    <header><h3>3. حدد الـ base case</h3><span class="badge">سهل</span></header>
+    <div class="code-block"><div class="code-bar"><span>Python</span><span class="spacer"></span></div>
+<pre><code class="py">def fact(n):
+    if n == 0:
+        return 1
+    return n * fact(n - 1)
+</code></pre></div>
+    <form class="quiz" data-answer="a">
+      <label><input type="radio" name="ex3" value="a"> <span class="term">n == 0</span> ويرجع 1</label>
+      <label><input type="radio" name="ex3" value="b"> سطر الضرب، لأنه آخر سطر</label>
+      <label><input type="radio" name="ex3" value="c"> أي نداء لـ fact</label>
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>الـ base case هو اللي بيخلّص من غير recursive call.</p></details>
+    <details><summary>الشرح والحل</summary><p>الاختيار الأول. سطر الضرب هو الـ recursive case، وفيه pending work.</p></details>
+  </article>
+
+  <article class="exercise" id="ex4">
+    <header><h3>4. أصلِح توقفًا مش هيوصل</h3><span class="badge">سهل</span></header>
+    <div class="code-block"><div class="code-bar"><span>Python</span><span class="spacer"></span></div>
+<pre><code class="py">def down(n):
+    if n == 0:
+        return 0
+    return down(n + 1)
+</code></pre></div>
+    <form class="quiz" data-answer="b">
+      <label><input type="radio" name="ex4" value="a"> احذف الـ base case</label>
+      <label><input type="radio" name="ex4" value="b"> خلي النداء <span class="term">down(n - 1)</span></label>
+      <label><input type="radio" name="ex4" value="c"> ابدأ من n = 0</label>
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>الشرط محتاج n يوصل لصفر. بص على اتجاه التغيير.</p></details>
+    <details><summary>الشرح والحل</summary><p>الاختيار الثاني. الشرط كان مكتوب صح، والتقدم كان بيبعد عنه. متشغّلش النسخة المكسورة على عدد كبير.</p></details>
+  </article>
+
+  <article class="exercise" id="ex5">
+    <header><h3>5. ترتيب السطور</h3><span class="badge">متوسط</span></header>
+    <div class="code-block"><div class="code-bar"><span>Python</span><span class="spacer"></span></div>
+<pre><code class="py">def speak(n):
+    if n == 0:
+        return
+    speak(n - 1)
+    print(n)
+    speak(n - 1)
+
+speak(2)
+</code></pre></div>
+    <form class="quiz" data-answer="1 2 1">
+      <input data-input type="text" aria-label="إجابة التمرين 5">
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>ارسم speak(1) لوحدها الأول. هتطبع 1 مرة واحدة.</p></details>
+    <details><summary>الشرح والحل</summary><p>speak(2) تنادي speak(1) فتطبع 1، ثم تطبع 2، ثم speak(1) تاني فتطبع 1. الناتج <span class="term">1 2 1</span>. في نداءين بيتنفذوا، فده tree recursion صغيرة.</p></details>
+  </article>
+
+  <article class="exercise" id="ex6">
+    <header><h3>6. تتبع الـ stack</h3><span class="badge">متوسط</span></header>
+    <p>استخدم دالة الفصل 3. إيه آخر سطر يطبعه <span class="term">countdown(2)</span>؟ اكتب الكلمة والرقم وبينهم مسافة، زي <span class="term">after 2</span>.</p>
+    <form class="quiz" data-answer="after 2">
+      <input data-input type="text" aria-label="إجابة التمرين 6">
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>آخر طباعة وقت الرجوع بتبقى للإطار الأقدم، وهو أكبر n.</p></details>
+    <details><summary>الشرح والحل</summary><p>الترتيب: before 2، before 1، done، after 1، after 2. آخر سطر <span class="term">after 2</span>.</p></details>
+  </article>
+
+  <article class="exercise" id="ex7">
+    <header><h3>7. ميّز دور قراءة الرقم</h3><span class="badge">متوسط</span></header>
+    <p>في Decode String، فرع <span class="term">char.isdigit()</span> بيعمل <span class="term">return helper(index + 1, current_num * 10 + int(char), current_str)</span>.</p>
+    <form class="quiz" data-answer="a">
+      <label><input type="radio" name="ex7" value="a"> Continuation / State-Progression، والنداء في tail position</label>
+      <label><input type="radio" name="ex7" value="b"> Result Processing، لأنه بيحوّل الحرف لرقم</label>
+      <label><input type="radio" name="ex7" value="c"> Tree recursion، لأن الرقم له خانات</label>
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>هل الناتج متخزن وبيتعمل عليه عملية بعد النداء؟</p></details>
+    <details><summary>الشرح والحل</summary><p>الاختيار الأول. تحويل الحرف حصل قبل النداء. الناتج بيرجع كما هو. تحويل الحرف مش «انتظار نتيجة متداخلة».</p></details>
+  </article>
+
+  <article class="exercise" id="ex8">
+    <header><h3>8. ميّز دور القوس</h3><span class="badge">متوسط</span></header>
+    <p>السطر <span class="term">sub_str, next_index = helper(index + 1, 0, "")</span>.</p>
+    <form class="quiz" data-answer="b">
+      <label><input type="radio" name="ex8" value="a"> Continuation، لأن فيه return في سطر تاني تحتيه</label>
+      <label><input type="radio" name="ex8" value="b"> Result Processing للنداء ده. النداء اللي بعده ممكن يبقى continuation</label>
+      <label><input type="radio" name="ex8" value="c"> Base case للنطاق الخارجي</label>
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>الناتج متفّك في متغيرين قبل أي تكملة.</p></details>
+    <details><summary>الشرح والحل</summary><p>الاختيار الثاني. نفس الإطار بيستخدم الدورين واحد بعد التاني. متسميّش الإطار كله باسم نداء واحد منهم.</p></details>
+  </article>
+
+  <article class="exercise" id="ex9">
+    <header><h3>9. حدّد tail position</h3><span class="badge">متوسط</span></header>
+    <form class="quiz" data-answer="a">
+      <label><input type="radio" name="ex9" value="a"> <span class="term">return print_down(n - 1)</span> بعد الطباعة</label>
+      <label><input type="radio" name="ex9" value="b"> <span class="term">print_up(n - 1)</span> وبعديه print</label>
+      <label><input type="radio" name="ex9" value="c"> <span class="term">return n * fact(n - 1)</span></label>
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>دور على سطر مفيش فيه عملية بتستخدم الناتج بعد الرجوع.</p></details>
+    <details><summary>الشرح والحل</summary><p>الاختيار الأول. التاني فيه طباعة مؤجلة. التالت فيه ضرب مؤجل. وكون الأول tail مش بيخلّي Python تلغي الإطار.</p></details>
+  </article>
+
+  <article class="exercise" id="ex10">
+    <header><h3>10. ناتج أول قوس مقفل</h3><span class="badge">صعب</span></header>
+    <p>في <span class="term">3[a2[c]]</span>، أول ما التنفيذ يوصل لأول <span class="term">']'</span>، الزوج الراجع إيه؟ اكتب النص ثم فاصلة ثم الرقم، من غير أقواس، زي <span class="term">c, 7</span>.</p>
+    <form class="quiz" data-answer="c, 7|c,7|(&quot;c&quot;, 7)|('c', 7)|(&quot;c&quot;,7)">
+      <input data-input type="text" aria-label="إجابة التمرين 10">
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>جوه أعمق قوس النص لسه <span class="term">c</span>، والـ index بتاع القوس المقفل هو 6، والراجع بيعدّي القوس.</p></details>
+    <details><summary>الشرح والحل</summary><p><span class="term">c, 7</span>. التكرار مرتين بيحصل بعد الرجوع في الإطار اللي شاف القوس المفتوح، مش في سطر الإغلاق.</p></details>
+  </article>
+
+  <article class="exercise" id="ex11">
+    <header><h3>11. عدد نداءات fib</h3><span class="badge">صعب</span></header>
+    <p>كام نداء بيعمله <span class="term">fib(4)</span> في النسخة اللي من غير memo، بما فيها النداء الأصلي؟ <span class="term">fib(0)</span> و <span class="term">fib(1)</span> كل واحد نداء.</p>
+    <form class="quiz" data-answer="9">
+      <input data-input type="text" aria-label="إجابة التمرين 11">
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>fib(2) ثلاثة نداءات. fib(3) خمسة. اجمع فرعي fib(4).</p></details>
+    <details><summary>الشرح والحل</summary><p>9 نداءات، والناتج 3. الشجرة بتعيد fib(2) و fib(1) و fib(0). العمق مش 9. العمق أطول مسار.</p></details>
+  </article>
+
+  <article class="exercise" id="ex12">
+    <header><h3>12. إلغاء الاختيار</h3><span class="badge">صعب</span></header>
+    <p>في subsets، بعد ما تجرب تضم <span class="term">nums[i]</span> وترجع من النداء، إيه اللازم قبل تجربة الاستبعاد؟</p>
+    <form class="quiz" data-answer="b">
+      <label><input type="radio" name="ex12" value="a"> تزود i من غير ما تلمس المسار</label>
+      <label><input type="radio" name="ex12" value="b"> <span class="term">path.pop()</span> عشان تلغي القرار</label>
+      <label><input type="radio" name="ex12" value="c"> تمسح result كلها</label>
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>المسار list واحدة مشتركة بين النداءات.</p></details>
+    <details><summary>الشرح والحل</summary><p>الاختيار الثاني. من غير pop، الاستبعاد يشتغل والمسار لسه فيه العنصر. ونسخ <span class="term">path[:]</span> عند الورقة جزء تاني من الصحة.</p></details>
+  </article>
+
+  <article class="exercise" id="ex13">
+    <header><h3>13. شرط الـ index</h3><span class="badge">متوسط</span></header>
+    <p>دالة بتقرأ نص من موضع i وبتقف عند النهاية. أنهي شرط يوقف قبل ما يقرأ بره النص؟</p>
+    <form class="quiz" data-answer="a">
+      <label><input type="radio" name="ex13" value="a"> <span class="term">if i &gt;= len(s)</span></label>
+      <label><input type="radio" name="ex13" value="b"> <span class="term">if i &gt; len(s)</span></label>
+      <label><input type="radio" name="ex13" value="c"> <span class="term">if i == len(s) - 1</span> من غير حالة للفاضي</label>
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>آخر موضع صالح هو len - 1. أول موضع غير صالح هو len.</p></details>
+    <details><summary>الشرح والحل</summary><p>الاختيار الأول. الشرط التاني يسمح بنداء عند i == len. الشرط التالت على النص الفاضي يبقى -1 ومش بيوصل له لو بتزيد i من صفر.</p></details>
+  </article>
+
+  <article class="exercise" id="ex14">
+    <header><h3>14. اكتب العكس، وتوقع ناتجه</h3><span class="badge">متوسط</span></header>
+    <p>المطلوب دالة recursive ترجع النص معكوس. قبل ما تكتبها، لو الحل هيبقى «عكس الباقي ثم ضم أول حرف في الآخر»، ناتج <span class="term">rev("abc")</span> إيه؟</p>
+    <form class="quiz" data-answer="cba">
+      <input data-input type="text" aria-label="إجابة التمرين 14">
+      <button type="button" data-check>تحقق</button>
+      <p class="quiz-msg" hidden></p>
+    </form>
+    <details><summary>تلميح</summary><p>rev("bc") لو اشتغلت ترجع cb، وبعدين تضيف a في الآخر.</p></details>
+    <details><summary>الشرح والحل</summary>
+      <p>الناتج <span class="term">cba</span>. الحل، والنداء فيه معالجة نتيجة لأنه بيلصق الحرف بعد الرجوع:</p>
+      <div class="code-block"><div class="code-bar"><span>Python</span><span class="spacer"></span></div>
+<pre><code class="py">def rev(s):
+    if len(s) &lt;= 1:
+        return s
+    return rev(s[1:]) + s[0]
+</code></pre></div>
+      <p>التقدم: طول النص بيقل واحد. الحدود: فاضي أو حرف واحد يرجع نفسه. الزمن أسوأ من O(n) بسبب نسخ الشرائح واللصق. نسخة بـ indexين بتوضح نفس الفكرة من غير نسخ في كل مستوى، ولو عايز تجمع الناتج في معامل هتنقل الشغل لقبل النداء.</p>
+    </details>
+  </article>
+
+  <aside class="takeaways">
+    <h3>الخلاصة</h3>
+    <p>لو تخمين المخرجات اختلف عن التشغيل، ارجع لجدول الفصل 3 أو لجدول Decode String. الفرق غالبًا في سطر مؤجل أو في index راجع.</p>
+  </aside>
+</section>
+
+<section class="chapter" id="ch12">
+  <header class="chapter-head">
+    <p class="kicker">Chapter 12</p>
+    <h2>Revision and Quick Reference</h2>
+  </header>
+  <p class="objective"><strong>هدف التعلم:</strong> ترجع للصفحة دي وأنت بتراجع مسألة، وتلاقي القرار والمصطلح والتحذير في مكان واحد.</p>
+
+  <h3>ورقة المراجعة</h3>
+  <div class="cheat">
+    <ol class="q-list">
+      <li>اكتب الـ state في جملة: إيه اللي لو عرفته، تعرف تكمل.</li>
+      <li>اكتب أصغر مدخل وإجابته.</li>
+      <li>اكتب إيه اللي بيتغير كل نداء، واتأكد إنه يقرّب من الشرط.</li>
+      <li>حدد قبل النداء / انتظار / بعد النداء.</li>
+      <li>لو في انتظار، حدّد شكل الـ return. لو في موضع لازم يستأنف، رجّعه مع الناتج.</li>
+      <li>لو مفيش شغل بعد النداء، الموضع tail. في Python الإطار لسه موجود.</li>
+      <li>لو في فرعين بيتنفذوا، ارسم الشجرة على مدخل صغير وعدّ التكرار.</li>
+      <li>لو في تعديل مؤقت، اكتب سطر إلغائه قبل ما تكتب سطر التجربة التانية.</li>
+      <li>اتتبع مدخل من 3 إلى 8 خطوات بإيدك، وبعدين شغّل الحدود.</li>
+      <li>قدّر عدد النداءات وعمق أطول سلسلة وتكلفة النسخ.</li>
+    </ol>
+  </div>
+
+  <h3>جدول المقارنة</h3>
+  <div class="table-wrap">
+    <p class="hint-scroll">اسحب الجدول أفقيًا لو الشاشة ضيقة.</p>
+    <table>
+      <thead>
+        <tr><th>المفهوم</th><th>بيجاوب على</th><th>علامة في الكود</th><th>متخلطوش مع</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Progress</td><td>هل هنوصل لشرط التوقف؟</td><td>معامل بيتغير ناحية الشرط</td><td>دور الاستمرار. التقدم شرط على أي دور</td></tr>
+        <tr><td>Continuation / State-Progression</td><td>مسؤولية النداء إيه؟</td><td>تحديث ثم return للنتيجة كما هي</td><td>Tail recursion كتصنيف موضع. ساعات بيجتمعوا</td></tr>
+        <tr><td>Result Processing</td><td>هل الناتج هيتعمله حساب؟</td><td>الناتج في متغير أو في عملية</td><td>قرار بين فرعين. factorial بتعالج نتيجة من غير اختيار</td></tr>
+        <tr><td>Tail position</td><td>في pending work؟</td><td>النداء آخر فعل وناتجه مش مستخدم في عملية</td><td>توفير stack في Python. CPython من غير TCO</td></tr>
+        <tr><td>Branching</td><td>أنهي subproblem يتنفّذ؟</td><td>شروط بتختار نداء واحد</td><td>Tree recursion. البحث الثنائي فرع واحد</td></tr>
+        <tr><td>Tree recursion</td><td>كام نداء بيتنفذ من الإطار؟</td><td>نداءين أو أكتر بيتنفذوا</td><td>مساحة أسية. المساحة تتبع العمق</td></tr>
+        <tr><td>Divide and conquer</td><td>إزاي نقسم وندمج؟</td><td>تقسيم، نداءات، دمج</td><td>إنه دائمًا بينفّذ كل الفروع بحجم n. البحث الثنائي تقسيم بفرع واحد</td></tr>
+        <tr><td>Backtracking</td><td>إزاي أجرب وأرجّع؟</td><td>تعديل، نداء، إلغاء</td><td>تعديل من غير إلغاء. المسار هيتلوث</td></tr>
+        <tr><td>Parsing متداخل</td><td>مين قافل النطاق ده؟</td><td>نداء داخلي يرجع ناتج وموضع</td><td>إن كل قوس يبقى continuation. أحيانًا العمق بس يمشي في المعاملات</td></tr>
+        <tr><td>Memoization</td><td>هل نفس الحالة اتكررت؟</td><td>جدول قبل النداء العودي</td><td>قاموس افتراضي مشترك على مستوى الدالة</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>دليل اختيار سريع</h3>
+  <div class="table-wrap">
+    <table class="compact">
+      <thead><tr><th>لو المسألة شكلها</th><th>ابدأ من</th></tr></thead>
+      <tbody>
+        <tr><td>عنصر وباقي زي بعض</td><td>Linear recursion. اسأل بعد كده: الناتج هيترجع ولا يتجمع في معامل؟</td></tr>
+        <tr><td>نصفين مستقلين ودمج</td><td>Divide and conquer. قِس التوازن والعمق</td></tr>
+        <tr><td>اختيار نصف واحد مرتب</td><td>Branching بفرع واحد، غالبًا tail position، عمق لوغاريتمي</td></tr>
+        <tr><td>أولاد عقدة أو جيران</td><td>Traversal. في الرسم سجّل اللي اتزار</td></tr>
+        <tr><td>ولّد كل التكوينات تحت قيد</td><td>Backtracking. اكتب الإلغاء جنب التجربة</td></tr>
+        <tr><td>نطاق جوه نطاق وله ناتج</td><td>Parsing. ارجع الناتج والموضع. راجع الفصل 8</td></tr>
+        <tr><td>نفس الحالة بتتطلب كتير</td><td>Memoization بعد ما التتبع يثبت التكرار</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>قائمة مراجعة الحل</h3>
+  <ul class="q-list">
+    <li>الـ base case صحيح على المدخل الفاضي وعلى الوحدة الصغيرة.</li>
+    <li>كل مسار فيه progress يوصل للشرط.</li>
+    <li>المعاملات كافية عشان النداء الجاي يشتغل من غير ما يخمن.</li>
+    <li>الـ return فيه كل اللي المستدعي هيكمل بيه.</li>
+    <li>الشغل المؤجل مكتوب بعد النداء فعلًا، ومش بالغلط قبله.</li>
+    <li>التعديل المؤقت بيرجع.</li>
+    <li>تتبع يدوي يتفق مع تشغيل مثال واحد على الأقل.</li>
+    <li>عمق السلسلة مقبول لحد Python، أو في نسخة بـ stack صريح.</li>
+    <li>تكلفة نسخ النصوص والقوائم داخلة في حساب الزمن.</li>
+  </ul>
+
+  <h3>أخطاء تستاهل تتجنبها</h3>
+  <ul class="q-list">
+    <li>اعتبار Action و Decision تصنيفين رسميين. هما ألفاظ تعليمية غير معيارية، والمرجع مش بيستخدمهم.</li>
+    <li>مساواة التقدم بدور الاستمرار.</li>
+    <li>مساواة معالجة النتيجة بقرار بين فرعين.</li>
+    <li>مساواة continuation بمصطلح tail recursion.</li>
+    <li>افتراض إن tail position في Python معناها مساحة stack ثابتة.</li>
+    <li>تصنيف كل خوارزمية في خانة واحدة من الفصل 7.</li>
+    <li>كتابة base case باتجاه تحديث عكس الشرط.</li>
+    <li>نسيان الـ index في ناتج النطاق المتداخل.</li>
+    <li>نسيان نسخ المسار أو إلغاء الاختيار في الـ backtracking.</li>
+    <li>قاموس memo كقيمة افتراضية للمعامل.</li>
+  </ul>
+
+  <h3>مسرد</h3>
+  <div class="table-wrap">
+    <table class="compact">
+      <thead><tr><th>المصطلح</th><th>المعنى المستخدم هنا</th></tr></thead>
+      <tbody>
+        <tr><td>Recursion</td><td>حل المسألة بنداء على نسخة أقرب لنفس النوع، مع حفظ الإطارات</td></tr>
+        <tr><td>Base Case</td><td>حالة بتخلّص من غير recursive call</td></tr>
+        <tr><td>Recursive Case</td><td>الحالة اللي لسه بتطلب نداء</td></tr>
+        <tr><td>Call Stack</td><td>سلسلة الإطارات المفتوحة، آخر واحد اتفتح فوق</td></tr>
+        <tr><td>Stack Frame</td><td>معاملات ومتغيرات النداء الواحد، ومكان الرجوع</td></tr>
+        <tr><td>Descent</td><td>الطريق من أول نداء لحد الـ base case</td></tr>
+        <tr><td>Unwinding</td><td>تنفيذ الشغل المؤجل من الأعمق للأقدم</td></tr>
+        <tr><td>Progress</td><td>تغيّر الحالة ناحية شرط توقف ممكن يتحقق</td></tr>
+        <tr><td>State</td><td>القيم اللي بتوصف إحنا فين في المسألة</td></tr>
+        <tr><td>Continuation / State-Progression Role</td><td>عنوان تعلم: حدّث الحالة وسلّمها وارجع الناتج كما هو</td></tr>
+        <tr><td>Recursive-Result Processing Role</td><td>عنوان تعلم: استنى الناتج، عالجه، وبعدين كمّل</td></tr>
+        <tr><td>Tail Position</td><td>النداء آخر فعل، ومفيش استخدام لناتجه في عملية بعده</td></tr>
+        <tr><td>Tail Recursion</td><td>وصف لنداء في tail position. في CPython من غير إلغاء للإطار</td></tr>
+        <tr><td>Non-Tail Recursion</td><td>في pending work بعد النداء</td></tr>
+        <tr><td>Pending Work</td><td>حساب أو أثر لازم يتنفذ بعد الرجوع</td></tr>
+        <tr><td>TCO</td><td>Tail Call Optimization. مش موجودة في CPython</td></tr>
+        <tr><td>Linear Recursion</td><td>نداء واحد بيتنفذ في كل مستوى، في سلسلة</td></tr>
+        <tr><td>Branching Recursion</td><td>اختيار بين نداءات، وممكن نداء واحد بس هو اللي يتنفذ</td></tr>
+        <tr><td>Tree Recursion</td><td>أكتر من نداء بيتنفذوا من نفس الإطار</td></tr>
+        <tr><td>Divide and Conquer</td><td>قسّم، حل الأجزاء، ادمج</td></tr>
+        <tr><td>Backtracking</td><td>جرّب قرار، كمّل، ارجعه، جرّب غيره</td></tr>
+        <tr><td>Memoization</td><td>حفظ ناتج حالة اتحسبت، عشان التكرار</td></tr>
+        <tr><td>Recursive DP</td><td>recursion على حالات متداخلة مع تخزين، غالبًا بعد ما التكرار يبان</td></tr>
+        <tr><td>Stack Overflow</td><td>هنا غالبًا RecursionError لما العمق يعدي الحد</td></tr>
+        <tr><td>Mutual Recursion</td><td>دالتين أو أكتر كل واحدة بتوصل للتانية في دائرة</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside class="takeaways">
+    <h3>الخلاصة</h3>
+    <p>لما تقف قدام مسألة: سمّ الـ state، سمّ أصغر حل، سمّ شغل الإطار قبل الانتظار وبعده، وتتبع مثال صغير بإيدك. الأسماء في الجدول تساعدك توصف اللي حصل، وهي مش بديل عن التتبع.</p>
+  </aside>
+</section>
+
+    </div>
+  </main>
+</div>
+<button class="to-top" type="button" id="toTop">أعلى</button>
+<footer class="site">الأمثلة مُراجَعة على Python 3. الملف يشتغل من غير إنترنت.</footer>
+<script>
+(function () {
+  const root = document.documentElement;
+  const themeBtn = document.getElementById("themeBtn");
+  const progress = document.getElementById("progress");
+  const sidebar = document.getElementById("sidebar");
+  const menuBtn = document.getElementById("menuBtn");
+  const backdrop = document.getElementById("backdrop");
+  const tocLinks = Array.from(document.querySelectorAll("#toc a"));
+
+  function applyTheme(theme) {
+    root.dataset.theme = theme;
+    const dark = theme === "dark";
+    themeBtn.textContent = dark ? "الوضع الفاتح" : "الوضع الداكن";
+    themeBtn.setAttribute("aria-pressed", String(dark));
+  }
+  let saved = null;
+  try { saved = localStorage.getItem("recursion-theme"); } catch (e) {}
+  const initial = saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  applyTheme(initial);
+  themeBtn.addEventListener("click", function () {
+    const next = root.dataset.theme === "dark" ? "light" : "dark";
+    applyTheme(next);
+    try { localStorage.setItem("recursion-theme", next); } catch (e) {}
+  });
+
+  const toTop = document.getElementById("toTop");
+  function onScroll() {
+    const h = document.documentElement;
+    const y = window.scrollY || h.scrollTop || document.body.scrollTop || 0;
+    const max = Math.max(h.scrollHeight, document.body.scrollHeight) - window.innerHeight;
+    progress.style.width = (max > 0 ? (y / max) * 100 : 0) + "%";
+    toTop.classList.toggle("show", y > 700);
+  }
+  document.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+  document.getElementById("toTop").addEventListener("click", function () {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  function closeMenu() {
+    sidebar.classList.remove("open");
+    backdrop.classList.remove("show");
+    backdrop.hidden = true;
+    menuBtn.setAttribute("aria-expanded", "false");
+  }
+  function openMenu() {
+    sidebar.classList.add("open");
+    backdrop.hidden = false;
+    backdrop.classList.add("show");
+    menuBtn.setAttribute("aria-expanded", "true");
+  }
+  menuBtn.addEventListener("click", function () {
+    if (sidebar.classList.contains("open")) closeMenu();
+    else openMenu();
+  });
+  backdrop.addEventListener("click", closeMenu);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeMenu();
+  });
+  sidebar.addEventListener("click", function (e) {
+    if (e.target.closest("a")) closeMenu();
+  });
+
+  const sections = tocLinks.map(function (a) {
+    const id = a.getAttribute("href").slice(1);
+    return { a: a, el: document.getElementById(id) };
+  }).filter(function (x) { return x.el; });
+  if ("IntersectionObserver" in window) {
+    const obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        const id = entry.target.id;
+        tocLinks.forEach(function (a) {
+          a.classList.toggle("active", a.getAttribute("href") === "#" + id);
+        });
+      });
+    }, { rootMargin: "-20% 0px -70% 0px", threshold: 0.01 });
+    sections.forEach(function (s) { obs.observe(s.el); });
+  }
+
+  const KW = new Set("def return if elif else class and or not in for while True False None pass lambda from import as with yield break continue try except raise global nonlocal".split(" "));
+  function esc(t) {
+    return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function highlightPython(src) {
+    let i = 0, out = "", n = src.length;
+    while (i < n) {
+      if (src[i] === "#") {
+        let j = i;
+        while (j < n && src[j] !== "\n") j++;
+        out += '<span class="tok-cmt">' + esc(src.slice(i, j)) + "</span>";
+        i = j;
+        continue;
+      }
+      if (src[i] === '"' || src[i] === "'") {
+        const q = src[i];
+        if (src.startsWith(q + q + q, i)) {
+          let j = i + 3;
+          while (j < n && !src.startsWith(q + q + q, j)) j++;
+          j = Math.min(n, j + 3);
+          out += '<span class="tok-str">' + esc(src.slice(i, j)) + "</span>";
+          i = j;
+          continue;
+        }
+        let j = i + 1;
+        while (j < n && src[j] !== q) {
+          if (src[j] === "\\") j += 2;
+          else j++;
+        }
+        if (j < n) j++;
+        out += '<span class="tok-str">' + esc(src.slice(i, j)) + "</span>";
+        i = j;
+        continue;
+      }
+      if (/[0-9]/.test(src[i]) && (i === 0 || !/[A-Za-z_]/.test(src[i - 1]))) {
+        let j = i;
+        while (j < n && /[0-9]/.test(src[j])) j++;
+        out += '<span class="tok-num">' + esc(src.slice(i, j)) + "</span>";
+        i = j;
+        continue;
+      }
+      if (/[A-Za-z_]/.test(src[i])) {
+        let j = i;
+        while (j < n && /[A-Za-z0-9_]/.test(src[j])) j++;
+        const word = src.slice(i, j);
+        let k = j;
+        while (k < n && (src[k] === " " || src[k] === "\t")) k++;
+        if (KW.has(word)) out += '<span class="tok-kw">' + esc(word) + "</span>";
+        else if (src[k] === "(") out += '<span class="tok-fn">' + esc(word) + "</span>";
+        else out += esc(word);
+        i = j;
+        continue;
+      }
+      out += esc(src[i]);
+      i++;
+    }
+    return out;
+  }
+
+  function legacyCopy(text) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "0";
+    ta.style.left = "0";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+    ta.remove();
+    if (!ok) throw new Error("copy failed");
+  }
+
+  document.querySelectorAll("pre > code.py").forEach(function (code) {
+    const raw = code.textContent.replace(/\n$/, "");
+    code.dataset.raw = raw;
+    code.innerHTML = highlightPython(raw);
+    const pre = code.parentElement;
+    const block = pre.parentElement;
+    if (!block.classList.contains("code-block")) return;
+    const bar = block.querySelector(".code-bar");
+    if (!bar || bar.querySelector(".copy-btn")) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "copy-btn";
+    btn.textContent = "نسخ";
+    btn.addEventListener("click", function () {
+      const text = code.dataset.raw;
+      let settled = false;
+      function finish(ok) {
+        if (settled) return;
+        settled = true;
+        btn.textContent = ok ? "تم النسخ" : "تعذر النسخ";
+        setTimeout(function () { btn.textContent = "نسخ"; }, 1400);
+      }
+      let legacyOk = false;
+      try { legacyCopy(text); legacyOk = true; } catch (err) { legacyOk = false; }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function () { finish(true); }).catch(function () { finish(legacyOk); });
+        return;
+      }
+      finish(legacyOk);
+    });
+    bar.appendChild(btn);
+  });
+
+  document.querySelectorAll("[data-tabs]").forEach(function (widget) {
+    const tabs = Array.from(widget.querySelectorAll('[role="tab"]'));
+    const panels = Array.from(widget.querySelectorAll('[role="tabpanel"]'));
+    function select(index) {
+      tabs.forEach(function (tab, i) {
+        const on = i === index;
+        tab.setAttribute("aria-selected", String(on));
+        tab.tabIndex = on ? 0 : -1;
+        panels[i].hidden = !on;
+      });
+    }
+    tabs.forEach(function (tab, i) {
+      tab.addEventListener("click", function () { select(i); tab.focus(); });
+      tab.addEventListener("keydown", function (e) {
+        let next = null;
+        if (e.key === "ArrowLeft" || e.key === "ArrowDown") next = (i + 1) % tabs.length;
+        if (e.key === "ArrowRight" || e.key === "ArrowUp") next = (i - 1 + tabs.length) % tabs.length;
+        if (e.key === "Home") next = 0;
+        if (e.key === "End") next = tabs.length - 1;
+        if (next === null) return;
+        e.preventDefault();
+        select(next);
+        tabs[next].focus();
+      });
+    });
+    select(0);
+  });
+
+  const steppers = {
+    countdown: [
+      { stack: [], out: [], text: "لسه مناديناش countdown. هنبدأ بـ n = 3. كل call جديدة هتتحط فوق الـ stack، واللي قبلها يفضل مستني." },
+      { stack: ["#1  n = 3  · قبل النداء"], out: ["before 3"], phase: "نزول", text: "Call #1 دخلت. n مش صفر، فبتطبع before 3 وبعدين هتنادي countdown(2). الطباعة دي حصلت قبل الـ recursive call." },
+      { stack: ["#2  n = 2  · قبل النداء", "#1  n = 3  · مستنية"], out: ["before 3", "before 2"], phase: "نزول", text: "Call #2 اتفتحت وفوقها n = 2. #1 لسه على الـ stack لأن شغلها بعد الرجوع لسه ما اتنفذش." },
+      { stack: ["#3  n = 1  · قبل النداء", "#2  n = 2  · مستنية", "#1  n = 3  · مستنية"], out: ["before 3", "before 2", "before 1"], phase: "نزول", text: "النزول لسه ما وصلش للـ base. n بيقل واحد كل مرة، وده هو الـ progress." },
+      { stack: ["#4  n = 0  · base", "#3  n = 1  · مستنية", "#2  n = 2  · مستنية", "#1  n = 3  · مستنية"], out: ["before 3", "before 2", "before 1", "done"], phase: "Base", text: "Call #4 وصلت n = 0. بتطبع done وبترجع من غير نداء جديد. الـ base case اتنفّذ لأن الـ progress وصّلنا له." },
+      { stack: ["#3  n = 1  · بعد الرجوع", "#2  n = 2  · مستنية", "#1  n = 3  · مستنية"], out: ["before 3", "before 2", "before 1", "done", "after 1"], phase: "رجوع", text: "#4 اتقفلت. #3 كملت السطر اللي بعد النداء: print after 1. الطباعة دي بتظهر وقت الـ unwinding." },
+      { stack: ["#2  n = 2  · بعد الرجوع", "#1  n = 3  · مستنية"], out: ["before 3", "before 2", "before 1", "done", "after 1", "after 2"], phase: "رجوع", text: "#3 رجعت، فـ #2 تطبع after 2. الترتيب معكوس عن النزول: آخر call اتفتحت هي أول واحدة بتكمّل شغلها المؤجّل." },
+      { stack: ["#1  n = 3  · بعد الرجوع"], out: ["before 3", "before 2", "before 1", "done", "after 1", "after 2", "after 3"], phase: "رجوع", text: "#1 تطبع after 3 وبعدين ترجع. الـ stack فاضي. المخرجات الكاملة: before من الكبير للصغير، ثم done، ثم after من الصغير للكبير." }
+    ],
+    decode: [
+      { stack: [], out: [], text: "المدخل 3[a2[c]]. الناتج المتوقع accaccacc. هنمشي call بـ call ونسمي مسؤولية كل واحدة." },
+      { stack: ["#1 i=0 '3' num=0 str=''  Continuation"], out: [], phase: "Continuation", text: "الحرف رقم. بنحدّث current_num إلى 0*10+3 = 3، وبنعمل return helper(1, 3, ''). مفيش شغل بعد النداء. الدور: استمرار الحالة. الموضع: tail position." },
+      { stack: ["#2 i=1 '[' num=3 str=''  تستنى نتيجة", "#1 i=0 مستنية"], out: [], phase: "Result Processing", text: "القوس المفتوح بيبدأ subproblem. #2 بتنادي helper(2, 0, '') وبتستنى. الرقم 3 محفوظ في الـ frame دي عشان التكرار بعدين. داخل القوس الرقم والـ string بيصفّروا." },
+      { stack: ["#3 i=2 'a' num=0 str=''  Continuation", "#2 مستنية الداخل", "#1"], out: [], phase: "Continuation", text: "الحرف a مش رقم ومش قوس. بنضيفه ونكمّل: return helper(3, 0, 'a')." },
+      { stack: ["#4 i=3 '2' num=0 str='a'  Continuation", "#3", "#2", "#1"], out: [], phase: "Continuation", text: "الرقم 2 بيتبنى لوحده جوه المستوى الداخلي: return helper(4, 2, 'a')." },
+      { stack: ["#5 i=4 '[' num=2 str='a'  تستنى نتيجة", "#4", "#3", "#2", "#1"], out: [], phase: "Result Processing", text: "قوس متداخل. #5 بتستنى helper(5, 0, ''). الرقم 2 فاضل في #5 عشان يكرر الناتج الداخلي." },
+      { stack: ["#6 i=5 'c' Continuation", "#5 مستنية", "#4", "#3", "#2", "#1"], out: [], phase: "Continuation", text: "بنضيف c: return helper(6, 0, 'c')." },
+      { stack: ["#7 i=6 ']' str='c'  إغلاق", "#6", "#5", "#4", "#3", "#2", "#1"], out: ["أول إغلاق: ('c', 7)"], phase: "إغلاق", text: "أول ']' بتقفل المستوى الداخلي العميق. مفيش recursive call. الإرجاع ('c', 7). الـ index الراجع هو بعد القوس، يعني 7." },
+      { stack: ["#8 i=7 ']' str='acc'  إغلاق", "#5 لسه مستنية الـ tail call", "#4", "#3", "#2", "#1"], out: ["('c', 7) رجع لـ #5", "('acc', 8)"], phase: "دمج ثم إغلاق", text: "#5 استلمت sub_str='c' و next_index=7. دمجت 'a' + 'c'*2 = 'acc' ونادت helper(7, 0, 'acc'). الحرف عند 7 هو ']' التانية، فـ #8 بترجع ('acc', 8). في Python الـ frame #5 لسه موجودة لأن مفيش TCO." },
+      { stack: ["#9 i=8 END str='accaccacc'", "#2", "#1"], out: ["('acc', 8) رجع لـ #2", "('accaccacc', 8)"], phase: "Base", text: "#8 رجعت عبر #5 و #4 و #3 لـ #2. #2 دمجت '' + 'acc'*3 ونادت helper(8, 0, 'accaccacc'). الـ index وصل لنهاية النص، فـ #9 بترجع نفس النص مع index 8." },
+      { stack: [], out: ["الناتج: accaccacc"], phase: "النتيجة", text: "الـ return الأخير بيطلع من #9 لـ #2 لـ #1، والمستدعي ياخد العنصر [0] فقط. ترتيب انتهاء المستويات المتداخلة: القوس الداخلي خلّص الأول ('c')، ثم المستوى الأوسط ('acc')، ثم المستوى الخارجي ('accaccacc')." }
+    ]
+  };
+
+  document.querySelectorAll("[data-stepper]").forEach(function (box) {
+    const steps = steppers[box.dataset.stepper];
+    if (!steps) return;
+    let i = 0;
+    const stackEl = box.querySelector("[data-stack]");
+    const copyEl = box.querySelector("[data-copy]");
+    const outEl = box.querySelector("[data-output]");
+    const countEl = box.querySelector("[data-count]");
+    function render() {
+      const step = steps[i];
+      stackEl.innerHTML = "";
+      if (!step.stack.length) {
+        const empty = document.createElement("p");
+        empty.className = "stack-label";
+        empty.textContent = "الـ stack فاضي";
+        stackEl.appendChild(empty);
+      }
+      step.stack.forEach(function (label, idx) {
+        const frame = document.createElement("div");
+        frame.className = "frame" + (idx === 0 ? " top" : "");
+        frame.dir = "ltr";
+        const name = document.createElement("strong");
+        name.textContent = label;
+        frame.appendChild(name);
+        stackEl.appendChild(frame);
+      });
+      copyEl.innerHTML = "";
+      if (step.phase) {
+        const b = document.createElement("span");
+        b.className = "badge";
+        b.textContent = step.phase;
+        copyEl.appendChild(b);
+      }
+      const p = document.createElement("p");
+      p.textContent = step.text;
+      copyEl.appendChild(p);
+      outEl.innerHTML = "";
+      step.out.forEach(function (line) {
+        const li = document.createElement("li");
+        li.textContent = line;
+        outEl.appendChild(li);
+      });
+      countEl.textContent = (i + 1) + " / " + steps.length;
+    }
+    box.addEventListener("click", function (e) {
+      const act = e.target.getAttribute && e.target.getAttribute("data-act");
+      if (!act) return;
+      if (act === "next") i = Math.min(steps.length - 1, i + 1);
+      if (act === "prev") i = Math.max(0, i - 1);
+      if (act === "reset") i = 0;
+      render();
+    });
+    render();
+  });
+
+  document.querySelectorAll("form.quiz").forEach(function (form) {
+    const msg = form.querySelector(".quiz-msg");
+    const btn = form.querySelector("[data-check]");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      const accepted = (form.dataset.answer || "").split("|").map(function (s) {
+        return s.trim().replace(/\s+/g, " ").toLowerCase();
+      });
+      let value = "";
+      const field = form.querySelector("[data-input]");
+      if (field) value = field.value;
+      const chosen = form.querySelector("input[type=radio]:checked");
+      if (chosen) value = chosen.value;
+      const norm = value.trim().replace(/\s+/g, " ").toLowerCase();
+      const good = accepted.indexOf(norm) !== -1;
+      msg.hidden = false;
+      msg.className = "quiz-msg " + (good ? "ok" : "bad");
+      msg.textContent = good ? "إجابة مظبوطة." : "لسه لأ. افتح التلميح أو راجع التتبع، وبعدين حاول تاني.";
+    });
+  });
+})();
+</script>
+</body>
+</html>
