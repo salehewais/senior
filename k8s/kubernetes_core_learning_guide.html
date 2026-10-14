@@ -1,0 +1,2330 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kubernetes من الأساس — Architecture والنشر العملي</title>
+<script>
+try {
+  var savedTheme = localStorage.getItem("k8s-core-guide-theme");
+  var theme = savedTheme === "light" || savedTheme === "dark"
+    ? savedTheme
+    : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.setAttribute("data-theme", theme);
+} catch (e) {
+  document.documentElement.setAttribute("data-theme", "light");
+}
+</script>
+<style>
+  :root {
+    --bg: #f3f5f8;
+    --surface: #ffffff;
+    --surface-2: #f7f9fb;
+    --ink: #17202b;
+    --muted: #5c6b7c;
+    --line: #d7e0ea;
+    --accent: #0e5f97;
+    --accent-ink: #ffffff;
+    --accent-soft: #e7f2fa;
+    --teal: #0d6b52;
+    --teal-soft: #e6f6f0;
+    --warn: #8a5600;
+    --warn-soft: #fff5e4;
+    --danger: #9d2c2c;
+    --danger-soft: #fdecec;
+    --code-bg: #12202e;
+    --code-ink: #e7eef6;
+    --shadow: 0 1px 2px rgba(18, 32, 48, 0.05), 0 10px 28px rgba(18, 32, 48, 0.05);
+    --sans: "Segoe UI", "Noto Naskh Arabic", "Noto Sans Arabic", "Geeza Pro", Tahoma, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+    --header-h: 4.25rem;
+    --radius: 14px;
+  }
+  [data-theme="dark"] {
+    --bg: #10161d;
+    --surface: #18212b;
+    --surface-2: #1e2934;
+    --ink: #e8eef5;
+    --muted: #a9b8c7;
+    --line: #314050;
+    --accent: #8dc6ff;
+    --accent-ink: #082033;
+    --accent-soft: #1a3348;
+    --teal: #8fe0c6;
+    --teal-soft: #16362e;
+    --warn: #f0c36a;
+    --warn-soft: #3a2d14;
+    --danger: #ffb4ae;
+    --danger-soft: #3e2224;
+    --code-bg: #0c141c;
+    --code-ink: #e7eef6;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 28px rgba(0, 0, 0, 0.22);
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 1.05rem;
+    line-height: 1.75;
+  }
+  code, .ltr, pre { unicode-bidi: isolate; }
+  a { color: var(--accent); }
+  a:hover { text-decoration: none; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .skip {
+    position: absolute;
+    inset-inline-start: 1rem;
+    top: -3rem;
+    background: var(--accent);
+    color: var(--accent-ink);
+    padding: 0.4rem 0.8rem;
+    z-index: 20;
+  }
+  .skip:focus { top: 0.5rem; }
+  .read-track {
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    height: 3px;
+    background: transparent;
+    z-index: 30;
+  }
+  #read-bar { height: 100%; width: 0; background: var(--accent); }
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .header-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0.7rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .brand { display: flex; flex-direction: column; min-width: 0; }
+  .brand strong { font-size: 1rem; line-height: 1.3; }
+  .brand span { color: var(--muted); font-size: 0.82rem; }
+  .header-actions { margin-inline-start: auto; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  button, .btn {
+    font: inherit;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 0.35rem 0.85rem;
+    cursor: pointer;
+  }
+  button:hover, .btn:hover { border-color: var(--accent); }
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 1rem;
+    display: grid;
+    grid-template-columns: 17.5rem minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+  }
+  .toc {
+    position: sticky;
+    top: calc(var(--header-h) + 0.6rem);
+    max-height: calc(100vh - var(--header-h) - 1.2rem);
+    overflow: auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.9rem 0.85rem;
+    box-shadow: var(--shadow);
+  }
+  .toc h2 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+  .toc ol { margin: 0; padding-inline-start: 1.15rem; }
+  .toc li { margin: 0.28rem 0; }
+  .toc a { text-decoration: none; color: var(--ink); font-size: 0.92rem; }
+  .toc a:hover { color: var(--accent); }
+  .progress-label { color: var(--muted); font-size: 0.82rem; margin: 0.7rem 0 0.3rem; }
+  .bar { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
+  #progress-bar { height: 100%; width: 0; background: var(--teal); }
+  main { min-width: 0; }
+  .hero, section, .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .hero { padding: 1.4rem 1.3rem 1.2rem; margin-bottom: 1rem; }
+  .kicker {
+    margin: 0 0 0.35rem;
+    color: var(--accent);
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    font-weight: 700;
+  }
+  h1 { margin: 0 0 0.4rem; font-size: clamp(1.7rem, 2.4vw, 2.35rem); line-height: 1.25; }
+  h2 { margin: 0 0 0.7rem; font-size: 1.45rem; line-height: 1.35; }
+  h3 { margin: 1.15rem 0 0.4rem; font-size: 1.15rem; }
+  section[id], h2[id], h3[id], .done, .quiz, article.q, .checklist label {
+    scroll-margin-top: 5.4rem;
+  }
+  h4 { margin: 0.9rem 0 0.3rem; font-size: 1rem; }
+  p { margin: 0.55rem 0; }
+  section { padding: 1.15rem 1.2rem 1.25rem; margin: 1rem 0; }
+  ul, ol { margin: 0.4rem 0 0.7rem; padding-inline-start: 1.25rem; }
+  li { margin: 0.25rem 0; }
+  .meta { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0.8rem 0; }
+  .pill {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.15rem 0.65rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .callout {
+    border: 1px solid var(--line);
+    border-inline-start: 4px solid var(--accent);
+    background: var(--accent-soft);
+    border-radius: 12px;
+    padding: 0.75rem 0.9rem;
+    margin: 0.8rem 0;
+  }
+  .callout.takeaway { border-inline-start-color: var(--teal); background: var(--teal-soft); }
+  .callout.warn { border-inline-start-color: var(--warn); background: var(--warn-soft); }
+  .callout.danger { border-inline-start-color: var(--danger); background: var(--danger-soft); }
+  .callout p:first-child { margin-top: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+  .grid-2, .grid-3 { display: grid; gap: 0.75rem; }
+  .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mini {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 0.75rem 0.85rem;
+  }
+  .mini h3 { margin-top: 0; }
+  .table-wrap { overflow-x: auto; margin: 0.8rem 0; border: 1px solid var(--line); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; min-width: 40rem; background: var(--surface); }
+  th, td { text-align: start; vertical-align: top; padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--line); }
+  th { background: var(--surface-2); font-size: 0.92rem; }
+  tr:last-child td { border-bottom: 0; }
+  pre.code {
+    direction: ltr;
+    text-align: left;
+    position: relative;
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border-radius: 12px;
+    padding: 0.9rem 0.95rem 0.85rem;
+    overflow-x: auto;
+    margin: 0.7rem 0;
+    line-height: 1.55;
+  }
+  pre.code code {
+    font-family: var(--mono);
+    font-size: 0.86rem;
+    color: inherit;
+    background: transparent;
+  }
+  .copy {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.45rem;
+    font-size: 0.78rem;
+    padding: 0.15rem 0.55rem;
+    background: #24384c;
+    color: #f4f8fc;
+    border-color: #3d5670;
+  }
+  p code, li code, td code, h3 code, summary code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.05rem 0.35rem;
+    direction: ltr;
+    display: inline-block;
+  }
+  .lang {
+    display: inline-block;
+    margin-bottom: -0.2rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+  figure.diagram {
+    margin: 0.9rem 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 0.8rem;
+    background: var(--surface-2);
+  }
+  figure.diagram figcaption { font-weight: 700; margin-bottom: 0.55rem; }
+  .diagram-note { color: var(--muted); font-size: 0.92rem; margin-bottom: 0; }
+  .arch, .flow, .chain, .nodes { display: grid; gap: 0.55rem; }
+  .box, .step, .node {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.45rem 0.6rem;
+  }
+  .box-main { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; text-align: center; }
+  .box-row, .chip-row, .node-bits { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .chip, .node-bits span {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.1rem 0.55rem;
+    background: var(--surface);
+    font-size: 0.88rem;
+  }
+  .arrow { text-align: center; color: var(--muted); font-size: 0.9rem; }
+  .chain { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .nodes { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .step-list { counter-reset: step; list-style: none; padding: 0; }
+  .step-list li {
+    counter-increment: step;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.55rem 0.7rem 0.55rem 0.7rem;
+    margin: 0.4rem 0;
+  }
+  .step-list li::before {
+    content: counter(step);
+    display: inline-grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-inline-end: 0.45rem;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+  .done {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    margin-top: 0.9rem;
+    padding-top: 0.7rem;
+    border-top: 1px dashed var(--line);
+    color: var(--muted);
+  }
+  .quiz { margin: 0.8rem 0; padding: 0.8rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+  .quiz label { display: block; margin: 0.35rem 0; }
+  .quiz label.is-right { background: var(--teal-soft); border-radius: 8px; }
+  .quiz label.is-wrong { background: var(--danger-soft); border-radius: 8px; }
+  .feedback { margin-top: 0.55rem; padding: 0.55rem 0.7rem; border-radius: 8px; }
+  .feedback.is-ok { background: var(--teal-soft); }
+  .feedback.is-bad { background: var(--danger-soft); }
+  .feedback.is-warn { background: var(--warn-soft); }
+  details { margin: 0.55rem 0; }
+  summary { cursor: pointer; font-weight: 700; }
+  .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.6rem 0 0.8rem; }
+  input[type="search"], select {
+    font: inherit;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.4rem 0.6rem;
+  }
+  input[type="search"] { min-width: min(100%, 16rem); }
+  article.q { border: 1px solid var(--line); border-radius: 12px; padding: 0.8rem 0.9rem; margin: 0.7rem 0; background: var(--surface-2); }
+  .q-head { display: flex; flex-direction: column; gap: 0.15rem; }
+  #to-top {
+    position: fixed;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    z-index: 20;
+    opacity: 0;
+    pointer-events: none;
+    font-size: 0.85rem;
+  }
+  body { padding-bottom: 4rem; }
+  #to-top.is-visible { opacity: 1; pointer-events: auto; }
+  .checklist label { display: flex; gap: 0.5rem; align-items: flex-start; margin: 0.35rem 0; }
+  footer.note { color: var(--muted); font-size: 0.92rem; padding: 0.2rem 0.2rem 2rem; }
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    .toc { position: static; max-height: none; display: none; }
+    .toc.is-open { display: block; }
+    .grid-2, .grid-3, .chain, .nodes { grid-template-columns: 1fr; }
+    table { min-width: 36rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+  @media print {
+    .site-header, .toc, #to-top, .copy, .read-track { display: none !important; }
+    .shell { display: block; max-width: none; }
+    section, .hero { break-inside: avoid; box-shadow: none; }
+    pre.code { white-space: pre-wrap; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">تخطي إلى المحتوى</a>
+<div class="read-track" aria-hidden="true"><div id="read-bar"></div></div>
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <strong>Kubernetes من الأساس</strong>
+      <span>مرجع دراسة ومقابلات · Intermediate</span>
+    </div>
+    <div class="header-actions">
+      <button type="button" id="toc-toggle" aria-expanded="false" aria-controls="toc">الفهرس</button>
+      <button type="button" id="theme-toggle" aria-pressed="false">الوضع الداكن</button>
+    </div>
+  </div>
+</header>
+<div class="shell">
+<nav class="toc" id="toc" aria-label="فهرس الدليل" tabindex="-1">
+  <h2>المحتويات</h2>
+  <ol>
+    <li><a href="#cover">الغلاف والأهداف</a></li>
+    <li><a href="#overview">نظرة تنفيذية</a></li>
+    <li><a href="#hierarchy">خريطة المفاهيم</a></li>
+    <li><a href="#why">1. ليه Kubernetes موجود</a></li>
+    <li><a href="#architecture">2. Architecture الـ cluster</a></li>
+    <li><a href="#api">3. الـ API والـ reconciliation</a></li>
+    <li><a href="#pods">4. الـ Pod</a></li>
+    <li><a href="#workloads">5. الـ controllers</a></li>
+    <li><a href="#networking">6. Service والشبكة</a></li>
+    <li><a href="#storage">7. الإعداد والتخزين</a></li>
+    <li><a href="#scheduling">8. الجدولة والموارد</a></li>
+    <li><a href="#health">9. الصحة والتحديث</a></li>
+    <li><a href="#security">10. الوصول والأمان</a></li>
+    <li><a href="#python">11. Python client</a></li>
+    <li><a href="#implementation">تطبيق عملي</a></li>
+    <li><a href="#mistakes">أخطاء وتشخيص</a></li>
+    <li><a href="#cheatsheet">ورقة مراجعة</a></li>
+    <li><a href="#interview">أسئلة المقابلات</a></li>
+    <li><a href="#quiz">اختبار ختامي</a></li>
+    <li><a href="#checklist">قائمة مذاكرة</a></li>
+    <li><a href="#limits">حدود الدليل</a></li>
+  </ol>
+  <p class="progress-label">فصول متعلّمة: <span id="progress-count">0 / 0</span></p>
+  <div class="bar" aria-hidden="true"><div id="progress-bar"></div></div>
+  <p class="diagram-note">التقدم بيتسجل في <code>localStorage</code> على المتصفح ده فقط.</p>
+</nav>
+<main id="main">
+<section class="hero" id="cover">
+  <p class="kicker">مرجع دراسة شخصي · مش شهادة ولا توثيق رسمي</p>
+  <h1>Kubernetes: المفاهيم الأساسية، الـ Architecture، والنشر العملي</h1>
+  <p>دليل تتعلم بيه ليه المنصة موجودة، إزاي الـ cluster بيوصل للحالة اللي أنت طالبها، وإزاي تكتب YAML وتتحكم في الـ cluster من Python من غير ما تحفظ أوامر من غير معنى.</p>
+  <div class="meta">
+    <span class="pill">المستوى: Intermediate</span>
+    <span class="pill">زمن الدراسة: تقدير 14–18 ساعة مركزة</span>
+    <span class="pill">الإطار: Kubernetes 1.30+</span>
+    <span class="pill">الكود: YAML و Python client</span>
+  </div>
+  <h2>هتخرج من الدليل ده قادر تعمل إيه</h2>
+  <ul>
+    <li>تشرح مشكلة الـ orchestration وتفرّق بينها وبين مجرد تشغيل container.</li>
+    <li>ترسم الـ control plane وتقول مين بيتكلم مع etcd ومين لأ.</li>
+    <li>تختار بين Deployment و StatefulSet و DaemonSet و Job لسبب واضح.</li>
+    <li>تصمم Service و probes و requests بشكل ما يكسّرش التحديث ولا يخبي العطل.</li>
+    <li>تشخّص Pending و CrashLoopBackOff و rollout واقف من الأحداث مش من التخمين.</li>
+    <li>تكتب client بـ Python بصلاحيات ضيقة، وتفرّق بين kubeconfig و in-cluster config.</li>
+    <li>تجاوب أسئلة مقابلة بمستوى متوسط لمتقدم، ومعاك الـ trade-off مش شعار واحد.</li>
+  </ul>
+  <div class="callout warn" id="assumptions">
+    <p><strong>افتراضات الدليل، متعملهاش حقيقة زيادة.</strong> التركيز هنا على الـ architecture الأساسية والـ objects اللي هتقابلها في أغلب الـ clusters. التحكم البرمجي معروض بالـ official Python client، واسم الحزمة على PyPI هو <code>kubernetes</code>. الأمثلة بتشرح سلوك 1.30 وطالع، وأي فرق متعلق بإصدار متعلم عليه صراحة.</p>
+    <p>مش هنغطي بناء control plane على EKS أو GKE أو AKS، ولا service mesh، ولا GitOps tool، ولا كتابة operator كامل. أدوات زي Helm و Kustomize و Gateway API هتظهر بس كنقطة قرار، مش كمنهج.</p>
+    <p>مراجعة حقائق الإصدارات اتعملت في 14 أكتوبر 2026 من صفحة Kubernetes Releases الرسمية. وقتها الخطوط المدعومة كانت 1.35 و 1.36 و 1.37، وآخر patch مذكور لـ 1.37 كان 1.37.1 بتاريخ 15 سبتمبر 2026. كان فيه patch 1.37.2 مستهدف 13 أكتوبر 2026. قبل أي upgrade، راجع الرقم الحالي بنفسك.</p>
+  </div>
+  <p class="diagram-note">من غير JavaScript هتقدر تقرأ كل الشرح وتفتح الإجابات من عناصر <code>details</code>. التصحيح التلقائي للاختيارات وحفظ التقدم محتاجين JavaScript.</p>
+</section>
+
+<section id="overview">
+  <h2>نظرة تنفيذية</h2>
+  <p>الفكرة في جملة: أنت بتكتب الحالة اللي عايزها، وKubernetes يفضل يقارنها بالحالة الحقيقية ويحرّك الـ cluster لحد ما الاتنين يتقابلوا، أو لحد ما يفشل ويوريك ليه.</p>
+  <div class="grid-3">
+    <article class="mini">
+      <h3>المشكلة</h3>
+      <p>الـ container بيحل تغليف التطبيق. لما يبقى عندك نسخ كتير على آلات كتير، محتاج حد يجدول، يعيد التشغيل، يحدّث بالتدريج، ويقدم عنوان ثابت رغم إن عناوين الـ Pods بتتغير.</p>
+    </article>
+    <article class="mini">
+      <h3>المكوّنات المهمة</h3>
+      <p><code>kube-apiserver</code> هو الباب. <code>etcd</code> هو المخزن. الـ controllers بتصلح الفرق. الـ scheduler بيختار Node. على كل Node، <code>kubelet</code> بيشغّل الـ Pods عن طريق container runtime.</p>
+    </article>
+    <article class="mini">
+      <h3>فين بتستخدمه</h3>
+      <p>منصات تشغيل خدمات، وظائف batch، أنظمة ليها حالة زي قواعد البيانات لما الفريق قادر يشغلها، وأدوات داخلية بتتكلم مع الـ API. مش كل تطبيق صغير محتاج cluster.</p>
+    </article>
+  </div>
+  <div class="callout takeaway">
+    <p><strong>اللي يفضل في دماغك:</strong> الـ Pod هو وحدة التشغيل. الـ controller هو اللي بيملك عدد النسخ والهوية. الـ Service هو العنوان الثابت. الـ API server هو الوسيط الوحيد تقريبًا لكل قرار. أي أداة، بما فيها Python client، ما بتعدلش الـ containers مباشرة؛ بتكتب object في الـ API.</p>
+  </div>
+  <figure class="diagram">
+    <figcaption>الصورة العالية: من طلبك لحد ما التطبيق يستقبل traffic</figcaption>
+    <div class="flow">
+      <div class="chip-row">
+        <span class="chip">أنت: YAML أو Python</span>
+        <span class="chip">kube-apiserver</span>
+        <span class="chip">etcd</span>
+      </div>
+      <div class="arrow">الـ controllers والـ scheduler يراقبوا الـ API</div>
+      <div class="chip-row">
+        <span class="chip">Deployment controller</span>
+        <span class="chip">scheduler</span>
+        <span class="chip">kubelet + runtime</span>
+      </div>
+      <div class="arrow">الـ Pod يبقى Ready فيدخل EndpointSlice</div>
+      <div class="chip-row">
+        <span class="chip">Service</span>
+        <span class="chip">kube-proxy أو dataplane</span>
+        <span class="chip">التطبيق</span>
+      </div>
+    </div>
+    <p class="diagram-note">السهم هنا تسلسل مسؤولية، مش كابل شبكة واحد. الـ scheduler ما بيبعتش أمر للـ kubelet على قناة خاصة؛ الاتنين بيتكلموا مع الـ API server.</p>
+  </figure>
+</section>
+
+<section id="hierarchy">
+  <h2>خريطة المفاهيم</h2>
+  <p>الخلط الشائع إن الناس بتحط design pattern وشكل تطبيق وشكل cluster في كيس واحد. في Kubernetes المستويات دي مختلفة، وكل مستوى ليه أسئلة مختلفة.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>المستوى</th><th>أمثلة</th><th>السؤال اللي المستوى ده بيجاوب عليه</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>تشغيل عملية</td><td>container، image، process، cgroup</td><td>إزاي التطبيق يشتغل معزول على آلة؟</td></tr>
+        <tr><td>وحدة جدولة</td><td>Pod، volume، probe</td><td>إيه اللي بيتجدول مع بعض وبيتشاركَ الشبكة؟</td></tr>
+        <tr><td>حالة مطلوبة</td><td>Deployment، StatefulSet، Job، DaemonSet</td><td>مين يحافظ على العدد والهوية والتحديث؟</td></tr>
+        <tr><td>وصول وشبكة</td><td>Service، EndpointSlice، NetworkPolicy، Ingress</td><td>إزاي العميل يوصل، ومين مسموح له؟</td></tr>
+        <tr><td>cluster</td><td>control plane، Nodes، CNI، CSI، RBAC</td><td>إزاي الآلات تبقى نظام واحد؟</td></tr>
+        <tr><td>منصة فوق Kubernetes</td><td>Helm، controllers خاصة، GitOps، service mesh</td><td>إزاي الفريق يكرر النمط ده بأمان؟</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>الـ Deployment مش architecture للنظام كله. هو controller جوه طبقة الـ workloads. الـ Ingress controller تطبيق بيتنشر غالبًا جوه الـ cluster، مش جزء من ثنائيات الـ control plane الأساسية. الـ CNI والـ CSI واجهات لإضافات الشبكة والتخزين؛ من غيرهم الـ Pods ممكن مايبقاش ليها شبكة أو أقراص، لكنهم مش بديل عن الـ scheduler.</p>
+  <div class="callout">
+    <p><strong>علاقة المستويات:</strong> الصورة بتتنفَّذ جوه container، والـ container جوه Pod، والـ Pod بيتجدول على Node، والـ controller بيقرر عدد الـ Pods، والـ Service بيختار الـ Pods الجاهزة، والـ API server بيسجل كل ده في etcd. لو غيّرت مستوى وأنت بتشخّص، هتدور في المكان الغلط.</p>
+  </div>
+</section>
+
+<section id="why">
+  <h2>1. ليه Kubernetes موجود</h2>
+  <p>قبل المنصة، الفريق كان بيبني النسخ والتحديث وإعادة التشغيل بنفسه: سكربتات، مدير آلات، أو منصة داخلية. Google كانت عندها Borg، وبعدين المشروع اتفتح. Kubernetes بقى مكان الاتفاق على objects وAPI، مش مجرد أداة تشغيل containers.</p>
+  <h3>المشكلة قبل الحل</h3>
+  <p>container واحد على سيرفر واحد مفهوم. عشرات النسخ على آلات بتقع، مع تحديث من غير ما تقطع الخدمة، وعنوان ثابت، وإعداد منفصل عن الصورة، وصلاحيات مختلفة لكل تطبيق: دي مشكلة تشغيل موزعة. من غير orchestrator، كل فريق بيعيد بناء نسخة ناقصة من نفس الحلقات: راقب، قارن، صلح.</p>
+  <h3>النموذج الذهني</h3>
+  <p>تخيّل thermostat: أنت بتظبط درجة الحرارة، والجهاز يفضل يقارن القراءة بالهدف. التشبيه ده بيلمّس فكرة الـ reconciliation، بس التنفيذ الحقيقي أوسع. فيه حلقات كتير، وفيه تعارض متفائل عن طريق <code>resourceVersion</code>، وفيه باب واحد تقريبًا للتعديل وهو الـ API server. الثرموستات ما عندوش etcd ولا صلاحيات RBAC.</p>
+  <h3>إيه اللي مش هيعمله</h3>
+  <ul>
+    <li>مش بيكتب تطبيقك، ومش بيخلي كود بطيء سريع.</li>
+    <li>مش بيأمّن الشبكة لو ما فيش CNI بيطبق NetworkPolicy، ولو ما كتبتيش السياسات.</li>
+    <li>مش بياخد نسخة احتياطية من قاعدة البيانات لمجرد إنك حاططها في StatefulSet.</li>
+    <li>مش مطلوب لخدمة واحدة على آلة واحدة لو مفيش حاجة من قدراته هتتستخدم.</li>
+  </ul>
+  <h3>مفاهيم لازم تبقى مألوفة قبل المكمل</h3>
+  <ul>
+    <li>process، exit code، وإشارات زي SIGTERM.</li>
+    <li>container image، registry، والفرق بين الصورة والـ container الشغال.</li>
+    <li>IP وDNS وHTTP، لإن الـ Service والـ probes مبنيين عليهم.</li>
+    <li>YAML: مسافات، خرائط، قوائم. تاب غلط يغيّر المعنى.</li>
+    <li>فكرة client/server وREST، لإن كل العملاء بيتكلموا HTTP مع الـ API.</li>
+  </ul>
+  <div class="callout takeaway">
+    <p><strong>ملخص الفصل:</strong> Kubernetes نظام الحفاظ على حالة مطلوبة لتشغيل containers على آلات كتير. قيمته في الـ API والحلقات اللي بتصلح الفرق، مش في إنه "يشغّل Docker بس بشكل أكبر".</p>
+  </div>
+  <div class="quiz" data-quiz data-correct="b" data-ok="صح. الصورة بتحل التغليف، والمنصة بتحل التشغيل المتكرر والإصلاح والتحديث والعنوان الثابت." data-bad="الرن تايم لسه موجود. Kubernetes بيجدول ويراقب، والـ kubelet بيطلب من الـ runtime يشغّل الحاويات.">
+    <p><strong>تحقق سريع.</strong> ليه ما نكتفيش بـ container runtime؟</p>
+    <label><input type="radio" name="q-why" value="a"> لإن Kubernetes بيستبدل الـ container runtime وبيلغي الاحتياج لـ containerd أو CRI-O.</label>
+    <label><input type="radio" name="q-why" value="b"> لإن الرن تايم بيشغّل container على آلة، لكن مش بيحافظ لوحده على عدد النسخ والتحديث والعنوان الثابت عبر الآلات.</label>
+    <label><input type="radio" name="q-why" value="c"> لإن الـ container ما ينفعش يشغّل تطبيق شبكة.</label>
+    <button type="button" data-grade>تحقق من الإجابة</button>
+    <p class="feedback" hidden></p>
+    <details class="answer">
+      <summary>الإجابة والسبب</summary>
+      <p>الإجابة الصحيحة هي الثانية. من 1.24 اتشال dockershim، والـ kubelet بيتكلم مع runtime متوافق مع CRI زي containerd أو CRI-O. الخيار الثالث غلط لإن الحاوية تقدر تشغّل سيرفر شبكة عادي.</p>
+    </details>
+  </div>
+  <label class="done"><input type="checkbox" data-chapter="ch-why"> خلّصت الفصل ده</label>
+</section>
+
+<section id="architecture">
+  <h2>2. Architecture الـ cluster</h2>
+  <p>الـ cluster مجموعة آلات ليها مخ واحد للحالة. الآلات اللي بتشغّل الـ control plane بتمسك القرار. الـ Nodes بتشغّل الشغل. الفصل ده مهم لإن سقوط جزء مش زي سقوط جزء تاني.</p>
+  <figure class="diagram">
+    <figcaption>مكوّنات control plane وNode</figcaption>
+    <div class="arch">
+      <div class="chip-row">
+        <span class="chip">kubectl</span>
+        <span class="chip">Python client</span>
+        <span class="chip">kubelet</span>
+        <span class="chip">controllers</span>
+      </div>
+      <div class="arrow">كلهم عملاء للـ API. مفيش واحد فيهم بيكتب في etcd بنفسه في التصميم العادي.</div>
+      <div class="box box-main">kube-apiserver</div>
+      <div class="box-row">
+        <div class="box"><strong>etcd</strong><br>مخزن مفتاح-قيمة متسق لحالة الـ cluster</div>
+        <div class="box"><strong>kube-scheduler</strong><br>يختار Node للـ Pod اللي لسه من غير binding</div>
+        <div class="box"><strong>kube-controller-manager</strong><br>حلقات كتير في عملية واحدة: Nodes، Jobs، EndpointSlices، حسابات الخدمة</div>
+      </div>
+      <div class="arrow">الـ kubelet على كل Node يراقب الـ Pods المطلوبة منه</div>
+      <div class="nodes">
+        <div class="node"><strong>Node</strong><div class="node-bits"><span>kubelet</span><span>container runtime</span><span>kube-proxy</span><span>Pods</span></div></div>
+        <div class="node"><strong>Node</strong><div class="node-bits"><span>kubelet</span><span>container runtime</span><span>kube-proxy</span><span>Pods</span></div></div>
+        <div class="node"><strong>Node</strong><div class="node-bits"><span>kubelet</span><span>container runtime</span><span>kube-proxy</span><span>Pods</span></div></div>
+      </div>
+    </div>
+    <p class="diagram-note">cloud-controller-manager اختياري وبيفصل حلقات السحابة عن الحلقات الأساسية. CoreDNS إضافة مطلوبة عمليًا عشان أسماء الـ Services، لكنه مش من ثنائيات الـ control plane الأربعة الأساسية.</p>
+  </figure>
+  <h3>كل مكوّن بيعمل إيه</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>المكوّن</th><th>المسؤولية</th><th>لو وقف</th></tr></thead>
+      <tbody>
+        <tr><td><code>kube-apiserver</code></td><td>يصادق، يفوّض، يمرّر على admission، ويقرأ ويكتب etcd</td><td>ما حدش يقدر يغيّر الحالة أو يقرأها من الـ API. الشغل اللي شغال بالفعل غالبًا بيفضل شغال فترة.</td></tr>
+        <tr><td><code>etcd</code></td><td>يحفظ objects الحالة. الـ quorum في النشر المعتاد 3 أو 5 أعضاء</td><td>فقدان الـ quorum يجمّد قرارات الـ control plane. فقدان البيانات من غير نسخ احتياطية مصيبة تشغيل.</td></tr>
+        <tr><td><code>kube-scheduler</code></td><td>يعمل bind للـ Pod على Node بعد فلترة وتسجيل نقاط</td><td>الـ Pods الجديدة تفضل Pending. القديم الشغال ما بيتعاش تلقائيًا.</td></tr>
+        <tr><td><code>kube-controller-manager</code></td><td>يصلح الفرق: ReplicaSet، Endpointslices، Nodes، وغيرها</td><td>الإصلاح الذاتي يتوقف. نسخة وقعت ممكن ما تتعوضش لحد ما الحلقات ترجع.</td></tr>
+        <tr><td><code>kubelet</code></td><td>يخلّي الـ Pods المطلوبة على الـ Node دي شغالة، ويبعت الحالة، وينفّذ probes</td><td>الـ Node دي ما تبقاش موثوقة. باقي الـ Nodes تكمل.</td></tr>
+        <tr><td>container runtime</td><td>يسحب الصورة ويشغّل الحاويات عبر CRI</td><td>الـ kubelet ما يقدرش يبدأ containers على الـ Node دي.</td></tr>
+        <tr><td><code>kube-proxy</code></td><td>يبرمج قواعد توصيل عناوين الـ Services للـ Pod IPs في أوضاع iptables أو IPVS أو nftables</td><td>وصول الـ Service على الـ Node دي يتعطل. بعض إضافات eBPF بتستبدل المسار ده، فافحص الـ cluster قبل ما تفترض إن kube-proxy هو dataplane.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout">
+    <p><strong>نموذج السقوط:</strong> الـ Pods عمليات على الـ Nodes. الـ control plane مش في مسار كل packet بين العميل والتطبيق في التصميم الشائع. عشان كده عطل الـ API مش معناه فورًا إن كل الطلبات على التطبيقات وقعت. معناه إن التجديد والإصلاح والجدولة وقراءة الحالة متوقفين. بعد فترة، عقود الـ Nodes وتجديد الشهادات وسياسات تانية بتبان آثارها.</p>
+  </div>
+  <h3>إضافات بتبان أساسية وهي مش جوه الثنائي</h3>
+  <p>الـ CNI بيدي الـ Pod عنوان وشبكة. من غيره الـ Pod ممكن يفضل في <code>ContainerCreating</code>. الـ CSI بيدي أقراص. CoreDNS بيحوّل <code>orders.shop.svc.cluster.local</code> لعنوان Service. الـ metrics-server بيقدم أرقام الـ CPU والذاكرة اللي الـ HorizontalPodAutoscaler الافتراضي بيعتمد عليها. دول قرارات نشر، وغيابهم يفسر أعطال كتير الناس بتلوم فيها الـ Deployment.</p>
+  <div class="callout takeaway">
+    <p><strong>ملخص الفصل:</strong> احفظ الباب، المخزن، حلقة الإصلاح، ووكيل الـ Node. أي عميل محترم بيتكلم مع الـ API server. تشخيص "الـ cluster واقع" يبدأ بسؤال: الواقع هو الـ API، ولا Node، ولا شبكة الـ Pods، ولا تطبيق جوه Pod؟</p>
+  </div>
+  <div class="quiz" data-quiz data-correct="c" data-ok="صح. التصميم إن الـ apiserver هو العميل اللي بيكلم etcd. الباقي يراقب الـ API ويكتب حالة عن طريقه." data-bad="الـ scheduler والـ kubelet عملاء API. كتابتهم المباشرة في etcd هتكسر الرقابة والصلاحيات والاتساق.">
+    <p><strong>تحقق سريع.</strong> مين المفروض يكتب حالة الـ cluster في etcd؟</p>
+    <label><input type="radio" name="q-etcd" value="a"> كل controller يفتح اتصال etcd عشان يبقى أسرع.</label>
+    <label><input type="radio" name="q-etcd" value="b"> kubelet على كل Node، عشان هو أقرب للحاويات.</label>
+    <label><input type="radio" name="q-etcd" value="c"> kube-apiserver، بعد المصادقة والتفويض والـ admission.</label>
+    <button type="button" data-grade>تحقق من الإجابة</button>
+    <p class="feedback" hidden></p>
+    <details class="answer"><summary>الإجابة والسبب</summary><p>الثالثة. عزل etcd ورا الـ API server هو سبب إن RBAC والتحقق موجودين في مكان واحد.</p></details>
+  </div>
+  <label class="done"><input type="checkbox" data-chapter="ch-arch"> خلّصت الفصل ده</label>
+</section>
+
+<section id="api">
+  <h2>3. الـ API، والحالة المطلوبة، والـ reconciliation</h2>
+  <p>Kubernetes قاعدة objects. كل object ليه <code>apiVersion</code> و<code>kind</code> و<code>metadata</code>، وغالبًا <code>spec</code> و<code>status</code>. الـ spec هو طلبك. الـ status هو اللي النظام شافه. الفرق بينهم هو شغل الـ controllers.</p>
+  <h3>مسار طلب التعديل</h3>
+  <p>توثيق التحكم في الوصول بيرتب المسار كده: اتصال TLS، ثم authentication، ثم authorization، ثم admission، ثم تحقق الـ object، ثم الكتابة في المخزن. طلبات القراءة ما بتعديش على admission controllers. جوه الـ admission فيه طور تعديل وبعدين طور تحقق. لو أي controller في الـ admission رفض، الطلب يقف.</p>
+  <ol class="step-list">
+    <li>المصادقة تجاوب على "مين ده؟". الفشل 401.</li>
+    <li>التفويض يجاوب على "يقدر يعمل الفعل ده على المورد ده؟". الفشل 403. وحدات التفويض بتتمشى بالترتيب المضبوط على الـ API server. أول allow أو deny بيحسم. لو الكل رجع من غير رأي، الطلب يترفض. RBAC قوائم سماح، ومفيهوش قاعدة Deny.</li>
+    <li>الـ mutating admission يقدر يغيّر الـ object، زي حقن ServiceAccount. بعدين الـ validating admission يقدر يرفض.</li>
+    <li>التحقق من شكل الـ object، وبعدين الحفظ في etcd.</li>
+  </ol>
+  <p><code>ValidatingAdmissionPolicy</code> مستقرة من 1.30، وبتخليك تكتب جزء من التحقق بـ CEL جوه الـ API server بدل webhook خارجي. <code>MutatingAdmissionPolicy</code> أحدث؛ كانت beta في 1.34. راجع نضجها في إصدار الـ cluster قبل ما تبني عليها. الـ webhooks لسه أداة شائعة للتعديل.</p>
+  <h3>المجموعات اللي هتستخدمها أغلب الوقت</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>المجموعة</th><th>أمثلة</th><th>عميل Python</th></tr></thead>
+      <tbody>
+        <tr><td><code>v1</code> الأساسية</td><td>Pod، Service، Namespace، ConfigMap، Secret، PV، PVC، Node</td><td><code>CoreV1Api</code></td></tr>
+        <tr><td><code>apps/v1</code></td><td>Deployment، ReplicaSet، StatefulSet، DaemonSet</td><td><code>AppsV1Api</code></td></tr>
+        <tr><td><code>batch/v1</code></td><td>Job، CronJob</td><td><code>BatchV1Api</code></td></tr>
+        <tr><td><code>networking.k8s.io/v1</code></td><td>Ingress، NetworkPolicy</td><td><code>NetworkingV1Api</code></td></tr>
+        <tr><td><code>discovery.k8s.io/v1</code></td><td>EndpointSlice</td><td>عميل discovery في المكتبة</td></tr>
+        <tr><td><code>rbac.authorization.k8s.io/v1</code></td><td>Role، ClusterRole، والـ bindings</td><td><code>RbacAuthorizationV1Api</code></td></tr>
+        <tr><td><code>autoscaling/v2</code></td><td>HorizontalPodAutoscaler</td><td><code>AutoscalingV2Api</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>التعارض المتفائل</h3>
+  <p>كل نسخة متخزنة ليها <code>metadata.resourceVersion</code>. لو قريت object وعدّلته، وحد تاني كتبه قبل كتابتك، التحديث يرجع 409. الصح تعيد القراءة وتدمج تاني. ده مش عطل شبكة عشوائي. الـ controllers بتتعامل معاه كمسار طبيعي.</p>
+  <h3>الملكية والحذف</h3>
+  <p><code>ownerReferences</code> بتربط الـ Pod بالـ ReplicaSet والـ ReplicaSet بالـ Deployment. لما الأب يتمسح، جامع القمامة يمسح الأبناء حسب سياسة الحذف: <code>Background</code> أو <code>Foreground</code> أو <code>Orphan</code>. الـ finalizer اسم في <code>metadata.finalizers</code> بيمنع الحذف النهائي لحد ما المالك يشيل الاسم بعد ما يظبط المورد الخارجي. Pod واقف على <code>Terminating</code> ساعات كتير بيبقى وراه finalizer، مش حاوية بس رافضة تقفل.</p>
+  <h3>Labels و annotations</h3>
+  <p>الـ label هوية قابلة للاختيار: الـ Service والـ ReplicaSet بيختاروا بيها. الـ annotation بيانات مش للاختيار، زي مرجع أداة أو وقت إعادة تشغيل. ما تحطش مفتاح اختيار في annotation وتتوقع الـ Service يلاقيه.</p>
+  <div class="callout takeaway">
+    <p><strong>ملخص الفصل:</strong> اكتب spec، وسيب status للنظام. اقرأ التعارض 409 كدعوة لإعادة المحاولة الذكية. افهم إن الحذف ممكن يتأخر بسبب finalizer، وإن الاختيار بيتم بالـ labels.</p>
+  </div>
+  <label class="done"><input type="checkbox" data-chapter="ch-api"> خلّصت الفصل ده</label>
+</section>
+
+<section id="pods">
+  <h2>4. الـ Pod: أصغر حاجة تتجدول</h2>
+  <p>الـ Pod مش container باسم تاني. هو غلاف لحاوية أو أكتر بيتشاركوا شبكة الـ Node namespace الخاصة بالـ Pod، وبيقدروا يشاركوا volumes. ليهم عنوان IP واحد جوه شبكة الـ cluster، ومنافذ الحاويات لازم ما تتعارضش على نفس البروتوكول.</p>
+  <figure class="diagram">
+    <figcaption>جوه Pod واحد</figcaption>
+    <div class="nodes">
+      <div class="node"><strong>حاوية التطبيق</strong><p>process التطبيق. بتسمع على منفذ في شبكة الـ Pod.</p></div>
+      <div class="node"><strong>حاوية مساعدة</strong><p>زي سحب سجلات أو مزامنة. عنوانها هو نفس عنوان الـ Pod، فبتنادي التطبيق على <code>localhost</code>.</p></div>
+      <div class="node"><strong>volumes</strong><p>مساحة مشتركة أو إعداد متوصل. عمرها مرتبط بالـ Pod، إلا لو وراها PVC مستقل.</p></div>
+    </div>
+    <p class="diagram-note">الـ pause container، أو sandbox، بيمسك شبكة الـ Pod حتى لو حاوية التطبيق إعادة تشغيل. عشان كده إعادة تشغيل الحاوية مش بتعمل جدولة جديدة، ومش دايمًا بتغيّر IP الـ Pod.</p>
+  </figure>
+  <h3>دورة الحياة</h3>
+  <p>مرحلة الـ Pod بتبقى <code>Pending</code> أو <code>Running</code> أو <code>Succeeded</code> أو <code>Failed</code> أو <code>Unknown</code>. الحاوية ليها حالة <code>Waiting</code> أو <code>Running</code> أو <code>Terminated</code>. <code>CrashLoopBackOff</code> و<code>ImagePullBackOff</code> أسباب انتظار، مش مراحل رسمية للـ Pod. الـ Pod الناجح في Job بيخلص بـ Succeeded لما حاوياته تخرج بصفر حسب سياسة الإعادة.</p>
+  <h3>إمتى تحط حاويتين في Pod واحد</h3>
+  <p>لما لازم يتشاركوا <code>localhost</code> ودورة حياة واحدة، زي مساعد سجلات لازم يشوف ملفات التطبيق على volume مشترك. لو خدمتين مجرد إنهم بيتكلموا HTTP، يبقى كل واحدة Pods مستقلة وService بينهم. جمعهم في Pod واحد بيعني إنهم بيتجدولوا مع بعض وبيقعوا مع بعض.</p>
+  <h3>الـ sidecars الأصلية</h3>
+  <p>من 1.29 لـ 1.32 ميزة <code>SidecarContainers</code> كانت beta وشغالة افتراضيًا إلا لو حد قفل الـ feature gate. من 1.33 بقت GA. الشكل الرسمي: init container مع <code>restartPolicy: Always</code>. بتبدأ قبل حاويات التطبيق، وبتفضل شغالة طول عمر الـ Pod، وبتتقفل بعد ما حاويات التطبيق تخلص. الحاوية العادية جنب التطبيق لسه ممكنة، لكنها ما بتاخدش ترتيب البدء والإيقاف ده.</p>
+  <h3>الحذف الهادئ</h3>
+  <ol class="step-list">
+    <li>الـ API يسجل <code>deletionTimestamp</code> ويبدأ يحسب <code>terminationGracePeriodSeconds</code>. الافتراضي 30 ثانية.</li>
+    <li>عنوان الـ Pod يتشال من عناوين الـ Service الجاهزة عشان traffic جديد ما يروحش له.</li>
+    <li>لو فيه <code>preStop</code>، الـ kubelet يشغّله جوه الحاوية.</li>
+    <li>الـ kubelet يبعت SIGTERM للعملية.</li>
+    <li>لو المهلة خلصت والعملية لسه موجودة، SIGKILL. الخروج 137 غالبًا معناه إشارة قتل، ومن أسبابه كمان نفاد الذاكرة.</li>
+  </ol>
+  <div class="callout warn">
+    <p>تطبيق يتجاهل SIGTERM، أو قفل اتصالاته بياخد أطول من المهلة، هيتقتل في نص الطلبات. زود المهلة بوعي، وخلي التطبيق يقفل المستمع ويخلّص الشغل الحالي. الـ preStop مش بديل عن معالجة الإشارة؛ هو مكان تنظيف إضافي قبل الإشارة.</p>
+  </div>
+  <div class="callout takeaway">
+    <p><strong>ملخص الفصل:</strong> جدولة الـ Pod ذرية. الحاويات جواه مش خدمات مستقلة من ناحية الشبكة. إعادة تشغيل الحاوية شيء، وإعادة جدولة الـ Pod على Node تانية شيء تاني.</p>
+  </div>
+  <label class="done"><input type="checkbox" data-chapter="ch-pod"> خلّصت الفصل ده</label>
+</section>
+
+<section id="workloads">
+  <h2>5. مين بيملك الـ Pods</h2>
+  <p>ما تنشرش تطبيق إنتاج كـ Pod لوحده. الـ Pod لوحده ما يتعوضش لو اتمسح أو الـ Node وقعت. الـ controller هو المالك.</p>
+  <figure class="diagram">
+    <figcaption>سلسلة الملكية في Deployment</figcaption>
+    <div class="chain">
+      <div class="box"><strong>Deployment</strong><br>الاستراتيجية، العدد، وقالب الـ Pod</div>
+      <div class="box"><strong>ReplicaSet جديد</strong><br>بيتمسك بالنسخ بتاعة القالب الحالي</div>
+      <div class="box"><strong>ReplicaSet قديم</strong><br>بيفضل موجود عشان الرجوع، لحد <code>revisionHistoryLimit</code></div>
+      <div class="box"><strong>Pods</strong><br>أسماء فيها hash القالب، ومش ثابتة</div>
+    </div>
+    <p class="diagram-note">تغيير <code>spec.replicas</code> يغيّر العدد على الـ ReplicaSet الحالي. تغيير قالب الـ Pod يعمل ReplicaSet جديد ويبدأ rollout. تغيير الـ selector بعد الإنشاء مرفوض؛ الـ selector ثابت.</p>
+  </figure>
+  <h3>دليل الاختيار</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>المطلوب</th><th>الاختيار</th><th>السبب</th><th>ما تستخدمهوش لما</th></tr></thead>
+      <tbody>
+        <tr><td>خدمة ليها نسخ متطابقة وتحديث تدريجي</td><td>Deployment</td><td>بيبني ReplicaSets ويدير الـ rollout والرجوع</td><td>كل نسخة محتاجة قرص وهوية ثابتين</td></tr>
+        <tr><td>هوية شبكة ثابتة وقرص لكل نسخة</td><td>StatefulSet</td><td>أسماء <code>app-0</code> وترتيب و<code>volumeClaimTemplates</code></td><td>تطبيق بلا حالة مجرد إنه مهم</td></tr>
+        <tr><td>نسخة على كل Node مناسب</td><td>DaemonSet</td><td>وكلاء عقدة: سجلات، مراقبة، بعض إضافات الشبكة</td><td>خدمة عملاء عادية عايز تزود نسخها مع الحمل</td></tr>
+        <tr><td>شغل يخلص ويخرج</td><td>Job</td><td><code>completions</code> و<code>parallelism</code> و<code>backoffLimit</code></td><td>سيرفر يفضل سامع. سياسة إعادة الـ Pod في الـ Job لازم تبقى <code>Never</code> أو <code>OnFailure</code></td></tr>
+        <tr><td>شغل يخلص في مواعيد</td><td>CronJob</td><td>بيصنع Jobs حسب جدول cron، وفيه <code>concurrencyPolicy</code> و<code>timeZone</code></td><td>حلقة مستمرة. الـ cron مش بديل عن عملية شغالة</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>StatefulSet من غير أسطورة</h3>
+  <p>الاسم الثابت مش توافر عالي لوحده. <code>app-0</code> لسه Pod. لو الـ Node وقعت، الـ Pod ممكن يتعمل على Node تانية، والقرص يلحقه لو الـ storage class يسمح. لازم Service بلا عنوان cluster، يعني <code>clusterIP: None</code>، والاسم في <code>spec.serviceName</code>، عشان الـ DNS يرجع سجل لكل Pod: <code>app-0.app.shop.svc.cluster.local</code>. <code>podManagementPolicy: OrderedReady</code> هو السلوك المرتب، و<code>Parallel</code> بيبدأ النسخ مع بعض.</p>
+  <p>قاعدة البيانات على Kubernetes قرار تشغيل: محتاج أقراص، نسخ احتياطي، استعادة، وترقية متوافقة مع المحرك. الـ StatefulSet بيوفر ترتيب وهوية، ومش بيوفر خبرة تشغيل PostgreSQL.</p>
+  <div class="callout takeaway">
+    <p><strong>ملخص الفصل:</strong> ابدأ من سؤال الهوية والتخزين ونهاية الشغل. Deployment هو الافتراضي للخدمات المتطابقة. ملكية الـ ReplicaSet المباشرة بتتعمل وأنت بتشخّص rollout، مش وأنت بتنشر تطبيق.</p>
+  </div>
+  <label class="done"><input type="checkbox" data-chapter="ch-work"> خلّصت الفصل ده</label>
+</section>
+
+<section id="networking">
+  <h2>6. Service، DNS، والدخول من بره</h2>
+  <p>عنوان الـ Pod بيتغير لما الـ Pod يتعوض. العميل ما ينفعش يحفظه. الـ Service اسم ثابت واختيار للـ Pods عن طريق labels، وبيوزع عليهم.</p>
+  <figure class="diagram">
+    <figcaption>مسار طلب داخلي شائع مع kube-proxy</figcaption>
+    <ol class="step-list">
+      <li>التطبيق يسأل CoreDNS عن <code>orders.shop.svc.cluster.local</code>.</li>
+      <li>الإجابة عنوان ClusterIP من مدى عناوين الـ Services، ومش عنوان Pod.</li>
+      <li>على الـ Node، kube-proxy يكون مبرمج قواعد بتترجم العنوان ده لعنوان Pod جاهز.</li>
+      <li>الـ EndpointSlice هو قائمة العناوين والمنافذ والحالة. من 1.21 وهو GA. من 1.33 واجهة Endpoints القديمة متعلمة deprecated، وميزات زي dual-stack بتعدي من EndpointSlice.</li>
+    </ol>
+    <p class="diagram-note">لو الـ CNI بـ eBPF ماسك مسار الخدمة، ممكن kube-proxy ما يكونش في النص. النتيجة اللي تهمك واحدة: الجاهزية والـ labels هما اللي بيدخلوا الـ Pod في العناوين.</p>
+  </figure>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>النوع</th><th>العنوان</th><th>مناسب لـ</th><th>خد بالك</th></tr></thead>
+      <tbody>
+        <tr><td><code>ClusterIP</code></td><td>عنوان داخلي افتراضي</td><td>مكالمات بين التطبيقات جوه الـ cluster</td><td>مش ظاهر على الإنترنت لوحده</td></tr>
+        <tr><td><code>NodePort</code></td><td>منفذ على كل Node</td><td>تجارب أو طبقة خارجية بتملكها أنت</td><td>مدى المنافذ محدود، والتعرض أوسع</td></tr>
+        <tr><td><code>LoadBalancer</code></td><td>موازن من بيئة التشغيل</td><td>خدمة ليها عملاء بره الـ cluster</td><td>محتاج تكامل سحابة أو إضافة. من غيره يفضل <code>Pending</code></td></tr>
+        <tr><td><code>ExternalName</code></td><td>اسم DNS خارجي</td><td>alias لاسم بره</td><td>ما بيعملش proxy ولا بيختار Pods</td></tr>
+        <tr><td>headless</td><td><code>clusterIP: None</code></td><td>StatefulSet واكتشاف عناوين الـ Pods</td><td>العميل بياخد عناوين الـ Pods ومسؤول عن طريقة الاستخدام</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>الـ selector في الـ Service لازم يطابق labels الـ Pods، مش مجرد labels كائن الـ Deployment. <code>targetPort</code> هو منفذ الحاوية. <code>port</code> هو منفذ الـ Service. الخلط بينهم يخلي الاتصال يرفض رغم إن الـ Pod شغال.</p>
+  <h3>Ingress و Gateway API</h3>
+  <p>الـ Ingress قاعدة توجيه HTTP على اسم نطاق ومسار، ومحتاج Ingress controller؛ المنصة الأساسية ما بتشحنش controller واحد جاهز في كل التوزيعات. Gateway API مشروع أغنى لنفس عائلة المشاكل، وناضج في موارد كتير، لكنه مش "استبدال اتعلن إن Ingress اتشال". للاستخدام البسيط، Ingress مفهوم وكافي. للسياسات المعقدة والملكية بين الفرق، ادرس Gateway API كقرار منصة.</p>
+  <h3>NetworkPolicy</h3>
+  <p>من غير سياسات، الاتصال مسموح على قد ما شبكة الـ cluster تسمح. أول سياسة تختار Pod في اتجاه معيّن بتعزل الاتجاه ده: المسموح هو اللي السياسات بتقوله، والسياسات بتتضاف. كتابة السياسة مش كافية؛ إضافة الشبكة لازم تنفّذ NetworkPolicy. Flannel لوحده ما ينفّذهاش. وقفل الخروج كله من غير سماح لـ DNS بيكسر حل الأسماء.</p>
+  <div class="callout takeaway">
+    <p><strong>ملخص الفصل:</strong> Service اختيار وثبوت. EndpointSlice واقع الجاهزية. Ingress طبقة HTTP اختيارية ومحتاجة controller. السياسة الشبكية مسؤولية CNI وتنفيذ، مش مجرد YAML متخزن.</p>
+  </div>
+  <label class="done"><input type="checkbox" data-chapter="ch-net"> خلّصت الفصل ده</label>
+</section>
+
+<section id="storage">
+  <h2>7. الإعداد، الأسرار، والأقراص</h2>
+  <p>الصورة تفضل قابلة لإعادة الاستخدام لما الإعداد اللي بيتغير يعيش برهها. ConfigMap للإعداد غير السري. Secret للبيانات الحساسة. الاتنين مش بيئة سحرية جوه الصورة.</p>
+  <div class="callout danger">
+    <p>الـ Secret افتراضيًا بيتخزن كبيانات الـ API، والقيمة في YAML بتظهر base64. التشفير ده ترميز، مش حماية. الحماية بتيجي من RBAC، ومن تشفير etcd at rest لو متظبط، ومن عدم ظهور القيمة في أوامر وسجلات وصور. ما تحطش كلمة سر في ConfigMap عشان "مش Secret ومش هتتراجع".</p>
+  </div>
+  <p>المتغير اللي داخل من <code>env</code> بيتقفل لقطة وقت إنشاء الحاوية. تحديث الـ ConfigMap ما يغيّرش المتغيرات دي إلا بإعادة تشغيل. الملف اللي جاى من volume بيتحدثه الـ kubelet على دورة مزامنة، مش في نفس اللحظة، والتطبيق لازم يعيد قراءة الملف. لو التطبيق ما بيعيدش القراءة، غيّر annotation في قالب الـ Pod عشان تعمل rollout.</p>
+  <p><code>immutable: true</code> على ConfigMap أو Secret بيمنع التعديل وبيسمح للـ kubelet يتوقف عن متابعتهم. مناسب للإعداد اللي تغييره أصلاً بيتم بنسخة جديدة.</p>
+  <h3>الأقراص</h3>
+  <p><code>emptyDir</code> مساحة فاضية بعمر الـ Pod، كويسة لملفات مؤقتة. <code>hostPath</code> ملف على الـ Node، خطر ومربوط بآلة معينة. بيانات التطبيق المهمة تعدي من PVC. الـ PV هو القرص. الـ PVC هو الطلب. الـ StorageClass مع CSI بيعمل توفير ديناميكي: تعمل PVC، والمزوّد يعمل القرص ويربطه.</p>
+  <p>وضع الوصول <code>ReadWriteOnce</code> معناه إن القرص يتوصل للكتابة من Node واحدة في الوقت نفسه، مش "من Pod واحد" بالضرورة. نسختين على Node واحدة ممكن يتشاركوا قرص RWO حسب المزوّد، ونسختين على آلتين لأ. <code>ReadWriteMany</code> مش متاح في كل أنظمة التخزين. افترض إن قاعدة البيانات محتاجة قرص لكل نسخة، وتحقق من الـ storage class.</p>
+  <div class="callout takeaway">
+    <p><strong>ملخص الفصل:</strong> افصل الصورة عن الإعداد. افصل السر عن الترميز. افصل قرص الـ Pod المؤقت عن القرص اللي له عمر أطول من الـ Pod. وفي الإنتاج، سر من غير تشفير at rest ومن غير RBAC لسه سر ظاهر للي يقدر يقرأ الـ API.</p>
+  </div>
+  <label class="done"><input type="checkbox" data-chapter="ch-store"> خلّصت الفصل ده</label>
+</section>
+
+<section id="scheduling">
+  <h2>8. الجدولة، الطلبات، والحدود</h2>
+  <p>الـ scheduler ما بيشغّلش الحاوية. هو بيكتب binding. قبل كده بيعمل فلترة: الموارد، الـ taints، والقيود الصلبة. بعدين بيحسب نقاط: التوزيع، والتفضيلات. أول ما الـ binding يتسجل، الـ kubelet على الـ Node المختارة ياخد الشغل.</p>
+  <figure class="diagram">
+    <figcaption>ليه الـ Pod يفضل Pending</figcaption>
+    <div class="grid-2">
+      <div class="mini"><h3>الفلتر شال كل الـ Nodes</h3><p>الطلبات أكبر من أي Node فاضية، أو في taint من غير toleration، أو قيد affinity مش متحقق، أو PVC مش متاح في الـ zone.</p></div>
+      <div class="mini"><h3>لسه ما وصلش للجدولة</h3><p>الـ scheduler واقع، أو فيه quota في الـ namespace استنفدت، أو الـ Pod لسه بيتجهز له volume.</p></div>
+    </div>
+    <p class="diagram-note"><code>kubectl describe pod</code> بيعرض أحداث المجدول. الجملة <code>FailedScheduling</code> هي بداية التشخيص، مش استهلاك CPU جوه التطبيق.</p>
+  </figure>
+  <h3>Requests و limits و QoS</h3>
+  <p>الـ request هو اللي المجدول بيحجزه، وأساس نسبة استهلاك المعالج في الـ HPA. الـ limit سقف. المعالج قابل للضغط: الـ limit بيخنق عن طريق حصة CFS حتى لو الآلة فاضية. الذاكرة مش قابلة للضغط: تعدي الـ limit يخلّي الحاوية تتقتل بـ OOMKilled، وغالبًا الخروج 137.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>الفئة</th><th>الشرط المبسط</th><th>أثر عملي</th></tr></thead>
+      <tbody>
+        <tr><td>Guaranteed</td><td>كل حاوية ليها request وlimit متساويين للذاكرة والمعالج</td><td>آخر مرشح للإخراج تحت ضغط الـ Node</td></tr>
+        <tr><td>Burstable</td><td>فيه request أو limit لكن مش شرط الضمان</td><td>الوضع الشائع لما الطلب أقل من السقف</td></tr>
+        <tr><td>BestEffort</td><td>مفيش requests ولا limits</td><td>أول الناس تتضغط وقت الضغط، والمجدول ما بيحجزش ليهم</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout">
+    <p><strong>قرار إنتاج، مش قاعدة مطلقة:</strong> حد الذاكرة غالبًا لازم يتظبط لإن القتل واضح أحسن من إن عملية تاكل ذاكرة الـ Node. حد المعالج قرار زمن استجابة. فرق كتير بتظبط requests صادقة وبتسيب حد المعالج فاضي أو واسع عشان تقلل الخنق، وفرق تانية بتفرض الحد عشان العزل. اعرف أثر الاتنين على الشغل بتاعك.</p>
+  </div>
+  <h3>Taints و affinity</h3>
+  <p>الـ taint على الـ Node طرد. الـ toleration على الـ Pod تصريح بالوجود رغم الطرد. الأثر <code>NoSchedule</code> يمنع الجديد، و<code>PreferNoSchedule</code> تفضيل، و<code>NoExecute</code> يقدر يطلّع الموجود. عقد التحكم عادة عليها taint عشان تطبيقات الناس ما تنزلش عليها. الـ Pods بتاخد tolerations افتراضية لـ <code>not-ready</code> و<code>unreachable</code> لمدة 300 ثانية، وبعدين ممكن تتشال لو العقدة لسه مش سليمة.</p>
+  <p><code>nodeSelector</code> مطابقة بسيطة. <code>affinity</code> قواعد أغنى، ومنها تفضيل أو إجبار القرب أو البعد عن Pods تانية. <code>topologySpreadConstraints</code> طريقة مباشرة لتوزيع النسخ على zones أو Nodes. anti-affinity الصلبة مع عدد نسخ أكبر من عدد الـ zones بيخلّي النسخ الزيادة Pending. دي غلطة تصميم شائعة.</p>
+  <div class="callout takeaway">
+    <p><strong>ملخص الفصل:</strong> المجدول بيحجز بالـ requests وبيحترم الطرد والقيود. الـ limit سياسة قتل أو خنق وقت التشغيل، ومش رقم بيستخدمه المجدول عشان يلاقي مكان. اقرأ حدث المجدول قبل ما تزود نسخ.</p>
+  </div>
+  <label class="done"><input type="checkbox" data-chapter="ch-sched"> خلّصت الفصل ده</label>
+</section>
+
+<section id="health">
+  <h2>9. الـ probes، الإصلاح، والتحديث التدريجي</h2>
+  <p>ثلاث فحوصات، وثلاث نتائج مختلفة. الخلط بينهم هو سبب أشهر أعطال "التطبيق بيعيد التشغيل لوحده" و"الخدمة من غير عناوين".</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>الفحص</th><th>السؤال</th><th>لو فشل</th></tr></thead>
+      <tbody>
+        <tr><td><code>startupProbe</code></td><td>التطبيق خلّص الإقلاع البطيء؟</td><td>لحد ما ينجح، فحوصات الحياة والجاهزية متوقفة. لو فشل للآخر، الحاوية تتعيد زي فشل الحياة.</td></tr>
+        <tr><td><code>readinessProbe</code></td><td>ينفع أبعته طلبات دلوقتي؟</td><td>يتشال من عناوين الـ Service. الحاوية ما تتعيدش لمجرد الفشل ده.</td></tr>
+        <tr><td><code>livenessProbe</code></td><td>العملية نفسها معلّقة ومحتاجة تتقتل؟</td><td>الـ kubelet يقتل الحاوية ويعيدها حسب سياسة الإعادة. الـ Pod غالبًا يفضل على نفس الـ Node.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout warn">
+    <p>ما تعملش liveness على "قاعدة البيانات بعيدة" أو على مسار بيعمل شغل تقيل. لحظة عطل في الاعتماد هتعيد تشغيل كل النسخ وتكبّر العطل. الجاهزية هي اللي تقول "ما تبعتليش طلبات". الحياة بس للعملية اللي مش هترجع إلا بالقتل. مسار الحياة يبقى رخيص ومحلي.</p>
+  </div>
+  <h3>تسلسل الـ rollout</h3>
+  <ol class="step-list">
+    <li>تغيير القالب يرفع <code>generation</code> ويعمل ReplicaSet جديد.</li>
+    <li><code>maxSurge</code> يحدد كام Pod زيادة عن العدد المطلوب مسموح. <code>maxUnavailable</code> يحدد كام من العدد المطلوب يقدر يغيب.</li>
+    <li>الاتنين صفر مع بعض إعداد مرفوض عمليًا لإن مفيش طريقة تحرك. <code>maxUnavailable: 0</code> مع <code>maxSurge: 1</code> بيحافظ على الطاقة القديمة لحد ما الجديدة تبقى جاهزة، وبيحتاج مكان لنسخة زيادة.</li>
+    <li>النسخة الجديدة ما بتتحسبش جاهزة إلا بعد نجاح الجاهزية، وبعد <code>minReadySeconds</code> لو متظبط.</li>
+    <li>لو مفيش تقدم خلال <code>progressDeadlineSeconds</code>، والافتراضي 600 ثانية، حالة الـ Deployment تبقى <code>ProgressDeadlineExceeded</code>.</li>
+  </ol>
+  <p>إعادة التشغيل من غير تغيير صورة بتتم بتغيير annotation على القالب، و<code>kubectl rollout restart</code> بيعمل كده. الرجوع <code>kubectl rollout undo</code> بيرجع لـ ReplicaSet قديم لسه محفوظ.</p>
+  <h3>HPA و PDB</h3>
+  <p>الـ HorizontalPodAutoscaler في <code>autoscaling/v2</code> بيغيّر <code>replicas</code>. نسبة المعالج بتتحسب من الـ request. من غير request، المقياس ده ما لوش أساس. محتاج مصدر مقاييس؛ الـ metrics-server يكفي للمعالج والذاكرة. التوسع الرأسي VPA مشروع تاني، ومش نفس الكائن.</p>
+  <p>الـ PodDisruptionBudget بيحد الإخراج الطوعي، زي تفريغ Node، مش بيمنع سقوط آلة. <code>minAvailable</code> أو <code>maxUnavailable</code>، واحد بس. ميزانية بتطلب كل النسخ تفضل موجودة مع تفريغ عقد هتخلّي التفريغ يقف. دي حماية صحة، وممكن تبقى عطل تشغيل لو الرقم مستحيل.</p>
+  <div class="callout takeaway">
+    <p><strong>ملخص الفصل:</strong> الجاهزية بوابة traffic. الحياة ملاذ أخير للعملية المعلقة. الـ rollout حركة نسختين من ReplicaSet جوه حدود surge وunavailable. الميزانية بتحمي من الإخراج الطوعي، ومش من الفيزياء.</p>
+  </div>
+  <label class="done"><input type="checkbox" data-chapter="ch-health"> خلّصت الفصل ده</label>
+</section>
+
+<section id="security">
+  <h2>10. الهوية، RBAC، وسياسة الـ Pod</h2>
+  <p>كل طلب ليه هوية: مستخدم بشري من kubeconfig، أو ServiceAccount جوه Pod، أو نظام تاني مظبوط على الـ API. بعد الهوية، RBAC بيقرر الأفعال. بعدين سياسات الـ Pod بتقيّد شكل الشغل اللي ينفع يتعمل.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>الكائن</th><th>النطاق</th><th>بيعمل إيه</th></tr></thead>
+      <tbody>
+        <tr><td>Role</td><td>namespace واحد</td><td>سماح بأفعال على موارد جوه الـ namespace</td></tr>
+        <tr><td>ClusterRole</td><td>الـ cluster، أو يتستخدم كقالب</td><td>موارد عامة زي Nodes، أو صلاحيات تتتربط بعد كده في namespace</td></tr>
+        <tr><td>RoleBinding</td><td>namespace</td><td>يربط هوية بـ Role أو حتى بـ ClusterRole جوه الـ namespace ده</td></tr>
+        <tr><td>ClusterRoleBinding</td><td>الـ cluster كله</td><td>يربط هوية بـ ClusterRole في كل مكان. ده قرار واسع، مش الافتراضي</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>كل namespace فيه ServiceAccount اسمه <code>default</code>، ورمزه بيتوصل للـ Pods إلا لو قفلت <code>automountServiceAccountToken: false</code>. الحساب ده من غير bindings زيادة ما يقدرش يعمل حاجة مفيدة، لكن وجود الرمز عادة توسعة غير مقصودة. تطبيق ما بيناديش الـ API: اقفل التركيب. تطبيق بينادي الـ API: اعمل حساب خاص وRole على الموارد والأفعال المطلوبة بس، ومنها subresources زي <code>deployments/scale</code>.</p>
+  <p>PodSecurityPolicy اتشالت في 1.25. البديل المدمج هو Pod Security Admission بمعايير <code>privileged</code> و<code>baseline</code> و<code>restricted</code>، وأوضاع <code>enforce</code> و<code>audit</code> و<code>warn</code> عن طريق labels على الـ namespace. معيار restricted أضيقهم: من غير root، ومن غير صلاحيات زيادة، ومع seccomp، ومن غير namespaces بتاعة المضيف. في 1.34 المعيار ده كمان بيرفض probes وlifecycle handlers بتحدد host بعيد. القائمة الكاملة للشروط مكانها توثيق Pod Security Standards، لإن نقلها من الذاكرة هنا هينقص قاعدة.</p>
+  <p>سياق الأمان اللي يستاهل يبقى عادة في التطبيقات العادية: <code>runAsNonRoot</code>، <code>allowPrivilegeEscalation: false</code>، <code>readOnlyRootFilesystem</code> مع volume للكتابة المؤقتة، و<code>capabilities.drop: ["ALL"]</code>، و<code>seccompProfile.type: RuntimeDefault</code>. الصورة اللي عملية التشغيل فيها root هتقع لو فرضت القيود دي قبل ما تظبط الصورة. القيود جزء من تصميم الصورة، مش ملصق آخر خطوة.</p>
+  <div class="callout takeaway">
+    <p><strong>ملخص الفصل:</strong> 401 هوية، 403 تفويض، والرفض من admission شكل أو سياسة. أصغر Role يؤدي الشغل. معيار الـ Pod بيتقفل على الـ namespace اللي يقدر يستقبل شغل الناس، مش بس على كائن واحد وأنت بتكتب المثال.</p>
+  </div>
+  <label class="done"><input type="checkbox" data-chapter="ch-sec"> خلّصت الفصل ده</label>
+</section>
+
+<section id="python">
+  <h2>11. التحكم من Python</h2>
+  <p>المكتبة الرسمية عميل HTTP مولّد من مواصفات الـ API. هي مش بتشغّل scheduler جوه العملية بتاعتك. بتصادق، وتبعت objects، وتقرأ status. نفس الحدود اللي على kubectl موجودة هنا، زائد إنك مسؤول عن إعادة المحاولة والتعارض وقفل الاتصالات.</p>
+  <h3>تكوين الاتصال</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th></th><th><code>load_kube_config()</code></th><th><code>load_incluster_config()</code></th></tr></thead>
+      <tbody>
+        <tr><td>امتى</td><td>على جهازك أو في CI عنده ملف kubeconfig</td><td>جوه Pod عليه ServiceAccount</td></tr>
+        <tr><td>بيقرأ إيه</td><td>الملف، غالبًا <code>~/.kube/config</code>، أو المسار اللي تمرره</td><td>متغيرات عنوان خدمة Kubernetes وملفات الرمز وCA المركبة في الـ Pod</td></tr>
+        <tr><td>لو ناديته في المكان الغلط</td><td>ملف ناقص أو context غلط</td><td><code>ConfigException</code> لإن ملفات الخدمة مش موجودة</td></tr>
+        <tr><td>أكتر من cluster</td><td><code>new_client_from_config(context=...)</code> بيرجع ApiClient منفصل</td><td>كل Pod أصلاً جوه cluster واحد</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>نمط عملي: جرّب التكوين الداخلي، ولو رمى <code>ConfigException</code> ارجع لملف kubeconfig. ما تعملش العكس على سيرفر تطبيق، عشان ما يبقاش لاقط ملف محلي بالصدفة.</p>
+  <p>إصدار المكتبة بيتبع إصدار مواصفات Kubernetes. فرق صغير بين النسخ المستقرة غالبًا بيشتغل، لكن حقول جديدة مش هتبقى في عميل قديم. ثبّت نسخة المكتبة قريبة من خط الـ cluster، وما تعتمدش على حقول alpha.</p>
+  <h3>استثناءات هتشوفها</h3>
+  <ul>
+    <li><code>ApiException.status == 401</code>: الهوية أو الرمز.</li>
+    <li>403: الـ Role ناقص فعل أو مورد أو subresource.</li>
+    <li>409: الكائن موجود وأنت بتعمل create، أو <code>resourceVersion</code> قديم وأنت بتحدّث.</li>
+    <li>422: الجسم عدى HTTP لكن الـ API رافض المعنى، زي selector مش مطابق أو حقل ممنوع.</li>
+    <li>410 على watch: نسخة المورد اللي بتتابع منها خلصت. اعمل list من جديد وخد <code>resourceVersion</code> الحالي وابدأ المشاهدة تاني.</li>
+  </ul>
+  <div class="callout warn">
+    <p>في عميل Python، حجة تنفيذ أمر جوه فحص exec غالبًا اسمها <code>_exec</code> مش <code>exec</code>، لإن <code>exec</code> كلمة محجوزة. لو الكونستركتور رفض الاسم، راجع نسخة المكتبة قبل ما تغيّر تصميم الفحص.</p>
+  </div>
+  <p><code>kubernetes.utils.create_from_yaml</code> مناسبة لسكربت إنشاء أولي. هي مسار create، ولو المورد موجود بتفشل. التحديث المتكرر للبشر والـ GitOps مكانه <code>kubectl apply</code> وتطبيق من جهة الخادم. في Python، التحديث الجزئي عن طريق <code>patch_*</code>، ونوع المحتوى الافتراضي في دوال patch الشائعة strategic merge. لو بعت JSON patch، شكل الجسم يبقى قائمة عمليات مش خريطة.</p>
+  <div class="callout takeaway">
+    <p><strong>ملخص الفصل:</strong> المكتبة عميل API. اختَر التكوين حسب مكان العملية. عامل 409 و403 كجزء من التصميم. ما تديش عملية الأتمتة cluster-admin عشان المثال يخلّص.</p>
+  </div>
+  <label class="done"><input type="checkbox" data-chapter="ch-py"> خلّصت الفصل ده</label>
+</section>
+
+<section id="implementation">
+  <h2>تطبيق عملي: خدمة تتعلم بيها، وقالب إنتاج</h2>
+  <p>المثال الأول صورة <code>nginx</code> عشان الـ objects تبقى مفهومة وقابلة للتجربة. المثال التاني شكل خدمة خاصة بقيود أمان وفحوصات صح. صورة <code>example.com/orders-api:1.4.2</code> رمز تعليمي، مش صورة منشورة تقدر تسحبها. قبل أي <code>apply</code>، اتأكد إن تاج الصورة موجود في الـ registry بتاعك.</p>
+  <h3>قرارات التصميم</h3>
+  <ul>
+    <li>Namespace اسمه <code>shop</code> عشان التجربة ما تختلطش بـ <code>default</code>.</li>
+    <li>الحساب <code>learn-nginx</code> من غير صلاحيات API، والرمز مش هيتركب. nginx في المثال مش محتاج ينادي Kubernetes.</li>
+    <li>عدد نسختين، و<code>maxUnavailable: 0</code> مع <code>maxSurge: 1</code>، عشان القديمة تفضل لحد ما الجديدة تجاوب على <code>/</code>.</li>
+    <li>الجاهزية على مسار رخيص. الحياة على نفس المسار المحلي في مثال nginx لإنه ما عندوش اعتماد خارجي. في خدمة حقيقية، الحياة ما تفحصش قاعدة البيانات.</li>
+    <li>طلبات موارد موجودة عشان الجدولة والتوسع ليهم أساس. حدود nginx هنا تعليمية وليست قياس حمل.</li>
+  </ul>
+  <p class="lang">YAML · learn-nginx</p>
+<pre class="code"><code>apiVersion: v1
+kind: Namespace
+metadata:
+  name: shop
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: learn-nginx
+  namespace: shop
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: learn-nginx
+  namespace: shop
+  labels:
+    app: learn-nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: learn-nginx
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: learn-nginx
+    spec:
+      serviceAccountName: learn-nginx
+      automountServiceAccountToken: false
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: learn-nginx
+  namespace: shop
+spec:
+  selector:
+    app: learn-nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: learn-nginx
+  namespace: shop
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: learn-nginx
+</code></pre>
+  <p>امشي على الملف بالترتيب. الـ Namespace الأول عشان الباقي يلاقى بيت. الـ selector في الـ Deployment والـ Service والـ PDB كلهم <code>app: learn-nginx</code>، ودي نفس label القالب. <code>targetPort: http</code> بيستخدم اسم المنفذ في الحاوية، فتغيير رقم المنفذ لاحقًا ما يكسّرش الـ Service لو الاسم ثابت.</p>
+  <p>صورة nginx الرسمية دي بتشغّل العملية كـ root وبتحتاج تكتب على نظام الملفات بتاعها. عشان كده المثال ما حطّش <code>runAsNonRoot</code>. القالب اللي بعد كده هو شكل الخدمة لما الصورة متصممة للقيود.</p>
+  <p class="lang">YAML · قالب إنتاج، الصورة رمزية</p>
+<pre class="code"><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-api
+  namespace: shop
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: orders-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  minReadySeconds: 10
+  template:
+    metadata:
+      labels:
+        app: orders-api
+    spec:
+      serviceAccountName: orders-api
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          image: example.com/orders-api:1.4.2
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: orders-api-config
+                  key: log_level
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+</code></pre>
+  <p>هنا حد المعالج مش متحدد: قرار زمن الاستجابة اللي اتشرح في فصل الجدولة، والذاكرة متحددة لإنها مش قابلة للضغط. <code>/ready</code> يقدر يفشل لو الاعتماد مش جاهز من غير ما يقتل العملية. <code>/healthz</code> محلي. الإقلاع ليه لحد حوالي 150 ثانية قبل ما الحياة تبدأ تحاسب. <code>emptyDir</code> على <code>/tmp</code> عشان نظام الملفات الجذري للقراءة فقط.</p>
+  <h3>دور Python في المثال</h3>
+  <p>السكربت مش بديل عن الاحتفاظ بالـ YAML في Git. هو أداة تشغيل: تتأكد إن الـ Deployment موجود، تستنى الجاهزية، تطبع الـ Pods، وتقدر تغيّر العدد. لو الكائن موجود، ما تعملش overwrite صامت؛ اطبع 409 وسيب التحديث لأمر واضح.</p>
+  <p class="lang">Python · عميل رسمي</p>
+<pre class="code"><code>from kubernetes import client, config
+from kubernetes.client.exceptions import ApiException
+
+NAMESPACE = "shop"
+NAME = "learn-nginx"
+
+
+def load_config() -&gt; None:
+    """داخل Pod استخدم حساب الخدمة. على جهازك استخدم kubeconfig."""
+    try:
+        config.load_incluster_config()
+    except config.ConfigException:
+        config.load_kube_config()
+
+
+def deployment_body(image: str, replicas: int) -&gt; client.V1Deployment:
+    labels = {"app": NAME}
+    container = client.V1Container(
+        name="nginx",
+        image=image,
+        image_pull_policy="IfNotPresent",
+        ports=[client.V1ContainerPort(name="http", container_port=80)],
+        readiness_probe=client.V1Probe(
+            http_get=client.V1HTTPGetAction(path="/", port="http"),
+            period_seconds=5,
+            failure_threshold=2,
+        ),
+        resources=client.V1ResourceRequirements(
+            requests={"cpu": "50m", "memory": "64Mi"},
+            limits={"cpu": "200m", "memory": "128Mi"},
+        ),
+    )
+    template = client.V1PodTemplateSpec(
+        metadata=client.V1ObjectMeta(labels=labels),
+        spec=client.V1PodSpec(
+            service_account_name=NAME,
+            automount_service_account_token=False,
+            containers=[container],
+        ),
+    )
+    return client.V1Deployment(
+        api_version="apps/v1",
+        kind="Deployment",
+        metadata=client.V1ObjectMeta(name=NAME, labels=labels),
+        spec=client.V1DeploymentSpec(
+            replicas=replicas,
+            selector=client.V1LabelSelector(match_labels=labels),
+            template=template,
+        ),
+    )
+
+
+def ensure_deployment(image: str, replicas: int) -&gt; None:
+    apps = client.AppsV1Api()
+    try:
+        created = apps.create_namespaced_deployment(
+            namespace=NAMESPACE,
+            body=deployment_body(image, replicas),
+            dry_run="All",
+        )
+        print("dry-run ok:", created.metadata.name)
+    except ApiException as exc:
+        raise SystemExit(f"rejected before create: {exc.status} {exc.reason}") from exc
+
+    try:
+        apps.create_namespaced_deployment(
+            namespace=NAMESPACE,
+            body=deployment_body(image, replicas),
+        )
+        print("created")
+    except ApiException as exc:
+        if exc.status == 409:
+            print("already exists; leaving it unchanged")
+        else:
+            raise
+
+
+def main() -&gt; None:
+    load_config()
+    ensure_deployment("nginx:1.27-alpine", 2)
+
+
+if __name__ == "__main__":
+    main()
+</code></pre>
+  <h3>تتبع التنفيذ</h3>
+  <ol class="step-list">
+    <li>على اللابتوب، <code>load_incluster_config</code> ترمي <code>ConfigException</code> لإن مفيش ملفات رمز الخدمة. الاستثناء يتتمسك، و<code>load_kube_config</code> يقرأ السياق الحالي.</li>
+    <li><code>dry_run="All"</code> يمرّر الجسم على التحقق من غير حفظ. لو الـ selector فاضي أو النوع غلط، هتشوف الرفض هنا.</li>
+    <li><code>create_namespaced_deployment</code> طلب POST على <code>/apis/apps/v1/namespaces/shop/deployments</code>. النجاح يرجع الكائن ومعاه <code>uid</code> و<code>resourceVersion</code>.</li>
+    <li>لو الاسم موجود، 409. السكربت ما يحاولش يرقّع بصمت.</li>
+    <li>بعدها، في أداة حقيقية، تقرأ <code>status.ready_replicas</code> لحد ما تساوي <code>spec.replicas</code>، أو المهلة تخلص. الحلقة دي كويسة لأمر قصير. الـ controller الطويل يستخدم watch وقائمة شغل، ويعيد list لما ياخد 410.</li>
+  </ol>
+  <p class="lang">Python · انتظار، عرض، وتكبير</p>
+<pre class="code"><code>import time
+from kubernetes import client
+from kubernetes.client.exceptions import ApiException
+
+
+def wait_ready(timeout: int = 120) -&gt; None:
+    apps = client.AppsV1Api()
+    deadline = time.monotonic() + timeout
+    while time.monotonic() &lt; deadline:
+        dep = apps.read_namespaced_deployment(NAME, NAMESPACE)
+        desired = dep.spec.replicas or 0
+        ready = dep.status.ready_replicas or 0
+        print(f"ready {ready}/{desired}")
+        if desired and ready &gt;= desired:
+            return
+        time.sleep(2)
+    raise TimeoutError(f"{NAME} was not ready within {timeout}s")
+
+
+def print_pods() -&gt; None:
+    core = client.CoreV1Api()
+    pods = core.list_namespaced_pod(NAMESPACE, label_selector=f"app={NAME}")
+    for pod in pods.items:
+        print(pod.metadata.name, pod.status.phase, pod.status.pod_ip)
+
+
+def scale_to(replicas: int) -&gt; None:
+    apps = client.AppsV1Api()
+    apps.patch_namespaced_deployment(
+        name=NAME,
+        namespace=NAMESPACE,
+        body={"spec": {"replicas": replicas}},
+    )
+
+
+def explain_forbidden(exc: ApiException) -&gt; None:
+    if exc.status == 403:
+        print("RBAC refused the call. Check verb, resource, and namespace.")
+        print(exc.body)
+    else:
+        raise exc
+</code></pre>
+  <p>الناتج اللي تتوقعه لو عندك cluster وصلاحيات شبه: سطر dry-run، وبعدين <code>created</code> أو رسالة الوجود، وبعدين <code>ready 0/2</code> لحد <code>ready 2/2</code>، وبعدين أسماء Pods وعناوينها. الدليل ده ما نفّذش السكربت على cluster، فمتعتبرش الأرقام دي قياس التقطته.</p>
+  <h3>الصلاحية المناسبة للسكربت</h3>
+  <p class="lang">YAML · Role ضيق</p>
+<pre class="code"><code>apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: shop-deployer
+  namespace: shop
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments", "deployments/scale"]
+    verbs: ["get", "list", "watch", "create", "patch", "update"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+</code></pre>
+  <p>من غير <code>deployments/scale</code>، بعض عمليات تغيير العدد بترجع 403 رغم إن عندك patch على الـ Deployment نفسه. جرّب <code>kubectl auth can-i patch deployments --namespace shop</code> بنفس الهوية قبل ما تلوم المكتبة.</p>
+  <h3>اختبار وصيانة</h3>
+  <ul>
+    <li>اختبر الجسم بـ <code>dry_run="All"</code> أو <code>kubectl apply --dry-run=server</code> قبل الحفظ.</li>
+    <li>اختبار التكامل يبقى على kind أو بيئة مشابهة، ومش على cluster الناس، وبنسخة مكتبات مثبتة.</li>
+    <li>ما تحطّش kubeconfig بتاع إدمن جوه صورة تطبيق.</li>
+    <li>اقفل <code>ApiClient</code> اللي بتعمله بنفسك عشان الاتصالات ما تتسرّبش. تكوين الافتراضي كويس للسكربت القصير.</li>
+    <li>الفرق بين YAML في Git واللي العميل بيعمله لازم يفضل مفهوم. مسارين بيكتبوا نفس الكائن من غير مصدر واحد هيعملوا تعارض ولف لفات.</li>
+  </ul>
+  <div class="callout takeaway">
+    <p><strong>اللي المثال عامله واللي سايبه:</strong> عامله مسار إنشاء آمن نسبيًا، انتظار جاهزية، وتكبير. سايب سحب المقاييس، والتحديث الكامل من Git، وتشفير الأسرار، ونسخ قاعدة البيانات، وبناء صورة غير root. دول شغل إنتاج حوالين المثال، مش حشو ناقص جوه نفس الـ Deployment.</p>
+  </div>
+</section>
+
+<section id="mistakes">
+  <h2>أخطاء شائعة وتشخيصها</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>العَرَض</th><th>ليه بيحصل</th><th>أول مكان تشوفه</th></tr></thead>
+      <tbody>
+        <tr><td><code>ImagePullBackOff</code></td><td>اسم أو تاج غلط، صلاحية registry، أو شبكة الـ Node</td><td>أحداث <code>describe pod</code>، وبعدين سر السحب</td></tr>
+        <tr><td><code>CrashLoopBackOff</code></td><td>التطبيق خارج بخطأ، أو الحياة بتقتله، أو الإعداد ناقص</td><td><code>logs</code> و<code>logs --previous</code>، وبعدين سبب آخر إعادة تشغيل في <code>describe</code></td></tr>
+        <tr><td><code>CreateContainerConfigError</code></td><td>مفتاح ConfigMap أو Secret مش موجود، أو الحساب مش موجود</td><td>حدث الحاوية في <code>describe</code> هيسمي المفتاح الناقص</td></tr>
+        <tr><td><code>Pending</code></td><td>موارد، taint، affinity، quota، أو volume</td><td>سطر <code>FailedScheduling</code></td></tr>
+        <tr><td>Running ومن غير عناوين في الخدمة</td><td>الجاهزية فاشلة، أو labels مش مطابقة، أو المنفذ غلط</td><td>EndpointSlice، وبعدين أحداث الجاهزية</td></tr>
+        <tr><td>rollout واقف</td><td>النسخة الجديدة مش بتصبح Ready، أو مفيش مكان للـ surge، أو PDB مانع</td><td><code>rollout status</code> و<code>describe deployment</code> والـ ReplicaSets</td></tr>
+        <tr><td><code>Terminating</code> طول</td><td>finalizer، أو عملية مش بتلم الإشارة، أو volume عالق</td><td><code>metadata.finalizers</code> وأحداث الـ volume</td></tr>
+        <tr><td>OOMKilled</td><td>حد الذاكرة أقل من الشغل الحقيقي</td><td>سبب الإنهاء في حالة الحاوية. الخروج 137 لوحده مش دليل كافي</td></tr>
+        <tr><td>403 من Python</td><td>فعل أو مورد أو namespace غلط</td><td>جسم <code>ApiException</code> و<code>kubectl auth can-i</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>مفاهيم بتتقلب</h3>
+  <ul>
+    <li>فشل الحياة ما بيعملش جدولة على Node جديدة لمجرد الفشل. بيعيد الحاوية.</li>
+    <li>فشل الجاهزية ما بيقتلش الحاوية. بيوقف traffic.</li>
+    <li>وجود NetworkPolicy في etcd مش معناه إنها بتتطبق.</li>
+    <li>Secret مش تشفير. base64 مش سرية.</li>
+    <li>حد المعالج مش رقم الجدولة. الـ request هو رقم الجدولة.</li>
+    <li>Service من غير selector ما بيعملش اختيار سحري. يا إما تكتب selector، يا إما تمتلك الـ EndpointSlices بنفسك، ودي حالة متقدمة.</li>
+    <li>تغيير الصورة من غير تغيير القالب بطريقة يسجلها الـ Deployment ما يعملش rollout. لازم القالب نفسه يتغير.</li>
+  </ul>
+  <h3>طريقة تشخيص ثابتة</h3>
+  <ol>
+    <li>سمّ الكائن والحالة: Pod، ولا Deployment، ولا Service، ولا Node؟</li>
+    <li>اقرأ <code>status</code> والأحداث قبل السجلات الطويلة. الحدث بيقول قرار المجدول أو الـ kubelet.</li>
+    <li>لو الحاوية بدأت وماتت، شوف السجل السابق. السجل الحالي ممكن يكون فاضى لإن العملية ما لحقّتش تكتب.</li>
+    <li>لو الشبكة، شوف EndpointSlice والـ labels والـ probes قبل ما تلوم CNI.</li>
+    <li>لو العميل، شوف كود HTTP قبل ما تغيّر الكود. 401 و403 و409 و422 قرارات مختلفة.</li>
+  </ol>
+  <p class="lang">أوامر تشخيص · مش سكربت سحري</p>
+<pre class="code"><code>kubectl describe pod -n shop -l app=learn-nginx
+kubectl logs -n shop deploy/learn-nginx --previous
+kubectl get endpointslice -n shop
+kubectl rollout status deploy/learn-nginx -n shop
+kubectl auth can-i create deployments -n shop
+kubectl explain deploy.spec.strategy.rollingUpdate
+</code></pre>
+</section>
+
+<section id="cheatsheet">
+  <h2>ورقة مراجعة قبل المقابلة</h2>
+  <div class="grid-2">
+    <article class="mini">
+      <h3>تعريفات</h3>
+      <ul>
+        <li>Pod: وحدة الجدولة، IP واحد، وحياة مشتركة.</li>
+        <li>ReplicaSet: عدد مطابق لقالب.</li>
+        <li>Deployment: مالك تحديث الـ ReplicaSets.</li>
+        <li>Service: اختيار ثابت فوق عناوين متغيرة.</li>
+        <li>EndpointSlice: الواقع اللي الـ dataplane بيستخدمه.</li>
+      </ul>
+    </article>
+    <article class="mini">
+      <h3>قواعد قرار</h3>
+      <ul>
+        <li>نسخ متطابقة: Deployment.</li>
+        <li>هوية وقرص لكل نسخة: StatefulSet.</li>
+        <li>نسخة لكل Node: DaemonSet.</li>
+        <li>يخلّص: Job. في معاد: CronJob.</li>
+        <li>traffic: readiness. عملية معلّقة: liveness.</li>
+      </ul>
+    </article>
+    <article class="mini">
+      <h3>أرقام تتقال صح</h3>
+      <ul>
+        <li><code>100m</code> يعني عُشر نواة.</li>
+        <li><code>128Mi</code> ميبيبايت: 128 × 1024 × 1024 بايت، مش 128 مليون بايت بالظبط.</li>
+        <li>مهلة القتل الافتراضية 30 ثانية.</li>
+        <li>toleration عدم الجاهزية الشائعة 300 ثانية.</li>
+        <li>حصة المعالج في HPA نسبة من الـ request.</li>
+      </ul>
+    </article>
+    <article class="mini">
+      <h3>أكواد</h3>
+      <ul>
+        <li>401 هوية. 403 RBAC. 409 تعارض أو موجود. 422 معنى مرفوض.</li>
+        <li>137 غالبًا SIGKILL، ومن أسبابه OOM والمهلة.</li>
+        <li>PSP خلصت في 1.25. sidecars الأصلية GA في 1.33. Endpoints deprecated في 1.33.</li>
+      </ul>
+    </article>
+  </div>
+  <p>جملة الختام: "بأكتب spec، الـ controllers تصلّح الفرق عن طريق الـ API، والـ kubelet يشغّل، والـ Service يبعت للجاهز بس."</p>
+</section>
+
+<section id="interview">
+  <h2>تحضير المقابلات</h2>
+  <p>الإجابات الإنجليزية القصيرة مكتوبة عشان تتقال. الشرح بالعربي هو اللي يثبّت السبب. افتح الإجابة بعد ما تحاول بصوت عالي.</p>
+  <div class="filters">
+    <label for="q-search">بحث</label>
+    <input id="q-search" type="search" placeholder="liveness, etcd, RBAC...">
+    <label for="q-level">المستوى</label>
+    <select id="q-level">
+      <option value="all">كل المستويات</option>
+      <option value="1">1 أساسيات</option>
+      <option value="2">2 متوسط</option>
+      <option value="3">3 متقدم</option>
+      <option value="4">4 سيناريو</option>
+      <option value="5">5 عملي</option>
+    </select>
+    <span id="q-count" class="pill"></span>
+  </div>
+
+  <article class="q" id="q1" data-level="1" data-text="what is kubernetes orchestrator desired state">
+    <div class="q-head"><p class="kicker">سؤال 1 · أساسيات</p><h3>Kubernetes بيحل إيه بالظبط؟</h3></div>
+    <p><strong>بيختبر:</strong> إنك مش حافظ تعريف تسويقي، وإنك فاهم المشكلة.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">Kubernetes keeps a desired state for containerized workloads. I declare Pods, replicas, and updates. Controllers schedule work onto nodes, replace failures, and roll changes. A Service gives clients one address while Pod IPs change.</p>
+      <h4>الشرح</h4>
+      <p>المنصة مش runtime. الـ runtime بيشغّل الحاوية. Kubernetes بيوزعها ويحافظ على العدد والتحديث والاكتشاف. من غيرها الفريق يبني الحلقات دي بنفسه.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"أداة Docker بتاع Google." دي بتخلط التاريخ بالوظيفة وبتجاهل CRI.</p>
+      <h4>متابعة</h4>
+      <ul><li>امتى ترفض تدخل Kubernetes؟</li><li>إيه اللي بيفضل شغال لو الـ API وقع؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>تكلفة التشغيل والمراقبة والنسخ الاحتياطي لـ etcd. للخدمة الواحدة على آلة واحدة، المنصة ممكن تبقى حمل أكبر من الفايدة.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q2" data-level="1" data-text="pod versus container pause network namespace">
+    <div class="q-head"><p class="kicker">سؤال 2 · أساسيات</p><h3>الفرق بين Pod و container؟</h3></div>
+    <p><strong>بيختبر:</strong> نموذج الجدولة والشبكة.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">A container is the process. A Pod is the scheduling unit around one or more containers. They share the Pod network namespace, so they use localhost with each other, and they share volumes. The Pod has one IP.</p>
+      <h4>الشرح</h4>
+      <p>إعادة تشغيل الحاوية بتحصل جوه نفس الـ Pod. الـ sandbox بيمسك الشبكة. عشان كده المساعد والتطبيق يتكلموا على <code>localhost</code>، لكن خدمتين مستقلين ما ينحطوش في Pod واحد بلا سبب.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"الـ Pod هو container بس في Kubernetes." بتضيّع المشاركة والجدولة الذرية.</p>
+      <h4>متابعة</h4>
+      <ul><li>إيه اللي يحصل لعنوان الـ Pod لو الحاوية وقعت؟</li><li>امتى sidecar يبقى مبرر؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>من 1.33 الـ sidecar الأصلي init container بسياسة <code>restartPolicy: Always</code>، وترتيب الإيقاف بتاعه مختلف عن حاوية عادية جنب التطبيق.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q3" data-level="1" data-text="service pod ip clusterip endpoints">
+    <div class="q-head"><p class="kicker">سؤال 3 · أساسيات</p><h3>ليه Service طالما الـ Pod ليه IP؟</h3></div>
+    <p><strong>بيختبر:</strong> ثبات العنوان والجاهزية.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">Pod IPs are ephemeral. A Service is a stable virtual address plus a selector. Only ready Pods are published, so clients keep using one DNS name while replicas move.</p>
+      <h4>الشرح</h4>
+      <p>العميل ما يتابعش موت الـ Pods. الـ Service والـ EndpointSlice بيعملوا كده. من غير جاهزية، العنوان الثابت ممكن يبعت لنسخة لسه بتقلع.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"عشان load balancer بس." التوزيع نتيجة، مش السبب الوحيد. السبب الأول ثبات الاختيار.</p>
+      <h4>متابعة</h4>
+      <ul><li>الفرق بين ClusterIP و headless؟</li><li>ليه الـ Pod شغال والخدمة فاضية؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>من 1.33 خليك على EndpointSlice لو بتكتب عميل اكتشاف. واجهة Endpoints القديمة متعلمة deprecated.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q4" data-level="1" data-text="namespace resourcequota rbac networkpolicy">
+    <div class="q-head"><p class="kicker">سؤال 4 · أساسيات</p><h3>الـ Namespace بيعمل إيه وما بيعملش إيه؟</h3></div>
+    <p><strong>بيختبر:</strong> حدود العزل.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">A Namespace is a naming and policy boundary: RBAC, quotas, and network policy can be scoped to it. It is not a hard security boundary by itself and it does not hide Pods from the network unless policy is enforced.</p>
+      <h4>الشرح</h4>
+      <p>اسمان متشابهان في namespaceين مختلفين تمام. العزل الشبكي محتاج NetworkPolicy وCNI. حصة الموارد محتاجة ResourceQuota. من غير كده الـ namespace تنظيم أسماء وصلاحيات بس.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"زي VM منفصلة." أقوى من الحقيقة بكتير.</p>
+      <h4>متابعة</h4>
+      <ul><li>تقدر تربط ClusterRole جوه namespace إزاي؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>RoleBinding مع ClusterRole بيدي الصلاحيات جوه الـ namespace بس. ClusterRoleBinding بيديها في الكل. الفرق ده بيتنسى في الحوادث.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q5" data-level="1" data-text="reconciliation controller spec status">
+    <div class="q-head"><p class="kicker">سؤال 5 · أساسيات</p><h3>إيه معنى reconciliation؟</h3></div>
+    <p><strong>بيختبر:</strong> النموذج الذهني للمنصة.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">Controllers watch the API and keep adjusting the cluster until actual state matches spec. They are level-based: they look at the current object, not only at one event, so a missed event can be repaired on the next pass.</p>
+      <h4>الشرح</h4>
+      <p>ده سبب إنك تكتب الحالة المطلوبة وما تعملش عشر خطوات يدوية. لو حلقة فشلت، المحاولة الجاية تشوف الفرق لسه موجود وتصلحه. الثرموستات تشبيه جزئي بس.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"يعني Kubernetes بيراقب اللوجز." المراقبة ممكنة، لكن الكلمة معناها حلقة إصلاح الحالة.</p>
+      <h4>متابعة</h4>
+      <ul><li>ليه 409 طبيعي في الحلقة؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>الحلقات لازم تبقى آمنة عند التكرار. عمل أثر مرتين، زي إنشاء قرص خارجي من غير ما تتأكد إنه موجود، بيحوّل الإصلاح لحادث.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q6" data-level="1" data-text="control plane apiserver etcd scheduler kubelet">
+    <div class="q-head"><p class="kicker">سؤال 6 · أساسيات</p><h3>عدّ مكوّنات الـ control plane وقول دور كل واحد.</h3></div>
+    <p><strong>بيختبر:</strong> خريطة المسؤولية.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">The API server is the front door and the only core component that should talk to etcd. etcd stores state. The scheduler binds Pods to nodes. The controller manager runs the repair loops. Kubelet and the runtime are on the nodes, not in that list.</p>
+      <h4>الشرح</h4>
+      <p>cloud-controller-manager إضافة سحابية. CoreDNS مهم عمليًا ومش ضمن الأربعة. الـ kubelet وكيل الـ Node.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>حط kube-proxy جوه الـ control plane، أو قول إن الـ scheduler بيشغّل الحاويات بنفسه.</p>
+      <h4>متابعة</h4>
+      <ul><li>لو etcd فقد الـ quorum؟</li><li>مين يكتب status الـ Pod؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>في control plane عالي التوفر، الـ scheduler ومدير الـ controllers بيعملوا انتخاب قائد. النسخ الزيادة موجودة، لكن حلقة واحدة بتكتب.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q7" data-level="1" data-text="requests limits qos scheduler oom throttling">
+    <div class="q-head"><p class="kicker">سؤال 7 · أساسيات</p><h3>الفرق بين requests و limits؟</h3></div>
+    <p><strong>بيختبر:</strong> الجدولة ضد العزل وقت التشغيل.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">Requests are what the scheduler reserves. Limits are runtime ceilings. Memory limits get the container OOMKilled. CPU limits throttle, even on an idle node. HPA CPU percent is calculated from the request, so a missing request breaks that metric.</p>
+      <h4>الشرح</h4>
+      <p>BestEffort من غير أرقام، وGuaranteed لما الطلب يساوي الحد للمعالج والذاكرة في كل الحاويات، وBurstable في الوسط. الإخراج تحت ضغط الـ Node بيراعي الفئة والاستهلاك.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"الاتنين سقف، والـ request أصغر شوية." بتضيّع إن المجدول ما بيشوفش الـ limit كحجز.</p>
+      <h4>متابعة</h4>
+      <ul><li>ليه فرق بتشيل حد المعالج؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>المعالج قابل للضغط والذاكرة لأ. شيل حد المعالج قرار زمن استجابة، مش إهمال تلقائي، وحد الذاكرة عادة يبقى موجود.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q8" data-level="1" data-text="configmap secret base64 env volume">
+    <div class="q-head"><p class="kicker">سؤال 8 · أساسيات</p><h3>ConfigMap ولا Secret؟ والتحديث بيوصل إزاي؟</h3></div>
+    <p><strong>بيختبر:</strong> فصل الإعداد عن الصورة، وفهم سرية الـ Secret.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">ConfigMaps hold non-secret settings. Secrets hold sensitive data, but they are not encrypted just because they are Secrets; base64 is encoding. Env vars are a snapshot at container start. Volume files are updated by the kubelet later, and the app still has to reload them.</p>
+      <h4>الشرح</h4>
+      <p>الحماية RBAC وتشفير etcd at rest وعدم تسريب القيمة. تغيير الإعداد اللي التطبيق قراه مرة واحدة محتاج إعادة تشغيل عملية أو إعادة قراءة ملف.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"الـ Secret متشفر فآمن في الجيت." غالبًا العكس: الناس بتحط YAML فيه data مترمزة وتفتكر ده تشفير.</p>
+      <h4>متابعة</h4>
+      <ul><li>إيه فايدة <code>immutable: true</code>؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>مفتاح سحب الصور سر خاص، ونوعه <code>kubernetes.io/dockerconfigjson</code>. خلطه مع إعداد التطبيق بيوسّع مين يقدر يسحب الصورة.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q9" data-level="2" data-text="who talks to etcd apiserver">
+    <div class="q-head"><p class="kicker">سؤال 9 · متوسط</p><h3>ليه باقي المكوّنات ما بتكلمش etcd مباشرة؟</h3></div>
+    <p><strong>بيختبر:</strong> سبب وجود الـ API server.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">If schedulers and kubelets wrote to etcd, every client would bypass auth, admission, and validation. The API server centralizes that and gives controllers one watchable contract.</p>
+      <h4>الشرح</h4>
+      <p>العزل ده بيخلّي RBAC ليها معنى. كمان etcd مش واجهة المستخدم؛ واجهته حساسة ومرتبطة بالـ quorum.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"عشان الأداء." الأداء مش السبب التصميمي الأول.</p>
+      <h4>متابعة</h4>
+      <ul><li>إيه ترتيب المصادقة والتفويض والـ admission؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>قراءة etcd مباشرة في أدوات الطوارئ قرار ضيق ومخاطر، ومش مسار التطبيق. النسخ الاحتياطي لـ etcd إجراء تشغيل منفصل عن نسخ أقراص التطبيقات.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q10" data-level="2" data-text="deployment replicaset rollout selector immutable">
+    <div class="q-head"><p class="kicker">سؤال 10 · متوسط</p><h3>Deployment إزاي بيحدّث من غير ما تملك ReplicaSet بإيدك؟</h3></div>
+    <p><strong>بيختبر:</strong> آلية الـ rollout.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">A Deployment owns ReplicaSets. A template change creates a new ReplicaSet. The rollout scales the new one up and the old one down within maxSurge and maxUnavailable. The old ReplicaSet stays for rollback until revision history is trimmed. The selector is immutable.</p>
+      <h4>الشرح</h4>
+      <p>تغيير العدد بس ما يعملش قالب جديد. تغيير annotation في القالب يعمل rollout، ودي فكرة <code>rollout restart</code>. <code>maxUnavailable: 0</code> محتاج surge أكبر من صفر ومكان للنسخة الزيادة.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"بيعمل restart للـ Pods في مكانها." بيضيع فكرة الـ ReplicaSet الجديد والرجوع.</p>
+      <h4>متابعة</h4>
+      <ul><li>إيه <code>ProgressDeadlineExceeded</code>؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p><code>minReadySeconds</code> بيمنع احتساب نسخة بتقلب جاهزيتها بسرعة كنسخة سليمة. والرجوع مش سحر لو الهجرة في قاعدة البيانات مش راجعة لورا.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q11" data-level="2" data-text="liveness readiness startup probe">
+    <div class="q-head"><p class="kicker">سؤال 11 · متوسط</p><h3>فرّق بين الفحوصات الثلاثة بمثال فشل.</h3></div>
+    <p><strong>بيختبر:</strong> قرار تشغيلي، مش أسماء.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">Startup protects a slow boot and holds the other probes off. Readiness removes the Pod from the Service when it should not take traffic. Liveness kills a wedged process. I do not point liveness at a dependency, because a database blip would restart every replica.</p>
+      <h4>مثال</h4>
+      <p>API بياخد دقيقة عشان يحمّل كاش. من غير startup، الحياة هتقتله وهو لسه بيقلع. لو قاعدة البيانات غابت، الجاهزية تفشل والنسخ تخرج من الخدمة وهي لسه حية، ولما القاعدة ترجع يدخلوا من غير عاصفة إعادة تشغيل.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"الحياة والجاهزية نفس الحاجة، واحدة منهم زيادة."</p>
+      <h4>متابعة</h4>
+      <ul><li>فشل الحياة بيغيّر الـ Node؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>في 1.34 معيار restricted بقى يرفض host بعيد في الـ probe. والفحص التقيل بيحوّل الـ kubelet لعميل حمل على التطبيق.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q12" data-level="2" data-text="clusterip nodeport loadbalancer externalname headless">
+    <div class="q-head"><p class="kicker">سؤال 12 · متوسط</p><h3>امتى تختار كل نوع Service؟</h3></div>
+    <p><strong>بيختبر:</strong> نموذج التعريض.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">ClusterIP is the default internal address. NodePort exposes a port on every node. LoadBalancer asks the environment for an external balancer and stays Pending if nothing implements it. ExternalName is only a DNS alias. Headless, clusterIP None, returns Pod addresses for stateful discovery.</p>
+      <h4>الشرح</h4>
+      <p>الدخول HTTP المعقد طبقة فوق الـ Service: Ingress أو Gateway، ومعاهم controller. الـ Service لوحده مش قاعدة مسارات حسب اسم النطاق.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"LoadBalancer دايمًا أحسن." من غير مزوّد، هو ClusterIP معلّق على Pending.</p>
+      <h4>متابعة</h4>
+      <ul><li>ليه <code>targetPort</code> يتسمى بدل ما يتساب رقم؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>الحفاظ على عنوان العميل الأصلي مش وظيفة ClusterIP الافتراضية. لو محتاجة، دي خاصية زي <code>externalTrafficPolicy</code> وليها أثر على التوزيع وعلى عنوان المصدر.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q13" data-level="2" data-text="labels annotations selectors">
+    <div class="q-head"><p class="kicker">سؤال 13 · متوسط</p><h3>ليه الـ Service ما يختارش بـ annotation؟</h3></div>
+    <p><strong>بيختبر:</strong> نموذج الاختيار.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">Labels identify objects and are indexed for selectors. Annotations carry non-identifying metadata. Services, ReplicaSets, and network policies match labels. If the selector does not match the Pod template, the object can look healthy and still have no backends.</p>
+      <h4>الشرح</h4>
+      <p>غلطة متكررة: label على الـ Deployment نفسه والقالب عليه مفتاح تاني. الـ selector بيبص على الـ Pods.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"annotations أحدث فأحسن للاختيار."</p>
+      <h4>متابعة</h4>
+      <ul><li>تقدر تغيّر selector الـ Deployment؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>الـ labels داخلة في cardinality عند أنظمة المراقبة لو استخدمت قيم عالية التغير زي معرف الطلب. سيبها هوية مستقرة.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q14" data-level="2" data-text="statefulset deployment volume identity">
+    <div class="q-head"><p class="kicker">سؤال 14 · متوسط</p><h3>امتى StatefulSet مش مجرد Deployment أهم؟</h3></div>
+    <p><strong>بيختبر:</strong> الهوية والتخزين.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">I use a StatefulSet when each replica needs a stable name and its own volume, such as app-0 with a PVC from volumeClaimTemplates, plus a headless Service. A Deployment treats replicas as interchangeable and gives them random names. Stable names do not by themselves make a database safe to run.</p>
+      <h4>الشرح</h4>
+      <p>القرص يلحق بالاسم لو المزوّد يسمح بالنقل بين الـ Nodes. <code>OrderedReady</code> يرتب البداية. <code>Parallel</code> لأ.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"أي قاعدة بيانات لازم StatefulSet وخلاص، وهتبقى عالية التوفر."</p>
+      <h4>متابعة</h4>
+      <ul><li>إيه اسم DNS للنسخة الأولى؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>النسخ الاحتياطي والاستعادة وترقيات مخطط البيانات خارج الكائن. RWO مش دايمًا "Pod واحد". راجع معنى وضع الوصول عند المزوّد.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q15" data-level="2" data-text="daemonset node agent">
+    <div class="q-head"><p class="kicker">سؤال 15 · متوسط</p><h3>إيه الشغل المناسب لـ DaemonSet؟</h3></div>
+    <p><strong>بيختبر:</strong> نموذج النسخة لكل عقدة.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">A DaemonSet runs one Pod on each matching node: log collectors, node exporters, or CNI pieces. It is the wrong tool for a user-facing API whose replica count should follow traffic.</p>
+      <h4>الشرح</h4>
+      <p>عشان يشتغل على عقد التحكم لازم يتحمّل الـ taint بتاعها. من غيره هتلاقي الوكيل ناقص على أهم العقد.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"DaemonSet يعني نسخة احتياطية دائمة."</p>
+      <h4>متابعة</h4>
+      <ul><li>إيه الفرق بينه وبين ReplicaSet بعدد يساوي عدد الـ Nodes؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>العدد الثابت ما بيتابعش إن عقدة جديدة دخلت. الـ DaemonSet بيتابع مجموعة الـ Nodes. نسخة ReplicaSet ممكن تتجمع على آلات وتسيب آلات فاضية.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q16" data-level="2" data-text="pending failedscheduling taint affinity resources">
+    <div class="q-head"><p class="kicker">سؤال 16 · متوسط</p><h3>Pod قاعد Pending. تمشي فين؟</h3></div>
+    <p><strong>بيختبر:</strong> ترتيب التشخيص.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">I describe the Pod and read FailedScheduling. Typical causes are requests larger than any node, a taint without a toleration, affinity or spread that cannot be satisfied, a PVC stuck in the wrong zone, or a namespace quota. I do not start by raising replicas.</p>
+      <h4>الشرح</h4>
+      <p>لو الحدث بيقول إن المجدول مش قادر، زيادة النسخ هتزوّد Pods معلقة. لو مفيش حدث مجدول خالص، أتأكد إن الـ scheduler شغال وإن الـ Pod فعلًا من غير binding.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"أعمل delete للـ Pod على طول." ممكن يخبي عرض مؤقت ومش بيفسر القيد.</p>
+      <h4>متابعة</h4>
+      <ul><li>إزاي anti-affinity صلب يعلّق نسخة تالتة في zoneين؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>افصل "ما فيش آلة فيها ذاكرة فاضية بالحجز" عن "الآلة شكلها فاضية في المقاييس لأن الحجز مش الاستهلاك". الفرق ده requests ضد الاستخدام اللحظي.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q17" data-level="2" data-text="endpointslice ready labels">
+    <div class="q-head"><p class="kicker">سؤال 17 · متوسط</p><h3>الخدمة موجودة والـ Pods شغالة والعميل بياخد رفض اتصال. تفكر في إيه؟</h3></div>
+    <p><strong>بيختبر:</strong> سلسلة Service إلى Pod.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">I check that the Service selector matches Pod labels, that readiness is succeeding, and that targetPort is the container port. Then I look at EndpointSlices. A running Pod is not automatically a backend.</p>
+      <h4>الشرح</h4>
+      <p>جاهزية فاشلة بتشيل العنوان عن قصد. label زيادة في الـ selector بتفّض القائمة. المنفذ 80 في الخدمة و8080 في الحاوية من غير <code>targetPort</code> صح بيوصل للرقم الغلط.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"أعيد تشغيل CoreDNS دايمًا أول خطوة." DNS لو راجع العنوان الصح، المشكلة بعد كده.</p>
+      <h4>متابعة</h4>
+      <ul><li>NetworkPolicy ممكن تعمل نفس العرض؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>أيوه. العزل بعد ما السياسة تختار الـ Pod بيخفي الاتصال حتى مع EndpointSlice سليمة. اتأكد إن الـ CNI بينفّذ السياسة، وشوف سماح DNS والخروج.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q18" data-level="2" data-text="job cronjob restartpolicy backoff">
+    <div class="q-head"><p class="kicker">سؤال 18 · متوسط</p><h3>Job مختلف عن Deployment في إيه؟</h3></div>
+    <p><strong>بيختبر:</strong> شغل له نهاية.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">A Job runs Pods until a number of them complete successfully. Pod restartPolicy must be Never or OnFailure, not Always. completions and parallelism set how much work runs. A CronJob creates Jobs on a schedule and has a concurrency policy: Allow, Forbid, or Replace.</p>
+      <h4>الشرح</h4>
+      <p>Deployment هيصحح أي خروج لإنه عايز العملية تفضل. الـ Job النجاح عنده خروج صفري. <code>backoffLimit</code> يمنع إعادة المحاولة للأبد.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"CronJob بيخلّي الـ Deployment يشتغل كل ساعة." هو بيصنع Jobs.</p>
+      <h4>متابعة</h4>
+      <ul><li>إيه اللي يحصل لو الشغل فات معادين والـ cluster كان واقع؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p><code>startingDeadlineSeconds</code> و<code>concurrencyPolicy: Forbid</code> بيمنعوا تكدس نسخ فاترة. الشغل لازم يبقى آمن لو اتنفّذ مرتين، لإن إعادة المحاولة واردة.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q19" data-level="3" data-text="qos oom eviction guaranteed burstable besteffort">
+    <div class="q-head"><p class="kicker">سؤال 19 · متقدم</p><h3>الـ Node ضغطت الذاكرة. مين يتقتل الأول، وإيه الفرق عن OOMKill؟</h3></div>
+    <p><strong>بيختبر:</strong> ضغط العقدة ضد حد الحاوية.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">OOMKilled means this container crossed its own memory limit. Node pressure is different: kubelet evicts Pods based on signals and QoS. BestEffort goes before Burstable, and Guaranteed is last if it stays within its request. Exit code 137 alone does not tell me which case happened.</p>
+      <h4>الشرح</h4>
+      <p>شوف سبب الإنهاء في حالة الحاوية، وأحداث الـ kubelet. رفع حد الذاكرة علاج لحالة، وتكبير العقدة أو تقليل الطلب علاج لحالة تانية.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"137 يعني دايمًا حد الذاكرة بتاعنا صغير." ممكن كمان SIGKILL بعد مهلة الإيقاف.</p>
+      <h4>متابعة</h4>
+      <ul><li>إزاي توصل لفئة Guaranteed؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>الطلبات الصادقة بتحمي وقت الجدولة ووقت الإخراج. طلب أصغر من الواقع بيحشر Pods على آلة وبعدين الإخراج يشتغل تحت الحمل الحقيقي.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q20" data-level="3" data-text="resourceversion 409 conflict optimistic">
+    <div class="q-head"><p class="kicker">سؤال 20 · متقدم</p><h3>عميل Python خد 409 وقت التحديث. تعمل إيه؟</h3></div>
+    <p><strong>بيختبر:</strong> التزامن المتفائل.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">409 on update means the resourceVersion I wrote is stale. I read the object again, reapply my change, and retry with a limit. On create, 409 usually means the name already exists, so I should switch to an explicit update path instead of hiding the conflict.</p>
+      <h4>الشرح</h4>
+      <p>إعادة نفس الجسم القديم في حلقة عمياء ممكن تلغي تعديل شخص تاني. الدمج يبقى على الحقل اللي أنت مالكه، زي العدد أو قالب محدد، مش نسخ كائن كامل قديم فوق الجديد من غير ما تفهم الفرق.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"أعمل retry بنفس الجسم فورًا للأبد."</p>
+      <h4>متابعة</h4>
+      <ul><li>إيه فرق 409 عن 422؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>422 رفض معنى بعد ما الطلب اتفهم. 409 سباق أو وجود. معاملتهم بنفس الـ retry بتاع الشبكة غلط. وwatch اللي بياخد 410 محتاج list جديد، مش نفس النسخة القديمة.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q21" data-level="3" data-text="finalizer terminating ownerreference garbage collection">
+    <div class="q-head"><p class="kicker">سؤال 21 · متقدم</p><h3>ليه كائن يفضل Terminating؟</h3></div>
+    <p><strong>بيختبر:</strong> الحذف والملكية.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">A finalizer tells the API to keep the object until the owner removes that finalizer. For a Pod I also check whether the process ignored SIGTERM or a volume detach is stuck. Deleting the Pod record by force is a last resort after I know which controller is supposed to clean up.</p>
+      <h4>الشرح</h4>
+      <p>الـ finalizer مش قفل عشوائي. غالبًا بيحمي مورد خارجي زي قرص أو عنوان. شيله بإيدك من غير ما المورد الخارجي يتظبط بيسيّب بقايا.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"أعمل force delete لأي حاجة واقفة دقيقتين."</p>
+      <h4>متابعة</h4>
+      <ul><li>الفرق بين Background و Foreground و Orphan؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>Orphan يسيب الأبناء من غير أب، فتلاقي ReplicaSets أو Pods محدش يصلّحهم. Foreground يستنى الأبناء. Background يمسح الأب ويكمّل الأبناء بعده.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q22" data-level="3" data-text="networkpolicy default deny cni dns">
+    <div class="q-head"><p class="kicker">سؤال 22 · متقدم</p><h3>كتبت NetworkPolicy والسلوك ما تغيّرش، أو التطبيق فقد DNS. تفسر الاتنين؟</h3></div>
+    <p><strong>بيختبر:</strong> نموذج السياسة والتنفيذ.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">With no policy, Pods are not isolated by Kubernetes policy. A selecting policy isolates that direction and policies are additive. The YAML does nothing if the CNI does not implement it. A deny-all egress without a DNS allow rule breaks name resolution even when the Service is correct.</p>
+      <h4>الشرح</h4>
+      <p>Flannel لوحده مثال مشهور لما ينفّذش السياسة. Calico و Cilium بينفّذوا في نشرهم الشائع، لكن الحكم فحص قدرة الـ cluster مش حفظ أسماء. سماح DNS لازم يطابق labels عناوين DNS الفعلية في التوزيع بتاعك.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"السياسة firewall على الـ Node بمجرد ما تتعمل apply."</p>
+      <h4>متابعة</h4>
+      <ul><li>ingress و egress بيتقفلوا مع بعض تلقائيًا؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>لأ. كل اتجاه بيتقفل لما سياسة تذكره. واختبار السياسة من Pod تاني جزء من التسليم، مش مراجعة YAML بس.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q23" data-level="3" data-text="control plane outage pods keep running">
+    <div class="q-head"><p class="kicker">سؤال 23 · متقدم</p><h3>الـ API server والـ etcd وقعوا. التطبيقات وقعت؟</h3></div>
+    <p><strong>بيختبر:</strong> فصل مسار البيانات عن مسار التحكم.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">Usually existing Pods keep serving, because the control plane is not on the packet path. What stops is scheduling, repairs, and API reads or writes. A node failure during the outage will not be healed. I would not claim the data plane is safe forever: leases, certificate rotation, and some datapaths still depend on the API over time.</p>
+      <h4>الشرح</h4>
+      <p>الجملة الدقيقة: الشغل الحالي غالبًا يكمل، والمنصة فقدت قدرتها تصلّح وتغيّر. دي مش دعوة لتأجيل إصلاح الـ control plane.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"كل الحاويات بتقع في نفس الثانية" أو "مفيش أي أثر خالص مهما طال العطل."</p>
+      <h4>متابعة</h4>
+      <ul><li>إيه أثر فقدان quorum مقارنة بفقدان بيانات etcd؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>فقدان الـ quorum توقف كتابة. فقدان البيانات من غير نسخة احتياطية بيمسح معرفة الـ cluster عن الشغل المطلوب. النسخة الاحتياطية لـ etcd إجراء متختبر استعادته، مش ملف يتكتب ويتنسى.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q24" data-level="3" data-text="hpa metrics server requests behavior">
+    <div class="q-head"><p class="kicker">سؤال 24 · متقدم</p><h3>الـ HPA متظبط وعدد النسخ مش بيتغير. تمشي فين؟</h3></div>
+    <p><strong>بيختبر:</strong> شروط التوسع الأفقي.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">I verify the scale target, that CPU or memory requests exist, and that metrics-server or the custom metrics API actually returns data. Then I read HPA conditions. A target utilization without a request cannot be computed. I also check that another controller is not fighting over replicas.</p>
+      <h4>الشرح</h4>
+      <p>وصف الـ HPA هيقولك لو المقاييس غير معروفة. الصراع مع أداة تانية بتكتب العدد بيظهر كتقلّب أو كإن التوسع ملغوش.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"أزود الحد الأقصى للنسخ." لو المقياس فاضي، السقف مش هيعمل حاجة.</p>
+      <h4>متابعة</h4>
+      <ul><li>VPA يحل نفس المشكلة؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>VPA بيغيّر الطلبات والحدود، ومش بديل تلقائي عن HPA. تشغيلهم على نفس المورد من غير ما تفهم التفاعل ممكن يخلي واحد يلغي قرار التاني. في <code>autoscaling/v2</code> فيه سلوك تهدئة عشان التوسع لتحت ما يرجّعش بسرعة.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q25" data-level="3" data-text="pdb disruption drain voluntary">
+    <div class="q-head"><p class="kicker">سؤال 25 · متقدم</p><h3>PDB مانع تفريغ عقدة. تلغيه؟</h3></div>
+    <p><strong>بيختبر:</strong> الإخراج الطوعي.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">A PDB limits voluntary disruption. If minAvailable equals the replica count, a drain cannot move anything. I would not delete the PDB as a habit. I would see whether surge capacity or a lower minAvailable still protects users, and I remember a PDB does not keep Pods alive through a node crash.</p>
+      <h4>الشرح</h4>
+      <p>الميزانية مع <code>maxUnavailable: 0</code> في الـ Deployment ممكن تقفل أي حركة. الأرقام لازم تتقرأ مع بعض.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"الـ PDB بيعمل high availability حتى لو الآلة اتحرقت."</p>
+      <h4>متابعة</h4>
+      <ul><li>تقدر تحط minAvailable و maxUnavailable مع بعض؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>لأ، واحد بس. وفي التفريغ، شوف كمان Pods عليها toleration طويل أو volume RWO هيتقفل على العقدة لحد ما ينفك.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q26" data-level="3" data-text="admission authentication authorization validatingadmissionpolicy">
+    <div class="q-head"><p class="kicker">سؤال 26 · متقدم</p><h3>رتّب ما يحصل لطلب إنشاء Deployment.</h3></div>
+    <p><strong>بيختبر:</strong> مسار الـ API.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">After TLS, the API server authenticates, then authorizes. Admission runs next, mutating phase then validating phase. Reads skip admission. If that passes, the object is validated and stored in etcd. A 401, a 403, and an admission rejection are different bugs.</p>
+      <h4>الشرح</h4>
+      <p>وحدات التفويض بالترتيب. أول سماح أو منع بيحسم. لو الكل من غير رأي، منع. RBAC سماح بس. <code>ValidatingAdmissionPolicy</code> مستقرة من 1.30 وبتمشي في طور التحقق.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"بيتحفظ في etcd الأول وبعدين يتفحص الصلاحية." ده هيفقد معنى المنع.</p>
+      <h4>متابعة</h4>
+      <ul><li>ليه طلبات GET مش بتعدي على PodSecurity؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>لإن admission مش على القراءة حسب توثيق التحكم في الوصول. عشان كده سر موجود يقدر يتقري من أي هوية عندها get، حتى لو سياسة إنشاء جديدة هترفض شكل الـ Pods. السرية مش شكل الإنشاء.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q27" data-level="3" data-text="native sidecar init restartPolicy Always 1.33">
+    <div class="q-head"><p class="kicker">سؤال 27 · متقدم</p><h3>عايز مساعد يشتغل قبل التطبيق ويتقفل بعده. تعمله إزاي من غير ما تخلط الإصدارات؟</h3></div>
+    <p><strong>بيختبر:</strong> وعي بالنضج.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">On 1.33 and later I use a native sidecar: an init container with restartPolicy Always. It starts before app containers and stops after them. From 1.29 through 1.32 that behavior was beta and on by default, so I would confirm the feature gate before depending on it. A normal second container shares the network but not that lifecycle.</p>
+      <h4>الشرح</h4>
+      <p>الحاوية العادية ممكن تفوت تبدأ بعد ما التطبيق حاول يستخدمها، وممكن تتقفل بترتيب تاني وقت الحذف.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"أي حاوية تانية في الـ Pod اسمها sidecar رسمي من زمان." الكلمة اتقالت سنين قبل ما السلوك يبقى جزء من الـ API.</p>
+      <h4>متابعة</h4>
+      <ul><li>ليه المساعد يشارك الـ Pod أصلًا؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>لو التواصل شبكة عادية بين خدمتين، افصلهم. المشاركة ليها تكلفة جدولة وفشل مشترك. والـ requests بتاعة المساعد بتتضاف على حجز الـ Pod.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q28" data-level="4" data-text="crashloopbackoff scenario logs previous liveness">
+    <div class="q-head"><p class="kicker">سؤال 28 · سيناريو</p><h3>بعد النشر، النسخ في CrashLoopBackOff. المستخدمين لسه على النسخة القديمة. تحقق إزاي؟</h3></div>
+    <p><strong>بيختبر:</strong> ترتيب تحقيق مع rollout.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">I treat it as a bad new ReplicaSet, not as a cluster outage. I describe one new Pod, read the last state, and fetch logs from the previous container. I check whether liveness is killing a slow start, whether config or a secret is missing, and whether the process exits on its own. Meanwhile maxUnavailable 0 explains why the old Pods still serve.</p>
+      <h4>الشرح</h4>
+      <p>لو <code>progressDeadlineSeconds</code> خلص، حالة التقدم هتبقى متجاوزة. الإصلاح قالب جديد أو رجوع. الرجوع آمن لو مفيش هجرة بيانات اتكسرت.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"أرفع العدد عشان واحدة منهم تعيش."</p>
+      <h4>متابعة</h4>
+      <ul><li>إزاي تميّز قفل الحياة عن استثناء في بداية البرنامج؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>سبب الإنهاء في الحالة هيقول إن الـ kubelet قتلها. سجل التطبيق هيقول إنها قفلت لوحدها. وقت الموت مقارنة بـ <code>periodSeconds</code> و<code>failureThreshold</code> بيحسم لو الفحص هو السبب.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q29" data-level="4" data-text="rollout stuck surge pdb readiness">
+    <div class="q-head"><p class="kicker">سؤال 29 · سيناريو</p><h3>الـ rollout واقف على نسخة جديدة مش بتصبح متاحة، والعدد ما بيوصلش.</h3></div>
+    <p><strong>بيختبر:</strong> قراءة القيود مع بعض.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">I look at the new Pods first. If they are Pending, surge may not fit on the cluster. If they are Running but not Ready, the readiness probe or the app is the blocker, and maxUnavailable 0 will not remove old Pods. A PDB can also block the scale-down. I would rather fix readiness than delete old Pods by hand.</p>
+      <h4>الشرح</h4>
+      <p>المشهد الكلاسيكي: فحص جاهزية على مسار بيعتمد على الهجرة، والهجرة مستنية traffic، والـ traffic مستني الجاهزية. الفحص لازم يميّز "التطبيق عاش" عن "الشغل الخلفي خلص" بوعي.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"ألغي الفحوصات عشان النشر يعدي." بتفتح traffic على نسخ مكسورة.</p>
+      <h4>متابعة</h4>
+      <ul><li>إيه أثر <code>minReadySeconds</code> هنا؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>بيؤخر الاحتساب بعد أول نجاح. لو النسخة بتقع بعد عشر ثواني، الرقم ده بيكشفها. كمان شوف إن حصة الـ namespace ما تمنعش Pod الـ surge.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q30" data-level="4" data-text="design database statefulset backup">
+    <div class="q-head"><p class="kicker">سؤال 30 · سيناريو</p><h3>الفريق عايز PostgreSQL جوه الـ cluster. قرارك إيه؟</h3></div>
+    <p><strong>بيختبر:</strong> نضج التشغيل، مش اسم الكائن.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">I would not start with the object type. I would ask about backup, restore tests, failover, disk performance, and who is on call. If we run it ourselves, a StatefulSet, a headless Service, and one PVC per replica are the baseline, but the database’s own replication has to be configured. A managed database can be the better operation if the team is small. Kubernetes will not back it up for us.</p>
+      <h4>الشرح</h4>
+      <p>RPO و RTO قرار منتج. قرص RWO والـ zone لازم يتراجعوا مع بعض. تحديث المحرك مش <code>rollout undo</code> لو ملفات البيانات اتترقت.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"StatefulSet بثلاث نسخ يعني عالية التوفر تلقائيًا."</p>
+      <h4>متابعة</h4>
+      <ul><li>إيه اللي تختبره في تمرين الاستعادة؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>استعادة لنقطة زمنية على بيئة فاضية، وقياس الوقت، والتأكد إن الـ Secrets والنسخ موجودين. نسخة قرص من غير اختبار استعادة قصة مريحة مش خطة.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q31" data-level="4" data-text="python in cluster rbac least privilege deployer">
+    <div class="q-head"><p class="kicker">سؤال 31 · سيناريو</p><h3>هتكتب خدمة Python تعدّل Deployments. تديها أنهي صلاحية وتوصلها إزاي؟</h3></div>
+    <p><strong>بيختبر:</strong> تصميم عميل إنتاج.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">Inside the cluster I use a dedicated ServiceAccount and load_incluster_config. The Role allows only the verbs and resources we need, including deployments/scale if we patch scale, in one namespace. I do not mount a cluster-admin kubeconfig. On a laptop I use load_kube_config for the same code path. 403 is a permissions bug, and I handle 409 as concurrency.</p>
+      <h4>الشرح</h4>
+      <p>الحساب الافتراضي مع تركيب الرمز توسعة صامتة. قفله للتطبيقات اللي ما بتناديش الـ API. للخدمة دي، الحساب الخاص هو الهوية.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"أديها cluster-admin عشان ما نتعطّلش، ونضيّق بعدين." بعدين دي غالبًا مش بتيجي إلا بعد حادث.</p>
+      <h4>متابعة</h4>
+      <ul><li>إزاي تجرب الصلاحية من غير ما تنشر؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p><code>kubectl auth can-i --as=system:serviceaccount:shop:deployer</code>. وكمان سجّل هوية العميل في اللوج من غير ما تسجّل الرمز. ولو فيه أكتر من cluster، استخدم ApiClient منفصل لكل سياق عشان الطلبات ما تخلطش.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q32" data-level="5" data-text="code review yaml latest privileged selector">
+    <div class="q-head"><p class="kicker">سؤال 32 · عملي</p><h3>راجع المانيفست ده قبل ما يتدمج.</h3></div>
+    <p><strong>بيختبر:</strong> قراءة YAML كمهندس، مش كقارئ.</p>
+    <p class="lang">YAML · متعمّد فيه عيوب</p>
+<pre class="code"><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    metadata:
+      labels:
+        app: payment
+    spec:
+      containers:
+        - name: api
+          image: payments:latest
+          securityContext:
+            privileged: true
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+</code></pre>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">I would block it. The selector says app payments but the Pod label is app payment, so the ReplicaSet cannot adopt the Pods. latest is not an immutable release. privileged is far too much power. The only probe is liveness on a path named ready, so a dependency failure would restart the process. There are no resource requests, no readiness probe, and no namespace.</p>
+      <h4>الشرح</h4>
+      <p>أول خطأ هيمنع الشغل أصلًا هو اختلاف الـ label. الباقي ممكن يعدي إنشاء ويبقى حادث تشغيل. الصورة <code>latest</code> بتتسحب دايمًا حسب السياسة الافتراضية للتاج ده، فالنشر مش قابل للتكرار.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"الشكل مظبوط، بس نزود replicas."</p>
+      <h4>متابعة</h4>
+      <ul><li>إيه أقل تعديل يخلّي الـ Pods تتبنى؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>وحّد الـ label، ثبّت تاج، شيل privileged، افصل الجاهزية عن الحياة، وحط requests. لو الـ namespace عليه معيار restricted، الكائن هيترفض في الـ admission حتى بعد إصلاح الـ selector. كمان افتقدنا <code>resources.limits.memory</code> كقرار واعي مش كنسيان صامت.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q33" data-level="5" data-text="python 403 api exception list pods">
+    <div class="q-head"><p class="kicker">سؤال 33 · عملي</p><h3>اكتب نداء عرض Pods يميّز 403 عن باقي الأخطاء.</h3></div>
+    <p><strong>بيختبر:</strong> استخدام المكتبة بهدوء.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">I load config, call CoreV1Api.list_namespaced_pod with a label selector, and catch ApiException. If status is 403 I report that RBAC blocked the verb on pods in that namespace. Anything else is raised. I do not catch Exception and print a generic failure.</p>
+      <h4>مثال</h4>
+      <p class="lang">Python</p>
+<pre class="code"><code>from kubernetes import client, config
+from kubernetes.client.exceptions import ApiException
+
+config.load_kube_config()
+try:
+    pods = client.CoreV1Api().list_namespaced_pod(
+        "shop", label_selector="app=learn-nginx"
+    )
+except ApiException as exc:
+    if exc.status == 403:
+        raise SystemExit("forbidden: need get/list pods in shop") from exc
+    raise
+for pod in pods.items:
+    print(pod.metadata.name, pod.status.phase)
+</code></pre>
+      <h4>إجابة ضعيفة</h4>
+      <p>حلقة من غير label selector على كل الـ namespaces بحساب إدمن "عشان نشوف".</p>
+      <h4>متابعة</h4>
+      <ul><li>ليه <code>watch=False</code> مش هو الحل لما عايز متابعة؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>المتابعة Watch مع مهلة، وإعادة list عند 410. وطباعة <code>exc.body</code> في نظام لوج محمي، من غير ما تطبع ملف kubeconfig.</p>
+    </details>
+  </article>
+
+  <article class="q" id="q34" data-level="5" data-text="zero downtime maxsurge pdb capacity">
+    <div class="q-head"><p class="kicker">سؤال 34 · عملي</p><h3>عايزين تحديث من غير ما العدد الجاهز ينزل تحت المطلوب. إيه الإعداد، وإيه اللي لسه يكسره؟</h3></div>
+    <p><strong>بيختبر:</strong> إن الرقم مش وعد مطلق.</p>
+    <details><summary>الإجابة النموذجية</summary>
+      <h4>إجابة قصيرة تتقال</h4>
+      <p lang="en" dir="ltr">I set maxUnavailable to 0 and maxSurge to at least 1, with a readiness probe that means the process can serve. The cluster must fit the extra Pod. A failing probe, a tight PDB, a missing image, or a migration that cannot roll back will still stop a safe release. Zero unavailable is about old Pods staying until new ones are Ready, not about every possible failure.</p>
+      <h4>الشرح</h4>
+      <p>مع نسختين وsurge واحد، هتبقى تلاتة مؤقتًا. لو الحجز ما يسمحش، الجديدة Pending والقديمة تفضل، فالخدمة ما تقعش لكن النشر يقف. دي نتيجة مقبولة أحسن من قطع الخدمة، وبحتاجة تتشخص.</p>
+      <h4>إجابة ضعيفة</h4>
+      <p>"حط Recreate عشان نضمن نظافة." الاستراتيجية دي بتمسح القديم الأول، وفيها انقطاع.</p>
+      <h4>متابعة</h4>
+      <ul><li>إيه علاقة PDB بالمشهد؟</li></ul>
+      <h4>لمسة senior</h4>
+      <p>لو <code>minAvailable</code> يساوي العدد وقت ما الـ surge مش قادر يتعمل، مفيش حركة آمنة. كمان اتصال طويل من غير ما التطبيق يلم SIGTERM هيتقطع في المهلة حتى لو العدد الجاهز ما نزلش. التحديث من غير انقطاع قرار في المنصة وفي البرنامج مع بعض.</p>
+    </details>
+  </article>
+  <label class="done"><input type="checkbox" data-chapter="ch-interview"> خلّصت أسئلة المقابلات</label>
+</section>
+
+<section id="quiz">
+  <h2>اختبار ختامي</h2>
+  <p>اختار الأول، وبعدين افتح السبب حتى لو جاوبت صح. التصحيح التلقائي بيلون الاختيار لما JavaScript شغال.</p>
+
+  <div class="quiz" data-quiz data-correct="a" data-ok="صح. الحياة بتعيد الحاوية على نفس الـ Pod غالبًا. الجدولة الجديدة ليها سبب تاني زي طرد العقدة." data-bad="إعادة الحاوية مش إعادة جدولة. شوف كمان الفرق عن فشل الجاهزية.">
+    <p><strong>1.</strong> فشل liveness بيعمل إيه عادة؟</p>
+    <label><input type="radio" name="f1" value="a"> يقتل الحاوية والـ kubelet يعيدها حسب سياسة الإعادة.</label>
+    <label><input type="radio" name="f1" value="b"> يشيل الـ Pod من الـ Service بس.</label>
+    <label><input type="radio" name="f1" value="c"> ينقل الـ Pod فورًا لـ Node تانية.</label>
+    <button type="button" data-grade>تحقق</button>
+    <p class="feedback" hidden></p>
+    <details><summary>السبب</summary><p>الأولى صح. التانية تعريف الجاهزية. التالتة مش نتيجة الفحص لوحده.</p></details>
+  </div>
+
+  <div class="quiz" data-quiz data-correct="b" data-ok="صح. النسبة من غير request ما تتحسبش." data-bad="المجدول والـ HPA بيبصوا على الـ request في الحجز والنسبة.">
+    <p><strong>2.</strong> ليه HPA على نسبة CPU ممكن يفضل من غير مقياس؟</p>
+    <label><input type="radio" name="f2" value="a"> لإن حد الذاكرة مش متساوي مع حد المعالج.</label>
+    <label><input type="radio" name="f2" value="b"> لإن الحاويات من غير CPU request.</label>
+    <label><input type="radio" name="f2" value="c"> لإن ClusterIP مش متظبط.</label>
+    <button type="button" data-grade>تحقق</button>
+    <p class="feedback" hidden></p>
+    <details><summary>السبب</summary><p>التانية. المصدر ممكن كمان يكون metrics-server واقع، لكن السؤال بيسأل عن أساس النسبة.</p></details>
+  </div>
+
+  <div class="quiz" data-quiz data-correct="c" data-ok="صح. الترميز مش سرية، والـ RBAC وتشفير etcd قرار زيادة." data-bad="base64 بيترجع لأصل القيمة بسهولة. وجود النوع Secret مش تشفير at rest.">
+    <p><strong>3.</strong> إيه الأدق عن Secret؟</p>
+    <label><input type="radio" name="f3" value="a"> بيتخزن متشفر دايمًا بمجرد استخدام النوع.</label>
+    <label><input type="radio" name="f3" value="b"> آمن يتتحط في مستودع Git طالما القيمة base64.</label>
+    <label><input type="radio" name="f3" value="c"> محتاج RBAC، وتشفير etcd at rest اختيار تشغيل منفصل عن نوع الكائن.</label>
+    <button type="button" data-grade>تحقق</button>
+    <p class="feedback" hidden></p>
+    <details><summary>السبب</summary><p>التالتة. الأولى والتانية بيستخدموا الكلمة تشفير بمعنى غلط.</p></details>
+  </div>
+
+  <div class="quiz" data-quiz data-correct="a" data-ok="صح. الاختلاف ده يمنع التبني، والـ Pods ممكن تتقفل على إنشاء خاطئ أو تفضل مش مملوكة." data-bad="الـ selector بيبص على labels القالب، يعني الـ Pods.">
+    <p><strong>4.</strong> Deployment الـ selector بتاعه <code>app=api</code> والقالب عليه <code>app=api-v2</code>. النتيجة؟</p>
+    <label><input type="radio" name="f4" value="a"> الـ API هترفض الإنشاء لإن القالب مش مطابق للـ selector.</label>
+    <label><input type="radio" name="f4" value="b"> هيشتغل والـ Service يختار الاتنين تلقائيًا.</label>
+    <label><input type="radio" name="f4" value="c"> الـ annotation هتصلح الفرق.</label>
+    <button type="button" data-grade>تحقق</button>
+    <p class="feedback" hidden></p>
+    <details><summary>السبب</summary><p>الأولى. القالب لازم يحقق الـ selector. تغيير الـ selector لاحقًا كمان ممنوع.</p></details>
+  </div>
+
+  <div class="quiz" data-quiz data-correct="b" data-ok="صح. السياسة كائن، والتنفيذ إضافة شبكة." data-bad="وجود الكائن في الـ API مش dataplane.">
+    <p><strong>5.</strong> NetworkPolicy اتعملت apply والاتصال لسه مفتوح للكل. تفسير وارد؟</p>
+    <label><input type="radio" name="f5" value="a"> Kubernetes دايمًا بيطبّق السياسة في kube-proxy.</label>
+    <label><input type="radio" name="f5" value="b"> إضافة الشبكة مش بتنفّذ NetworkPolicy.</label>
+    <label><input type="radio" name="f5" value="c"> الـ Secret مش متشفر.</label>
+    <button type="button" data-grade>تحقق</button>
+    <p class="feedback" hidden></p>
+    <details><summary>السبب</summary><p>التانية واردة ودقيقة. kube-proxy مش منفّذ NetworkPolicy العام. التالتة موضوع تاني.</p></details>
+  </div>
+
+  <div class="quiz" data-quiz data-correct="c" data-ok="صح. داخل الـ Pod التكوين الداخلي هو المقصود. الملف المحلي مسار جهاز المطوّر." data-bad="الاتنين موجودين لسببين مختلفين. جوه الـ Pod استخدم حساب الخدمة.">
+    <p><strong>6.</strong> عملية جوه Pod عايزة تنادي الـ API. التكوين المناسب؟</p>
+    <label><input type="radio" name="f6" value="a"> نسخ kubeconfig بتاع الإدمن جوه الصورة.</label>
+    <label><input type="radio" name="f6" value="b"> <code>load_kube_config()</code> دايمًا، حتى من غير ملف.</label>
+    <label><input type="radio" name="f6" value="c"> ServiceAccount ضيق و<code>load_incluster_config()</code>.</label>
+    <button type="button" data-grade>تحقق</button>
+    <p class="feedback" hidden></p>
+    <details><summary>السبب</summary><p>التالتة. الأولى بتسرّب صلاحية واسعة في طبقات الصورة. التانية هتفشل من غير ملف، ولو لقت ملف مش هو نموذج التشغيل جوه الـ cluster.</p></details>
+  </div>
+
+  <div class="quiz" data-quiz data-correct="a" data-ok="صح. Job مش للعملية اللي لازم تفضل سامعة." data-bad="Always مناسبة لـ Deployment. الـ Job هيترفض أو مش هيخلّص بالمعنى المطلوب لو السياسة Always.">
+    <p><strong>7.</strong> سياسة إعادة التشغيل المقبولة لـ Pod بتاع Job؟</p>
+    <label><input type="radio" name="f7" value="a"> Never أو OnFailure.</label>
+    <label><input type="radio" name="f7" value="b"> Always بس.</label>
+    <label><input type="radio" name="f7" value="c"> مفيش سياسة، والـ CronJob هيحط Always.</label>
+    <button type="button" data-grade>تحقق</button>
+    <p class="feedback" hidden></p>
+    <details><summary>السبب</summary><p>الأولى. النجاح خروج صفري، والفشل ليه حد رجوع.</p></details>
+  </div>
+
+  <div class="quiz" data-quiz data-correct="b" data-ok="صح. سقوط التحكم مش نفس سقوط مسار الطلبات الحالي." data-bad="الـ control plane مش في مسار كل packet في التصميم الشائع. كمان مش صحيح إن الأثر معدوم مهما طال.">
+    <p><strong>8.</strong> أدق وصف لو الـ control plane وقع دلوقتي؟</p>
+    <label><input type="radio" name="f8" value="a"> كل الـ Pods بتتقفل في نفس اللحظة.</label>
+    <label><input type="radio" name="f8" value="b"> الشغل الحالي غالبًا يكمل، والإصلاح والجدولة وتعديل الـ API يقفوا.</label>
+    <label><input type="radio" name="f8" value="c"> مفيش أي أثر مهما فضل واقع أسابيع.</label>
+    <button type="button" data-grade>تحقق</button>
+    <p class="feedback" hidden></p>
+    <details><summary>السبب</summary><p>التانية. العقود والشهادات والإصلاح بيبان أثرهم مع الوقت، فالتالتة مبالغة عكسية.</p></details>
+  </div>
+</section>
+
+<section id="checklist">
+  <h2>قائمة مذاكرة</h2>
+  <p>علّم وأنت بتراجع. العلامات دي بتتخزن مع فصول الدليل في نفس المتصفح.</p>
+  <div class="checklist">
+    <label><input type="checkbox" data-chapter="ck-map"> أقدر أرسم الـ API server وetcd والـ scheduler والـ kubelet من غير ما أخلط مين بيتكلم مع مين.</label>
+    <label><input type="checkbox" data-chapter="ck-own"> أقدر أقول مين مالك الـ Pod في Deployment وStatefulSet وDaemonSet وJob.</label>
+    <label><input type="checkbox" data-chapter="ck-probe"> أقدر أختار مسار readiness ومسار liveness لخدمة ليها قاعدة بيانات.</label>
+    <label><input type="checkbox" data-chapter="ck-net"> أقدر أفسر Service فاضي من الـ labels والجاهزية والـ targetPort.</label>
+    <label><input type="checkbox" data-chapter="ck-rbac"> أقدر أكتب Role فيه المورد والفعل والـ subresource من غير cluster-admin.</label>
+    <label><input type="checkbox" data-chapter="ck-py"> أقدر أشرح 401 و403 و409 و422 من عميل Python.</label>
+    <label><input type="checkbox" data-chapter="ck-roll"> أقدر أحكي تسلسل rollout من تغيير القالب لحد EndpointSlice.</label>
+    <label><input type="checkbox" data-chapter="ck-say"> قلت الإجابات الإنجليزية القصيرة بصوت عالي مرة من غير ما أقرأها.</label>
+  </div>
+</section>
+
+<section id="limits">
+  <h2>حدود الدليل والمراجعة</h2>
+  <ul>
+    <li>الأمثلة ما اتنفّذتش على cluster وقت كتابة الملف. الناتج المذكور شكل متوقع، مش سجل جلسة.</li>
+    <li>تاج <code>nginx:1.27-alpine</code> مثال تعليمي من عائلة الصور الرسمية. اتأكد إنه لسه موجود قبل التشغيل.</li>
+    <li>قائمة شروط Pod Security Standards الكاملة مكانها التوثيق الرسمي. هنا أشهر القيود والسبب، مش نقل حرفي لكل قاعدة.</li>
+    <li>وضع kube-proxy الافتراضي، ووجود بديل eBPF، وتسميات Pods بتاعة DNS بتختلف بين التوزيعات. افحص الـ cluster قبل ما تعمّم جملة من الدليل.</li>
+    <li>آخر patch منشور بيتغير كل شهر تقريبًا. جملة الإصدارات في أول الدليل مربوطة بيوم 14 أكتوبر 2026.</li>
+    <li>مصادر تراجع عليها بنفسك: توثيق المفاهيم على kubernetes.io، صفحة الإصدارات، ومستودع <code>kubernetes-client/python</code>.</li>
+  </ul>
+  <div class="callout takeaway">
+    <p>لو هتفتكر مشهد واحد: أنت بتكتب spec، والـ API server هو الباب، والـ controllers تصلّح الفرق، والـ kubelet يشغّل، والـ Service ما يبعتش إلا للجاهز.</p>
+  </div>
+</section>
+<p class="note">ملف دراسة مستقل. التقدم في المتصفح المحلي فقط، ومش مربوط بحساب. مفيش مؤلف أو جهة شهادات مكتوبين لإن مفيش جهة كده ورا الملف.</p>
+</main>
+</div>
+<button type="button" id="to-top">أعلى الصفحة</button>
+<script>
+(function () {
+  "use strict";
+  var THEME_KEY = "k8s-core-guide-theme";
+  var CHECK_KEY = "k8s-core-guide-checks";
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function storageGet(key) {
+    try { return localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function storageSet(key, value) {
+    try { localStorage.setItem(key, value); } catch (e) {}
+  }
+
+  var themeBtn = document.getElementById("theme-toggle");
+  function currentTheme() {
+    return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  }
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    if (!themeBtn) return;
+    var dark = theme === "dark";
+    themeBtn.setAttribute("aria-pressed", dark ? "true" : "false");
+    themeBtn.textContent = dark ? "الوضع الفاتح" : "الوضع الداكن";
+  }
+  applyTheme(currentTheme());
+  if (themeBtn) {
+    themeBtn.addEventListener("click", function () {
+      var next = currentTheme() === "dark" ? "light" : "dark";
+      applyTheme(next);
+      storageSet(THEME_KEY, next);
+    });
+  }
+
+  function fallbackCopy(text) {
+    var area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.left = "0";
+    area.style.top = "0";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.focus();
+    area.select();
+    var done = false;
+    try { done = document.execCommand("copy"); } catch (e) { done = false; }
+    document.body.removeChild(area);
+    return done;
+  }
+
+  function copyText(text) {
+    var clipboardPromise = (navigator.clipboard && navigator.clipboard.writeText)
+      ? navigator.clipboard.writeText(text)
+      : Promise.reject(new Error("no clipboard"));
+    var timeout = new Promise(function (_, reject) {
+      window.setTimeout(function () { reject(new Error("timeout")); }, 700);
+    });
+    return Promise.race([clipboardPromise, timeout]).catch(function () {
+      if (!fallbackCopy(text)) throw new Error("copy failed");
+    });
+  }
+
+  document.querySelectorAll("pre.code").forEach(function (pre) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "copy";
+    btn.textContent = "نسخ";
+    btn.setAttribute("aria-label", "نسخ الكود");
+    btn.addEventListener("click", function () {
+      var code = pre.querySelector("code");
+      var text = code ? code.innerText : "";
+      function ok() {
+        btn.textContent = "تم";
+        window.setTimeout(function () { btn.textContent = "نسخ"; }, 1400);
+      }
+      function fail() {
+        btn.textContent = "انسخ يدويًا";
+        window.setTimeout(function () { btn.textContent = "نسخ"; }, 1600);
+      }
+      if (fallbackCopy(text)) {
+        ok();
+        return;
+      }
+      copyText(text).then(ok, fail);
+    });
+    pre.appendChild(btn);
+  });
+
+  document.querySelectorAll("[data-quiz]").forEach(function (quiz) {
+    var btn = quiz.querySelector("[data-grade]");
+    var feedback = quiz.querySelector(".feedback");
+    if (!btn || !feedback) return;
+    btn.addEventListener("click", function () {
+      var selected = quiz.querySelector("input[type=radio]:checked");
+      var correct = quiz.getAttribute("data-correct");
+      quiz.querySelectorAll("label").forEach(function (label) {
+        label.classList.remove("is-right", "is-wrong");
+      });
+      if (!selected) {
+        feedback.hidden = false;
+        feedback.className = "feedback is-warn";
+        feedback.textContent = "اختار إجابة الأول.";
+        return;
+      }
+      var choice = selected.closest("label");
+      var answer = quiz.querySelector("details");
+      if (answer) answer.open = true;
+      if (selected.value === correct) {
+        if (choice) choice.classList.add("is-right");
+        feedback.hidden = false;
+        feedback.className = "feedback is-ok";
+        feedback.textContent = quiz.getAttribute("data-ok") || "إجابة مظبوطة.";
+      } else {
+        if (choice) choice.classList.add("is-wrong");
+        var right = quiz.querySelector("input[value='" + correct + "']");
+        if (right && right.closest("label")) right.closest("label").classList.add("is-right");
+        feedback.hidden = false;
+        feedback.className = "feedback is-bad";
+        feedback.textContent = quiz.getAttribute("data-bad") || "لأ. السبب متفتح تحت.";
+      }
+    });
+  });
+
+  var boxes = Array.prototype.slice.call(document.querySelectorAll("input[data-chapter]"));
+  function updateProgress() {
+    var done = boxes.filter(function (box) { return box.checked; }).length;
+    var count = document.getElementById("progress-count");
+    var bar = document.getElementById("progress-bar");
+    if (count) count.textContent = done + " / " + boxes.length;
+    if (bar) bar.style.width = boxes.length ? ((done / boxes.length) * 100) + "%" : "0";
+  }
+  function loadChecks() {
+    var raw = storageGet(CHECK_KEY);
+    if (!raw) return;
+    try {
+      var data = JSON.parse(raw);
+      boxes.forEach(function (box) {
+        box.checked = !!data[box.getAttribute("data-chapter")];
+      });
+    } catch (e) {}
+  }
+  function saveChecks() {
+    var data = {};
+    boxes.forEach(function (box) {
+      data[box.getAttribute("data-chapter")] = box.checked;
+    });
+    storageSet(CHECK_KEY, JSON.stringify(data));
+    updateProgress();
+  }
+  loadChecks();
+  updateProgress();
+  boxes.forEach(function (box) { box.addEventListener("change", saveChecks); });
+
+  var search = document.getElementById("q-search");
+  var level = document.getElementById("q-level");
+  var questions = Array.prototype.slice.call(document.querySelectorAll("#interview article.q"));
+  var countEl = document.getElementById("q-count");
+  function filterQuestions() {
+    var term = search ? search.value.trim().toLowerCase() : "";
+    var lv = level ? level.value : "all";
+    var shown = 0;
+    questions.forEach(function (q) {
+      var text = (q.getAttribute("data-text") || "") + " " + q.innerText;
+      var okLevel = lv === "all" || q.getAttribute("data-level") === lv;
+      var okText = !term || text.toLowerCase().indexOf(term) !== -1;
+      var show = okLevel && okText;
+      q.hidden = !show;
+      if (show) shown += 1;
+    });
+    if (countEl) countEl.textContent = shown + " سؤال ظاهر";
+  }
+  if (search) search.addEventListener("input", filterQuestions);
+  if (level) level.addEventListener("change", filterQuestions);
+  filterQuestions();
+
+  var tocBtn = document.getElementById("toc-toggle");
+  var toc = document.getElementById("toc");
+  if (tocBtn && toc) {
+    function syncToc() {
+    var wide = window.innerWidth > 900;
+    if (wide) {
+      toc.classList.remove("is-open");
+      tocBtn.setAttribute("aria-expanded", "true");
+    } else {
+      tocBtn.setAttribute("aria-expanded", toc.classList.contains("is-open") ? "true" : "false");
+    }
+  }
+  tocBtn.addEventListener("click", function () {
+    if (window.innerWidth > 900) {
+      toc.focus();
+      return;
+    }
+    toc.classList.toggle("is-open");
+    syncToc();
+  });
+  window.addEventListener("resize", syncToc);
+  syncToc();
+  }
+
+  var topBtn = document.getElementById("to-top");
+  if (topBtn) {
+    window.addEventListener("scroll", function () {
+      topBtn.classList.toggle("is-visible", window.scrollY > 700);
+    }, { passive: true });
+    topBtn.addEventListener("click", function () {
+      window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    });
+  }
+
+  var read = document.getElementById("read-bar");
+  if (read) {
+    var onScroll = function () {
+      var h = document.documentElement;
+      var max = h.scrollHeight - h.clientHeight;
+      read.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+})();
+</script>
+</body>
+</html>

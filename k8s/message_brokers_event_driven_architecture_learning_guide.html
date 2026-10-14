@@ -1,0 +1,2121 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Message Brokers و Event-Driven Architecture — دليل دراسة</title>
+  <style>
+    :root {
+      --bg: #f3efe6;
+      --bg-elev: #fffcf8;
+      --ink: #1d1916;
+      --muted: #5e564e;
+      --line: #e3d9cc;
+      --accent: #0e6e68;
+      --accent-ink: #ffffff;
+      --accent-soft: #e4f3f1;
+      --warm: #8a4318;
+      --warm-soft: #f8efe6;
+      --info: #1e4d8c;
+      --info-soft: #e8f0fa;
+      --good: #0f6b45;
+      --good-soft: #e7f6ee;
+      --warn: #8a4b08;
+      --warn-soft: #fff4e4;
+      --danger: #8f2430;
+      --danger-soft: #fdecee;
+      --code: #1c1917;
+      --code-ink: #f6f1ea;
+      --code-muted: #c8bfb4;
+      --shadow: 0 1px 2px rgba(40, 28, 16, 0.04), 0 10px 28px rgba(40, 28, 16, 0.05);
+      --radius: 14px;
+      --sidebar: 292px;
+      --header: 64px;
+      --font: "Segoe UI", Tahoma, "Noto Naskh Arabic", "Noto Sans Arabic", "DejaVu Sans", sans-serif;
+      --mono: "Cascadia Code", "Source Code Pro", "DejaVu Sans Mono", ui-monospace, monospace;
+      --content: 78ch;
+    }
+    :root[data-theme="dark"] {
+      --bg: #121417;
+      --bg-elev: #1b1f24;
+      --ink: #f4f0ea;
+      --muted: #b7aea4;
+      --line: #313842;
+      --accent: #3dbeB4;
+      --accent-ink: #06211f;
+      --accent-soft: #163330;
+      --warm: #f0b48a;
+      --warm-soft: #2a211b;
+      --info: #9ec0ef;
+      --info-soft: #182536;
+      --good: #8ed4b0;
+      --good-soft: #14281e;
+      --warn: #f0c27a;
+      --warn-soft: #2c2416;
+      --danger: #f0a3ab;
+      --danger-soft: #31181c;
+      --code: #0e1114;
+      --code-ink: #f3eee7;
+      --code-muted: #b7aea4;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.28);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 1.05rem;
+      line-height: 1.85;
+    }
+    .en, code, pre, .ltr { direction: ltr; unicode-bidi: isolate; }
+    p, li, td, th, .en { overflow-wrap: anywhere; }
+    pre, pre code { overflow-wrap: normal; white-space: pre; }
+    .en { font-weight: 650; }
+    a { color: var(--accent); text-underline-offset: 0.18em; }
+    a:hover { text-decoration-thickness: 2px; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .skip {
+      position: absolute;
+      inset-inline-start: 12px;
+      top: -40px;
+      background: var(--accent);
+      color: var(--accent-ink);
+      padding: 8px 12px;
+      z-index: 20;
+    }
+    .skip:focus { top: 8px; }
+    header.site {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      height: var(--header);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 20px;
+      background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+    .brand-text { min-width: 0; }
+    .mark {
+      width: 36px; height: 36px; flex: none;
+      border-radius: 10px;
+      background: var(--accent);
+      color: var(--accent-ink);
+      display: grid; place-items: center;
+    }
+    .brand strong, .brand span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .brand strong { font-size: 0.98rem; line-height: 1.3; }
+    .brand span { color: var(--muted); font-size: 0.82rem; line-height: 1.3; }
+    .header-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+    button, .btn {
+      font: inherit;
+      border: 1px solid var(--line);
+      background: var(--bg-elev);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 7px 14px;
+      cursor: pointer;
+    }
+    button.primary, .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+    .progress-label { color: var(--muted); font-size: 0.82rem; white-space: nowrap; }
+    .readbar { position: absolute; inset-inline: 0; bottom: 0; height: 3px; background: transparent; }
+    .readbar > span { display: block; height: 100%; width: 0; background: var(--accent); }
+    .layout { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); min-width: 0; }
+    main, .chapter, section, .table-wrap, .codebox, pre { min-width: 0; max-width: 100%; }
+    nav.toc {
+      position: sticky;
+      top: var(--header);
+      height: calc(100vh - var(--header));
+      overflow: auto;
+      padding: 18px 14px 32px;
+      border-inline-end: 1px solid var(--line);
+      background: color-mix(in srgb, var(--bg) 70%, var(--bg-elev));
+    }
+    nav.toc h2 { font-size: 0.78rem; letter-spacing: 0.04em; color: var(--muted); margin: 8px 8px 10px; }
+    nav.toc a {
+      display: block;
+      text-decoration: none;
+      color: var(--ink);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+    nav.toc a:hover, nav.toc a.active { background: var(--accent-soft); }
+    nav.toc a.sub { padding-inline-start: 22px; color: var(--muted); font-size: 0.86rem; }
+    .mobile-toc { display: none; margin: 12px 16px 0; }
+    main { padding: 28px 6vw 80px; max-width: calc(var(--content) + 12vw); }
+    .cover {
+      background: var(--bg-elev);
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius) + 4px);
+      box-shadow: var(--shadow);
+      padding: 28px 28px 22px;
+      margin-bottom: 22px;
+    }
+    .eyebrow { color: var(--accent); font-weight: 700; font-size: 0.86rem; margin: 0 0 8px; }
+    h1 { font-size: clamp(1.8rem, 3vw, 2.5rem); line-height: 1.35; margin: 0 0 8px; }
+    .subtitle { font-size: 1.15rem; color: var(--muted); margin: 0 0 18px; }
+    .meta-grid, .card-grid, .compare-grid { display: grid; gap: 12px; }
+    .meta-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 8px 0 18px; }
+    .card, .callout, .q, .quiz, .chapter {
+      background: var(--bg-elev);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .card { padding: 14px 16px; }
+    .card h3, .card p { margin: 0; }
+    .card h3 { font-size: 0.92rem; color: var(--muted); font-weight: 650; }
+    .card p { margin-top: 4px; }
+    h2 { font-size: 1.55rem; line-height: 1.4; margin: 2.2rem 0 0.7rem; }
+    h3 { font-size: 1.18rem; line-height: 1.45; margin: 1.4rem 0 0.45rem; }
+    h4 { margin: 1rem 0 0.3rem; font-size: 1.02rem; }
+    p { margin: 0.55rem 0; }
+    .lead { font-size: 1.12rem; }
+    ul, ol { padding-inline-start: 1.25rem; }
+    li { margin: 0.28rem 0; }
+    .chapter { padding: 8px 22px 18px; margin-top: 18px; }
+    .callout { padding: 12px 14px; margin: 14px 0; border-inline-start: 4px solid var(--accent); }
+    .callout.key { background: var(--accent-soft); }
+    .callout.warn { background: var(--warn-soft); border-inline-start-color: var(--warn); }
+    .callout.danger { background: var(--danger-soft); border-inline-start-color: var(--danger); }
+    .callout.good { background: var(--good-soft); border-inline-start-color: var(--good); }
+    .callout.info { background: var(--info-soft); border-inline-start-color: var(--info); }
+    .callout strong.label { display: block; margin-bottom: 2px; }
+    .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0; }
+    .node {
+      background: var(--accent-soft);
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+      border-radius: 12px;
+      padding: 8px 12px;
+      min-width: 108px;
+      text-align: center;
+      line-height: 1.35;
+    }
+    .node small { display: block; color: var(--muted); font-size: 0.78rem; }
+    .node.warm { background: var(--warm-soft); border-color: color-mix(in srgb, var(--warm) 40%, var(--line)); }
+    .node.good { background: var(--good-soft); }
+    .node.danger { background: var(--danger-soft); }
+    .arrow { color: var(--muted); font-weight: 700; }
+    .diagram {
+      width: 100%;
+      height: auto;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      margin: 12px 0;
+    }
+    .diagram .box { fill: var(--accent-soft); stroke: var(--accent); }
+    .diagram .box-warm { fill: var(--warm-soft); stroke: var(--warm); }
+    .diagram .box-good { fill: var(--good-soft); stroke: var(--good); }
+    .diagram .box-danger { fill: var(--danger-soft); stroke: var(--danger); }
+    .diagram .box-info { fill: var(--info-soft); stroke: var(--info); }
+    .diagram text { fill: var(--ink); font-family: var(--font); font-size: 14px; }
+    .diagram .small { font-size: 12px; fill: var(--muted); }
+    .diagram line, .diagram path.edge { stroke: var(--muted); fill: none; stroke-width: 1.6; }
+    .table-wrap { overflow-x: auto; margin: 12px 0 16px; border: 1px solid var(--line); border-radius: 12px; max-width: 100%; }
+    table { width: 100%; border-collapse: collapse; min-width: 640px; background: var(--bg-elev); }
+    th, td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: start; vertical-align: top; }
+    th { background: color-mix(in srgb, var(--accent-soft) 70%, var(--bg-elev)); font-size: 0.92rem; }
+    tr:last-child td { border-bottom: 0; }
+    pre {
+      background: var(--code);
+      color: var(--code-ink);
+      border-radius: 12px;
+      padding: 14px 14px 12px;
+      overflow-x: auto;
+      line-height: 1.55;
+      font-family: var(--mono);
+      font-size: 0.86rem;
+      margin: 8px 0 0;
+    }
+    code { font-family: var(--mono); font-size: 0.88em; }
+    p code, li code, td code {
+      background: color-mix(in srgb, var(--code) 8%, var(--bg-elev));
+      padding: 0.05em 0.35em;
+      border-radius: 6px;
+      font-size: 0.84em;
+    }
+    :root[data-theme="dark"] p code, :root[data-theme="dark"] li code, :root[data-theme="dark"] td code {
+      background: #2a3038;
+    }
+    .codebox { position: relative; margin: 14px 0; }
+    .codebox .top {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 8px; margin-bottom: 0;
+    }
+    .lang {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+    .copy { border-radius: 8px; padding: 4px 10px; font-size: 0.82rem; }
+    .trace { background: var(--bg); border: 1px dashed var(--line); border-radius: 12px; padding: 10px 14px; }
+    details { margin: 10px 0; }
+    summary { cursor: pointer; font-weight: 700; }
+    .quiz, .q { padding: 14px 16px; margin: 12px 0; }
+    .quiz label, .check label { display: flex; gap: 8px; align-items: flex-start; margin: 6px 0; }
+    .feedback { margin-top: 8px; padding: 8px 10px; border-radius: 10px; display: none; }
+    .feedback.show { display: block; }
+    .feedback.ok { background: var(--good-soft); }
+    .feedback.bad { background: var(--danger-soft); }
+    .q-head { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.78rem;
+      background: var(--accent-soft);
+      color: var(--ink);
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+    }
+    .badge.l2 { background: var(--info-soft); }
+    .badge.l3 { background: var(--warm-soft); }
+    .badge.l4 { background: var(--warn-soft); }
+    .badge.l5 { background: var(--danger-soft); }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+    .filters button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+    input[type="search"] {
+      width: min(100%, 420px);
+      font: inherit;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--bg-elev);
+      color: var(--ink);
+    }
+    .hidden { display: none !important; }
+    #topbtn {
+      position: fixed;
+      inset-inline-end: 18px;
+      bottom: 18px;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      box-shadow: var(--shadow);
+    }
+    .checklist li { list-style: none; margin: 0; }
+    .checklist { list-style: none; padding: 0; }
+    footer.site { color: var(--muted); padding: 10px 0 30px; font-size: 0.92rem; }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+      nav.toc { display: none; }
+      .mobile-toc { display: block; }
+      .meta-grid { grid-template-columns: 1fr; }
+      main { padding: 16px 16px 72px; }
+      .progress-label, .brand span { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+    @media print {
+      header.site, nav.toc, .mobile-toc, #topbtn, .copy, .header-actions { display: none !important; }
+      .layout { display: block; }
+      body { background: white; color: black; }
+      .chapter, .cover, .q, .quiz { box-shadow: none; }
+      details { open: true; }
+    }
+  </style>
+</head>
+<body id="top">
+  <a class="skip" href="#content">تخطي إلى المحتوى</a>
+  <header class="site">
+    <div class="brand">
+      <div class="mark" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M3 6h6v4H3V6zm10 0h6v4h-6V6zM7 12h8v4H7v-4z" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M6 10v2m10-2v2M11 10V8" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
+      </div>
+      <div class="brand-text" dir="ltr">
+        <strong>Message Brokers</strong>
+        <span>Event-Driven Architecture · RabbitMQ + pika</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="progress-label" id="read-label">تقدم القراءة 0%</span>
+      <button type="button" id="theme-toggle" aria-pressed="false">الوضع الداكن</button>
+    </div>
+    <div class="readbar" aria-hidden="true"><span id="readbar"></span></div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="فهرس الدراسة">
+      <h2>المحتويات</h2>
+      <a href="#cover">الغلاف</a>
+      <a href="#overview">نظرة تنفيذية</a>
+      <a href="#hierarchy">سلم المفاهيم</a>
+      <a href="#why">1. ليه الرسائل موجودة</a>
+      <a href="#sync">2. Sync و Async</a>
+      <a href="#eda">3. Broker مقابل EDA</a>
+      <a href="#model">4. نموذج AMQP</a>
+      <a href="#routing">5. Exchanges و Routing</a>
+      <a href="#workflow">6. Producer و Consumer</a>
+      <a href="#reliability">7. Acks و Confirms</a>
+      <a href="#retries">8. Retries و DLQ</a>
+      <a href="#guarantees">9. الضمانات و Idempotency</a>
+      <a href="#failures">10. سيناريوهات الفشل</a>
+      <a href="#production">11. الإنتاج</a>
+      <a href="#comparisons">مقارنات</a>
+      <a href="#implementation">تطبيق عملي</a>
+      <a href="#mistakes">أخطاء شائعة</a>
+      <a href="#cheatsheet">ورقة مراجعة</a>
+      <a href="#interview">أسئلة المقابلات</a>
+      <a class="sub" href="#level-1">المستوى 1</a>
+      <a class="sub" href="#level-2">المستوى 2</a>
+      <a class="sub" href="#level-3">المستوى 3</a>
+      <a class="sub" href="#level-4">سيناريوهات</a>
+      <a class="sub" href="#level-5">تمارين عملية</a>
+      <a href="#checklist">قائمة المذاكرة</a>
+      <a href="#sources">حدود الدليل والمصادر</a>
+    </nav>
+
+    <main id="content">
+      <details class="mobile-toc card">
+        <summary>فهرس المحتويات</summary>
+        <p><a href="#overview">نظرة تنفيذية</a> · <a href="#hierarchy">سلم المفاهيم</a> · <a href="#why">البداية</a> · <a href="#sync">Sync/Async</a> · <a href="#eda">Broker و EDA</a> · <a href="#model">AMQP</a> · <a href="#routing">Routing</a> · <a href="#workflow">Workflow</a> · <a href="#reliability">Acks</a> · <a href="#retries">Retries</a> · <a href="#guarantees">الضمانات</a> · <a href="#failures">الفشل</a> · <a href="#production">الإنتاج</a> · <a href="#comparisons">مقارنات</a> · <a href="#implementation">تطبيق</a> · <a href="#mistakes">أخطاء</a> · <a href="#cheatsheet">مراجعة</a> · <a href="#interview">مقابلات</a> · <a href="#checklist">قائمة</a></p>
+      </details>
+
+      <section class="cover" id="cover">
+        <p class="eyebrow">دليل دراسة طويل المدى · Intermediate إلى Senior</p>
+        <h1>Message Brokers و Event-Driven Architecture</h1>
+        <p class="subtitle">من الاتصال المتزامن إلى RabbitMQ: exchanges، queues، acknowledgments، retries، dead-letter queues، idempotency، وضمانات التسليم.</p>
+        <div class="meta-grid">
+          <article class="card"><h3>المستوى</h3><p>مهندس متوسط إلى كبير، جاهز يشرح التصميم في مقابلة ويطبّقه في خدمة حقيقية.</p></article>
+          <article class="card"><h3>وقت الدراسة التقديري</h3><p>10 إلى 14 ساعة للقراءة العميقة مع حل الأسئلة. الرقم تقدير، مش قياس رسمي.</p></article>
+          <article class="card"><h3>نطاق الأدوات</h3><p><span class="en">RabbitMQ 4.x</span> مع عميل <span class="en">Python pika</span> على <span class="en">BlockingConnection</span>. السلوك المرتبط بالنسخة متحدد في النص.</p></article>
+        </div>
+        <h2>هتخرج من الدليل فاهم إيه</h2>
+        <ul>
+          <li>تفرّق بين الاتصال المتزامن، الاتصال غير المتزامن، الـ <span class="en">message broker</span>، وأسلوب <span class="en">event-driven architecture</span>.</li>
+          <li>ترسم مسار رسالة من الـ <span class="en">producer</span> إلى الـ <span class="en">exchange</span> ثم الـ <span class="en">queue</span> ثم الـ <span class="en">consumer</span>، وتعرف مين مسؤول عن إيه.</li>
+          <li>تختار <span class="en">ack</span> و <span class="en">prefetch</span> و <span class="en">publisher confirms</span> و <span class="en">dead-letter</span> بشكل واعٍ، مش بالنسخ من مثال.</li>
+          <li>تشرح ليه <span class="en">at-least-once</span> هو الضمان العملي، وليه الـ <span class="en">idempotency</span> جزء من التصميم مش تحسين لاحق.</li>
+          <li>تحقّق في رسالة ضاعت، اتكررت، أو وقفت الطابور، وتجاوب على أسئلة مقابلة بمستوى كبير.</li>
+        </ul>
+        <div class="callout info">
+          <strong class="label">قبل ما تبدأ</strong>
+          مفيد يكون عندك تصور عن <span class="en">HTTP request/response</span>، عمليات قاعدة البيانات والـ <span class="en">commit</span>، ومفهوم العملية <span class="en">process</span> مقابل الـ <span class="en">thread</span>. مش مطلوب إنك تكون بنيت <span class="en">cluster</span> قبل كده.
+        </div>
+      </section>
+
+      <section id="overview">
+        <h2>نظرة تنفيذية</h2>
+        <p class="lead">الفكرة الأساسية: الخدمة اللي بيحصل عندها الحدث مش لازم تستنى كل الشغل اللاحق، ولا لازم تعرف مين هيعمله. هي بتسجّل حقيقة أو طلب في وسيط، والوسيط بيسلّمه للأطراف المهتمة لما يبقوا جاهزين.</p>
+        <p>المشكلة اللي الاتصال المباشر مش بيحلها كويس: خدمة الطلبات لو بتنادي الفوترة والمخزون والإيميل في نفس الطلب، فبطء أي خدمة أو سقوطها بيوقع تجربة المستخدم، ونشر خدمة جديدة بيحتاج تعديل في الخدمة القديمة.</p>
+        <p>أهم الأجزاء في <span class="en">RabbitMQ</span> حسب نموذج <span class="en">AMQP 0-9-1</span>: اتصال <span class="en">TCP</span>، و<span class="en">channel</span> فوقه، و<span class="en">exchange</span> يوجّه، و<span class="en">binding</span> هي قاعدة التوجيه، و<span class="en">queue</span> تخزن لحد ما الـ <span class="en">consumer</span> يأكد المعالجة. الرسالة مش بتتخزن في الـ <span class="en">exchange</span>.</p>
+        <p>بتستخدم النمط ده في فصل الخدمات، توزيع الشغل على أكتر من عامل، امتصاص ذروات الطلب، وتنفيذ ردود فعل مستقلة على حدث واحد. مش كل نظام محتاج الوسيط ده. استعلام لازم يرجع نتيجة دلوقتي، أو معاملة قصيرة جوه خدمة واحدة، غالبًا يفضل مباشر.</p>
+        <div class="callout key">
+          <strong class="label">اللي يفضل في دماغك</strong>
+          الـ <span class="en">broker</span> بينقل الفشل من "الطلب وقع قدام المستخدم" إلى "الرسالة اتكررت، أو اتأخرت، أو راحت لـ dead-letter". الضمان العملي هو <span class="en">at-least-once</span> مع مستهلك <span class="en">idempotent</span>. مفيش زر اسمه <span class="en">exactly-once</span> في <span class="en">RabbitMQ</span>.
+        </div>
+        <div class="flow" aria-label="مسار رسالة مبسط">
+          <div class="node">Producer<small>بيعلن حقيقة أو طلب</small></div>
+          <span class="arrow" aria-hidden="true">←</span>
+          <div class="node warm">Exchange<small>يوجّه ولا يخزّن</small></div>
+          <span class="arrow" aria-hidden="true">←</span>
+          <div class="node">Queue<small>بتستنى المستهلك</small></div>
+          <span class="arrow" aria-hidden="true">←</span>
+          <div class="node good">Consumer<small>يشتغل ثم يعمل ack</small></div>
+        </div>
+        <p>الاتجاه في الرسم من اليمين لليسار عشان الصفحة عربية: الرسالة بتخرج من المنتج، تعدّي على المبدّل، تستنى في الطابور، وبعدين المستهلك ياخدها. لو مفيش طابور مربوط بالمبدّل، الرسالة بتتساب في الطريق إلا لو فعّلت <span class="en">mandatory</span> أو <span class="en">alternate exchange</span>.</p>
+      </section>
+
+      <section id="hierarchy">
+        <h2>سلم المفاهيم</h2>
+        <p>الخلط الشائع إن الناس بتسمي كل حاجة <span class="en">event-driven</span>. المستويات دي مختلفة، وكل مستوى بيجاوب على سؤال تاني.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>المستوى</th><th>أمثلة</th><th>السؤال اللي بيجاوب عليه</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>أسلوب تواصل</td><td><span class="en">synchronous</span> / <span class="en">asynchronous</span></td><td>هل المنادي بيستنى النتيجة قبل ما يكمل؟</td></tr>
+              <tr><td>نمط مراسلة</td><td>طابور شغل، <span class="en">publish/subscribe</span>، <span class="en">RPC</span> فوق طابور</td><td>مين بيستلم الرسالة: عامل واحد ولا كل المهتمين؟</td></tr>
+              <tr><td>أسلوب معماري</td><td><span class="en">event-driven architecture</span></td><td>هل الخدمات بتتفاعل مع حقائق حصلت، ولا بتنادي بعضها بالأوامر؟</td></tr>
+              <tr><td>بنية تحتية</td><td><span class="en">RabbitMQ</span> كـ <span class="en">message broker</span></td><td>مين بيقبل الرسالة ويحفظها ويسلّمها؟</td></tr>
+              <tr><td>بروتوكول</td><td><span class="en">AMQP 0-9-1</span></td><td>إيه عقدة الاتصال بين العميل والوسيط؟</td></tr>
+              <tr><td>مكتبة</td><td><span class="en">pika</span></td><td>إزاي كود <span class="en">Python</span> بيتكلم البروتوكول؟</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>تقدر تستخدم <span class="en">RabbitMQ</span> من غير ما النظام يبقى <span class="en">event-driven</span>. مثال: طابور مهام بياخد أمر "ابعث الإيميل ده" ويوزعه على عمال. ده <span class="en">work queue</span>، والأمر موجه لعامل واحد.</p>
+        <p>وتقدر تصمم نظام <span class="en">event-driven</span> على وسيط تاني غير <span class="en">RabbitMQ</span>. الدليل ده بيركّز على <span class="en">RabbitMQ</span>، وبيذكر السجل الموزع زي <span class="en">Kafka</span> بس كقرار مقارنة، مش كمنهج كامل.</p>
+        <div class="callout">
+          <strong class="label">علاقة المستويات</strong>
+          الأسلوب المعماري بيقرر شكل التعاون بين الخدمات. نمط المراسلة بيقرر شكل التوزيع. الوسيط بينفذ النقل والتخزين المؤقت. المكتبة مجرد سواق. قرار "هنستخدم <span class="en">topic exchange</span>" مش بيجاوب لوحده على "هل الفوترة والمخزون مفروض يبقوا خدمتين؟".
+        </div>
+      </section>
+      <section class="chapter" id="why">
+        <h2>1. ليه الرسائل موجودة أصلًا</h2>
+        <p>تخيّل خدمة طلبات في متجر. المستخدم داس "تأكيد". الخدمة لازم تسجّل الطلب، تخصم المخزون، تبدأ الدفع، وتبعت إيميل. لو كل ده نداءات مباشرة جوه نفس الطلب، فالزمن الكلي هو مجموع أزمنة الخدمات، وأي خدمة واقعة بترجع خطأ للمستخدم حتى لو الطلب نفسه اتسجل.</p>
+        <p>من غير وسيط، الفرق بتحاول تعالجه بطرق أضعف: تعيد النداء جوه الطلب، أو تحط الشغل في جدول في قاعدة البيانات وتعمل <span class="en">polling</span>، أو تبلع الخطأ وتكمّل. الجدول الداخلي أحيانًا حل كويس، وده قريب من نمط الـ <span class="en">outbox</span> اللي هنرجعله. بس لما أكتر من خدمة محتاجة نفس الحقيقة، الجدول الخاص بخدمة واحدة مش كفاية.</p>
+        <h3>النموذج الذهني</h3>
+        <p>التشبيه: مكتب بريد. الراسل بيسلّم ظرف ويتصرف. المكتب مش بينفّذ محتوى الخطاب، هو بيوصّله للعنوان. التشبيه بيفصل عن الحقيقة في حاجة مهمة: <span class="en">RabbitMQ</span> مش بيوصل نسخة واحدة دايمًا لشخص واحد. حسب الـ <span class="en">exchange</span> والـ <span class="en">bindings</span>، نفس الرسالة ممكن تتتنسخ في أكتر من طابور، وكل طابور يسلّمها لمستهلك واحد من مستهلكيه.</p>
+        <div class="callout key">
+          <strong class="label">المشكلة، ثم الفكرة</strong>
+          المشكلة: اقتران زمني واقتران معرفي بين الخدمات. الفكرة: خلّي النشر يتم لما الحقيقة تحصل، وخلي الاستهلاك يتم لما المستهلك يقدر يشتغل. الثمن: تأخير، تكرار محتمل، وصعوبة في تتبع مسار واحد متسلسل.
+        </div>
+        <h3>امتى تستخدمه وامتى لأ</h3>
+        <ul>
+          <li>استخدمه لما الشغل اللاحق ممكن يحصل بعد ثوانٍ أو دقايق، ولما عايز تضيف مستهلك جديد من غير ما تعدّل الناشر.</li>
+          <li>متستخدمهوش عشان "نبقى معماريين". قراءة لازم ترجع فورًا، أو قيد محاسبي لازم ينجح أو يفشل مع نفس المعاملة، مكانه غالبًا نداء مباشر أو معاملة قاعدة بيانات.</li>
+        </ul>
+        <h3>ملخص الفصل</h3>
+        <p>الوسيط بيشتري لك فصل زمني وفصل نشر، وبيبيع لك بساطة الطلب الواحد. الفشل مش بيختفي، هو بيغيّر شكله.</p>
+        <form class="quiz" data-correct="b">
+          <fieldset>
+            <legend>تحقق سريع: ليه الفريق بيضيف broker؟</legend>
+            <label><input type="radio" name="why1" value="a" data-why="الوسيط مش بيسرّع النداء المباشر. هو غالبًا بيضيف قفزة شبكة وتأخير مقصود."> عشان كل نداء يبقى أسرع من HTTP</label>
+            <label><input type="radio" name="why1" value="b" data-why="ده لب الموضوع: الناشر يخلّص من غير ما يستنى كل المستمعين، والمستمع يقع من غير ما يوقع الناشر."> عشان الناشر ما يستناش كل الشغل اللاحق، والمستمع يشتغل لما يبقى جاهز</label>
+            <label><input type="radio" name="why1" value="c" data-why="الوسيط لا يضمن مرة واحدة بالظبط. التكرار وارد، والمعالجة لازم تتحمّله."> عشان نضمن إن كل رسالة تتنفّذ مرة واحدة بالظبط من غير تصميم إضافي</label>
+          </fieldset>
+          <button type="submit" class="primary">تحقق من الإجابة</button>
+          <div class="feedback" role="status"></div>
+          <details>
+            <summary>الإجابة من غير JavaScript</summary>
+            <p>الإجابة الصحيحة: الناشر ما يستناش كل الشغل اللاحق. السرعة الفورية مش الهدف، والتنفيذ مرة واحدة بالظبط مش هدية جاهزة من الوسيط.</p>
+          </details>
+        </form>
+      </section>
+
+      <section class="chapter" id="sync">
+        <h2>2. الاتصال المتزامن وغير المتزامن</h2>
+        <p>في الاتصال المتزامن، المنادي بيبعت طلب وبيفضل واقف لحد ما يوصله رد أو مهلة. <span class="en">HTTP</span> ونداء دالة في نفس العملية مثالين. التحكم واضح: فيه نتيجة، وفيه خطأ، وفيه سياق واحد تقدر تتتبعه.</p>
+        <p>في الاتصال غير المتزامن، المنادي بيسلّم الشغل وبيكمل. النتيجة توصل لاحقًا، أو متوصلش للمنادي أصلًا. "غير متزامن" مش مرادف لـ "من غير انتظار خالص". العميل ممكن يستنى تأكيد إن الوسيط استلم الرسالة، وده <span class="en">publisher confirm</span>، من غير ما يستنى إن الفوترة خلّصت.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th></th><th>متزامن</th><th>غير متزامن عبر وسيط</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>انتظار المنادي</td><td>لحد النتيجة أو الخطأ</td><td>لحد قبول الوسيط فقط، لو فيه confirms</td></tr>
+              <tr><td>لو الطرف التاني واقع</td><td>الطلب يفشل فورًا</td><td>الرسالة تستنى في الطابور، لحد ما المستهلك يرجع أو الطابور يمتلي</td></tr>
+              <tr><td>النتيجة</td><td>راجعة في نفس النداء</td><td>محتاج حدث تاني، أو استعلام، أو رد على طابور <span class="en">reply</span></td></tr>
+              <tr><td>التتبع</td><td>مسار واحد</td><td>مسارات متعددة، محتاج <span class="en">correlation id</span></td></tr>
+              <tr><td>الفخ</td><td>الاقتران وسلسلة السقوط</td><td>التكرار، الترتيب، والرسائل العالقة</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>تشبيه، ثم الحد بتاعه</h3>
+        <p>المكالمة متزامنة: مش هتقفل لحد ما الطرف يجاوب. الإيميل غير متزامن: الإرسال ناجح حتى لو المستلم نايم. الحد: نجاح الإرسال عند مكتب البريد مش معناه إن المستلم نفّذ الطلب. في <span class="en">RabbitMQ</span> فيه تأكيدات مختلفة، ومتخلطهاش:</p>
+        <ul>
+          <li>رجوع <span class="en">basic_publish</span> من غير <span class="en">confirms</span> يعني إن المكتبة كتبت على السوكيت، مش إن الرسالة اتكتبت على قرص الوسيط.</li>
+          <li><span class="en">publisher confirm</span> يعني إن الوسيط قبل الرسالة حسب نوع الطابور. في <span class="en">quorum queue</span> التأكيد بيتبعت بعد نسخها لأغلبية الأعضاء.</li>
+          <li><span class="en">consumer ack</span> يعني إن المستهلك بيقول "خلّصت معالجة التسليم ده". الوسيط ساعتها يقدر يمسح الرسالة.</li>
+        </ul>
+        <div class="callout warn">
+          <strong class="label">مفهوم بيتخلط</strong>
+          <span class="en">async/await</span> في <span class="en">Python</span> أسلوب برمجة جوه عملية واحدة. الرسالة غير المتزامنة قرار معماري بين خدمات. ممكن تكتب مستهلك <span class="en">async</span>، وممكن تكتب ناشر متزامن بيستنى الـ <span class="en">confirm</span>. الاتنين مش نفس الكلمة بالمعنى المعماري.
+        </div>
+        <h3>ملخص الفصل</h3>
+        <p>المتزامن بيرجع نتيجة. غير المتزامن بيسلّم مسؤولية. لازم تسمّي أنهي تأكيد تقصده قبل ما تقول "الرسالة اتبعتت بنجاح".</p>
+      </section>
+
+      <section class="chapter" id="eda">
+        <h2>3. Message Broker مقابل Event-Driven Architecture</h2>
+        <p>الـ <span class="en">message broker</span> برنامج وسيط. بيقبل رسائل، يطبّق قواعد توجيه، يحتفظ بيها لحد التسليم، ويسلّمها لمستهلكين. <span class="en">RabbitMQ</span> منتج بينفّذ الدور ده.</p>
+        <p>الـ <span class="en">event-driven architecture</span> أسلوب تصميم. الخدمات بتنشر أحداث عن حاجات حصلت، وخدمات تانية بتتفاعل من غير ما الناشر يستدعيها بالاسم. الحدث جملة ماضية: <span class="en">order.created</span>. الأمر جملة طلب: <span class="en">charge_order</span>.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th></th><th>Work queue</th><th>Event broadcast</th><th>RPC فوق الطابور</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>معنى الرسالة</td><td>اعمل الشغل ده</td><td>الحاجة دي حصلت</td><td>نفّذ وارجع لي نتيجة</td></tr>
+              <tr><td>عدد المنفّذين</td><td>مستهلك واحد من الطابور</td><td>كل طابور مربوط بياخد نسخة</td><td>مستهلك واحد ثم رد</td></tr>
+              <tr><td>معرفة الناشر</td><td>يعرف اسم الشغل، مش لازم يعرف مين العامل</td><td>مش لازم يعرف المستمعين</td><td>مستني رد، فالاقتران الزمني راجع</td></tr>
+              <tr><td>مثال</td><td>تصغير صور</td><td><span class="en">order.paid</span> للمخزون والإيميل</td><td>طلب سعر من خدمة تانية عبر الطابور</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>النظام بيبقى <span class="en">event-driven</span> لما الحدث هو عقد التعاون: الناشر بيقول الحقيقة، وكل مستهلك بيملك رد فعله وبياناته. لو الناشر لسه بيتصل بثلاث خدمات بالاسم ويستنى ردودهم، وجود طابور في النص مش بيحوّله لأسلوب حدثي. ده مجرد نقل لأمر متزامن بشكل أبطأ.</p>
+        <h3>ملكية البيانات</h3>
+        <p>في التصميم الحدثي الناضج، خدمة الفوترة مش بتعدّل جداول المخزون. هي بتسمع <span class="en">order.paid</span> أو بتنشر <span class="en">payment.captured</span>، وخدمة المخزون بتقرر تخصم. لو كل الخدمات بتكتب في نفس الجداول، الوسيط ما فصلّش النظام، هو زود نقطة فشل.</p>
+        <div class="callout good">
+          <strong class="label">قاعدة قرار</strong>
+          لو محتاج نتيجة عشان تكمل نفس المعاملة قدام المستخدم، نادِ مباشرة أو خلّي الشغل جوه نفس الخدمة. لو بتعلن حقيقة وهتسيبها لأطراف مستقلة، انشر حدث. لو عندك كومة شغل متجانسة وعايز توزعها على عمال، استخدم طابور أوامر.
+        </div>
+        <h3>ملخص الفصل</h3>
+        <p>الوسيط أداة. الأسلوب الحدثي قرار عن شكل الحقائق وملكية البيانات. الأوامر والأحداث والاتصال المتزامن كلهم لهم مكان.</p>
+        <form class="quiz" data-correct="c">
+          <fieldset>
+            <legend>خدمتان بتستهلكا نفس الطابور واسمهم billing و inventory. إيه اللي هيحصل لرسالة order.created؟</legend>
+            <label><input type="radio" name="eda1" value="a" data-why="الاشتراك في نفس الطابور يعني منافسة، مش نسخ. كل رسالة بتتروح لمستهلك واحد."> الاتنين هيستلموا كل رسالة</label>
+            <label><input type="radio" name="eda1" value="b" data-why="الوسيط مش بيقسّم الرسالة لنصين. التسليم ذري لمستهلك واحد من مستهلكي الطابور."> الرسالة هتتقسم بينهم</label>
+            <label><input type="radio" name="eda1" value="c" data-why="ده competing consumers. عشان كل خدمة تاخد نسخة، كل خدمة لازم يكون ليها queue مربوط بالـ exchange."> مستهلك واحد بس هيستلم الرسالة، والتاني مش هيشوفها</label>
+          </fieldset>
+          <button type="submit" class="primary">تحقق من الإجابة</button>
+          <div class="feedback" role="status"></div>
+          <details>
+            <summary>الإجابة من غير JavaScript</summary>
+            <p>الصحيح إن مستهلك واحد من الطابور المشترك بياخد الرسالة. عشان الفوترة والمخزون يشتغلوا مع بعض، كل واحد بطابوره مربوط بنفس الـ exchange.</p>
+          </details>
+        </form>
+      </section>
+
+      <section class="chapter" id="model">
+        <h2>4. نموذج AMQP جوه RabbitMQ</h2>
+        <p><span class="en">AMQP 0-9-1</span> هو عقدة الكلام بين <span class="en">pika</span> و<span class="en">RabbitMQ</span>. الترتيب من بره لجوه:</p>
+        <ol>
+          <li><span class="en">Connection</span>: اتصال <span class="en">TCP</span> واحد. غالي نسبيًا، وفيه <span class="en">heartbeat</span> عشان الطرفين يعرفوا إن التاني لسه عايش.</li>
+          <li><span class="en">Channel</span>: قناة خفيفة فوق الاتصال. أغلب الأوامر بتمشي عليها. في <span class="en">pika</span> القناة والاتصال مش آمنين للمشاركة بين threads.</li>
+          <li><span class="en">Exchange</span>: نقطة دخول الرسالة. بيطبّق قواعد التوجيه ومش بيحتفظ بالرسالة.</li>
+          <li><span class="en">Binding</span>: قاعدة بتربط exchange بطابور، وغالبًا فيها <span class="en">routing key</span> أو نمط.</li>
+          <li><span class="en">Queue</span>: المكان اللي الرسالة بتستنى فيه. الطابور بيسلّم كل رسالة لمستهلك واحد من مستهلكيه.</li>
+          <li><span class="en">Consumer</span>: العملية اللي بتستلم وبتأكد.</li>
+        </ol>
+        <svg class="diagram" viewBox="0 0 760 250" role="img" aria-labelledby="amqpTitle amqpDesc">
+          <title id="amqpTitle">مسار AMQP من المنتج إلى المستهلكين</title>
+          <desc id="amqpDesc">المنتج يرسل إلى exchange اسمه orders. قاعدتا binding تنسخان الرسالة إلى طابور الفوترة وطابور المخزون. كل طابور يسلم إلى مستهلكه.</desc>
+          <rect class="box" x="20" y="90" width="120" height="58" rx="10"></rect>
+          <text x="80" y="116" text-anchor="middle">Producer</text>
+          <text class="small" x="80" y="134" text-anchor="middle">pika channel</text>
+          <path class="edge" d="M140 119 H190"></path>
+          <rect class="box-warm" x="190" y="78" width="150" height="82" rx="10"></rect>
+          <text x="265" y="110" text-anchor="middle">Exchange</text>
+          <text class="small" x="265" y="130" text-anchor="middle">orders / topic</text>
+          <path class="edge" d="M340 100 H390"></path>
+          <path class="edge" d="M340 140 H390"></path>
+          <rect class="box-good" x="390" y="40" width="160" height="58" rx="10"></rect>
+          <text x="470" y="66" text-anchor="middle">billing.orders</text>
+          <text class="small" x="470" y="84" text-anchor="middle">order.created</text>
+          <rect class="box-good" x="390" y="150" width="160" height="58" rx="10"></rect>
+          <text x="470" y="176" text-anchor="middle">inventory.orders</text>
+          <text class="small" x="470" y="194" text-anchor="middle">order.*</text>
+          <path class="edge" d="M550 69 H590"></path>
+          <path class="edge" d="M550 179 H590"></path>
+          <rect class="box-info" x="590" y="40" width="150" height="58" rx="10"></rect>
+          <text x="665" y="74" text-anchor="middle">Billing consumer</text>
+          <rect class="box-info" x="590" y="150" width="150" height="58" rx="10"></rect>
+          <text x="665" y="184" text-anchor="middle">Inventory consumer</text>
+        </svg>
+        <p>الرسم بيوضّح النسخ عند التوجيه، مش عند الاستهلاك. الـ <span class="en">exchange</span> بينسخ الرسالة في كل طابور قاعدته بتطابق. بعد كده كل طابور مستقل: لو الفوترة واقعة، المخزون يقدر يكمّل، ورسائل الفوترة تتراكم في طابورها.</p>
+        <h3>مصطلحات لازم تثبت</h3>
+        <ul>
+          <li><span class="en">Virtual host</span>: عزل منطقي جوه نفس العنقود، زي نطاق صلاحيات وطوبولوجيا.</li>
+          <li><span class="en">Delivery tag</span>: رقم التسليم على القناة دي. الـ <span class="en">ack</span> بيستخدمه، ومش هوية عالمية للرسالة.</li>
+          <li><span class="en">message_id</span>: خاصية بيحطها الناشر. تصلح مفتاح منع تكرار فقط لو فضلت ثابتة لنفس الحقيقة عند إعادة النشر. مفتاح العمل التجاري أوضح، والـ <span class="en">delivery tag</span> لا يصلح.</li>
+          <li><span class="en">Redelivered</span>: علم على التسليم الحالي إنه مش أول محاولة. مش مفتاح dedup، ومش بيظهر لو الناشر نشر الرسالة من جديد.</li>
+          <li><span class="en">Durable queue</span>: تعريف الطابور يعيش إعادة تشغيل الوسيط. ده لوحده مش بيخلي كل الرسائل تعيش.</li>
+          <li><span class="en">Persistent message</span>: الرسالة نفسها مطلوبة إنها تتحفظ. في الـ <span class="en">quorum queues</span> الرسائل بتتحفظ على القرص بغض النظر عن الوضع ده، لكن وضع الرسالة الأصلي بيفضل مهم لو الرسالة اتبعتت لطابور تاني عبر <span class="en">dead letter</span>.</li>
+        </ul>
+        <div class="callout warn">
+          <strong class="label">إعلان الطوبولوجيا</strong>
+          <span class="en">queue_declare</span> على طابور موجود بنفس الاسم وبخصائص مختلفة بيرجع <span class="en">PRECONDITION_FAILED</span> وبيقفل القناة. تغيير نوع الطابور من <span class="en">classic</span> إلى <span class="en">quorum</span> مش بيحصل بتعديل وسيط. الطابور لازم يتساب ويتعمل من جديد، أو تنقل الرسائل بخطة ترحيل.
+        </div>
+        <h3>ملخص الفصل</h3>
+        <p>احفظ الاتجاه: اتصال، قناة، مبدّل، قاعدة، طابور، مستهلك. المبدّل يوجّه. الطابور يحفظ ويسلّم لمستهلك واحد. القناة في <span class="en">pika</span> ملك خيط واحد.</p>
+      </section>
+
+      <section class="chapter" id="routing">
+        <h2>5. Exchanges و Routing Keys و Bindings</h2>
+        <p>الناشر بيبعت اسم exchange و<span class="en">routing key</span>. هو مش بيختار الطابور مباشرة، إلا لو استخدم الـ <span class="en">default exchange</span> واسمه فاضي، وده مبدّل <span class="en">direct</span> ضمني كل طابور مربوط بيه بمفتاح يساوي اسم الطابور. مريح للتجارب، وضعيف كعقد بين خدمات كتير.</p>
+        <h3>أنواع المبدّلات</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>النوع</th><th>قاعدة المطابقة</th><th>امتى</th><th>فخ</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="en">direct</span></td><td>تساوي حرفي للمفتاح</td><td>أوامر واضحة زي <span class="en">email.send</span></td><td>كل مستمع جديد بمفتاح جديد محتاج binding صريح</td></tr>
+              <tr><td><span class="en">fanout</span></td><td>يتجاهل المفتاح ويبعت لكل الطوابير المربوطة</td><td>نسخ حرفي لكل المستمعين</td><td>مش هتقدر تستبعد حدث من مستمع من غير ما تفصله عن المبدّل</td></tr>
+              <tr><td><span class="en">topic</span></td><td>كلمات مفصولة بنقط. <span class="en">*</span> كلمة واحدة. <span class="en">#</span> صفر أو أكتر</td><td>أحداث زي <span class="en">order.created</span> و<span class="en">order.paid</span></td><td><span class="en">#</span> لوحده بياخد كل حاجة. سهل تعمل بيه مستمع بالغلط</td></tr>
+              <tr><td><span class="en">headers</span></td><td>مطابقة رؤوس، <span class="en">x-match</span> يعني <span class="en">all</span> أو <span class="en">any</span></td><td>لما المفتاح النصي مش كفاية</td><td>أصعب في القراءة من مفتاح <span class="en">topic</span> واضح</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>مثال موضوعي. المفتاح <span class="en">order.created</span>:</p>
+        <ul>
+          <li><span class="en">order.created</span> يطابق.</li>
+          <li><span class="en">order.*</span> يطابق.</li>
+          <li><span class="en">order.#</span> يطابق.</li>
+          <li><span class="en">*.created</span> يطابق.</li>
+          <li><span class="en">order.created.eu</span> لا يطابق <span class="en">order.*</span> لأن النجمة كلمة واحدة، ويطابق <span class="en">order.#</span>.</li>
+        </ul>
+        <p>لو الرسالة ماتوجهتش لأي طابور، الوسيط بيتخلص منها. مع علم <span class="en">mandatory</span>، المكتبة تقدر تعرف إن الرسالة رجعت. في <span class="en">BlockingConnection</span> بعد <span class="en">confirm_delivery</span>، <span class="en">basic_publish</span> بيرمي <span class="en">UnroutableError</span> في الحالة دي. بديل تشغيلي: تحط <span class="en">alternate-exchange</span> على المبدّل عشان الرسائل التاية تتجمّع في طابور فحص بدل ما تختفي.</p>
+        <div class="callout danger">
+          <strong class="label">مفهوم خاطئ</strong>
+          الـ <span class="en">routing key</span> مش عنوان أمان ومش فلتر سري. أي مستهلك عنده صلاحية على الـ <span class="en">vhost</span> يقدر يربط طابور. الأمان صلاحيات المستخدم والـ <span class="en">vhost</span>، مش تسمية المفتاح.
+        </div>
+        <h3>ملخص الفصل</h3>
+        <p>اختَر <span class="en">topic</span> للأحداث الهرمية، و<span class="en">direct</span> لأوامر الشغل، و<span class="en">fanout</span> لما الكل لازم ياخد نفس النسخة. اكتب المفاتيح كعقد مستقر، وخطط للرسائل اللي مالهاش مستلم.</p>
+        <form class="quiz" data-correct="b">
+          <fieldset>
+            <legend>نمط binding هو order.* والمفتاح المنشور order.created.eu. هل يطابق؟</legend>
+            <label><input type="radio" name="rt1" value="a" data-why="النجمة كلمة واحدة فقط بين النقط. المفتاح هنا فيه ثلاث كلمات."> نعم، لأن البداية order</label>
+            <label><input type="radio" name="rt1" value="b" data-why="order.* يطابق order.created ولا يطابق order.created.eu. النمط الأوسع هو order.#."> لا. النجمة بتطابق كلمة واحدة</label>
+            <label><input type="radio" name="rt1" value="c" data-why="المطابقة مش جزئية جوه الكلمة. created.eu مش كلمة واحدة."> نعم، لأن * بتطابق أي باقي النص</label>
+          </fieldset>
+          <button type="submit" class="primary">تحقق من الإجابة</button>
+          <div class="feedback" role="status"></div>
+          <details>
+            <summary>الإجابة من غير JavaScript</summary>
+            <p>لا يطابق. <span class="en">*</span> كلمة واحدة. <span class="en">order.#</span> هو اللي يطابق صفر أو أكتر من الكلمات بعد <span class="en">order</span>.</p>
+          </details>
+        </form>
+      </section>
+      <section class="chapter" id="workflow">
+        <h2>6. مسار المنتج والمستهلك</h2>
+        <p>المثال ده إعلان طوبولوجيا صغيرة لنظام طلبات، ثم نشر، ثم استهلاك. بيانات الدخول <span class="en">guest</span> هي افتراض درس <span class="en">RabbitMQ</span> المحلي فقط. المستخدم ده أصلًا مقفول من غير <span class="en">localhost</span>، وممنوع استخدامه في الإنتاج.</p>
+        <div class="codebox">
+          <div class="top"><span class="lang">PYTHON · TOPOLOGY</span><button type="button" class="copy">نسخ</button></div>
+          <pre><code>import pika
+
+def connect():
+    params = pika.ConnectionParameters(
+        host="localhost",
+        port=5672,
+        virtual_host="/",
+        credentials=pika.PlainCredentials("guest", "guest"),
+        heartbeat=30,
+        blocked_connection_timeout=30,
+    )
+    connection = pika.BlockingConnection(params)
+    channel = connection.channel()
+    channel.confirm_delivery()
+    return connection, channel
+
+def declare_topology(channel):
+    channel.exchange_declare(exchange="orders", exchange_type="topic", durable=True)
+    channel.exchange_declare(exchange="orders.dlx", exchange_type="topic", durable=True)
+
+    channel.queue_declare(
+        queue="billing.orders",
+        durable=True,
+        arguments={
+            "x-queue-type": "quorum",
+            "x-dead-letter-exchange": "orders.dlx",
+            "x-dead-letter-routing-key": "billing.failed",
+        },
+    )
+    channel.queue_declare(queue="billing.orders.dlq", durable=True, arguments={"x-queue-type": "quorum"})
+    channel.queue_bind(exchange="orders", queue="billing.orders", routing_key="order.created")
+    channel.queue_bind(exchange="orders.dlx", queue="billing.orders.dlq", routing_key="billing.failed")</code></pre>
+        </div>
+        <p>المسؤوليات: <span class="en">orders</span> مبدّل الأحداث. <span class="en">billing.orders</span> طابور خدمة الفوترة فقط. أي رسالة المستهلك يرفضها من غير إعادة للطابور هتطلع على <span class="en">orders.dlx</span> بالمفتاح <span class="en">billing.failed</span>. طابور الـ <span class="en">DLQ</span> مربوط بالمفتاح ده، فالرسالة متتسابش في المبدّل الميت.</p>
+        <p>نوع <span class="en">quorum</span> لازم يتحدد وقت الإعلان عبر <span class="en">x-queue-type</span>، ومش سياسة لاحقة. من <span class="en">RabbitMQ 4.0</span> مراية الطوابير الكلاسيكية اتشالت. الطابور الكلاسيكي لسه موجود بس من غير تكرار. التكرار للبيانات الحساسة يبقى <span class="en">quorum queue</span>، أو <span class="en">stream</span> لو الحمل سجل طويل وإعادة قراءة.</p>
+        <h3>تسلسل النشر والاستهلاك</h3>
+        <ol class="trace">
+          <li>المنتج يفتح اتصال وقناة، يفعّل <span class="en">confirm_delivery</span>، ثم <span class="en">basic_publish</span>.</li>
+          <li>الوسيط يوجّه الرسالة. في طابور <span class="en">quorum</span>، الـ <span class="en">confirm</span> بيتبعت بعد ما أغلبية الأعضاء توافق إن الرسالة اتسجلت.</li>
+          <li>المستهلك يكون مسجّل بـ <span class="en">basic_consume</span> ومن غير <span class="en">auto_ack</span>. الوسيط يبعت تسليم ومعاه <span class="en">delivery tag</span>.</li>
+          <li>المستهلك يكتب أثره في قاعدة بياناته، ثم <span class="en">basic_ack</span>. الوسيط يقدر يحذف الرسالة.</li>
+          <li>لو المستهلك وقع قبل الـ <span class="en">ack</span>، الوسيط يعيد التسليم لاحقًا. المعالجة لازم تتحمل التكرار.</li>
+        </ol>
+        <svg class="diagram" viewBox="0 0 760 220" role="img" aria-labelledby="seqTitle seqDesc">
+          <title id="seqTitle">تسلسل confirm ثم deliver ثم ack</title>
+          <desc id="seqDesc">الناشر يستلم confirm من الوسيط قبل أن يستلم المستهلك الرسالة بالضرورة بالنسبة لنهاية المعالجة. المستهلك يرسل ack بعد المعالجة.</desc>
+          <text x="70" y="28" text-anchor="middle">Publisher</text>
+          <text x="300" y="28" text-anchor="middle">RabbitMQ</text>
+          <text x="560" y="28" text-anchor="middle">Consumer</text>
+          <path class="edge" d="M70 40 V200"></path>
+          <path class="edge" d="M300 40 V200"></path>
+          <path class="edge" d="M560 40 V200"></path>
+          <path class="edge" d="M70 60 H300"></path>
+          <text class="small" x="180" y="54">publish</text>
+          <path class="edge" d="M300 90 H70"></path>
+          <text class="small" x="150" y="84">confirm</text>
+          <path class="edge" d="M300 130 H560"></path>
+          <text class="small" x="400" y="124">deliver</text>
+          <path class="edge" d="M560 170 H300"></path>
+          <text class="small" x="400" y="164">ack</text>
+        </svg>
+        <p>الرسم مش بيقول إن المستهلك بيستلم بعد الـ <span class="en">confirm</span> بس. التسليم ممكن يبدأ بعد ما الرسالة تبقى جاهزة في الطابور. النقطة التعليمية: الـ <span class="en">confirm</span> بتاع الناشر والـ <span class="en">ack</span> بتاع المستهلك حدثين مختلفين. نجاح الأول مش نجاح المعالجة.</p>
+        <div class="codebox">
+          <div class="top"><span class="lang">PYTHON · PUBLISH</span><button type="button" class="copy">نسخ</button></div>
+          <pre><code>import json
+import uuid
+import pika
+
+def publish_order_created(channel, order):
+    body = json.dumps(order).encode("utf-8")
+    channel.basic_publish(
+        exchange="orders",
+        routing_key="order.created",
+        body=body,
+        mandatory=True,
+        properties=pika.BasicProperties(
+            delivery_mode=pika.DeliveryMode.Persistent,
+            content_type="application/json",
+            message_id=str(uuid.uuid4()),
+            correlation_id=order["order_id"],
+            type="order.created",
+        ),
+    )</code></pre>
+        </div>
+        <p>لو القناة في وضع التأكيد، <span class="en">basic_publish</span> بيستنى. النجاح صامت. الرسالة اللي مالهاش طريق بترمي <span class="en">UnroutableError</span> لما <span class="en">mandatory</span> شغال. الرفض من الوسيط يرمي <span class="en">NackError</span>. فعّل <span class="en">confirm_delivery</span> مرة واحدة بعد فتح القناة. في <span class="en">pika</span> النداء التاني بيتجاهل وبيسجل إن التأكيد متفعّل بالفعل.</p>
+        <p>خطوة التنفيذ: المنتج بيجهّز <span class="en">JSON</span>، يفتح التأكيدات، يبعت للمبدّل <span class="en">orders</span> بالمفتاح <span class="en">order.created</span>. الوسيط يلاقي binding طابور الفوترة وينسخ الرسالة هناك. <span class="en">message_id</span> هوية المحاولة المنشورة دي. <span class="en">correlation_id</span> هنا معرف الطلب عشان التتبع، ومش بديل عن مفتاح المنع من التكرار لو نفس الحدث ممكن يتنشر تاني بمعرّف رسالة جديد.</p>
+        <h3>ملخص الفصل</h3>
+        <p>اعلن الطوبولوجيا بشكل صريح، انشر على مبدّل مش على اسم خدمة، واستنى التأكيد المناسب. التسليم للمستهلك قصة تانية بتبدأ بعد كده.</p>
+      </section>
+
+      <section class="chapter" id="reliability">
+        <h2>7. Acknowledgments و Prefetch و Publisher Confirms</h2>
+        <p>من غير تأكيد المستهلك، الوسيط لازم يخمّن إن التسليم نجح. مع <span class="en">auto_ack</span> الرسالة بتتشال لحظة ما تتبعت للمستهلك، قبل ما الكود يشتغل. لو العملية ماتت بعد كده، الشغل ضاع. ده قريب من <span class="en">at-most-once</span> من ناحية المستهلك.</p>
+        <p>التأكيد اليدوي بيقول: سيّب الرسالة عندك لحد ما أقولك. لو الاتصال وقع قبل الـ <span class="en">ack</span>، الرسالة ترجع. لو أنا عالجتها ثم وقعت قبل الـ <span class="en">ack</span>، هتتعالج تاني. ده <span class="en">at-least-once</span>.</p>
+        <div class="codebox">
+          <div class="top"><span class="lang">PYTHON · CONSUME</span><button type="button" class="copy">نسخ</button></div>
+          <pre><code>def on_message(channel, method, properties, body):
+    try:
+        handle_billing(body, properties)
+    except TransientBillingError:
+        channel.basic_nack(method.delivery_tag, requeue=False)
+        return
+    except PermanentBillingError:
+        channel.basic_nack(method.delivery_tag, requeue=False)
+        return
+    channel.basic_ack(method.delivery_tag)
+
+def start_billing_consumer(channel):
+    channel.basic_qos(prefetch_count=20)
+    channel.basic_consume(queue="billing.orders", on_message_callback=on_message, auto_ack=False)
+    channel.start_consuming()</code></pre>
+        </div>
+        <p><span class="en">basic_qos(prefetch_count=20)</span> يعني: متبعتش للقناة دي أكتر من 20 رسالة لسه مالهاش <span class="en">ack</span>. ده صمام ضغط. من غيره، مستهلك بطيء ممكن يستلم آلاف الرسائل في الذاكرة، وعمال تانيين يفضلوا فاضييين، ولو وقع الرسالة كلها تترجع دفعة واحدة.</p>
+        <p><span class="en">prefetch_size</span> مش الأداة المستخدمة هنا. التحكم العملي هو <span class="en">prefetch_count</span>. الـ <span class="en">global QoS</span>، اللي بيحط حد واحد لكل مستهلكي القناة، مش مدعوم مع <span class="en">quorum queues</span> وبيسبب خطأ قناة. استخدم الحد لكل مستهلك، وده الافتراضي في العملاء الشائعين.</p>
+        <div class="callout warn">
+          <strong class="label">requeue=False مش إعادة محاولة ذكية</strong>
+          الرفض من غير إعادة بيبعت الرسالة للـ <span class="en">dead-letter exchange</span> لو الطابور متظبط كده. لو مفيش DLX، الرسالة بتتمسح. إعادة <span class="en">requeue=True</span> فورًا على خطأ مؤقت بتعمل حلقة ساخنة: نفس الرسالة ترجع لأول الطابور وتخنق المستهلكين. التأخير محتاج طوبولوجيا إعادة، مش رفض سريع متكرر.
+        </div>
+        <h3>تأكيد الناشر</h3>
+        <p>تأكيدات الناشر وضع على القناة، مش خاصية في كل رسالة. في طابور <span class="en">quorum</span> التأكيد معناه إن الرسالة اتسجلت عند أغلبية الأعضاء. من غيره، عملية الناشر ممكن تموت بعد ما كتبت على الشبكة وقبل ما الوسيط يحفظ، والرسالة تضيع من غير ما حد يلاحظ.</p>
+        <p>المعاملات <span class="en">tx</span> في <span class="en">AMQP</span> موجودة، لكنها بطيئة ونادرًا الاختيار. التأكيدات هي طريق التعاون مع إجماع الـ <span class="en">quorum queue</span>.</p>
+        <h3>حد انتظار الـ ack</h3>
+        <p>الوسيط مش هيسيّب رسالة معلّقة للأبد عند مستهلك واقف. المهلة الافتراضية 30 دقيقة، يعني <span class="en">1800000</span> مللي ثانية، عبر <span class="en">consumer_timeout</span>. لو المستهلك ما أكدش، القناة تتقفل بـ <span class="en">PRECONDITION_FAILED</span> والتسليمات غير المؤكدة على القناة تترجع. من <span class="en">RabbitMQ 4.3</span> مهلة تأكيد التسليم دي مدعومة لطوابير <span class="en">quorum</span> فقط. الشغل الطويل لازم يتظبط بمهلة أعلى عن قصد، أو يتكسر لخطوات بتبعت تقدمها، مش إنك تقفل الحماية.</p>
+        <h3>ملخص الفصل</h3>
+        <p>أكّد كناشر إن الوسيط حفظ، وأكّد كمستهلك بعد ما أثرك بقى دائم. حدّد <span class="en">prefetch</span>. متستخدمش التأكيد التلقائي في شغل له أثر مالي أو مخزوني.</p>
+        <form class="quiz" data-correct="a">
+          <fieldset>
+            <legend>المستهلك كتب في قاعدة البيانات ثم وقعت العملية قبل basic_ack. إيه الوضع؟</legend>
+            <label><input type="radio" name="ack1" value="a" data-why="الوسيط ما استلمش ack، فهيعيد التسليم. الأثر موجود، فالمستهلك لازم يتعرف على التكرار."> الرسالة هتترجع، والأثر ممكن يتكرر لو المعالجة مش idempotent</label>
+            <label><input type="radio" name="ack1" value="b" data-why="الوسيط مش شايف كوميت قاعدة بيانات المستهلك. هو شايف ack على القناة بس."> الرسالة اتمسحت لأن قاعدة البيانات نجحت</label>
+            <label><input type="radio" name="ack1" value="c" data-why="publisher confirm حصل قبل الاستهلاك بوقت. سقوط المستهلك مش بيلغيه ولا بيأكد الاستهلاك."> الـ publisher confirm يكفي عشان الوسيط يعرف إن المعالجة تمت</label>
+          </fieldset>
+          <button type="submit" class="primary">تحقق من الإجابة</button>
+          <div class="feedback" role="status"></div>
+          <details>
+            <summary>الإجابة من غير JavaScript</summary>
+            <p>الرسالة هتترجع لأن مفيش <span class="en">ack</span>. أثر قاعدة البيانات موجود، فلازم التصميم يمنع تكرار الأثر.</p>
+          </details>
+        </form>
+      </section>
+
+      <section class="chapter" id="retries">
+        <h2>8. إعادة المحاولة وطوابير الرسائل الميتة</h2>
+        <p>الرسالة الميتة مش معنى إنها غلط دايمًا. هي رسالة الطابور قرر إنه مش هيكمّل يسلّمها للمستهلك الحالي. أسباب شائعة: رفض أو <span class="en">nack</span> مع <span class="en">requeue=False</span>، انتهاء <span class="en">TTL</span>، أو تجاوز حد طول الطابور. في <span class="en">quorum queues</span> فيه سبب زيادة مهم: حد إعادة التسليم.</p>
+        <p>من <span class="en">RabbitMQ 4.0</span> الحد الافتراضي <span class="en">x-delivery-limit</span> هو 20. الوسيط بيعد المحاولات الفاشلة وبيحط العدد في الهيدر <span class="en">x-delivery-count</span> مع إعادة التسليم. بعد الحد، الرسالة بتتمسح أو بتروح للـ <span class="en">DLX</span> لو موجود. عطّل الحد بقيمة <span class="en">-1</span> بس لو فاهم إن رسالة سامّة ممكن تفضل تدور. الأفضل تسيّب حد وتربط DLX.</p>
+        <h3>طوبولوجيا إعادة بتأخير</h3>
+        <p>النمط المستقر من غير إضافة مؤجلة: المستهلك يحسب إن الخطأ مؤقت، ينشر نسخة جديدة على مبدّل التأخير مع عداد، ثم يعمل <span class="en">ack</span> للأصلية. طابور التأخير له <span class="en">TTL</span> ومش بيتستهلك مباشرة. لما الوقت يخلّص، الرسالة تروح عبر DLX تاني للمبدّل الأصلي.</p>
+        <div class="flow" aria-label="مسار إعادة المحاولة">
+          <div class="node">billing.orders<small>المحاولة الحالية</small></div>
+          <span class="arrow">←</span>
+          <div class="node warm">retry 30s<small>TTL من غير مستهلك</small></div>
+          <span class="arrow">←</span>
+          <div class="node">orders<small>رجوع بعد المهلة</small></div>
+          <span class="arrow">←</span>
+          <div class="node danger">DLQ<small>بعد آخر محاولة</small></div>
+        </div>
+        <p>ليه <span class="en">ack</span> للأصلية بعد ما تنشر نسخة التأخير؟ لأنك نقلت المسؤولية للنسخة الجديدة. القناة تكون أصلًا في وضع <span class="en">publisher confirms</span> من بداية العامل، مرة واحدة مش مع كل رسالة. لازم تستنى نجاح النشر قبل الـ <span class="en">ack</span>. لو عملت <span class="en">ack</span> قبل ما تتأكد إن نسخة التأخير اتحفظت، ممكن تضيع المحاولة. لو ما عملتش <span class="en">ack</span> بعد نجاح النشر، الأصلية هترجع وكمان النسخة الجديدة هتتنفّذ. الترتيب: انشر واستنى الرجوع الطبيعي من <span class="en">basic_publish</span>، وبعدين <span class="en">ack</span>. لو العملية وقعت بين النجاح والـ <span class="en">ack</span> هيحصل تكرار، وعشان كده العداد والـ <span class="en">idempotency</span> لازم يعيشوا مع بعض.</p>
+        <div class="codebox">
+          <div class="top"><span class="lang">PYTHON · RETRY DECISION</span><button type="button" class="copy">نسخ</button></div>
+          <pre><code>MAX_ATTEMPTS = 5
+
+def retry_or_dead(channel, method, properties, body):
+    headers = dict(properties.headers or {})
+    attempt = int(headers.get("x-attempt", 1))
+    if attempt >= MAX_ATTEMPTS:
+        channel.basic_nack(method.delivery_tag, requeue=False)
+        return
+    headers["x-attempt"] = attempt + 1
+    channel.basic_publish(
+        exchange="orders.retry",
+        routing_key="billing.30s",
+        body=body,
+        properties=pika.BasicProperties(
+            delivery_mode=pika.DeliveryMode.Persistent,
+            message_id=properties.message_id,
+            correlation_id=properties.correlation_id,
+            headers=headers,
+            content_type=properties.content_type,
+        ),
+    )
+    channel.basic_ack(method.delivery_tag)</code></pre>
+        </div>
+        <p>طابور <span class="en">billing.retry.30s</span> يكون مربوط بمفتاح <span class="en">billing.30s</span>، وعليه <span class="en">x-message-ttl</span> يساوي 30000، و<span class="en">x-dead-letter-exchange</span> يرجع لـ <span class="en">orders</span>، مع مفتاح رجوع <span class="en">order.created</span>. محدش يستهلك طابور التأخير نفسه، وإلا الرسالة هتتنفّذ من غير انتظار.</p>
+        <h3>نقل آمن للرسالة الميتة</h3>
+        <p>استراتيجية الـ <span class="en">dead letter</span> الافتراضية حتى على <span class="en">quorum</span> هي <span class="en">at-most-once</span>. النقل <span class="en">at-least-once</span> بين الطوابير محتاج <span class="en">dead-letter-strategy=at-least-once</span> و<span class="en">overflow=reject-publish</span>. مع <span class="en">drop-head</span> الاستراتيجية بترجع لـ <span class="en">at-most-once</span> حتى لو مفيش حد طول. النقل الأقوى أغلى في الذاكرة والمعالج، وممكن يكرر رسالة عند الهدف لو التأكيد اتأخر. <span class="en">reject-publish-dlx</span> مش مدعوم على <span class="en">quorum</span>.</p>
+        <p>الرسالة الميتة بتاخد هيدر <span class="en">x-death</span> فيه السبب والطابور الأصلي والعدد. استخدمه في التشخيص، ومتعتبرهوش واجهة عمل للمستخدم.</p>
+        <h3>ملخص الفصل</h3>
+        <p>افصل خطأ مؤقت عن خطأ دائم. أخّر إعادة المحاولة بطابور <span class="en">TTL</span>. خلّي آخر محطة طابور ميت له مالك بيطالع فيه. من غير DLX، الرفض حذف.</p>
+      </section>
+
+      <section class="chapter" id="guarantees">
+        <h2>9. ضمانات التسليم والـ Idempotency</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>الضمان</th><th>معناه العملي</th><th>إزاي يطلع في RabbitMQ</th><th>الثمن</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="en">At-most-once</span></td><td>ممكن تضيع، ومش مفروض تتكرر</td><td><span class="en">auto_ack</span>، أو نشر من غير confirms، أو DLX افتراضي ضعيف</td><td>فقدان صامت</td></tr>
+              <tr><td><span class="en">At-least-once</span></td><td>مش هتضيع بسهولة، وممكن تتكرر</td><td>confirms + طابور متين + ack يدوي</td><td>المستهلك لازم يبقى idempotent</td></tr>
+              <tr><td><span class="en">Exactly-once</span></td><td>أثر واحد مرئي رغم التكرار</td><td>مش خاصية وسيط. أثر جانبي واحد عبر قيد في قاعدة المستهلك</td><td>تصميم وتخزين مفاتيح</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>قول "عندنا <span class="en">exactly-once</span>" في مقابلة من غير ما تشرح مكان القيد بيبقى إجابة ضعيفة. الأثر الواحد بيتحقق لما معالجة الرسالة وعلامة "شفت الرسالة دي" يتحفظوا في نفس معاملة قاعدة البيانات. الوسيط لسه ممكن يسلّم تاني. المستهلك بيلاقي العلامة وبيعمل <span class="en">ack</span> من غير ما يكرر الخصم أو الدفع.</p>
+        <h3>مفتاح المنع الصح</h3>
+        <p><span class="en">delivery tag</span> عمره حياة القناة. <span class="en">redelivered</span> علم محاولة. الاتنين مش مفاتيح. المفتاح الأحسن هو هوية العمل: <span class="en">order_id</span> مع نوع الحدث <span class="en">order.created</span>. <span class="en">message_id</span> كويس لو الناشر بيثبّته مع كل إعادة نشر لنفس الحقيقة. لو الـ <span class="en">outbox</span> ولّد <span class="en">message_id</span> جديد لكل محاولة نشر، هتكسر الـ dedup لو استخدمت المعرّف ده لوحده.</p>
+        <div class="codebox">
+          <div class="top"><span class="lang">PYTHON · IDEMPOTENT EFFECT</span><button type="button" class="copy">نسخ</button></div>
+          <pre><code>def handle_billing(connection, properties, payload):
+    key = f"{payload['order_id']}:order.created"
+    with connection:
+        cursor = connection.execute(
+            "INSERT INTO inbox(dedup_key) VALUES (%s) ON CONFLICT DO NOTHING",
+            (key,),
+        )
+        if cursor.rowcount == 0:
+            return "duplicate"
+        connection.execute(
+            "INSERT INTO invoices(order_id, amount) VALUES (%s, %s)",
+            (payload["order_id"], payload["amount"]),
+        )
+    return "applied"</code></pre>
+        </div>
+        <p>المثال متصور على قاعدة تدعم معاملة و<span class="en">ON CONFLICT</span>. المهم مش صياغة جملة معيّنة. المهم إن إدخال المفتاح وأثر الفاتورة ينجحوا أو يفشلوا مع بعض. بعد ما الدالة ترجع، المستهلك يعمل <span class="en">ack</span>. لو رجع <span class="en">duplicate</span> برضه يعمل <span class="en">ack</span>، لأن الأثر الأصلي موجود والمحاولة دي مش محتاجة تعيش في الطابور.</p>
+        <p>تتبع التنفيذ: أول تسليم يدخل المفتاح ويكتب الفاتورة ثم يتأكد. سقوط بعد الـ <span class="en">commit</span> وقبل الـ <span class="en">ack</span> يسبب تسليم تاني. الإدخال الثاني ما يغيرش صفوف، الدالة ترجع <span class="en">duplicate</span>، والـ <span class="en">ack</span> يمسح التسليم. سقوط قبل الـ <span class="en">commit</span> يرجّع المعاملة، مفيش مفتاح، وإعادة التسليم تجرب من الأول بشغل جديد.</p>
+        <h3>نمط الـ Outbox</h3>
+        <p>فيه فجوة تانية على طرف الناشر. لو خدمة الطلبات عملت <span class="en">commit</span> للطلب ثم وقعت قبل <span class="en">basic_publish</span>، الحدث ضاع. لو نشرت ثم وقعت قبل الـ <span class="en">commit</span>، الحدث اتبعت عن طلب مش موجود. الحل المعتاد: اكتب الطلب وصف الحدث في جدول <span class="en">outbox</span> في نفس المعاملة. عملية ناقل تقرأ الصفوف غير المنشورة، تنشر بـ confirms، ثم تعلّم الصف منشور. الناقل ممكن ينشر مرتين لو وقع قبل التحديث، فالمستهلكون idempotent.</p>
+        <svg class="diagram" viewBox="0 0 760 168" role="img" aria-labelledby="outTitle outDesc">
+          <title id="outTitle">معاملة واحدة ثم ناقل نشر</title>
+          <desc id="outDesc">تطبيق الطلب يكتب صف الطلب وصف الحدث في نفس قاعدة البيانات. عملية منفصلة تقرأ صندوق الإخراج وتنشر إلى RabbitMQ بعد التأكيد.</desc>
+          <rect class="box" x="16" y="48" width="150" height="64" rx="10"></rect>
+          <text x="91" y="76" text-anchor="middle">Order service</text>
+          <text class="small" x="91" y="94" text-anchor="middle">one DB transaction</text>
+          <rect class="box-good" x="210" y="28" width="150" height="48" rx="10"></rect>
+          <text x="285" y="58" text-anchor="middle">orders row</text>
+          <rect class="box-good" x="210" y="90" width="150" height="48" rx="10"></rect>
+          <text x="285" y="120" text-anchor="middle">outbox row</text>
+          <path class="edge" d="M360 114 H410"></path>
+          <rect class="box-warm" x="410" y="86" width="140" height="56" rx="10"></rect>
+          <text x="480" y="118" text-anchor="middle">Relay</text>
+          <path class="edge" d="M550 114 H590"></path>
+          <rect class="box-info" x="590" y="86" width="150" height="56" rx="10"></rect>
+          <text x="665" y="118" text-anchor="middle">RabbitMQ</text>
+        </svg>
+        <h3>الترتيب</h3>
+        <p>طابور واحد بمستهلك نشط واحد، من غير أولويات ومن غير رفض يعيد الرسالة للأول، بيحافظ على ترتيب النشر للطابور ده. مستهلكين متنافسين بيكسروا الترتيب العالمي. إعادة التسليم بتخلّي رسالة قديمة تتأخر عن رسالة أجدد. مفيش ترتيب عبر طابورين. لو محتاج ترتيب لكل طلب، اقسم بالمفتاح عشان رسائل نفس الطلب تروح لنفس الطابور، واستخدم <span class="en">single active consumer</span> لو المستهلك الواحد جزء من العقد.</p>
+        <h3>ملخص الفصل</h3>
+        <p>صمم لـ <span class="en">at-least-once</span>. اجعل الأثر idempotent بمفتاح عمل جوه معاملة. انشر من <span class="en">outbox</span> لو الحدث لازم يعيش مع كتابة قاعدة البيانات. سمّي الترتيب كقيد صريح، متفترضهوش من الوسيط.</p>
+      </section>
+      <section class="chapter" id="failures">
+        <h2>10. سيناريوهات فشل واقعية</h2>
+        <p>كل سيناريو تحت فيه العلامة، السبب الأرجح، والحركة الصح. التشخيص بيتغير لو الطوبولوجيا مختلفة، فابدأ دايمًا من: هل فيه confirm، هل الـ ack يدوي، هل الطابور quorum، وهل فيه DLX.</p>
+        <h3>الرسالة مش بتوصل والناشر فاكر إنه نجح</h3>
+        <p>من غير <span class="en">confirms</span>، رجوع الدالة يعني الكتابة على الاتصال مش اكتمال الحفظ. سبب تاني: الرسالة اتوجهت لصفر طوابير لأن الـ binding غلط، ومن غير <span class="en">mandatory</span> الوسيط بيسيبها. سبب ثالث: المستهلك على نفس الطابور منافس وبياخدها. افحص عدد الطوابير المربوطة، وعداد النشر، وعداد <span class="en">ack</span>، مش بس لوج الناشر.</p>
+        <h3>الطلب اتخصم مرتين</h3>
+        <p>ده غالبًا <span class="en">at-least-once</span> اشتغل صح والتصميم لأ. التسليم الأول كتب الأثر ومات قبل الـ <span class="en">ack</span>، والتاني كتب الأثر تاني. الإصلاح قيد فريد على مفتاح العمل، مش تقليل <span class="en">prefetch</span> ولا تفعيل <span class="en">auto_ack</span>. التأكيد التلقائي هيوقف التكرار بأنه يضيّع رسائل تانية.</p>
+        <h3>الطابور بيكبر والمستهلكين "شغالين"</h3>
+        <p>احسب معدل الدخول مقابل معدل الـ <span class="en">ack</span>. لو الدخول أعلى، زود عمال لنفس الطابور لو الشغل قابل للتقسيم، أو قصّر المعالجة. لو فيه رسائل <span class="en">unacked</span> كتير، المستهلك واخدها ومش بيأكد: معالجة بطيئة، قفل قاعدة، أو <span class="en">prefetch</span> أعلى من قدرة المعالجة. لو المستهلك بيعمل <span class="en">nack/requeue</span> فورًا، العداد شكله حي بس الشغل مش بيتقدم. رسالة واحدة سامة تقدر تعيد نفسها لحد <span class="en">delivery limit</span>.</p>
+        <h3>بعد إعادة تشغيل الوسيط الطابور فاضي</h3>
+        <p>طابور غير دائم، أو رسائل غير دائمة على طابور كلاسيكي، أو الطابور كان حصري واتقفل مع الاتصال. <span class="en">quorum queue</span> دائم والرسائل عليه بتتحفظ، بشرط إن الـ <span class="en">confirm</span> يكون رجع قبل الانهيار. تأكيد لم يوصل للناشر يعني إن الناشر لازم يعيد النشر. كمان مرآة الكلاسيك اتشالت في 4.0، فطابور كلاسيكي على عقدة واحدة مش خطة توافر.</p>
+        <h3>الوسيط بقى بطيء أو قفل الناشرين</h3>
+        <p>لما الذاكرة توصل لحد الإنذار، <span class="en">RabbitMQ</span> يبعت <span class="en">connection.blocked</span>. النشر يقف لحد ما الضغط يخف. في <span class="en">BlockingConnection</span>، نداء متزامن بعد كده ممكن يبان إنه معلّق. عالج الإنذار بتقليل التراكم، ومستهلكين يفرّغوا، وحدود طول بـ <span class="en">reject-publish</span> لو الرفض أفضل من إسقاط الرأس. متكبرش القرص وتسيّب طابور من غير مالك.</p>
+        <h3>نسخة جديدة من المستهلك بتشتغل مع القديمة</h3>
+        <p>أثناء النشر، الاتنين مستهلكين شرعيون على نفس الطابور. الرسائل هتتوزع. لو الاتنين بيكتبوا نسخ غير متوافقة من المنطق، هتشوف آثار مختلطة. لو الطابور المفروض يتنفّذ بترتيب صارم، التوزيع ده خطأ. حلول: <span class="en">single active consumer</span>، أو أوقف القديم قبل الجديد مع قبول توقف قصير، أو خلّي النسختين متوافقتين في قراءة الرسالة.</p>
+        <div class="callout key">
+          <strong class="label">ترتيب التحقيق</strong>
+          ابدأ بعدادات الطابور: جاهزة، غير مؤكدة، ومعدل الدخول. بعدين شوف آخر خطأ قناة. بعدين هيدر <span class="en">x-death</span> في الـ DLQ. بعدين لوج المستهلك حول نفس <span class="en">correlation id</span>. متبدأش بتغيير <span class="en">prefetch</span> قبل ما تعرف الرسالة بتضيع ولا بتتكرر ولا بتستنى.
+        </div>
+        <h3>ملخص الفصل</h3>
+        <p>الضياع، التكرار، والتراكم ثلاث أشكال مختلفة. كل شكل له سبب في طرف الناشر أو التوجيه أو التأكيد أو المعالجة. الأداة الغلط بتصلّح عرض وبتكسّر ضمان تاني.</p>
+      </section>
+
+      <section class="chapter" id="production">
+        <h2>11. اعتبارات الإنتاج</h2>
+        <p><span class="en">BlockingConnection</span> مناسب لعمال بسطاء وفهم واضح. هو مش بيعيد الاتصال لوحده، والقناة مش بتتستخدم من خيط تاني. في الخدمة الحقيقية لف حلقة إعادة اتصال حوالي المستهلك، وأعد إعلان الطوبولوجيا بعد الاتصال، وخلي معالجة الرسالة قصيرة نسبيًا عشان مهلة الـ <span class="en">ack</span>. لو محتاج استهلاك كثيف غير حاجب، المكتبات المبنية على محولات <span class="en">pika</span> غير الحاجبة أو عميل تاني قرار مشروع، بشرط إن نموذج التأكيد يفضل واضح.</p>
+        <h3>قائمة تشغيل قبل ما الطابور يشيل فلوس</h3>
+        <ul>
+          <li>طوابير <span class="en">quorum</span> دائمة للشغل اللي ضياعه غالي. عدد الأعضاء فردي، غالبًا 3، عشان الأغلبية.</li>
+          <li>تأكيدات ناشر، و<span class="en">mandatory</span> أو <span class="en">alternate exchange</span>.</li>
+          <li>تأكيد يدوي، و<span class="en">prefetch</span> قريب من الشغل اللي المستهلك يخلّصه قبل ما الذاكرة أو المهلة تضغط.</li>
+          <li>DLX مملوك، واستراتيجية إعادة بتأخير، وحد تسليم مفهوم.</li>
+          <li><span class="en">outbox</span> لو النشر مرتبط بمعاملة قاعدة.</li>
+          <li>مستهلك idempotent بمفتاح عمل.</li>
+          <li>مستخدمين وصلاحيات و<span class="en">TLS</span> و<span class="en">vhost</span> منفصلين. مش <span class="en">guest</span>.</li>
+          <li>إنذارات على عمق الطابور، الرسائل غير المؤكدة، الاتصالات المحجوبة، والقرص والذاكرة.</li>
+          <li>حجم الرسالة صغير. الملف الكبير يتخزن في مخزن كائنات، والرسالة تحمل مرجع.</li>
+          <li>نسخة في جسم الرسالة عشان القارئ المتسامح يقدر يطور المخطط.</li>
+        </ul>
+        <h3>امتى ترفض RabbitMQ</h3>
+        <ul>
+          <li>سجل أحداث ضخم محتاج إعادة قراءة حرة لأيام: بص على <span class="en">stream</span> في <span class="en">RabbitMQ</span> أو سجل متخصص. طابور <span class="en">quorum</span> مش متظبط لتراكم ملايين الرسائل كحالة طبيعية.</li>
+          <li>أقل تأخير ممكن وبياناتها تتحمل الضياع: إجماع <span class="en">quorum</span> تكلفته مش مبررة.</li>
+          <li>طابور مؤقت حصري لكل طلب <span class="en">RPC</span>: <span class="en">quorum</span> مش النوع ده. والطابور المؤقت العالي الإنشاء أصلًا إشارة إن التصميم ممكن يرجع اقتران متزامن.</li>
+          <li>استعلام تفاعلي محتاج إجابة في نفس الطلب: نداء مباشر أوضح.</li>
+        </ul>
+        <p>مقارنة قرار، مش حكم مطلق: طابور <span class="en">RabbitMQ</span> بيمسح الرسالة بعد المعالجة وبيوزعها على عمال متنافسين، والتوجيه في المبدّل غني. السجل زي <span class="en">Kafka</span> بيحتفظ بالمقطع لمدة، والمستهلك بيمسك إزاحته، وإعادة القراءة طبيعية. اختَر حسب الاحتفاظ وإعادة القراءة، مش حسب اسم أشهر في السوق.</p>
+        <h3>الاختبار</h3>
+        <p>اختبر المستهلك من غير وسيط عن طريق تمرير جسم الرسالة ودالة تأكيد مزيفة. واختبر التكامل على وسيط حقيقي في حاوية: رسالة بتتأكد مرة، رسالة بترجع فتتنفذ أثرها مرة، رسالة بايظة تروح DLQ، ورسالة من غير binding ما تتأكدش للناشر. اختبار بيستخدم <span class="en">auto_ack</span> وبيعد الرسائل الواصلة مش بيثبت الضمان اللي هتشغّله.</p>
+        <h3>ملخص الفصل</h3>
+        <p>الإنتاج مجموعة قيود صغيرة وثابتة: حفظ، تأكيد، حد، إعادة بتأخير، أثر واحد، ومالك للطابور الميت. كل قيد شلته هيظهر كحادثة بشكل مختلف.</p>
+        <form class="quiz" data-correct="c">
+          <fieldset>
+            <legend>خدمة الطلبات بتعمل commit للطلب ثم basic_publish من غير outbox. إيه الفجوة؟</legend>
+            <label><input type="radio" name="pr1" value="a" data-why="المشكلة مش في سرعة الفوترة. الفجوة بين كوميتين مش متربطين."> الفوترة ممكن تبقى أبطأ من الطلب، وده مقبول</label>
+            <label><input type="radio" name="pr1" value="b" data-why="quorum بيحمي الرسالة بعد ما الوسيط يقبلها. السقوط هنا قبل النشر أو بين الكوميت والنشر."> quorum queue بيقفل الفجوة دي لوحده</label>
+            <label><input type="radio" name="pr1" value="c" data-why="لو العملية ماتت بعد حفظ الطلب وقبل النشر المؤكد، الحدث ضاع والطلب موجود. outbox بيحط الاتنين في معاملة واحدة."> سقوط بين حفظ الطلب والنشر يضيّع الحدث رغم إن الطلب موجود</label>
+          </fieldset>
+          <button type="submit" class="primary">تحقق من الإجابة</button>
+          <div class="feedback" role="status"></div>
+          <details>
+            <summary>الإجابة من غير JavaScript</summary>
+            <p>الصحيح هو سقوط بين حفظ الطلب والنشر. <span class="en">quorum</span> بيحمي ما وصل للوسيط، مش النية اللي لسه في ذاكرة التطبيق.</p>
+          </details>
+        </form>
+      </section>
+
+      <section id="comparisons">
+        <h2>مقارنات بتتلخبط في الشغل والمقابلات</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th></th><th>Synchronous call</th><th>Message broker</th><th>Event-driven architecture</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>التعريف</td><td>المنادي يستنى رد الطرف</td><td>وسيط يقبل ويوجه ويحفظ ويسلّم</td><td>أسلوب تعاون مبني على حقائق حصلت</td></tr>
+              <tr><td>المسؤولية</td><td>عقد طلب ورد</td><td>النقل والاحتفاظ لحين التسليم</td><td>ملكية البيانات وردود الفعل المستقلة</td></tr>
+              <tr><td>المشكلة</td><td>محتاج نتيجة دلوقتي</td><td>فصل زمني وتوزيع شغل</td><td>إضافة مستمع من غير تعديل الناشر</td></tr>
+              <tr><td>الفشل الظاهر</td><td>خطأ أو مهلة في نفس النداء</td><td>تراكم، تكرار، رسالة ميتة</td><td>اتساق مؤجل بين الخدمات</td></tr>
+              <tr><td>مفهوم خاطئ</td><td>كل نداء بطيء يبقى يتصفّى</td><td>وجوده يعني إن النظام event-driven</td><td>معناه منع النداءات المباشرة كلها</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th></th><th>Publisher confirm</th><th>Consumer ack</th><th>Idempotency key</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>مين بيعمله</td><td>الوسيط للناشر</td><td>المستهلك للوسيط</td><td>قاعدة بيانات المستهلك</td></tr>
+              <tr><td>بيثبت إيه</td><td>الرسالة اتحفظت عند الوسيط</td><td>التسليم ده خلّص من وجهة المستهلك</td><td>أثر العمل ده اتنفّذ قبل كده</td></tr>
+              <tr><td>مش بيثبت</td><td>إن الشغل التجاري تم</td><td>إن الناشر الأصلي لسه عايش</td><td>إن الوسيط مش هيسلّم تاني</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th></th><th>Classic queue في RabbitMQ 4</th><th>Quorum queue</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>التكرار</td><td>من غير مراية. المراية اتشالت في 4.0</td><td>نسخ عبر أغلبية بأسلوب <span class="en">Raft</span></td></tr>
+              <tr><td>الدوام</td><td>ممكن يبقى غير دائم</td><td>دائم دايمًا، ومش حصري</td></tr>
+              <tr><td>الرسالة السامة</td><td>من غير حد تسليم مدمج بنفس الشكل</td><td>حد افتراضي 20 من الإصدار 4.0، ثم حذف أو DLX</td></tr>
+              <tr><td>الاستخدام</td><td>طوابير عابرة وتجارب وحمل يتحمل عقدة واحدة</td><td>أوامر وطلبات ضياعها غالي</td></tr>
+              <tr><td>مش مناسب</td><td>خطة توافر عالية</td><td>طوابير مؤقتة عالية الإنشاء، أو تراكم ضخم جدًا كوضع طبيعي</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="chapter" id="implementation">
+        <h2>تطبيق عملي: من ناشر هش إلى مسار طلب أوضح</h2>
+        <p>المشكلة: لما طلب يتعمل، الفوترة لازم تنشئ فاتورة، والمخزون لازم يحجز كمية. المستخدم مش لازم يستنى الاتنين جوه نفس طلب الـ <span class="en">HTTP</span>، لكن ضياع الحدث أو تطبيقه مرتين غير مقبول.</p>
+        <h3>النسخة الضعيفة</h3>
+        <p>الكود ده بيوضح قرارات منتشرة، ومش نموذج يتنسخ.</p>
+        <div class="codebox">
+          <div class="top"><span class="lang">PYTHON · WEAK PATTERN</span><button type="button" class="copy">نسخ</button></div>
+          <pre><code>def on_order(ch, method, properties, body):
+    data = json.loads(body)
+    charge(data["order_id"], data["amount"])
+    ch.basic_ack(method.delivery_tag)</code></pre>
+        </div>
+        <p>المشاكل: مفيش مفتاح تكرار، أي استثناء بيوقع الاستدعاء وممكن يرجع الرسالة فورًا حسب إطار المستهلك، ومفيش فصل بين خطأ الدفع المؤقت وخطأ البيانات الدائم. كمان الناشر لو مش طالع من <span class="en">outbox</span>، وجود المستهلك الحذر مش هيخلق الحدث اللي ما اتبعتش.</p>
+        <h3>النسخة الأوضح</h3>
+        <p>القرار: حدث <span class="en">order.created</span> على مبدّل <span class="en">topic</span>. كل خدمة بطابور <span class="en">quorum</span>. الفوترة تطبق فاتورة بمفتاح <span class="en">order_id:order.created</span>. الخطأ المؤقت يروح لمسار تأخير بعدد محاولات. الخطأ الدائم يرفض للـ DLQ. الناشر يكتب <span class="en">outbox</span> مع الطلب.</p>
+        <div class="codebox">
+          <div class="top"><span class="lang">PYTHON · BILLING HANDLER</span><button type="button" class="copy">نسخ</button></div>
+          <pre><code>class TransientBillingError(Exception):
+    pass
+
+class PermanentBillingError(Exception):
+    pass
+
+def handle_delivery(channel, method, properties, body, database):
+    payload = json.loads(body)
+    if "order_id" not in payload or "amount" not in payload:
+        channel.basic_nack(method.delivery_tag, requeue=False)
+        return
+    try:
+        status = apply_invoice(database, payload)
+    except TransientBillingError:
+        retry_or_dead(channel, method, properties, body)
+        return
+    except PermanentBillingError:
+        channel.basic_nack(method.delivery_tag, requeue=False)
+        return
+    channel.basic_ack(method.delivery_tag)
+    return status</code></pre>
+        </div>
+        <p><span class="en">apply_invoice</span> هي دالة الفصل السابق: معاملة واحدة فيها مفتاح وصورة الفاتورة. <span class="en">retry_or_dead</span> من فصل إعادة المحاولة. تتبع رسالة سليمة: التحقق ينجح، الفاتورة تتكتب، الـ <span class="en">ack</span> يتم. رسالة ناقصة الحقول: رفض نهائي إلى DLQ من غير ما نعيدها كل 20 مرة. مهلة بوابة الدفع: نشر مؤجل ثم <span class="en">ack</span> للأصلية. بعد خمس محاولات: رفض نهائي.</p>
+        <h3>قرارات وبدائل</h3>
+        <ul>
+          <li>بديل عن طوابير التأخير: إضافة التأخير الرسمية في <span class="en">RabbitMQ</span>. شغالة كإضافة، فمتبنيش التصميم عليها إلا لو تشغيلها قرار متعمد في العنقود.</li>
+          <li>بديل عن مفتاح الفاتورة: قفل موزع حول <span class="en">order_id</span>. أضعف، لأن القفل بيفك والرسالة ممكن تترجع بعد ما الأثر يتكتب.</li>
+          <li>معالجة الخطأ: الاستثناءات العامة ما تتعملش لها <span class="en">requeue=True</span>. المجهول يروح لمسار ميت ظاهر أحسن ما يدور بصمت.</li>
+          <li>الأداء: <span class="en">prefetch</span> 20 بداية معقولة لنداء شبكة قصير، وتتراجع بالقياس على زمن المعالجة والرسائل غير المؤكدة. مفيش رقم عالمي.</li>
+          <li>الصيانة: أسماء المفاتيح جزء من العقد. غيّر <span class="en">order.created</span> بإضافة حقول اختيارية ونسخة، مش بتبديل المعنى تحت نفس الاسم.</li>
+        </ul>
+        <h3>اختبار السلوكي</h3>
+        <p>ثلاث حالات تكفي كحد أدنى: تطبيق أول يرجع <span class="en">applied</span> ثم <span class="en">ack</span>، تطبيق تاني بنفس الطلب يرجع <span class="en">duplicate</span> ثم <span class="en">ack</span> من غير فاتورة جديدة، ومهلة بوابة تنشر محاولة أعلى ثم <span class="en">ack</span>. رابع حالة: حقل ناقص يعمل <span class="en">nack</span> من غير إعادة.</p>
+        <div class="callout info">
+          <strong class="label">حد المثال</strong>
+          المثال مش خدمة كاملة. ناقص منه حلقة إعادة الاتصال، ترحيل مخطط قاعدة البيانات، ومقاييس. القصد إنه يورّي حدود المسؤولية الصح بين الوسيط وقاعدة المستهلك.
+        </div>
+      </section>
+
+      <section id="mistakes">
+        <h2>أخطاء شائعة وإزاي تطلّعها</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>الغلط</th><th>ليه بيحصل</th><th>العَرَض</th><th>التجنب</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>خدمتان على نفس الطابور</td><td>تشبيه غلط بـ <span class="en">pub/sub</span></td><td>كل خدمة شايفة جزء من الأحداث</td><td>طابور لكل خدمة، وbinding على المبدّل</td></tr>
+              <tr><td><span class="en">auto_ack</span> في شغل له أثر</td><td>المثال الأول أسهل</td><td>ضياع عند سقوط المستهلك</td><td>ack بعد حفظ الأثر</td></tr>
+              <tr><td><span class="en">nack(requeue=True)</span> على طول</td><td>الاسم يوحي بإعادة محاولة</td><td>حلقة ساخنة وطابور شكله عالي</td><td>تأخير عبر TTL، ثم DLQ</td></tr>
+              <tr><td>اعتبار <span class="en">confirm</span> تنفيذًا</td><td>الكلمة "acked" بتتستخدم للطرفين</td><td>الناشر بيعلّم الطلب مكتمل قبل الفوترة</td><td>سمّي التأكيد: حفظ وسيط ولا معالجة</td></tr>
+              <tr><td>dedup بـ <span class="en">delivery tag</span></td><td>الرقم ظاهر في الكولباك</td><td>التكرار يعدي لأن الرقم بيتغير</td><td>مفتاح عمل ثابت</td></tr>
+              <tr><td>نشر بعد الكوميت من غير outbox</td><td>النداء شكله كفاية</td><td>صفوف من غير أحداث</td><td>صف حدث في نفس المعاملة</td></tr>
+              <tr><td>تغيير وسطاء طابور قائم</td><td>تعديل الكود وإعادة التشغيل</td><td><span class="en">PRECONDITION_FAILED</span></td><td>طابور جديد أو سياسة مصممة للتغيير</td></tr>
+              <tr><td>مشاركة قناة <span class="en">pika</span> بين threads</td><td>اعتياد مكتبات تانية</td><td>أخطاء بروتوكول عشوائية</td><td>اتصال لكل خيط، أو <span class="en">add_callback_threadsafe</span></td></tr>
+              <tr><td>رسالة ضخمة</td><td>أسهل من مخزن ملفات</td><td>ضغط ذاكرة وإنذارات</td><td>مرجع، وجسم صغير له نسخة</td></tr>
+              <tr><td>افتراض الترتيب مع عمال كتير</td><td>التجارب المحلية بمستهلك واحد</td><td>حالة أحدث تتكتب قبل الأقدم</td><td>ترتيب صريح أو مستهلك نشط واحد</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>استراتيجية تصحيح</h3>
+        <ol>
+          <li>حدّد الضمان اللي متوقع: ضياع مقبول ولا تكرار مقبول؟</li>
+          <li>ارسم الطوابير الفعلية من الوسيط، مش من الذاكرة. شوف الـ bindings.</li>
+          <li>قارن منشور، جاهز، غير مؤكد، وداخل DLQ لنفس الدقيقة.</li>
+          <li>لو فيه تكرار أثر، دور على معاملة من غير قيد فريد قبل ما تلوم الوسيط.</li>
+          <li>لو فيه ضياع، دور على <span class="en">auto_ack</span>، غياب confirms، أو توجيه لصفر طوابير.</li>
+        </ol>
+      </section>
+
+      <section id="cheatsheet">
+        <h2>ورقة مراجعة قبل المقابلة</h2>
+        <ul>
+          <li>متزامن: استنى النتيجة. غير متزامن: سلّم الشغل. <span class="en">async/await</span> مش هو القرار المعماري.</li>
+          <li>الوسيط بنية تحتية. <span class="en">EDA</span> أسلوب. طابور الشغل نمط أوامر. الحدث حقيقة ماضية.</li>
+          <li>المبدّل يوجّه ولا يخزّن. الطابور يخزّن ويسلّم لمستهلك واحد. النسخ تحصل بتعدد الطوابير المربوطة.</li>
+          <li><span class="en">topic</span>: <span class="en">*</span> كلمة، <span class="en">#</span> صفر أو أكتر. <span class="en">fanout</span> يتجاهل المفتاح. الافتراضي مبدّل فاضي ومفتاحه اسم الطابور.</li>
+          <li><span class="en">confirm</span> للناشر: الرسالة اتحفظت. في <span class="en">quorum</span> ده بعد الأغلبية. <span class="en">ack</span> للمستهلك: المعالجة خلّصت.</li>
+          <li><span class="en">auto_ack</span> يقدر يضيّع. الـ <span class="en">ack</span> اليدوي يقدر يكرر. الأثر الواحد قيد في قاعدة المستهلك.</li>
+          <li><span class="en">prefetch_count</span> حد للرسائل غير المؤكدة. <span class="en">global QoS</span> مش للطابور الـ <span class="en">quorum</span>.</li>
+          <li>رفض من غير إعادة = DLX أو حذف. إعادة فورية = حلقة ساخنة. التأخير = طابور TTL من غير مستهلك.</li>
+          <li>من RabbitMQ 4.0: مفيش مراية كلاسيك، وحد تسليم quorum الافتراضي 20. من 4.3: مهلة تأكيد التسليم لطوابير quorum، والافتراضي 30 دقيقة.</li>
+          <li>مفتاح التكرار هو هوية العمل، مش <span class="en">delivery tag</span> ولا علم <span class="en">redelivered</span>.</li>
+          <li>انشر حدث مرتبط بكتابة عبر <span class="en">outbox</span>. الترتيب العالمي مش وعد لما يكتر المستهلكين.</li>
+          <li><span class="en">pika</span> القناة ملك خيط الاتصال. <span class="en">BlockingConnection</span> مش بيعيد الاتصال لوحده.</li>
+        </ul>
+        <div class="codebox">
+          <div class="top"><span class="lang">PYTHON · SHAPE TO REMEMBER</span><button type="button" class="copy">نسخ</button></div>
+          <pre><code>channel.confirm_delivery()
+channel.basic_publish(exchange, routing_key, body, mandatory=True, properties=props)
+channel.basic_qos(prefetch_count=20)
+channel.basic_consume(queue=queue, on_message_callback=on_message, auto_ack=False)
+channel.basic_ack(delivery_tag)
+channel.basic_nack(delivery_tag, requeue=False)</code></pre>
+        </div>
+      </section>
+
+      <section id="interview">
+        <h2>تحضير المقابلات</h2>
+        <p>37 سؤال من الأساسيات لحد سيناريو الإنتاج. حاول تجاوب بصوت عالي، وبعدين افتح الإجابة. البحث والأزرار بيصفّوا الأسئلة لما JavaScript شغال. من غيره كل الإجابات متاحة من العناصر القابلة للفتح، والتصفية مش هتشتغل.</p>
+        <input id="qsearch" type="search" placeholder="ابحث في نص السؤال" aria-label="بحث في أسئلة المقابلات">
+        <div class="filters" role="group" aria-label="تصفية مستوى الأسئلة">
+          <button type="button" data-filter="all" aria-pressed="true">الكل</button>
+          <button type="button" data-filter="1" aria-pressed="false">1 أساسيات</button>
+          <button type="button" data-filter="2" aria-pressed="false">2 متوسط</button>
+          <button type="button" data-filter="3" aria-pressed="false">3 متقدم</button>
+          <button type="button" data-filter="4" aria-pressed="false">4 سيناريو</button>
+          <button type="button" data-filter="5" aria-pressed="false">5 عملي</button>
+        </div>
+        <p id="qcount" aria-live="polite"></p>
+        <h3 id="level-1">المستوى 1: أساسيات</h3>
+
+        <article class="q" data-level="1">
+          <div class="q-head"><span class="badge">مستوى 1</span></div>
+          <h3>إيه هو الـ message broker، وإيه اللي مش من شغله؟</h3>
+          <p><strong>المقابل بيختبر:</strong> تعريف دقيق وحدود المسؤولية.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>وسيط بيقبل رسائل، يوجّهها، يحتفظ بيها لحد ما مستهلك يأكدها. مش بينفّذ منطق البزنس، ومش بيضمن لوحده إن الأثر حصل مرة واحدة.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>قيمته إنه بيفصل عمر الناشر عن عمر المستهلك. التخزين مؤقت لحين المعالجة، مش قاعدة النظام.</p>
+            <h4>مثال</h4>
+            <p>خدمة الطلبات بتنشر order.created. الوسيط مش عارف معنى المبلغ. الفوترة هي اللي بتحول الرسالة لفاتورة.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>سيرفر طابور بيخلّي النظام أسرع وبيضمن مرة واحدة. السرعة مش الوعد، ومرة واحدة مش إعداد.</p>
+            <h4>متابعة محتملة</h4>
+            <p>لو الوسيط وقع بعد التأكيد؟ ولو وقع قبله؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>يفرّق قبول الوسيط عن معالجة المستهلك، ويذكر توافر العنقود وملكية الطابور الميت كشغل تشغيل مش بس تصميم.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="1">
+          <div class="q-head"><span class="badge">مستوى 1</span></div>
+          <h3>إيه الفرق بين النداء المتزامن والتسليم غير المتزامن؟</h3>
+          <p><strong>المقابل بيختبر:</strong> زمن الانتظار وشكل الفشل.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>في المتزامن المنادي مستني نتيجة أو خطأ. في غير المتزامن بيسلّم رسالة ويكمل. نجاح التسليم للوسيط مش نتيجة الشغل.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>المتزامن أوضح في التتبع وأضعف لما الطرف التاني بطيء. غير المتزامن بيمتص البطء وبيحوّل الفشل لتراكم أو تكرار.</p>
+            <h4>مثال</h4>
+            <p>فحص مخزون ظاهر للمستخدم نداء مباشر. إرسال الإيميل بعد الدفع رسالة.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>اعتبار async/await في Python هو القرار المعماري. دي طريقة كتابة جوه العملية.</p>
+            <h4>متابعة محتملة</h4>
+            <p>هل الناشر غير المتزامن ممكن يستنى حاجة؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>أيوه، يستنى publisher confirm من غير ما يستنى المستهلك، وبيذكر الاتساق المؤجل كثمن.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="1">
+          <div class="q-head"><span class="badge">مستوى 1</span></div>
+          <h3>إيه الفرق بين الـ exchange والـ queue؟</h3>
+          <p><strong>المقابل بيختبر:</strong> نموذج AMQP الأساسي.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>الـ exchange بيوجّه وقد ينسخ الرسالة في أكتر من طابور. الـ queue بيستنى، وبيسلّم كل رسالة لمستهلك واحد.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>المبدّل مش مخزن. من غير binding مطابق الرسالة مش بتدخل طابور، وبتضيع لو مفيش mandatory أو alternate exchange.</p>
+            <h4>مثال</h4>
+            <p>مبدّل orders ينسخ order.created في طابور الفوترة وطابور المخزون.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>الاتنين طوابير والفرق في الاسم.</p>
+            <h4>متابعة محتملة</h4>
+            <p>لو المستهلكين وقعوا، الرسالة بتفضل فين؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>في الطوابير المربوطة لو التعريف والرسالة متينين. المبدّل نفسه مش بيحتفظ بنسخة.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="1">
+          <div class="q-head"><span class="badge">مستوى 1</span></div>
+          <h3>إيه الـ routing key ومين بيستخدمه؟</h3>
+          <p><strong>المقابل بيختبر:</strong> عقد التوجيه.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>نص بيبعته الناشر. الـ binding هو اللي يقرر المطابقة. في topic النص كلمات مفصولة بنقط.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>الناشر بيعلن نوع الحقيقة مش اسم الطابور. المستمعين يتربّطوا من غير تعديل الناشر، لكن المخطط نفسه يفضل عقد.</p>
+            <h4>مثال</h4>
+            <p>order.paid يطابق order.* ومش هيطابق invoice.paid.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>اعتباره عنوان السيرفر بتاع المستهلك.</p>
+            <h4>متابعة محتملة</h4>
+            <p>امتى المفتاح بيتتجاهل؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>في fanout. وفي المبدّل الافتراضي الفاضي المفتاح لازم يساوي اسم الطابور.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="1">
+          <div class="q-head"><span class="badge">مستوى 1</span></div>
+          <h3>إيه الـ acknowledgment بتاع المستهلك؟</h3>
+          <p><strong>المقابل بيختبر:</strong> لحظة مسح الرسالة من الطابور.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>إشارة إن تسليم القناة ده خلّص. قبلها الرسالة لسه عند الوسيط. السقوط قبل الـ ack بيرجعها لو التأكيد يدوي.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>الوسيط مش شايف كوميت قاعدة البيانات. عشان كده الـ ack بعد الحفظ مش قبله.</p>
+            <h4>مثال</h4>
+            <p>basic_ack على delivery tag بعد تسجيل الفاتورة.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>الـ ack يعني الرسالة صحيحة نحويًا. لأ، ده قرار إن المعالجة خلّصت.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إيه خطر auto_ack؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>الرسالة بتتشال قبل الشغل، فالسقوط بيضيّعها. وعلى quorum، تأخير الـ ack عن consumer timeout بيقفل القناة.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="1">
+          <div class="q-head"><span class="badge">مستوى 1</span></div>
+          <h3>ليه الناشر مش لازم يعرف المستهلك؟</h3>
+          <p><strong>المقابل بيختبر:</strong> معنى الفصل من غير مبالغة.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>عشان المستمعين يتغيروا من غير إعادة نشر للناشر. الناشر لسه يعرف المبدّل والمفتاح والمخطط.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>اللي اتشال هو عنوان الخدمة وعدد نسخها. اللي فضل هو شكل الرسالة ومعنى الاسم.</p>
+            <h4>مثال</h4>
+            <p>إضافة خدمة تحليلات على order.* من غير تعديل خدمة الطلبات.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>الخدمات متبقاش عارفة حاجة عن بعض. المخطط المشترك معرفة.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إيه اللي يفضل اقتران؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>اسم الحدث والحقول الإلزامية وسياسة التوافق. تغيير المعنى تحت نفس الاسم كسر عقد.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="1">
+          <div class="q-head"><span class="badge">مستوى 1</span></div>
+          <h3>إيه الفرق بين queue durable و message persistent؟</h3>
+          <p><strong>المقابل بيختبر:</strong> إيه اللي يعيش إعادة تشغيل الوسيط.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>دوام الطابور يحفظ التعريف. دوام الرسالة يطلب حفظ الجسم. على الطابور الكلاسيكي الاتنين لازم يتوفروا.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>طابور دائم برسائل مؤقتة يفضل فاضي بعد إعادة التشغيل. رسالة دائمة على طابور مش دائم بتختفي معاه.</p>
+            <h4>مثال</h4>
+            <p>durable=True مع DeliveryMode.Persistent. على quorum الحفظ حاصل أصلًا، لكن الوضع بيفرق لو الرسالة اتبعتت لـ DLQ.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>durable على الطابور كفاية لكل الرسائل.</p>
+            <h4>متابعة محتملة</h4>
+            <p>هل الحفظ يكفي من غير publisher confirm؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>لا. الناشر محتاج التأكيد عشان يعرف إن الحفظ خلّص. في quorum التأكيد بعد موافقة الأغلبية.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="1">
+          <div class="q-head"><span class="badge">مستوى 1</span></div>
+          <h3>عرّف event-driven architecture وفرّقه عن وجود broker.</h3>
+          <p><strong>المقابل بيختبر:</strong> مستوى التجريد.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>أسلوب الخدمات فيه بتنشر حقائق حصلت، وغيرها بتتفاعل من غير نداء بالاسم. وجود broker ممكن يكون طابور أوامر بس.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>الحدث جملة ماضية. الأمر طلب لفاعل. نقل الأمر عبر طابور مش بيحوّل النظام لأسلوب حدثي.</p>
+            <h4>مثال</h4>
+            <p>order.paid حدث. send_email أمر على طابور عمال.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>يعني microservices أو Kafka. دي منتجات مش تعريف.</p>
+            <h4>متابعة محتملة</h4>
+            <p>امتى الأمر أصلح من الحدث؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>لما فاعل واحد هو المطلوب، والنتيجة مسار شغل مش حقيقة هتتفرع لملاك بيانات مستقلين.</p>
+          </details>
+        </article>
+        <h3 id="level-2">المستوى 2: فهم متوسط</h3>
+
+        <article class="q" data-level="2">
+          <div class="q-head"><span class="badge l2">مستوى 2</span></div>
+          <h3>قارن direct و fanout و topic.</h3>
+          <p><strong>المقابل بيختبر:</strong> قرار توجيه.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>direct مطابقة حرفية للأوامر. fanout لكل الطوابير ويتجاهل المفتاح. topic كلمات: النجمة كلمة والهاش الباقي. الأحداث الهرمية topic.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>headers بديل لو التصنيف مش هرمي، وأصعب في القراءة. الاختيار مش موضة، هو شكل اشتراك المستمع.</p>
+            <h4>مثال</h4>
+            <p>order.* ياخد order.created ومش order.created.eu. order.# ياخد الاتنين.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>topic الأحدث فبنستخدمه لكل حاجة.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إيه خطر binding بالهاش لوحده؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>المستمع هيستقبل أحداث مش متوقعها. ولازم خطة للرسالة اللي ماتطابقش أي طابور.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="2">
+          <div class="q-head"><span class="badge l2">مستوى 2</span></div>
+          <h3>إيه الفرق بين competing consumers و publish/subscribe؟</h3>
+          <p><strong>المقابل بيختبر:</strong> مكان نسخ الرسالة.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>مستهلكين على نفس الطابور بيتنافسوا، فالرسالة لواحد. النسخ يعني طابور لكل خدمة مربوط بنفس المبدّل.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>المنافسة لتوسيع نفس الشغل. النسخ لردود فعل مختلفة على نفس الحقيقة.</p>
+            <h4>مثال</h4>
+            <p>ثلاث عمليات فوترة على billing.orders منافسة. طابور المخزون طابور تاني على نفس الحدث.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>RabbitMQ دايمًا بيبعت لكل المستهلكين المتصلين.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إزاي أوسّع وأنسخ في نفس الوقت؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>طابور لكل خدمة، وكذا مستهلك على طابور الخدمة. التوسع جوه الطابور، والنسخ بين الطوابير.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="2">
+          <div class="q-head"><span class="badge l2">مستوى 2</span></div>
+          <h3>اشرح at-most-once و at-least-once و exactly-once.</h3>
+          <p><strong>المقابل بيختبر:</strong> معنى الضمان على طرف حقيقي.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>الأول قد يضيع: auto_ack أو نشر بلا تأكيد. التاني قد يتكرر: confirms مع ack يدوي. الثالث أثر واحد، ومكانه قيد عند المستهلك مش زر في الوسيط.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>الضمان بيتفكك لحواف: تطبيق للوسيط، وسيط للمستهلك، ومستهلك لقاعدة البيانات.</p>
+            <h4>مثال</h4>
+            <p>خصم مخزون مرتين بعد سقوط قبل ack يعني التسليم التاني شغال والأثر مش idempotent.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>هنشغّل exactly-once من الإعدادات.</p>
+            <h4>متابعة محتملة</h4>
+            <p>هل at-least-once على الوسيط يكفي؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>لا لو الحدث ضاع قبل النشر. طرف الكتابة محتاج outbox أو ما يعادله.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="2">
+          <div class="q-head"><span class="badge l2">مستوى 2</span></div>
+          <h3>ليه التأكيد اليدوي هو الاختيار الصح للشغل المهم؟</h3>
+          <p><strong>المقابل بيختبر:</strong> لحظة نقل المسؤولية.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>الوسيط يفضل مالك الرسالة لحد ما أثر المستهلك يبقى دائم. التأكيد التلقائي بينقل الملكية قبل التنفيذ.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>اليدوي بيفتح تكرار. التكرار نقدر نمنعه بقيد، والضياع الصامت أصعب.</p>
+            <h4>مثال</h4>
+            <p>اكتب الفاتورة ثم ack. العكس ممكن يمسح الرسالة قبل الكتابة.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>اليدوي أدق بس أبطأ فبنشوف في الإنتاج. البطء مش مبرر للضياع.</p>
+            <h4>متابعة محتملة</h4>
+            <p>لو فيه نداء خارجي ثم كتابة محلية، الـ ack فين؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>بعد الأثر المحلي الدائم، والنداء الخارجي نفسه لازم يقبل التكرار أو نتيجته تتخزن قبل الـ ack.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="2">
+          <div class="q-head"><span class="badge l2">مستوى 2</span></div>
+          <h3>prefetch_count بيعمل إيه، وإيه علامة إنه غلط؟</h3>
+          <p><strong>المقابل بيختبر:</strong> ضغط وتوازن بين العمال.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>بيحد الرسائل غير المؤكدة عند المستهلك. العالي أوي يكدّس ذاكرة. الواحد على شغل سريع جدًا قد يحد الإنتاجية بلا داعي.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>الحد لكل مستهلك. global QoS مع quorum بيرجع خطأ قناة.</p>
+            <h4>مثال</h4>
+            <p>معالجة عشر ثواني مع prefetch بالآلاف بتكدّس خطر ومهلة ack. معالجة خمسين مللي ثانية مع prefetch 1 غالبًا أبطأ من اللازم.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>دايمًا حط 1 عشان العدالة. دي قيمة تعليمية مش قاعدة إنتاج.</p>
+            <h4>متابعة محتملة</h4>
+            <p>هل prefetch بيحمي الوسيط من ناشر سريع؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>هو بيحمي المستهلك. حماية الوسيط من التراكم حدود طول، إنذارات ذاكرة، ومستهلكين يغطوا معدل الدخول.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="2">
+          <div class="q-head"><span class="badge l2">مستوى 2</span></div>
+          <h3>إيه الفرق بين publisher confirm و consumer ack؟</h3>
+          <p><strong>المقابل بيختبر:</strong> اتجاهين مختلفين لكلمة acked.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>confirm من الوسيط للناشر: الرسالة اتحفظت. ack من المستهلك للوسيط: التسليم اتعالج. الأول مش فاتورة، والتاني مش بيرجع للناشر لوحده.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>في quorum التأكيد بعد تسجيل الأغلبية. ده أمان بيانات مش زمن معالجة.</p>
+            <h4>مثال</h4>
+            <p>صف الـ outbox يتعلم منشور بعد confirm. الفاتورة تتكتب ثم ack. علامتان مختلفتان.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>تسمية الاتنين ack في تصميم من غير اتجاه.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إيه اللي pika يرميه لو التأكيد شغال؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>UnroutableError مع mandatory لو مفيش طريق، و NackError لو الوسيط رفض. النجاح على الواجهة الحاجبة صامت.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="2">
+          <div class="q-head"><span class="badge l2">مستوى 2</span></div>
+          <h3>امتى الرسالة تروح dead-letter queue؟</h3>
+          <p><strong>المقابل بيختبر:</strong> أسباب البروتوكول مش كلمة فشل عامة.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>مع وجود DLX: رفض من غير إعادة، انتهاء TTL، أو تجاوز حد الطول. على quorum كمان تجاوز حد إعادة التسليم. من غير DLX الرفض حذف.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>الـ DLQ طابور مربوط بمبدّل ميت. من غير binding الرسالة تختفي بعد المبدّل.</p>
+            <h4>مثال</h4>
+            <p>حقل ناقص في الفاتورة: nack مع requeue=False، فتظهر في DLQ ومعها x-death.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>أي exception بيبعت للـ DLQ لوحده. الكود لازم يرفض، والطابور لازم يكون متعلن عليه المبدّل.</p>
+            <h4>متابعة محتملة</h4>
+            <p>هل نقل الـ DLQ نفسه at-least-once؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>على quorum الافتراضي at-most-once. النقل الأقوى محتاج strategy at-least-once و overflow reject-publish، ومش بيشتغل مع drop-head.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="2">
+          <div class="q-head"><span class="badge l2">مستوى 2</span></div>
+          <h3>ليه nack مع requeue=True خطر كإعادة محاولة؟</h3>
+          <p><strong>المقابل بيختبر:</strong> سلوك الحلقة الساخنة.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>الرسالة بترجع فورًا وتتسلّم تاني غالبًا لنفس المستهلك. الخطأ المؤقت بيتحول لدوران بلا انتظار وبيأخر رسائل سليمة.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>إعادة المحاولة ليها عدد وتأخير ومحطة أخيرة. الرجوع الفوري مفيهوش تأخير.</p>
+            <h4>مثال</h4>
+            <p>بوابة دفع راجعة 503. طابور TTL ثلاثين ثانية أهدى من إعادة كل لحظة.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>requeue=True هو الـ retry الرسمي. هو مجرد رجوع للطابور.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إيه علاقة ده بحد التسليم؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>من RabbitMQ 4.0 حد quorum الافتراضي 20 ثم حذف أو DLX. الحد حماية من الدوران، مش خطة تأخير.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="2">
+          <div class="q-head"><span class="badge l2">مستوى 2</span></div>
+          <h3>ليه الـ idempotency جزء من المستهلك مش تحسين لاحق؟</h3>
+          <p><strong>المقابل بيختبر:</strong> قبول التكرار كواقع في at-least-once.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>السقوط بعد الحفظ وقبل الـ ack، أو إعادة النشر من outbox، بيسلّم تاني. من غير قيد، الأثر بيتكرر.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>redelivered مش مفتاح لأنه مش بيغطي نشر جديد. المفتاح هوية العمل.</p>
+            <h4>مثال</h4>
+            <p>قيد فريد على order_id مع نوع الحدث جوه نفس معاملة الفاتورة.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>هنطفي التكرار من الوسيط. الوسيط مش شايف أثر القاعدة.</p>
+            <h4>متابعة محتملة</h4>
+            <p>لو الأثر نداء خارجي؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>المفتاح أو نتيجة النداء لازم يعيشوا عند الطرف ده قبل الـ ack. القفل المؤقت بيفك والرسالة ترجع.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="2">
+          <div class="q-head"><span class="badge l2">مستوى 2</span></div>
+          <h3>إيه الفرق بين connection و channel في pika، وإيه قيد الخيوط؟</h3>
+          <p><strong>المقابل بيختبر:</strong> استخدام المكتبة من غير كسر البروتوكول.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>الاتصال TCP وفيه heartbeat. القناة خفيفة وعليها الأوامر. الاثنين بيتستخدموا من خيط الاتصال في BlockingConnection.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>مشاركة القناة بين threads بتطلّع أعطال مش دايمًا تتكرر. القنوات عزل أوامر، مش عزل عمليات.</p>
+            <h4>مثال</h4>
+            <p>النشر من خيط تاني يمر عبر add_callback_threadsafe.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>القناة زي اتصال نشاركه في pool.</p>
+            <h4>متابعة محتملة</h4>
+            <p>هل المكتبة بتعيد الاتصال لوحدها؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>BlockingConnection لأ. التطبيق يعيد الفتح ويعلن الطوبولوجيا. الرسائل غير المؤكدة ترجع، فالمستهلك يفضل idempotent.</p>
+          </details>
+        </article>
+        <h3 id="level-3">المستوى 3: متقدم</h3>
+
+        <article class="q" data-level="3">
+          <div class="q-head"><span class="badge l3">مستوى 3</span></div>
+          <h3>إزاي تنشر حدث من غير ما تضيّعه بين كوميت قاعدة البيانات والوسيط؟</h3>
+          <p><strong>المقابل بيختبر:</strong> فجوة الناشر وتصميم outbox.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>اكتب صف العمل وصف الحدث في جدول outbox في نفس المعاملة. ناقل يقرأ غير المنشور، ينشر بـ confirms، ثم يعلّم الصف.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>النشر جوه معاملة القاعدة مش متاح بشكل موثوق مع RabbitMQ. الفصل بين المعاملة والناقل هو الحل العملي، والتكرار الناتج يتعالج عند المستهلك.</p>
+            <h4>مثال</h4>
+            <p>طلب يتسجل مع صف order.created. الناقل يبعت بعد كده. لو وقع قبل ما يعلّم الصف، النشر يتكرر.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>انشر بعد الكوميت مباشرة في نفس الدالة وكده ضمنت. السقوط بين السطرين يضيّع الحدث.</p>
+            <h4>متابعة محتملة</h4>
+            <p>لو الناقل نشر مرتين؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>ده at-least-once على طرف النشر. المستهلك بمفتاح العمل هو اللي يمنع فاتورة ثانية. متستناش الوسيط يقفل التكرار.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="3">
+          <div class="q-head"><span class="badge l3">مستوى 3</span></div>
+          <h3>إيه ضمان الترتيب في RabbitMQ، وامتى يتكسر؟</h3>
+          <p><strong>المقابل بيختبر:</strong> وعد الترتيب من غير تعميم.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>طابور واحد بمستهلك نشط واحد، من غير أولويات ومن غير إعادة ترتيب بسبب الرفض، بيحافظ على ترتيب النشر للطابور ده.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>منافسة المستهلكين بتكسر الترتيب العالمي. إعادة التسليم بتأخر رسالة قديمة. مفيش ترتيب بين طابورين.</p>
+            <h4>مثال</h4>
+            <p>تحديث حالة الطلب: order.paid ممكن يتسجل قبل order.created لو الاتنين على طوابير أو عمال مختلفين.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>RabbitMQ FIFO دايمًا. الجملة ناقصة من غير قيود الطابور والمستهلك.</p>
+            <h4>متابعة محتملة</h4>
+            <p>لو محتاج ترتيب لكل طلب والتوسع برضه؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>اقسم بالمفتاح عشان رسائل نفس الطلب تروح لنفس الطابور، واستخدم single active consumer لو المستهلك الواحد جزء من العقد. أو شيل الترتيب من التصميم بخزن الحالة بشكل يقبل الوصول المتأخر.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="3">
+          <div class="q-head"><span class="badge l3">مستوى 3</span></div>
+          <h3>إيه الفرق بين classic queue و quorum queue بعد RabbitMQ 4؟</h3>
+          <p><strong>المقابل بيختبر:</strong> اختيار نوع الطابور كقرار أمان بيانات.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>من 4.0 المراية الكلاسيكية اتشالت. الكلاسيكي موجود من غير تكرار. الـ quorum طابور دائم متكرر بأسلوب Raft، والتأكيد بعد الأغلبية.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>quorum مش لكل حاجة: مش حصري، مش مؤقت، ومش أنسب لتراكم ضخم جدًا كوضع طبيعي أو لأقل تأخير ممكن. الـ stream بديل للاحتفاظ وإعادة القراءة.</p>
+            <h4>مثال</h4>
+            <p>طوابير الفواتير quorum بعضوية 3. طابور رد RPC مؤقت يفضل كلاسيكي حصري لو التصميم لسه محتاجه.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>المراية لسه خطة التوافر في 4، أو quorum أسرع دايمًا في كل حمل. الاتنين تعميم غلط.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إيه اللي بيحصل لرسالة سامة على quorum؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>حد التسليم الافتراضي 20 من 4.0. بعده حذف أو DLX. الهيدر x-delivery-count بيظهر عدد المحاولات.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="3">
+          <div class="q-head"><span class="badge l3">مستوى 3</span></div>
+          <h3>إزاي تعالج الرسالة السامة من غير ما توقف الطابور؟</h3>
+          <p><strong>المقابل بيختبر:</strong> تصنيف الخطأ ومسار الخروج.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>الخطأ الدائم يرفض من غير إعادة فيروح للـ DLQ. الخطأ المؤقت يتأجل بعدد محاولات. حد الوسيط آخر شبكة أمان مش الخطة الوحيدة.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>إعادة فورية بتخلي رسالة واحدة تعيد نفسها لحد الحد، وبتأخر غيرها لو المستهلك مشغول بيها.</p>
+            <h4>مثال</h4>
+            <p>JSON ناقص يروح DLQ أول مرة. مهلة الدفع تعدّ المحاولة ثم ترجع بعد TTL.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>زود عدد المستهلكين. ده مش بيعالج رسالة مش هتنجح أبدًا.</p>
+            <h4>متابعة محتملة</h4>
+            <p>لو الـ DLQ نفسه امتلأ؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>يبقى محتاج مالك وإنذار. نقل at-least-once كمان ممكن يخلّي الرسائل الميتة تفضل محسوبة على الطابور المصدر لحد ما الهدف يأكد.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="3">
+          <div class="q-head"><span class="badge l3">مستوى 3</span></div>
+          <h3>الوسيط بعت connection.blocked. هتفهم إيه وهتعمل إيه؟</h3>
+          <p><strong>المقابل بيختبر:</strong> ضغط عكسي حقيقي مش بطء غامض.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>العقدة قربت من حد الذاكرة أو مورد مشابه، وبتطلب من الناشرين يهدوا. في BlockingConnection نداء متزامن بعد كده ممكن يبان معلّق لحد ما الحالة تتفك.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>العلاج تفريغ الطوابير، تقليل النشر، ومراجعة التراكم. تكبير الذاكرة من غير مستهلكين بيأجّل الحادثة.</p>
+            <h4>مثال</h4>
+            <p>طابور صور كبيرة بيحمل الملف نفسه. الرسائل الضخمة بتقرّب الإنذار. الحل مرجع في مخزن كائنات.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>اعمل إعادة تشغيل للوسيط على طول. ده قد يفقد رسائل مش مؤكدة التصميم ومش بيعالج المعدل.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إزاي تمنع الوصول للإنذار أصلًا؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>حدود طول بـ reject-publish لو الرفض أصدق من إسقاط الرأس، prefetch معقول، أجسام صغيرة، وإنذار على العمق قبل ما الذاكرة تتقفل.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="3">
+          <div class="q-head"><span class="badge l3">مستوى 3</span></div>
+          <h3>ليه قول exactly-once في RabbitMQ إجابة ناقصة؟</h3>
+          <p><strong>المقابل بيختبر:</strong> التمييز بين تسليم وأثر.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>الوسيط يقدر يسلم أكتر من مرة مهما كان التأكيد اليدوي، لأن الفشل بين الحفظ والـ ack طبيعي. الأثر الواحد قيد يرى التكرار.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>حتى نقل الـ DLQ الأقوى at-least-once وموثّق إنه ممكن يكرر عند الهدف.</p>
+            <h4>مثال</h4>
+            <p>إدخال inbox وأثر الفاتورة في معاملة واحدة، ثم ack حتى لو الإدخال لقى المفتاح موجود.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>message_id كافي دايمًا. لأ لو إعادة النشر بتولّد معرّف جديد لنفس الطلب.</p>
+            <h4>متابعة محتملة</h4>
+            <p>هل فيه أنظمة تانية بتسوق exactly-once؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>حتى هناك الوعد غالبًا داخل حدود المنصة وبشروط. عبر قاعدة بيانات خارجية وخدمة دفع، الأثر الواحد يفضل مسؤولية التطبيق.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="3">
+          <div class="q-head"><span class="badge l3">مستوى 3</span></div>
+          <h3>صمم إعادة محاولة بتأخير من غير حلقة ساخنة.</h3>
+          <p><strong>المقابل بيختبر:</strong> طوبولوجيا مش سطر nack.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>انشر نسخة بعداد محاولة على طابور TTL من غير مستهلك، وهو يرجع عبر DLX للمبدّل الأصلي. بعد آخر عدد ارفض للـ DLQ. استنى تأكيد النشر قبل ما تعمل ack للأصلية.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>طابور التأخير لو عليه مستهلك هيتنفّذ فورًا ويلغي الفكرة. إضافة التأخير في RabbitMQ بديل، بس قرار تشغيل مش افتراض.</p>
+            <h4>مثال</h4>
+            <p>attempt في الهيدر. عند 5 ارفض. قبل كده انشر على billing.30s ثم ack.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>خلى المستهلك ينام ثلاثين ثانية قبل ما يرجع الرسالة. ده ماسك prefetch وبيقرّب مهلة الـ ack.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إيه نافذة الضياع أو التكرار في النمط ده؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>ضياع لو ack قبل تأكيد النسخة الجديدة. تكرار لو السقوط بين التأكيد والـ ack. الاتنين سبب إن المفتاح لازم يوجد حتى مع العداد.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="3">
+          <div class="q-head"><span class="badge l3">مستوى 3</span></div>
+          <h3>امتى ترفض تدخل message broker؟</h3>
+          <p><strong>المقابل بيختبر:</strong> حكم هندسي مش ولاء لأداة.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>لما النتيجة لازمة في نفس الطلب، أو الشغل معاملة قصيرة جوه خدمة واحدة، أو البيانات تتحمل الضياع والتأخير أهم من الأمان، أو الاحتياج سجل يعاد قراءته أيام.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>الوسيط بيضيف تشغيل: قرص، إنذارات، طوابير ميتة، وتوافق مخطط. التكلفة دي لازم تشتري فصل حقيقي.</p>
+            <h4>مثال</h4>
+            <p>سعر يظهر للمستخدم قبل الدفع: نداء مباشر. إيميل بعد الدفع: رسالة. سجل نقرات ضخم: stream أو سجل متخصص مش طابور مهام.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>طالما فيه خدمات كتير يبقى broker. عدد الخدمات مش السبب.</p>
+            <h4>متابعة محتملة</h4>
+            <p>لو اخترت RabbitMQ، امتى مش quorum؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>الطوابير المؤقتة عالية الإنشاء، والردود العابرة، والحمل اللي أمان البيانات فيه مش مستخدم أصلًا لأن مفيش confirms ولا acks.</p>
+          </details>
+        </article>
+        <h3 id="level-4">المستوى 4: سيناريوهات</h3>
+
+        <article class="q" data-level="4">
+          <div class="q-head"><span class="badge l4">مستوى 4</span></div>
+          <h3>المستخدم اتخصم من بطاقته مرتين لنفس الطلب. هتحقق إزاي؟</h3>
+          <p><strong>المقابل بيختبر:</strong> سيناريو تكرار أثر، وترتيب الفرضيات.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>هفترض at-least-once حصل: التسليم الأول كتب الخصم ومات قبل الـ ack، والتاني خصم تاني. هدوّر على قيد فريد غايب، ومش هبدأ بتقليل prefetch.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>هشوف لو الناشر نفسه بعت حدثين بمعنيين مختلفين ولا نفس الحقيقة مرتين. السجلات على correlation id وهوية الطلب.</p>
+            <h4>مثال</h4>
+            <p>فاتورة لها صفّين بنفس order_id. الإصلاح معاملة فيها مفتاح order_id:order.created، و ack حتى في مسار التكرار.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>أفعّل auto_ack عشان أوقف التكرار. ده يبدّل التكرار بضياع.</p>
+            <h4>متابعة محتملة</h4>
+            <p>لو الخصم نداء لبوابة خارجية مش صف محلي؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>مفتاح idempotency عند البوابة، وتخزين نتيجة النداء قبل الـ ack. من غير كده القيد المحلي مش هيحمي الطرف الخارجي.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="4">
+          <div class="q-head"><span class="badge l4">مستوى 4</span></div>
+          <h3>عمق الطابور بيزيد والمستهلكين ظاهرين شغالين. إيه مسارك؟</h3>
+          <p><strong>المقابل بيختبر:</strong> تفرقة التراكم عن الدوران عن البطء.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>أقارن معدل الدخول بمعدل الـ ack، وأشوف عدد unacked. دخول أعلى من الخروج يعني نقص سعة أو معالجة تقيلة. unacked عالي يعني المستهلك ماسك رسائل.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>لو العداد بيتحرك والـ DLQ فاضي بس الشغل مش بيتقدم، أشتبه في nack مع إعادة فورية أو رسالة بتعيد المحاولة.</p>
+            <h4>مثال</h4>
+            <p>prefetch عالي مع نداء خارجي بطيء: الرسائل تتسحب وتتعلق. العلاج حد أصغر أو عمال أكتر بعد ما المعالجة تبقى مفهومة.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>زود النسخ فورًا. لو الرسالة السامة أو القفل في القاعدة هو السبب، النسخ هتكرر الضرر.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إيه اللي تنظر له في RabbitMQ 4 تحديدًا؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>x-delivery-count وقرب الحد 20، ومهلة تأكيد التسليم على quorum لو المعالجة أطول من الافتراضي 30 دقيقة.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="4">
+          <div class="q-head"><span class="badge l4">مستوى 4</span></div>
+          <h3>بعد إعادة تشغيل الوسيط لقيت الطابور فاضي. إيه الاحتمالات؟</h3>
+          <p><strong>المقابل بيختبر:</strong> التمييز بين تعريف الطابور وجسم الرسالة والتأكيد.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>طابور مش دائم، أو رسائل مش دائمة على كلاسيكي، أو طابور حصري راح مع الاتصال، أو الناشر ما استناش confirm فالرسالة ما اتسجلتش قبل الوقوع.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>من 4.0 الطابور الكلاسيكي مش متكرر. وقوع عقدته مش زي وقوع أقلية في quorum.</p>
+            <h4>مثال</h4>
+            <p>ناشر من غير confirms طبع تم الإرسال ثم العملية قفلت. الرسالة كانت لسه في الشبكة أو في ذاكرة الوسيط.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>quorum بيحفظ كل حاجة حتى من غير ما الناشر يستنى التأكيد. التأكيد هو اللي يوصل العلم للناشر.</p>
+            <h4>متابعة محتملة</h4>
+            <p>لو confirm رجع وبعدين الأغلبية وقعت؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>الوعد إن الرسالة كانت متسجلة عند الأغلبية وقت التأكيد. تصميم الأعضاء الفردي، غالبًا 3، عشان تفضل أغلبية حية. ده مش بديل عن نسخة احتياطية لو العنقود كله ضاع.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="4">
+          <div class="q-head"><span class="badge l4">مستوى 4</span></div>
+          <h3>المستهلك عمل commit للفاتورة ثم العملية ماتت قبل basic_ack. إيه اللي هيحصل؟</h3>
+          <p><strong>المقابل بيختبر:</strong> سيناريو الحافة الكلاسيكي.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>الوسيط هيعيد التسليم لأن مفيش ack. الفاتورة موجودة. المعالجة لازم تلاقي المفتاح وتعمل ack من غير أثر جديد.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>لو الـ ack كان قبل الكوميت، العكس ممكن: الرسالة تتمسح والأثر يضيع. الترتيب جزء من الضمان.</p>
+            <h4>مثال</h4>
+            <p>INSERT الفاتورة مع مفتاح inbox في معاملة، ثم ack. التسليم التاني يلاقي التعارض ويرجع duplicate.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>الرسالة اتمسحت لأن القاعدة نجحت. الوسيط مش مشترك في المعاملة دي.</p>
+            <h4>متابعة محتملة</h4>
+            <p>لو إعادة التسليم حصلت والبوابة الخارجية اتنداهت تاني؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>يبقى المفتاح ما كنش شامل النداء الخارجي. خزّن إن النداء تم، أو ابعت مفتاح للبوابة، قبل ما تعتبر المعالجة خلّصت.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="4">
+          <div class="q-head"><span class="badge l4">مستوى 4</span></div>
+          <h3>ناشر بيقول إن confirm نجح، لكن ولا خدمة شافت order.created. فين تبص؟</h3>
+          <p><strong>المقابل بيختبر:</strong> ضياع بعد القبول أو توجيه غلط أو منافسة.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>confirm يعني اتسجلت في طابور وصلاله التوجيه. أدور على عدد الـ bindings، وعلى طابور تاني منافس، وعلى مستهلك بيعمل ack قبل اللوج.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>لو confirm مش شغال أصلًا، جملة نجح عند الناشر قد تعني بس إن السوكيت اتكتب. أتأكد من وضع القناة الأول.</p>
+            <h4>مثال</h4>
+            <p>binding على order.created.v2 بينما الناشر لسه بيبعت order.created. الرسالة كانت هترجع UnroutableError لو mandatory شغال.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>أبحث في كود الفوترة فقط. التوجيه ممكن يكون رايح لطابور تجربة أو DLQ.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إزاي تمنع الضياع الصامت ده المرة الجاية؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>mandatory أو alternate exchange، ومؤشر على الرسائل الراجعة، واختبار تكامل بيتأكد إن الطابور المقصود زاد واحد.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="4">
+          <div class="q-head"><span class="badge l4">مستوى 4</span></div>
+          <h3>أثناء النشر، النسخة القديمة والجديدة من المستهلك شغالين مع بعض. إيه الخطر؟</h3>
+          <p><strong>المقابل بيختبر:</strong> سيناريو تشغيل مش بس منطق رسالة.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>الاتنين مستهلكين شرعيون وهيتقاسموا الطابور. لو سلوكهم مختلف، الآثار تختلط. لو الترتيب مطلوب، المنافسة دي تكسره.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>الحل حسب العقد: نسختين متوافقتين في القراءة، أو single active consumer، أو إيقاف القديم قبل الجديد مع قبول توقف قصير.</p>
+            <h4>مثال</h4>
+            <p>النسخة الجديدة بتقرأ حقل amount الجديد، والقديمة بتعتبر غيابه خطأ دائم وبتعمل nack للـ DLQ. نصف الرسائل يموت وقت النشر.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>المستهلك الجديد هياخد الطابور لوحده أوتوماتيك. RabbitMQ مش بيعمل كده.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إزاي تقلل نافذة الخطر؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>خلّي القارئ متسامح مع الحقول الجديدة قبل ما الناشر يبعتها، وافصل إصدار المنطق عن لحظة تفعيل الناشر.</p>
+          </details>
+        </article>
+        <h3 id="level-5">المستوى 5: تمارين عملية</h3>
+
+        <article class="q" data-level="5">
+          <div class="q-head"><span class="badge l5">مستوى 5</span></div>
+          <h3>راجع الكود ده: auto_ack ثم charge ثم تجاهل الاستثناء.</h3>
+          <p><strong>المقابل بيختبر:</strong> مراجعة تأكيد وضياع.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>التأكيد التلقائي يمسح الرسالة قبل charge. أي سقوط أو استثناء بعد التسليم بيضيّع الطلب من غير إعادة. كمان الاستثناء المبتلع بيخلّي الفشل صامت.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>الإصلاح: auto_ack=False، صنف الخطأ، اكتب أثر idempotent، وبعدين ack أو ارفض للـ DLQ. متعتبرش إن اللوج بديل عن الطابور الميت.</p>
+            <h4>مثال</h4>
+            <p>الدالة: basic_consume(..., auto_ack=True) وجواها charge من غير try مفيد. أول عملية تموت بعد الاستلام بتضيع الرسالة.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>أقول الكود كويس لأنه بسيط وسريع.</p>
+            <h4>متابعة محتملة</h4>
+            <p>لو charge نجحت ثم حصل استثناء في اللوج بعد كده؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>مع auto_ack الرسالة أصلًا مش موجودة للإعادة، فلو اللوج هو اللي فشل الأثر موجود once بالصدفة. مع التأكيد اليدوي لازم مكان الـ ack بعد الأثر مش بعد اللوج.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="5">
+          <div class="q-head"><span class="badge l5">مستوى 5</span></div>
+          <h3>اكتب شكل مستهلك يمنع فاتورة مكررة. إيه اللي لازم يتقال مع الكود؟</h3>
+          <p><strong>المقابل بيختبر:</strong> تصميم أثر مش حفظ واجهة.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>مفتاح order_id مع نوع الحدث، إدخال المفتاح وكتابة الفاتورة في معاملة واحدة، ack في الحالتين applied و duplicate، ورفض دائم للرسالة المكسورة.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>message_id بس لو الناشر بيثبّته. delivery tag مرفوض. إعادة التسليم بعد الكوميت لازم تبقى مسار آمن.</p>
+            <h4>مثال</h4>
+            <p>ON CONFLICT DO NOTHING ثم فحص rowcount. صفر يعني اتعمل قبل كده. ثم basic_ack.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>قفل في الذاكرة على order_id. القفل بيضيع مع العملية والرسالة بترجع.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إزاي تختبره؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>اختبار أول بيكتب فاتورة، وتاني بنفس المفتاح ما يكتبش صف جديد وبرضه يتأكد. واختبار سقوط متخيل بين الكوميت والـ ack عن طريق استدعاء الدالة مرتين.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="5">
+          <div class="q-head"><span class="badge l5">مستوى 5</span></div>
+          <h3>حدث order.created مش ظاهر في الفوترة. حط خطوات تحقيق بالترتيب.</h3>
+          <p><strong>المقابل بيختبر:</strong> منهج تصحيح مش تخمين.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>أتأكد إن الناشر استنى confirm وما خدش UnroutableError. ثم أشوف bindings الطابور الصحيح. ثم أقارن معدل الدخول والـ ack والـ DLQ. ثم أدوّر على منافس على نفس الطابور.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>correlation id يربط لوج الناشر بلوح المستهلك. من غيره هتبقى بتمشي على الزمن بس.</p>
+            <h4>مثال</h4>
+            <p>الاسم order.created.at والمفتاح المنشور order.created. المبدّل قبل الرسالة في طابور تاني أو رماها.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>أعيد تشغيل RabbitMQ أول خطوة. ده بيغيّر الحالة قبل ما أفهمها.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إيه الدليل اللي يخلّصك إن الرسالة اتستهلكت فعلًا؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>ack اتحسب على الطابور الصح، ولوج المستهلك فيه نفس message_id أو مفتاح الطلب، وصف الفاتورة موجود. واحد من غير الباقي مش كفاية.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="5">
+          <div class="q-head"><span class="badge l5">مستوى 5</span></div>
+          <h3>راجع حلقة: عند أي خطأ basic_nack(requeue=True).</h3>
+          <p><strong>المقابل بيختبر:</strong> تمييز إعادة فورية عن مسار تأخير.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>الخطأ المؤقت هيدور الرسالة فورًا. الخطأ الدائم مش هيخرج للـ DLQ. على quorum هتوصل لحد 20 ثم تتمسح أو تتحول، وبعد ما تكون ضغطت الطابور.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>الإصلاح: دائم يروح requeue=False، مؤقت يتأجل بعداد، والقناة متبقاش نايمة جوه المعالجة.</p>
+            <h4>مثال</h4>
+            <p>except Exception: nack requeue True. رسالة بحرف ناقص هتعيش في الحلقة لحد حد التسليم.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>كده عندنا retry. الاسم صح والسلوك لأ.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إيه أثر prefetch العالي مع الحلقة دي؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>المستهلك يقدر يمسك دفعة ويرجعها كلها، فيضاعف الضغط. ومع فشل جماعي، quorum ممكن يحسب إعادة التسليم على الدفعة المعلقة.</p>
+          </details>
+        </article>
+
+        <article class="q" data-level="5">
+          <div class="q-head"><span class="badge l5">مستوى 5</span></div>
+          <h3>صمم طوبولوجيا لفوترة ومخزون وإيميل على حدث الطلب. إيه اللي مش هتعمله؟</h3>
+          <p><strong>المقابل بيختبر:</strong> تصميم نسخ وتوسيع مع بعض.</p>
+          <details>
+            <summary>الإجابة النموذجية</summary>
+            <h4>إجابة مختصرة</h4>
+            <p>مبدّل topic اسمه orders. ثلاث طوابير quorum: billing و inventory و email، كلها مربوطة بـ order.created أو بنمط أضيق. كل طابور له DLX. الفوترة والمخزون idempotent. الإيميل ممكن يقبل ضمان أضعف لو المنتج موافق، بس ده قرار مش افتراض.</p>
+            <h4>الشرح والتفكير</h4>
+            <p>مش هحط الثلاث خدمات على طابور واحد. مش هخلّي الناشر يستنى الثلاث ردود. مش هحط الملف أو الـ HTML بتاع الإيميل جوه الرسالة.</p>
+            <h4>مثال</h4>
+            <p>email.orders بعدد مستهلكين اتنين للتوسع، من غير ما أشارك طابوره مع الفوترة.</p>
+            <h4>إجابة ضعيفة</h4>
+            <p>fanout واحد وطابور واحد وثلاث callbacks جوه عملية واحدة. ده رجوع لخدمة مترابطة.</p>
+            <h4>متابعة محتملة</h4>
+            <p>إزاي تطور المخطط لما الإيميل يحتاج حقل جديد؟</p>
+            <h4>اللي الإجابة الكبيرة بتضيفه</h4>
+            <p>أضيف الحقل اختياري وأنشر القارئ الجديد الأول. متغيّرش معنى order.created. لو المعنى اتغير، اسم حدث جديد أحسن من إعادة استخدام القديم.</p>
+          </details>
+        </article>
+
+      </section>
+
+      <section id="checklist">
+        <h2>قائمة المذاكرة</h2>
+        <p>العلامات بتتخزن في المتصفح الحالي عبر <span class="en">localStorage</span> تحت المفتاح <span class="en">eda-checklist</span>. مش حساب سحابي، ومسح بيانات الموقع بيمسحها. من غير JavaScript المربعات تفضل ظاهرة بس مش هتتحفظ.</p>
+        <ul class="checklist">
+          <li><label><input type="checkbox" data-check="sync"> أقدر أفرّق المتزامن عن غير المتزامن وعن async/await.</label></li>
+          <li><label><input type="checkbox" data-check="eda"> أقدر أقول امتى النظام event-driven وامتى مجرد طابور أوامر.</label></li>
+          <li><label><input type="checkbox" data-check="model"> أرسم connection و channel و exchange و binding و queue.</label></li>
+          <li><label><input type="checkbox" data-check="topic"> أطابق نجمة وهاش على مفتاح topic من غير تردد.</label></li>
+          <li><label><input type="checkbox" data-check="copy"> أعرف إن كل خدمة ليها طابور، والمنافسة جوه الطابور.</label></li>
+          <li><label><input type="checkbox" data-check="ack"> أفرّق publisher confirm عن consumer ack.</label></li>
+          <li><label><input type="checkbox" data-check="retry"> أرفض الحلقة الساخنة وأوصف طابور TTL.</label></li>
+          <li><label><input type="checkbox" data-check="idem"> أربط مفتاح العمل بمعاملة ثم ack.</label></li>
+          <li><label><input type="checkbox" data-check="outbox"> أشرح فجوة الكوميت والنشر ونمط outbox.</label></li>
+          <li><label><input type="checkbox" data-check="qq"> أذكر إن مراية الكلاسيك اتشالت في RabbitMQ 4، وحد التسليم الافتراضي 20.</label></li>
+          <li><label><input type="checkbox" data-check="debug"> أحقق في ضياع وتكرار وتراكم بترتيب فرضيات.</label></li>
+          <li><label><input type="checkbox" data-check="speak"> أجاوب 10 أسئلة مقابلة بصوت عالي من غير ما أقرأ النص.</label></li>
+        </ul>
+      </section>
+
+      <section id="sources">
+        <h2>حدود الدليل والمصادر</h2>
+        <p>الدليل مرجع دراسة مش وثيقة تشغيل رسمية. أمثلة <span class="en">pika</span> متوافقة مع واجهة <span class="en">BlockingConnection</span> الحديثة: <span class="en">confirm_delivery</span>، و<span class="en">DeliveryMode.Persistent</span>، و<span class="en">UnroutableError</span> مع <span class="en">mandatory</span>. سلوك <span class="en">RabbitMQ 4.0</span> و<span class="en">4.3</span> المذكور فوق متراجع مع وثائق المشروع، ومش نتيجة قياس على عنقود خاص.</p>
+        <ul>
+          <li><span class="en">https://www.rabbitmq.com/docs/quorum-queues</span> لنوع الطابور، حد التسليم، ونقل الـ dead letter.</li>
+          <li><span class="en">https://www.rabbitmq.com/docs/consumers</span> لمهلة تأكيد التسليم. من 4.3 المهلة لطوابير quorum، والافتراضي 30 دقيقة.</li>
+          <li><span class="en">https://www.rabbitmq.com/tutorials/tutorial-two-python</span> لشكل الدوام والـ prefetch في الدرس الرسمي.</li>
+          <li><span class="en">https://pika.readthedocs.io/en/stable/examples/blocking_delivery_confirmations.html</span> لتأكيد النشر على الواجهة الحاجبة.</li>
+        </ul>
+        <p>الصفحة مش بتحمّل المكتبات دي ولا أي خط أو صورة من الشبكة. فتح الملف من القرص كفاية. تقدم القراءة في الشريط مؤشر تمرير فقط. علامات قائمة المذاكرة ووضع الألوان هما اللي بيتخزنوا محليًا.</p>
+        <footer class="site">دليل دراسة شخصي عن المراسلة والتصميم الحدثي. مفيش جهة مانحة ولا شهادة مرتبطة بالصفحة دي.</footer>
+      </section>
+
+    </main>
+  </div>
+  <button type="button" id="topbtn" aria-label="العودة إلى الأعلى">↑</button>
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var themeBtn = document.getElementById("theme-toggle");
+      var storedTheme = localStorage.getItem("eda-theme");
+      function applyTheme(theme) {
+        if (theme === "dark") {
+          root.setAttribute("data-theme", "dark");
+          themeBtn.setAttribute("aria-pressed", "true");
+          themeBtn.textContent = "الوضع الفاتح";
+        } else {
+          root.removeAttribute("data-theme");
+          themeBtn.setAttribute("aria-pressed", "false");
+          themeBtn.textContent = "الوضع الداكن";
+        }
+      }
+      applyTheme(storedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+      themeBtn.addEventListener("click", function () {
+        var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        localStorage.setItem("eda-theme", next);
+        applyTheme(next);
+      });
+      var bar = document.getElementById("readbar");
+      var label = document.getElementById("read-label");
+      function onScroll() {
+        var doc = document.documentElement;
+        var max = doc.scrollHeight - doc.clientHeight;
+        var pct = max > 0 ? Math.round((doc.scrollTop / max) * 100) : 0;
+        bar.style.width = pct + "%";
+        label.textContent = "تقدم القراءة " + pct + "%";
+      }
+      document.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+      document.getElementById("topbtn").addEventListener("click", function () {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+
+      document.querySelectorAll("form.quiz").forEach(function (form) {
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+          var chosen = form.querySelector("input:checked");
+          var box = form.querySelector(".feedback");
+          box.classList.add("show");
+          if (!chosen) {
+            box.className = "feedback show bad";
+            box.textContent = "اختَر إجابة الأول.";
+            return;
+          }
+          var why = chosen.getAttribute("data-why") || "";
+          if (chosen.value === form.getAttribute("data-correct")) {
+            box.className = "feedback show ok";
+            box.textContent = "الاختيار صحيح. " + why;
+          } else {
+            box.className = "feedback show bad";
+            box.textContent = "الاختيار مش أدق واحد. " + why;
+          }
+        });
+      });
+
+      document.querySelectorAll(".copy").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var code = button.closest(".codebox").querySelector("code");
+          var text = code.innerText;
+          function done() {
+            button.textContent = "اتنسخ";
+            setTimeout(function () { button.textContent = "نسخ"; }, 1200);
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done).catch(function () {
+              button.textContent = "انسخ يدويًا";
+            });
+          } else {
+            button.textContent = "انسخ يدويًا";
+          }
+        });
+      });
+
+      var search = document.getElementById("qsearch");
+      var count = document.getElementById("qcount");
+      var filter = "all";
+      function applyQuestions() {
+        var query = (search.value || "").trim().toLowerCase();
+        var visible = 0;
+        document.querySelectorAll("article.q").forEach(function (card) {
+          var levelOk = filter === "all" || card.getAttribute("data-level") === filter;
+          var text = card.querySelector("h3").textContent.toLowerCase();
+          var show = levelOk && (!query || text.indexOf(query) !== -1);
+          card.classList.toggle("hidden", !show);
+          if (show) visible += 1;
+        });
+        count.textContent = "ظاهر " + visible + " من 37 سؤال.";
+      }
+      if (search) {
+        search.addEventListener("input", applyQuestions);
+        document.querySelectorAll(".filters button").forEach(function (button) {
+          button.addEventListener("click", function () {
+            filter = button.getAttribute("data-filter");
+            document.querySelectorAll(".filters button").forEach(function (other) {
+              other.setAttribute("aria-pressed", other === button ? "true" : "false");
+            });
+            applyQuestions();
+          });
+        });
+        applyQuestions();
+      }
+
+      var checks = document.querySelectorAll("[data-check]");
+      var saved = {};
+      try { saved = JSON.parse(localStorage.getItem("eda-checklist") || "{}"); } catch (err) { saved = {}; }
+      checks.forEach(function (box) {
+        box.checked = !!saved[box.getAttribute("data-check")];
+        box.addEventListener("change", function () {
+          saved[box.getAttribute("data-check")] = box.checked;
+          localStorage.setItem("eda-checklist", JSON.stringify(saved));
+        });
+      });
+
+      var tocLinks = Array.prototype.slice.call(document.querySelectorAll("nav.toc a"));
+      var sections = tocLinks.map(function (link) {
+        return document.querySelector(link.getAttribute("href"));
+      }).filter(Boolean);
+      function markToc() {
+        var pos = document.documentElement.scrollTop + 90;
+        var current = sections[0];
+        sections.forEach(function (section) {
+          if (section.offsetTop <= pos) current = section;
+        });
+        tocLinks.forEach(function (link) {
+          link.classList.toggle("active", current && link.getAttribute("href") === "#" + current.id);
+        });
+      }
+      document.addEventListener("scroll", markToc, { passive: true });
+      markToc();
+    })();
+  </script>
+</body>
+</html>
