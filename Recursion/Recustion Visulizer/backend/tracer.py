@@ -2,8 +2,10 @@
 
 The starting call names the function to follow, for example ``fib(5)`` or
 ``subset_sum(0, 5)``. Functions defined inside that function are followed too,
-so a nested recursive helper shows up in the tree. Other calls, including the
-standard library and helpers defined beside it, are ignored. The user source
+so a nested recursive helper shows up in the tree. Methods of the same class
+are followed as well, so a recursive helper called on ``self`` shows up.
+Other calls, including the standard library and helpers defined beside it,
+are ignored. The user source
 runs in a short-lived subprocess with a timeout and a cap on how many calls
 are recorded. When debug is requested, each executed line of a followed
 function is recorded too, with a snapshot of its local variables.
@@ -313,6 +315,8 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
         return
 
     func = namespace.get(target)
+    if isinstance(func, types.MethodType):
+        func = func.__func__
     code = getattr(func, "__code__", None)
     if not callable(func) or code is None or getattr(code, "co_filename", None) != "<user>":
         if func is None:
@@ -492,14 +496,25 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
 
 
 def _follows(frame_code: types.CodeType, target_code: types.CodeType) -> bool:
-    """True for the called function and functions defined inside it."""
+    """True for the called function, functions inside it, and methods of its class."""
     if frame_code is target_code:
         return True
     if getattr(frame_code, "co_filename", None) != "<user>":
         return False
-    qualname = getattr(frame_code, "co_qualname", "")
-    prefix = getattr(target_code, "co_qualname", target_code.co_name) + ".<locals>."
-    return qualname.startswith(prefix)
+    qualname = getattr(frame_code, "co_qualname", "") or frame_code.co_name
+    target_qual = getattr(target_code, "co_qualname", "") or target_code.co_name
+    if qualname.startswith(target_qual + ".<locals>."):
+        return True
+    target_class = _class_name(target_qual)
+    return target_class is not None and target_class == _class_name(qualname)
+
+
+def _class_name(qualname: str) -> str | None:
+    """Return the class that owns a method, ignoring functions nested inside it."""
+    owner = qualname.split(".<locals>.", 1)[0]
+    if "." not in owner:
+        return None
+    return owner.split(".", 1)[0]
 
 
 _CALL_OPS = {"CALL", "CALL_FUNCTION", "CALL_FUNCTION_KW", "CALL_FUNCTION_EX", "CALL_KW"}

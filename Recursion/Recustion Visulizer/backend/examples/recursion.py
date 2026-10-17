@@ -305,4 +305,222 @@ EXAMPLES = [
             return subset_sum(i + 1, remaining)
         '''),
     ),
+    _ex(
+        "reverse-linked-list",
+        "Reverse Linked List",
+        "reverseList(head)",
+        _source(
+            LIST_NODE,
+            '''
+        def reverseList(head):
+            """Reverse the list by reversing the tail, then pointing it back."""
+            if head is None or head.next is None:
+                return head
+            new_head = reverseList(head.next)
+            head.next.next = head
+            head.next = None
+            return new_head
+
+
+        head = ListNode(1, ListNode(2, ListNode(3, ListNode(4))))
+        ''',
+        ),
+    ),
+    _ex(
+        "remove-linked-list-elements",
+        "Remove Linked List Elements",
+        "removeElements(head, 6)",
+        _source(
+            LIST_NODE,
+            '''
+        def removeElements(head, val):
+            """Drop every node whose value is val, then return the rest."""
+            if head is None:
+                return None
+            head.next = removeElements(head.next, val)
+            if head.val == val:
+                return head.next
+            return head
+
+
+        head = ListNode(1, ListNode(2, ListNode(6, ListNode(3, ListNode(6)))))
+        ''',
+        ),
+    ),
+    _ex(
+        "power-of-two",
+        "Power of Two",
+        "isPowerOfTwo(16)",
+        _source('''
+        def isPowerOfTwo(n):
+            """True when n can be halved down to 1."""
+            if n == 1:
+                return True
+            if n <= 0 or n % 2 != 0:
+                return False
+            return isPowerOfTwo(n // 2)
+        '''),
+    ),
+    _ex(
+        "power-of-three",
+        "Power of Three",
+        "isPowerOfThree(27)",
+        _source('''
+        def isPowerOfThree(n):
+            """True when n can be divided by 3 down to 1."""
+            if n == 1:
+                return True
+            if n <= 0 or n % 3 != 0:
+                return False
+            return isPowerOfThree(n // 3)
+        '''),
+    ),
+    _ex(
+        "power-of-four",
+        "Power of Four",
+        "isPowerOfFour(64)",
+        _source('''
+        def isPowerOfFour(n):
+            """True when n can be divided by 4 down to 1."""
+            if n == 1:
+                return True
+            if n <= 0 or n % 4 != 0:
+                return False
+            return isPowerOfFour(n // 4)
+        '''),
+    ),
+    _ex(
+        "palindrome-linked-list",
+        "Palindrome Linked List",
+        "isPalindrome(head)",
+        _source(
+            LIST_NODE,
+            '''
+        def isPalindrome(head):
+            """Walk to the end, then compare nodes on the way back."""
+            front = head
+
+            def check(node):
+                nonlocal front
+                if node is None:
+                    return True
+                if not check(node.next):
+                    return False
+                if front.val != node.val:
+                    return False
+                front = front.next
+                return True
+
+            return check(head)
+
+
+        head = ListNode(1, ListNode(2, ListNode(2, ListNode(1))))
+        ''',
+        ),
+    ),
+    _ex(
+        "palindrome-linked-list-v2",
+        "Palindrome Linked List v2",
+        "isPalindrome(head)",
+        _source(
+            "from typing import Optional",
+            LIST_NODE,
+            '''
+        class Solution:
+            def __repr__(self):
+                return "Solution"
+
+            def isPalindrome(self, head: Optional[ListNode]) -> bool:
+                # 1. Set a pointer at the very beginning that we can manipulate globally
+                self.curr = head
+                return self.solve(head)
+
+            def solve(self, head: Optional[ListNode]) -> bool:
+                # Base case: hit the end of the list
+                if head is None:
+                    return True
+
+                # 2. Dive deep to the end first.
+                # 'ans' holds whether everything deeper down matched.
+                ans = self.solve(head.next) and head.val == self.curr.val
+
+                # 3. As we come back up, move our front pointer forward
+                self.curr = self.curr.next
+
+                return ans
+
+
+        solution = Solution()
+        isPalindrome = solution.isPalindrome
+        head = ListNode(1, ListNode(2, ListNode(2, ListNode(1))))
+        ''',
+        ),
+    ),
+    _ex(
+        "kth-character",
+        "Find the K-th Character in String Game I",
+        "kthCharacter(10)",
+        _source('''
+        def kthCharacter(k):
+            """Each step appends the word with every letter shifted by one."""
+            if k == 1:
+                return "a"
+            half = 1
+            while half * 2 < k:
+                half *= 2
+            previous = kthCharacter(k - half)
+            return chr(ord(previous) + 1)
+        '''),
+    ),
+    _ex(
+        "elimination-game",
+        "Elimination Game",
+        "lastRemaining(9)",
+        _source('''
+        def lastRemaining(n):
+            """Remove every other number, alternating direction, until one remains."""
+            def remaining(n, left):
+                if n == 1:
+                    return 1
+                if left or n % 2 == 1:
+                    return 2 * remaining(n // 2, not left)
+                return 2 * remaining(n // 2, not left) - 1
+
+            return remaining(n, True)
+        '''),
+    ),
+    _ex(
+        "find-kth-bit",
+        "Find Kth Bit in Nth Binary String",
+        "findKthBit(4, 11)",
+        _source('''
+        def findKthBit(n, k):
+            """S(n) is S(n-1), then 1, then S(n-1) reversed and flipped."""
+            if n == 1:
+                return "0"
+            length = (1 << n) - 1
+            mid = length // 2 + 1
+            if k == mid:
+                return "1"
+            if k < mid:
+                return findKthBit(n - 1, k)
+            mirrored = findKthBit(n - 1, length - k + 1)
+            return "0" if mirrored == "1" else "1"
+        '''),
+    ),
+    _ex(
+        "circular-game",
+        "Find the Winner of the Circular Game",
+        "findTheWinner(5, 2)",
+        _source('''
+        def findTheWinner(n, k):
+            """Every kth friend leaves. Positions are counted from 0, then shifted."""
+            def winner(n):
+                if n == 1:
+                    return 0
+                return (winner(n - 1) + k) % n
+
+            return winner(n) + 1
+        '''),
+    ),
 ]
