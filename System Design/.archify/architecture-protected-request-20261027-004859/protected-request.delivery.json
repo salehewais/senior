@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "b63895fd-c8ae-4222-9abc-13b37ea5af9a",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/home/asm/senior/System Design/.archify/architecture-protected-request-20261027-004859/candidate.json",
+  "output": "/home/asm/senior/System Design/.archify/architecture-protected-request-20261027-004859/protected-request.html",
+  "specification": {
+    "sha256": "2fd8e77d87af9b1523503004cba8860cdd8f2c0535d9c0169016c93ae5640099",
+    "bytes": 2679
+  },
+  "artifact": {
+    "sha256": "3aebbbe2e7c398d1e3289ebf311449c4bbc027e1fabf4888bd4b55522ce4969d",
+    "bytes": 848845
+  }
+}

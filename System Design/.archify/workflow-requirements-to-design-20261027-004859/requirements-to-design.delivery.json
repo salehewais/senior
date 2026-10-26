@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "f65a7b01-54f1-47ab-9cb7-83b349c8096e",
+  "status": "current",
+  "command": "deliver",
+  "type": "workflow",
+  "input": "/home/asm/senior/System Design/.archify/workflow-requirements-to-design-20261027-004859/candidate.json",
+  "output": "/home/asm/senior/System Design/.archify/workflow-requirements-to-design-20261027-004859/requirements-to-design.html",
+  "specification": {
+    "sha256": "970103f834f6c18b0185cc94877c73f01851e17397ebf7c77d445158e6291fff",
+    "bytes": 3260
+  },
+  "artifact": {
+    "sha256": "c883a1229a4027497749e616acc46b04cdc3ab86da549ab6a370313c81cc0797",
+    "bytes": 849912
+  }
+}

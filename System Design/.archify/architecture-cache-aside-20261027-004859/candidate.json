@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Cache-aside مع Primary ونسخ القراءة",
+    "locale": "ar",
+    "quality_profile": "showcase",
+    "output": ".archify/architecture-cache-aside-20261027-004859/cache-aside.html"
+  },
+  "components": [
+    { "id": "client", "type": "external", "label": "العميل", "sublabel": "تطبيق أو متصفح", "pos": [40, 128], "size": [140, 68] },
+    { "id": "api", "type": "backend", "label": "خدمة التطبيق", "sublabel": "cache-aside", "pos": [280, 116], "size": [176, 92] },
+    { "id": "primary", "type": "database", "label": "Primary", "sublabel": "مصدر الحقيقة", "pos": [560, 116], "size": [176, 92] },
+    { "id": "cache", "type": "database", "label": "Redis", "sublabel": "مفتاح وقيمة", "pos": [288, 320], "size": [160, 68] },
+    { "id": "replica", "type": "database", "label": "Read Replica", "sublabel": "نسخ للقراءة", "pos": [568, 320], "size": [160, 68] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "داخل الخدمة", "wraps": ["api", "cache", "primary", "replica"] }
+  ],
+  "connections": [
+    { "id": "client-api", "from": "client", "to": "api", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "api-primary", "from": "api", "to": "primary", "label": "SQL miss", "variant": "emphasis" },
+    { "id": "api-cache", "from": "api", "to": "cache", "label": "GET then SET" },
+    { "id": "primary-replica", "from": "primary", "to": "replica", "label": "replicate", "variant": "dashed" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "القراءة",
+      "items": ["التطبيق يسأل الكاش أولًا", "الغياب يذهب إلى الـ Primary ثم يُملأ الكاش"]
+    },
+    {
+      "dot": "emerald",
+      "title": "النسخ",
+      "items": ["الـ Primary مصدر الكتابة", "النسخة تتبع سجل التكرار وقد تتأخر"]
+    },
+    {
+      "dot": "amber",
+      "title": "الحد",
+      "items": ["الكاش مش مصدر الحقيقة", "الإبطال لازم يتقال مع سياسة الـ TTL"]
+    }
+  ]
+}

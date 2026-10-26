@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "طلب محمي مع نسخ ومراقبة",
+    "locale": "ar",
+    "quality_profile": "showcase",
+    "output": ".archify/architecture-protected-request-20261027-004859/protected-request.html"
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "المستخدم", "sublabel": "يحمل JWT", "pos": [40, 198], "size": [132, 64] },
+    { "id": "idp", "type": "security", "label": "موفر الهوية", "sublabel": "OAuth / OIDC", "pos": [248, 28], "size": [168, 64] },
+    { "id": "gw", "type": "security", "label": "API Gateway", "sublabel": "يتحقق من الدخول", "pos": [248, 186], "size": [176, 88] },
+    { "id": "api", "type": "backend", "label": "الخدمة", "sublabel": "منطق العمل", "pos": [520, 186], "size": [168, 88] },
+    { "id": "primary", "type": "database", "label": "Primary", "sublabel": "كتابة وقراءة", "pos": [800, 194], "size": [168, 72] },
+    { "id": "replica", "type": "database", "label": "Replica", "sublabel": "تبديل عند العطل", "pos": [804, 360], "size": [160, 68] },
+    { "id": "obs", "type": "messagebus", "label": "المراقبة", "sublabel": "logs metrics traces", "pos": [524, 360], "size": [160, 68] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "المنطقة الموثوقة", "wraps": ["gw", "api", "primary", "replica", "obs"] }
+  ],
+  "connections": [
+    { "id": "user-gw", "from": "user", "to": "gw", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "idp-gw", "from": "idp", "to": "gw", "label": "verify JWT", "variant": "security" },
+    { "id": "gw-api", "from": "gw", "to": "api", "label": "allow", "variant": "emphasis" },
+    { "id": "api-primary", "from": "api", "to": "primary", "label": "SQL" },
+    { "id": "primary-replica", "from": "primary", "to": "replica", "label": "replicate", "variant": "dashed" },
+    { "id": "api-obs", "from": "api", "to": "obs", "label": "telemetry", "variant": "dashed" }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "الدخول",
+      "items": ["الهوية تُفحص قبل منطق العمل", "JWT يثبت من أصدره لا من يرسله فقط"]
+    },
+    {
+      "dot": "emerald",
+      "title": "الاستمرار",
+      "items": ["النسخة تتبع الـ Primary", "العطل ينقل القراءة أو القيادة حسب الخطة"]
+    },
+    {
+      "dot": "cyan",
+      "title": "الملاحظة",
+      "items": ["السجلات والمقاييس والآثار تخرج من المسار", "التنبيه يُربط بهدف لا بكل عداد"]
+    }
+  ]
+}

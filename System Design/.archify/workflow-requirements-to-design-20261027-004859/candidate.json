@@ -1,0 +1,58 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "من المتطلبات للتقدير للتصميم",
+    "locale": "ar",
+    "quality_profile": "showcase",
+    "output": ".archify/workflow-requirements-to-design-20261027-004859/requirements-to-design.html"
+  },
+  "lanes": [
+    { "id": "talk", "label": "الحوار" },
+    { "id": "scope", "label": "النطاق" },
+    { "id": "numbers", "label": "التقدير" },
+    { "id": "shape", "label": "شكل النظام" }
+  ],
+  "phases": [
+    { "id": "clarify", "label": "توضيح", "fromCol": 0, "toCol": 1 },
+    { "id": "size", "label": "تقدير", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "propose", "label": "اقتراح", "fromCol": 4, "toCol": 5 }
+  ],
+  "mainPath": ["ask", "funcs", "nfrs", "traffic", "store", "boxes"],
+  "nodes": [
+    { "id": "ask", "lane": "talk", "col": 0, "type": "external", "label": "سؤال التصميم", "sublabel": "النظام المطلوب" },
+    { "id": "assume", "lane": "talk", "col": 3, "type": "backend", "label": "اكتب الافتراض", "sublabel": "تقدير تدريب" },
+    { "id": "summary", "lane": "talk", "col": 5, "type": "backend", "label": "الخلاصة", "sublabel": "أول اختناق" },
+    { "id": "funcs", "lane": "scope", "col": 1, "type": "backend", "label": "وظائف", "sublabel": "ماذا يفعل النظام" },
+    { "id": "nfrs", "lane": "scope", "col": 2, "type": "security", "label": "قيود الجودة", "sublabel": "زمن وتوفر" },
+    { "id": "traffic", "lane": "numbers", "col": 3, "type": "database", "label": "حجم الحمل", "sublabel": "QPS تقديري" },
+    { "id": "store", "lane": "numbers", "col": 4, "type": "database", "label": "حجم الداتا", "sublabel": "قراءة وكتابة" },
+    { "id": "boxes", "lane": "shape", "col": 5, "type": "cloud", "label": "المكوّنات", "sublabel": "مسار طلب واحد" }
+  ],
+  "edges": [
+    { "id": "ask-funcs", "from": "ask", "to": "funcs", "label": "ما المطلوب؟", "variant": "emphasis" },
+    { "id": "funcs-nfrs", "from": "funcs", "to": "nfrs" },
+    { "id": "nfrs-traffic", "from": "nfrs", "to": "traffic", "label": "كم الحجم؟", "variant": "emphasis" },
+    { "id": "traffic-store", "from": "traffic", "to": "store" },
+    { "id": "store-boxes", "from": "store", "to": "boxes", "label": "ارسم", "variant": "emphasis" },
+    { "id": "traffic-assume", "from": "traffic", "to": "assume", "label": "رقم تقريبي", "variant": "dashed", "role": "branch" },
+    { "id": "boxes-summary", "from": "boxes", "to": "summary", "label": "سمّ الاختناق" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "الترتيب",
+      "items": ["المتطلبات قبل الصناديق", "قيد الجودة يتترجم لرقم"]
+    },
+    {
+      "dot": "amber",
+      "title": "الأرقام",
+      "items": ["قواعد تدريب مش قياس إنتاج", "اكتب الافتراض بصوت عالٍ"]
+    },
+    {
+      "dot": "rose",
+      "title": "آخر خطوة",
+      "items": ["مسار طلب واحد يكفي للبداية", "سمِّ المكوّن الذي يختنق أولًا"]
+    }
+  ]
+}

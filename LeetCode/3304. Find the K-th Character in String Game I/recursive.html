@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recursive jump · K-th Character</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f3f1eb;
+      --surface: #fffcf7;
+      --ink: #1c1b18;
+      --muted: #6d6962;
+      --line: #e3dfd6;
+      --line-strong: #cfcabe;
+      --green: #1b7a4a;
+      --green-soft: #e6f4ec;
+      --green-ink: #0f4d2e;
+      --arrow: #1e3a5f;
+      --arrow-soft: #e7eef6;
+      --half: #d4e3f6;
+      --row: #f7f6f2;
+      --radius: 10px;
+      --cell: 44px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141413;
+        --surface: #1c1c1a;
+        --ink: #f4f1ea;
+        --muted: #aaa69d;
+        --line: #32302c;
+        --line-strong: #45423c;
+        --green: #3dbe7a;
+        --green-soft: #163024;
+        --green-ink: #b6ebcd;
+        --arrow: #9ec0ea;
+        --arrow-soft: #1c2836;
+        --half: #24384f;
+        --row: #242422;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", "Liberation Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 20px 56px;
+    }
+
+    .kicker {
+      margin: 0 0 6px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--green);
+      font-weight: 650;
+    }
+
+    nav {
+      display: flex;
+      gap: 14px;
+      margin: 0 0 14px;
+      font-size: 13px;
+    }
+
+    nav a { color: var(--muted); }
+    nav a[aria-current="page"] {
+      color: var(--green);
+      font-weight: 650;
+      text-decoration: none;
+    }
+
+    header.page {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    .lede {
+      margin: 0;
+      max-width: 64ch;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 15px;
+    }
+
+    .answer { text-align: right; min-width: 140px; }
+
+    .answer span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .answer strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 64px;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      color: var(--green-ink);
+      line-height: 0.9;
+    }
+
+    .answer strong.pending {
+      color: var(--muted);
+      font-size: 48px;
+      font-weight: 500;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      margin-bottom: 14px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 12px 14px;
+      flex-wrap: wrap;
+    }
+
+    .group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .group-label {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    button, .k-input {
+      font: inherit;
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+    }
+
+    button {
+      padding: 7px 12px;
+      cursor: pointer;
+      min-width: 76px;
+    }
+
+    button:hover:not(:disabled) { border-color: var(--ink); }
+
+    button:focus-visible, .k-input:focus {
+      outline: 2px solid var(--green);
+      outline-offset: 2px;
+      border-color: var(--ink);
+    }
+
+    button:disabled { opacity: 0.38; cursor: default; }
+
+    button[aria-pressed="true"] {
+      background: var(--ink);
+      color: var(--bg);
+      border-color: var(--ink);
+    }
+
+    .k-input {
+      padding: 7px 10px;
+      width: 6.5ch;
+    }
+
+    .k-range { color: var(--muted); font-size: 12px; }
+
+    .step-label {
+      color: var(--muted);
+      font-size: 13px;
+      min-width: 108px;
+      text-align: center;
+    }
+
+    .hint {
+      margin: 0;
+      padding: 0 14px 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--line);
+    }
+
+    .stat { padding: 12px 14px 14px; border-right: 1px solid var(--line); }
+    .stat:last-child { border-right: 0; }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .stat strong {
+      font-size: 22px;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 12px 14px 0;
+    }
+
+    .section-head h2 { margin: 0; font-size: 15px; font-weight: 650; }
+    .section-head p { margin: 0; color: var(--muted); font-size: 12px; }
+
+    .ruler-scroll {
+      position: relative;
+      overflow-x: auto;
+      padding: 14px 14px 0;
+    }
+
+    .ruler-track { width: calc(var(--n) * var(--cell)); }
+
+    .cells { display: flex; }
+
+    .cell {
+      width: var(--cell);
+      height: 58px;
+      flex: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1px var(--line-strong);
+    }
+
+    .cell b {
+      font-size: 18px;
+      font-weight: 650;
+      line-height: 1;
+    }
+
+    .cell small {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .cell.right { background: var(--half); }
+    .cell.right-start { box-shadow: inset 2px 0 0 var(--arrow), inset 0 0 0 1px var(--line-strong); }
+
+    .cell.dim { opacity: 0.28; }
+
+    .cell.soft {
+      background: var(--green-soft);
+      color: var(--green-ink);
+    }
+
+    .cell.target { box-shadow: inset 0 0 0 2px var(--green); }
+    .cell.dest { box-shadow: inset 0 0 0 2px var(--arrow); }
+
+    .cell.final {
+      background: var(--green);
+      color: #fff;
+      opacity: 1;
+      box-shadow: none;
+    }
+
+    .cell.final small { color: rgba(255, 255, 255, 0.8); }
+
+    .hop { display: block; }
+
+    .splitbar {
+      display: flex;
+      height: 8px;
+      margin-top: 8px;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .splitbar i { display: block; flex: 1; }
+    .splitbar .orig { background: var(--line-strong); }
+    .splitbar .shift { background: var(--arrow); }
+
+    .range-note, .legend, .callout p, .empty, .card p {
+      line-height: 1.45;
+    }
+
+    .range-note {
+      margin: 8px 14px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px 18px;
+      padding: 10px 14px 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 6px;
+      vertical-align: -1px;
+      box-shadow: inset 0 0 0 1px var(--line-strong);
+    }
+
+    .legend i.swatch-orig { background: var(--surface); }
+    .legend i.swatch-shift { background: var(--half); }
+    .legend i.swatch-target { box-shadow: inset 0 0 0 2px var(--green); }
+    .legend i.swatch-answer { background: var(--green); box-shadow: none; }
+
+    .callout {
+      margin: 0 14px 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--arrow);
+      border-radius: 8px;
+      background: var(--arrow-soft);
+    }
+
+    .callout h2 { margin: 0 0 6px; font-size: 14px; font-weight: 650; }
+    .callout p { margin: 0; font-size: 14.5px; }
+
+    .stack { margin: 0; padding: 8px 14px 16px; list-style: none; }
+
+    .empty { margin: 0; padding: 8px 14px 16px; color: var(--muted); font-size: 14px; }
+
+    .card {
+      margin: 10px 0 0;
+      margin-left: calc(var(--depth) * 16px);
+      padding: 10px 12px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--row);
+      position: relative;
+    }
+
+    .card + .card::before {
+      content: "";
+      position: absolute;
+      top: -11px;
+      left: 18px;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 7px solid var(--arrow);
+    }
+
+    .card.active {
+      background: var(--arrow-soft);
+      border-color: var(--arrow);
+    }
+
+    .card.answer-card {
+      background: var(--green-soft);
+      border-color: var(--green);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .call-no {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .card code {
+      font-family: "Cascadia Code", "Liberation Mono", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 13.5px;
+    }
+
+    .badge {
+      margin-left: auto;
+      min-width: 1.6em;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 650;
+      color: var(--green-ink);
+    }
+
+    .card p { margin: 6px 0 0; font-size: 14px; }
+    .card .resolve { color: var(--green-ink); font-weight: 650; }
+
+    .formula { padding: 14px 16px 16px; }
+    .formula h2 { margin: 0 0 8px; font-size: 15px; }
+    .formula p { margin: 0 0 10px; color: var(--muted); font-size: 14px; line-height: 1.45; }
+
+    .code {
+      font-family: "Cascadia Code", "Liberation Mono", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 13px;
+      background: var(--row);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: block;
+      line-height: 1.55;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    @media (max-width: 720px) {
+      header.page { flex-direction: column; align-items: flex-start; }
+      .answer { text-align: left; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stat:nth-child(odd) { border-right: 1px solid var(--line); }
+      .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--line); }
+      .stat:nth-child(even) { border-right: 0; }
+      .step-label { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="kicker">LeetCode 3304</p>
+    <nav aria-label="Algorithms">
+      <a href="recursive.html" aria-current="page">Recursive jump</a>
+      <a href="simulation.html">String simulation</a>
+    </nav>
+    <header class="page">
+      <div>
+        <h1>Find the K-th Character</h1>
+        <p class="lede">If <em>k</em> is 1, the character is a. Otherwise jump to <em>k</em> minus the largest power of two below <em>k</em>, then shift that character forward by one.</p>
+      </div>
+      <div class="answer">
+        <span>Character</span>
+        <strong id="answer" class="pending">—</strong>
+      </div>
+    </header>
+
+    <section class="panel" aria-label="Controls">
+      <div class="controls">
+        <div class="group">
+          <label class="group-label" for="k-input">k</label>
+          <input class="k-input" id="k-input" type="text" inputmode="numeric" value="5" aria-label="Choose k" autocomplete="off" spellcheck="false">
+          <span class="k-range">1–64</span>
+        </div>
+        <div class="group">
+          <button type="button" id="step">Step</button>
+          <span class="step-label" id="step-label">Ready</span>
+          <button type="button" id="play" aria-pressed="false">Play</button>
+          <button type="button" id="reset">Reset</button>
+        </div>
+      </div>
+      <p class="hint">Right arrow steps. Space plays and pauses.</p>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="panel" aria-label="Position ruler">
+      <div class="section-head">
+        <h2>Word on the ruler</h2>
+        <p id="ruler-meta"></p>
+      </div>
+      <div class="ruler-scroll" id="ruler-scroll"></div>
+      <p class="range-note" id="range-note"></p>
+      <div class="legend">
+        <span><i class="swatch-orig"></i>Earlier word</span>
+        <span><i class="swatch-shift"></i>Shifted forward</span>
+        <span><i class="swatch-target"></i>Current position</span>
+        <span><i class="swatch-answer"></i>Answer</span>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Call stack">
+      <div class="section-head">
+        <h2>Calls</h2>
+        <p>Built downward, then each frame shifts on the way back up</p>
+      </div>
+      <div id="stack"></div>
+      <div class="callout" id="callout" aria-live="polite"></div>
+    </section>
+
+    <section class="panel formula">
+      <h2>The jump</h2>
+      <p><code>half</code> is the largest power of two strictly less than <em>k</em>. Position <em>k</em> lands in the right half, so it is the character at <em>k − half</em> shifted forward by one.</p>
+      <code class="code">def kthCharacter(self, k: int) -> str:
+    if k == 1:
+        return "a"
+    half = 1
+    while half * 2 &lt; k:
+        half *= 2
+    return chr(ord(self.kthCharacter(k - half)) + 1)</code>
+    </section>
+  </div>
+
+  <script>
+    const MIN_K = 1;
+    const MAX_K = 64;
+    const CELL = 44;
+    const PLAY_MS = 900;
+
+    function nextPow2(k) {
+      let p = 1;
+      while (p < k) p *= 2;
+      return p;
+    }
+
+    function halfBelow(k) {
+      let half = 1;
+      while (half * 2 < k) half *= 2;
+      return half;
+    }
+
+    function nextChar(ch) {
+      return String.fromCharCode(ch.charCodeAt(0) + 1);
+    }
+
+    function buildWord(length) {
+      let word = "a";
+      while (word.length < length) {
+        let shifted = "";
+        for (const ch of word) shifted += nextChar(ch);
+        word += shifted;
+      }
+      return word.slice(0, length);
+    }
+
+    function buildCalls(k) {
+      const calls = [];
+      let cur = k;
+      while (cur > 1) {
+        const half = halfBelow(cur);
+        calls.push({ k: cur, half, next: cur - half, block: half * 2 });
+        cur -= half;
+      }
+      calls.push({ k: 1, half: null, next: null, block: 1 });
+      return calls;
+    }
+
+    function buildSteps(calls) {
+      const steps = [];
+      for (let i = 0; i < calls.length; i++) steps.push({ kind: "down", i });
+      for (let i = calls.length - 2; i >= 0; i--) steps.push({ kind: "up", i });
+      return steps;
+    }
+
+    function trace(k, cursor) {
+      const calls = buildCalls(k);
+      const steps = buildSteps(calls);
+      const results = new Array(calls.length).fill(null);
+      const entered = [];
+      let active = null;
+      let latest = null;
+      const limit = Math.min(cursor, steps.length);
+      for (let s = 0; s < limit; s++) {
+        const step = steps[s];
+        if (step.kind === "down") {
+          entered.push(step.i);
+          active = { kind: "down", i: step.i };
+          if (calls[step.i].k === 1) {
+            results[step.i] = "a";
+            latest = "a";
+          }
+        } else {
+          const from = results[step.i + 1];
+          const to = nextChar(from);
+          results[step.i] = to;
+          latest = to;
+          active = { kind: "up", i: step.i, from, to };
+        }
+      }
+      return {
+        calls,
+        steps,
+        results,
+        entered,
+        active,
+        latest,
+        done: limit === steps.length,
+        word: buildWord(nextPow2(k))
+      };
+    }
+
+    const state = { k: 5, cursor: 0, playing: false };
+    let timer = null;
+
+    const kInput = document.getElementById("k-input");
+    const stepBtn = document.getElementById("step");
+    const playBtn = document.getElementById("play");
+    const resetBtn = document.getElementById("reset");
+    const answerEl = document.getElementById("answer");
+    const stepLabel = document.getElementById("step-label");
+    const statsEl = document.getElementById("stats");
+    const rulerScroll = document.getElementById("ruler-scroll");
+    const rulerMeta = document.getElementById("ruler-meta");
+    const rangeNote = document.getElementById("range-note");
+    const stackEl = document.getElementById("stack");
+    const calloutEl = document.getElementById("callout");
+
+    function spanLabel(start, end, suffix) {
+      const range = start === end ? String(start) : start + "–" + end;
+      return "Positions " + range + " " + suffix;
+    }
+
+    function render() {
+      const m = trace(state.k, state.cursor);
+      const max = m.steps.length;
+      const view = state.cursor === 0 || m.done ? m.calls[0] : m.calls[m.active.i];
+      const dimOutside = state.cursor > 0 && !m.done;
+      const showReturn = m.done && m.active && m.active.kind === "up";
+
+      answerEl.textContent = m.done ? m.results[0] : "—";
+      answerEl.classList.toggle("pending", !m.done);
+
+      if (state.cursor === 0) stepLabel.textContent = "Ready";
+      else if (m.done) stepLabel.textContent = "Done";
+      else stepLabel.textContent = "Step " + state.cursor + " of " + max;
+
+      stepBtn.disabled = m.done;
+      playBtn.disabled = false;
+      playBtn.textContent = state.playing ? "Pause" : "Play";
+      playBtn.setAttribute("aria-pressed", state.playing ? "true" : "false");
+
+      const latest = m.latest == null ? "—" : m.latest;
+      statsEl.innerHTML = [
+        ["k", String(state.k)],
+        ["Length", String(m.word.length)],
+        ["Calls", m.entered.length + " / " + m.calls.length],
+        ["Latest", latest]
+      ].map(([label, value]) => `<div class="stat"><span>${label}</span><strong>${value}</strong></div>`).join("");
+
+      rulerMeta.textContent = "1–" + m.word.length;
+      rulerScroll.innerHTML = renderRuler(m, view, dimOutside, showReturn);
+      rangeNote.textContent = rangeText(view, dimOutside, m.word.length);
+
+      const focus = rulerScroll.querySelector(".target, .final");
+      if (focus) centerInScroller(rulerScroll, focus);
+
+      stackEl.innerHTML = renderStack(m);
+      calloutEl.innerHTML = "<h2>" + calloutTitle(m) + "</h2><p>" + calloutBody(m, view) + "</p>";
+    }
+
+    function centerInScroller(scroller, focus) {
+      const scrollerBox = scroller.getBoundingClientRect();
+      const focusBox = focus.getBoundingClientRect();
+      const delta = (focusBox.left + focusBox.width / 2) - (scrollerBox.left + scrollerBox.width / 2);
+      scroller.scrollLeft += delta;
+    }
+
+    function renderRuler(m, view, dimOutside, showReturn) {
+      const n = m.word.length;
+      const showArrow = view.next != null && (dimOutside || showReturn);
+      let arrow = "";
+      if (showArrow) {
+        const from = m.active.kind === "down" ? view.k : view.next;
+        const to = m.active.kind === "down" ? view.next : view.k;
+        arrow = arrowSvg(from, to, n);
+      }
+      const split = view.k === 1
+        ? ""
+        : `<div class="splitbar" style="width:${view.block * CELL}px"><i class="orig"></i><i class="shift"></i></div>`;
+
+      const solved = new Set();
+      m.results.forEach((ch, i) => {
+        if (ch) solved.add(m.calls[i].k);
+      });
+
+      const cells = [...m.word].map((ch, index0) => {
+        const index = index0 + 1;
+        const classes = ["cell"];
+        const outside = dimOutside && index > view.block;
+        if (outside) classes.push("dim");
+        if (!outside && view.half && index <= view.half) classes.push("left");
+        if (!outside && view.half && index > view.half) classes.push("right");
+        if (!outside && view.half && index === view.half + 1) classes.push("right-start");
+        if (solved.has(index) && !(m.done && index === state.k)) classes.push("soft");
+        if (m.done && index === state.k) classes.push("final");
+        else if (dimOutside && index === view.k) classes.push("target");
+        else if (!dimOutside && !m.done && index === state.k) classes.push("target");
+        if (showArrow && index === view.next) classes.push("dest");
+        const label = "Position " + index + ", letter " + ch;
+        return `<div class="${classes.join(" ")}" aria-label="${label}"><b>${ch}</b><small>${index}</small></div>`;
+      }).join("");
+
+      return `<div class="ruler-track" style="--n:${n}">${`<div class="cells">${cells}</div>`}${arrow}${split}</div>`;
+    }
+
+    function arrowSvg(fromIndex, toIndex, n) {
+      const x = (i) => (i - 0.5) * CELL;
+      const x1 = x(fromIndex);
+      const x2 = x(toIndex);
+      const dir = x2 > x1 ? 1 : -1;
+      const head = 9;
+      const y = 16;
+      const neck = x2 - dir * head;
+      return `<svg class="hop" width="${n * CELL}" height="32" aria-hidden="true">
+        <line x1="${x1}" y1="${y}" x2="${neck}" y2="${y}" stroke="var(--arrow)" stroke-width="2"></line>
+        <polygon points="${x2},${y} ${neck},${y - 5} ${neck},${y + 5}" fill="var(--arrow)"></polygon>
+      </svg>`;
+    }
+
+    function rangeText(view, dimOutside, wordLength) {
+      if (view.k === 1) {
+        return dimOutside
+          ? "This call is the base case. Position 1 is a. Positions after 1 wait outside this call."
+          : "The word that contains k has length 1. Its only character is a.";
+      }
+      const left = spanLabel(1, view.half, "are the earlier word.");
+      const right = spanLabel(view.half + 1, view.block, "are that word with each letter shifted forward.");
+      const outside = dimOutside && view.block < wordLength
+        ? " Positions after " + view.block + " are outside this call."
+        : "";
+      return left + " " + right + outside;
+    }
+
+    function renderStack(m) {
+      if (m.entered.length === 0) {
+        return `<p class="empty">Step enters kthCharacter(${state.k}).</p>`;
+      }
+      const items = m.entered.map((i) => {
+        const call = m.calls[i];
+        const result = m.results[i];
+        const active = !m.done && m.active && m.active.i === i;
+        const classes = ["card"];
+        if (active) classes.push("active");
+        if (m.done && i === 0) classes.push("answer-card");
+        let body;
+        if (call.k === 1) {
+          body = "<p>Base case. The first character is a.</p>";
+        } else if (result) {
+          const from = m.results[i + 1];
+          body = `<p>half = ${call.half}. ${call.k} − ${call.half} = ${call.next}.</p>
+            <p class="resolve">chr(ord("${from}") + 1) = "${result}"</p>`;
+        } else {
+          body = `<p>half = ${call.half}, the largest power of two below ${call.k}.</p>
+            <p>${call.k} − ${call.half} = ${call.next}. Calls kthCharacter(${call.next}), then shifts that character forward.</p>`;
+        }
+        const badge = result ? `<span class="badge">${result}</span>` : "";
+        return `<li class="${classes.join(" ")}" style="--depth:${i}">
+          <div class="card-top"><span class="call-no">Call ${i + 1}</span><code>kthCharacter(${call.k})</code>${badge}</div>
+          ${body}
+        </li>`;
+      }).join("");
+      return `<ol class="stack">${items}</ol>`;
+    }
+
+    function calloutTitle(m) {
+      if (state.cursor === 0) return "Start";
+      if (m.done) return "Answer";
+      if (m.active.kind === "down") return "Call " + (m.active.i + 1);
+      return "Return to call " + (m.active.i + 1);
+    }
+
+    function calloutBody(m, view) {
+      if (state.cursor === 0) {
+        if (state.k === 1) return "k is 1. Step takes the base case and returns a.";
+        return "Position " + state.k + " sits in a word of length " + m.word.length + ". Step computes half and jumps to " + state.k + " − half.";
+      }
+      if (m.done) {
+        return "The calls return to k = " + state.k + ". The character at position " + state.k + " is " + m.results[0] + ".";
+      }
+      const call = m.calls[m.active.i];
+      if (m.active.kind === "down" && call.k === 1) return "k = 1. The base case returns a.";
+      if (m.active.kind === "down") {
+        return "k = " + call.k + ". half = " + call.half + ". Position " + call.k + " is in the right half, so the answer is kthCharacter(" + call.next + ") shifted forward by one.";
+      }
+      return "Return to k = " + call.k + ". Shift " + m.active.from + " forward by one to get " + m.active.to + ".";
+    }
+
+    function stopPlay() {
+      state.playing = false;
+      if (timer) clearInterval(timer);
+      timer = null;
+    }
+
+    function stepOnce() {
+      const max = buildSteps(buildCalls(state.k)).length;
+      if (state.cursor >= max) {
+        stopPlay();
+        render();
+        return;
+      }
+      state.cursor += 1;
+      if (state.cursor >= max) stopPlay();
+      render();
+    }
+
+    function startPlay() {
+      const max = buildSteps(buildCalls(state.k)).length;
+      if (state.cursor >= max) state.cursor = 0;
+      state.playing = true;
+      stepOnce();
+      if (state.playing) timer = setInterval(stepOnce, PLAY_MS);
+    }
+
+    function commitK() {
+      const raw = kInput.value.trim();
+      const value = Number(raw);
+      if (!/^\d+$/.test(raw) || value < MIN_K || value > MAX_K) {
+        kInput.value = String(state.k);
+        return;
+      }
+      kInput.value = String(value);
+      if (value === state.k) return;
+      stopPlay();
+      state.k = value;
+      state.cursor = 0;
+      render();
+    }
+
+    kInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        commitK();
+        kInput.blur();
+      } else if (event.key === "Escape") {
+        kInput.value = String(state.k);
+        kInput.blur();
+      }
+    });
+    kInput.addEventListener("blur", commitK);
+
+    stepBtn.addEventListener("click", () => {
+      stopPlay();
+      stepOnce();
+    });
+
+    playBtn.addEventListener("click", () => {
+      if (state.playing) {
+        stopPlay();
+        render();
+        return;
+      }
+      startPlay();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      stopPlay();
+      state.cursor = 0;
+      render();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.target === kInput) return;
+      const onButton = event.target.closest && event.target.closest("button");
+      if (event.key === "ArrowRight" && !stepBtn.disabled) {
+        event.preventDefault();
+        stopPlay();
+        stepOnce();
+      } else if (event.key === " " && !onButton && !playBtn.disabled) {
+        event.preventDefault();
+        if (state.playing) {
+          stopPlay();
+          render();
+        } else {
+          startPlay();
+        }
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>

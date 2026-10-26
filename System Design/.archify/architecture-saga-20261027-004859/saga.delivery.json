@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "a791d88c-2ffd-4ed6-a966-7921ff908b3b",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/home/asm/senior/System Design/.archify/architecture-saga-20261027-004859/candidate.json",
+  "output": "/home/asm/senior/System Design/.archify/architecture-saga-20261027-004859/saga.html",
+  "specification": {
+    "sha256": "d77f2f78d0a25ac313dccd8f68d905bea653d21a4c2e24a3be0662957bd18463",
+    "bytes": 2392
+  },
+  "artifact": {
+    "sha256": "41110c92a1eb6005d0ec7805a3828dd2bfe260af12beda080e5f57c63c7648c5",
+    "bytes": 844264
+  }
+}

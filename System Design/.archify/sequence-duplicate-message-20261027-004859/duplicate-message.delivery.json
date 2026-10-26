@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "66b28b18-fd71-4011-b8c5-6a4579e597c1",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "/home/asm/senior/System Design/.archify/sequence-duplicate-message-20261027-004859/candidate.json",
+  "output": "/home/asm/senior/System Design/.archify/sequence-duplicate-message-20261027-004859/duplicate-message.html",
+  "specification": {
+    "sha256": "a606c2d86d654d6b4b62af0301e0404920fb192d62daf432e55d443741f2eee1",
+    "bytes": 3087
+  },
+  "artifact": {
+    "sha256": "11967abaa57d25e1baf3495bf94d90b4133f194627bcd2a70dde31003307e659",
+    "bytes": 842764
+  }
+}

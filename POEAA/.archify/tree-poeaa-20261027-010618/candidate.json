@@ -1,0 +1,315 @@
+{
+  "schema_version": 1,
+  "diagram_type": "tree",
+  "meta": {
+    "title": "Patterns of Enterprise Application Architecture",
+    "locale": "en",
+    "output": ".archify/tree-poeaa-20261027-010618/poeaa-patterns.html",
+    "quality_profile": "showcase"
+  },
+  "layout": {
+    "direction": "right",
+    "nodeMaxW": 260
+  },
+  "nodes": [
+    {
+      "id": "catalog",
+      "label": "POEAA catalog",
+      "sublabel": "Nine groups from Fowler"
+    },
+    {
+      "id": "domain_logic",
+      "parent": "catalog",
+      "label": "Domain Logic",
+      "sublabel": "إزاي أمثل وأحط الـ Business Logic"
+    },
+    {
+      "id": "transaction_script",
+      "parent": "domain_logic",
+      "label": "Transaction Script",
+      "sublabel": "One procedure per business transaction"
+    },
+    {
+      "id": "domain_model",
+      "parent": "domain_logic",
+      "label": "Domain Model",
+      "sublabel": "Logic lives in a web of domain objects"
+    },
+    {
+      "id": "table_module",
+      "parent": "domain_logic",
+      "label": "Table Module",
+      "sublabel": "One class handles a whole database table"
+    },
+    {
+      "id": "service_layer",
+      "parent": "domain_logic",
+      "label": "Service Layer",
+      "sublabel": "Application boundary over the domain"
+    },
+    {
+      "id": "data_source",
+      "parent": "catalog",
+      "label": "Data Source Architectural",
+      "sublabel": "إزاي الـ Application يتعامل مع Database"
+    },
+    {
+      "id": "table_data_gateway",
+      "parent": "data_source",
+      "label": "Table Data Gateway",
+      "sublabel": "All SQL for one table in one object"
+    },
+    {
+      "id": "row_data_gateway",
+      "parent": "data_source",
+      "label": "Row Data Gateway",
+      "sublabel": "One gateway object for a single row"
+    },
+    {
+      "id": "active_record",
+      "parent": "data_source",
+      "label": "Active Record",
+      "sublabel": "A row object that also holds domain logic"
+    },
+    {
+      "id": "data_mapper",
+      "parent": "data_source",
+      "label": "Data Mapper",
+      "sublabel": "Moves data between objects and tables"
+    },
+    {
+      "id": "or_behavioral",
+      "parent": "catalog",
+      "label": "Object-Relational Behavioral",
+      "sublabel": "إزاي أتعامل مع مشاكل سلوك الـ Objects والـ DB"
+    },
+    {
+      "id": "unit_of_work",
+      "parent": "or_behavioral",
+      "label": "Unit of Work",
+      "sublabel": "Tracks changes and writes them together"
+    },
+    {
+      "id": "identity_map",
+      "parent": "or_behavioral",
+      "label": "Identity Map",
+      "sublabel": "One in-memory object per database identity"
+    },
+    {
+      "id": "lazy_load",
+      "parent": "or_behavioral",
+      "label": "Lazy Load",
+      "sublabel": "Loads an object only when it is used"
+    },
+    {
+      "id": "or_structural",
+      "parent": "catalog",
+      "label": "Object-Relational Structural",
+      "sublabel": "إزاي أربط Structure الـ Objects بـ Structure الـ DB"
+    },
+    {
+      "id": "identity_field",
+      "parent": "or_structural",
+      "label": "Identity Field",
+      "sublabel": "Keeps the database key on the object"
+    },
+    {
+      "id": "foreign_key_mapping",
+      "parent": "or_structural",
+      "label": "Foreign Key Mapping",
+      "sublabel": "Maps an object link to a foreign key"
+    },
+    {
+      "id": "association_table_mapping",
+      "parent": "or_structural",
+      "label": "Association Table Mapping",
+      "sublabel": "Maps many-to-many through a link table"
+    },
+    {
+      "id": "dependent_mapping",
+      "parent": "or_structural",
+      "label": "Dependent Mapping",
+      "sublabel": "Persists a child through its owner"
+    },
+    {
+      "id": "embedded_value",
+      "parent": "or_structural",
+      "label": "Embedded Value",
+      "sublabel": "Maps an object into its owner's columns"
+    },
+    {
+      "id": "serialized_lob",
+      "parent": "or_structural",
+      "label": "Serialized LOB",
+      "sublabel": "Stores an object graph as one large value"
+    },
+    {
+      "id": "single_table_inheritance",
+      "parent": "or_structural",
+      "label": "Single Table Inheritance",
+      "sublabel": "One table holds a whole class hierarchy"
+    },
+    {
+      "id": "class_table_inheritance",
+      "parent": "or_structural",
+      "label": "Class Table Inheritance",
+      "sublabel": "One table for each class in the hierarchy"
+    },
+    {
+      "id": "concrete_table_inheritance",
+      "parent": "or_structural",
+      "label": "Concrete Table Inheritance",
+      "sublabel": "One table for each concrete class"
+    },
+    {
+      "id": "inheritance_mappers",
+      "parent": "or_structural",
+      "label": "Inheritance Mappers",
+      "sublabel": "Structures mappers to handle inheritance"
+    },
+    {
+      "id": "or_metadata",
+      "parent": "catalog",
+      "label": "Object-Relational Metadata Mapping",
+      "sublabel": "إزاي أوصف Mapping بين Object و Database"
+    },
+    {
+      "id": "metadata_mapping",
+      "parent": "or_metadata",
+      "label": "Metadata Mapping",
+      "sublabel": "Drives the object-table map from metadata"
+    },
+    {
+      "id": "query_object",
+      "parent": "or_metadata",
+      "label": "Query Object",
+      "sublabel": "Represents a database query as an object"
+    },
+    {
+      "id": "repository",
+      "parent": "or_metadata",
+      "label": "Repository",
+      "sublabel": "A collection-like front for domain objects"
+    },
+    {
+      "id": "web_presentation",
+      "parent": "catalog",
+      "label": "Web Presentation",
+      "sublabel": "إزاي أبني طبقة الـ Web/UI"
+    },
+    {
+      "id": "model_view_controller",
+      "parent": "web_presentation",
+      "label": "Model View Controller",
+      "sublabel": "Splits model, view, and input handling"
+    },
+    {
+      "id": "page_controller",
+      "parent": "web_presentation",
+      "label": "Page Controller",
+      "sublabel": "One controller handles one page request"
+    },
+    {
+      "id": "front_controller",
+      "parent": "web_presentation",
+      "label": "Front Controller",
+      "sublabel": "One controller handles every web request"
+    },
+    {
+      "id": "template_view",
+      "parent": "web_presentation",
+      "label": "Template View",
+      "sublabel": "Renders HTML by embedding markers in it"
+    },
+    {
+      "id": "transform_view",
+      "parent": "web_presentation",
+      "label": "Transform View",
+      "sublabel": "Turns domain data into HTML by transform"
+    },
+    {
+      "id": "two_step_view",
+      "parent": "web_presentation",
+      "label": "Two Step View",
+      "sublabel": "Logical screen first, then HTML"
+    },
+    {
+      "id": "application_controller",
+      "parent": "web_presentation",
+      "label": "Application Controller",
+      "sublabel": "Handles navigation from screen to screen"
+    },
+    {
+      "id": "distribution",
+      "parent": "catalog",
+      "label": "Distribution",
+      "sublabel": "إزاي أتعامل مع Distributed Components"
+    },
+    {
+      "id": "remote_facade",
+      "parent": "distribution",
+      "label": "Remote Facade",
+      "sublabel": "Coarse remote API over fine-grained objects"
+    },
+    {
+      "id": "data_transfer_object",
+      "parent": "distribution",
+      "label": "Data Transfer Object",
+      "sublabel": "Carries data across one remote call"
+    },
+    {
+      "id": "offline_concurrency",
+      "parent": "catalog",
+      "label": "Offline Concurrency",
+      "sublabel": "إزاي أتعامل مع Concurrency في Systems ممكن تشتغل Offline ثم تعمل Sync"
+    },
+    {
+      "id": "optimistic_offline_lock",
+      "parent": "offline_concurrency",
+      "label": "Optimistic Offline Lock",
+      "sublabel": "Detects conflicts between business transactions"
+    },
+    {
+      "id": "pessimistic_offline_lock",
+      "parent": "offline_concurrency",
+      "label": "Pessimistic Offline Lock",
+      "sublabel": "Locks data for a whole business transaction"
+    },
+    {
+      "id": "coarse_grained_lock",
+      "parent": "offline_concurrency",
+      "label": "Coarse-Grained Lock",
+      "sublabel": "Locks a group of related objects together"
+    },
+    {
+      "id": "implicit_lock",
+      "parent": "offline_concurrency",
+      "label": "Implicit Lock",
+      "sublabel": "Applies the lock without the caller naming it"
+    },
+    {
+      "id": "session_state",
+      "parent": "catalog",
+      "label": "Session State",
+      "sublabel": "إزاي أحافظ على State بتاع User Session"
+    },
+    {
+      "id": "client_session_state",
+      "parent": "session_state",
+      "label": "Client Session State",
+      "sublabel": "Keeps session data on the client"
+    },
+    {
+      "id": "server_session_state",
+      "parent": "session_state",
+      "label": "Server Session State",
+      "sublabel": "Keeps session data in server memory"
+    },
+    {
+      "id": "database_session_state",
+      "parent": "session_state",
+      "label": "Database Session State",
+      "sublabel": "Keeps session data in the database"
+    }
+  ]
+}

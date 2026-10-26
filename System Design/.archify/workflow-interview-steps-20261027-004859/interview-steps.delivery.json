@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "ce13a956-7c6c-4925-8033-7ef343a34716",
+  "status": "current",
+  "command": "deliver",
+  "type": "workflow",
+  "input": "/home/asm/senior/System Design/.archify/workflow-interview-steps-20261027-004859/candidate.json",
+  "output": "/home/asm/senior/System Design/.archify/workflow-interview-steps-20261027-004859/interview-steps.html",
+  "specification": {
+    "sha256": "a116d31b9569a8ea606307ce5c9623cf4c422e92732cb39606969292011bd9fd",
+    "bytes": 2975
+  },
+  "artifact": {
+    "sha256": "a9f0fe0eb5b2b3cb26c8e2b631c638e93da26d92bd213c815b84ee84550210e3",
+    "bytes": 847813
+  }
+}

@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>String simulation · K-th Character</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f3f1eb;
+      --surface: #fffcf7;
+      --ink: #1c1b18;
+      --muted: #6d6962;
+      --line: #e3dfd6;
+      --line-strong: #cfcabe;
+      --green: #1b7a4a;
+      --green-soft: #e6f4ec;
+      --green-ink: #0f4d2e;
+      --arrow: #1e3a5f;
+      --arrow-soft: #e7eef6;
+      --half: #d4e3f6;
+      --row: #f7f6f2;
+      --radius: 10px;
+      --cell: 44px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141413;
+        --surface: #1c1c1a;
+        --ink: #f4f1ea;
+        --muted: #aaa69d;
+        --line: #32302c;
+        --line-strong: #45423c;
+        --green: #3dbe7a;
+        --green-soft: #163024;
+        --green-ink: #b6ebcd;
+        --arrow: #9ec0ea;
+        --arrow-soft: #1c2836;
+        --half: #24384f;
+        --row: #242422;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", "Liberation Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 20px 56px;
+    }
+
+    .kicker {
+      margin: 0 0 6px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--green);
+      font-weight: 650;
+    }
+
+    nav {
+      display: flex;
+      gap: 14px;
+      margin: 0 0 14px;
+      font-size: 13px;
+    }
+
+    nav a { color: var(--muted); }
+    nav a[aria-current="page"] {
+      color: var(--green);
+      font-weight: 650;
+      text-decoration: none;
+    }
+
+    header.page {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    .lede {
+      margin: 0;
+      max-width: 64ch;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 15px;
+    }
+
+    .answer { text-align: right; min-width: 140px; }
+
+    .answer span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .answer strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 64px;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      color: var(--green-ink);
+      line-height: 0.9;
+    }
+
+    .answer strong.pending {
+      color: var(--muted);
+      font-size: 48px;
+      font-weight: 500;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      margin-bottom: 14px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 12px 14px;
+      flex-wrap: wrap;
+    }
+
+    .group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .group-label {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    button, .k-input {
+      font: inherit;
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+    }
+
+    button {
+      padding: 7px 12px;
+      cursor: pointer;
+      min-width: 76px;
+    }
+
+    button:hover:not(:disabled) { border-color: var(--ink); }
+
+    button:focus-visible, .k-input:focus {
+      outline: 2px solid var(--green);
+      outline-offset: 2px;
+      border-color: var(--ink);
+    }
+
+    button:disabled { opacity: 0.38; cursor: default; }
+
+    button[aria-pressed="true"] {
+      background: var(--ink);
+      color: var(--bg);
+      border-color: var(--ink);
+    }
+
+    .k-input {
+      padding: 7px 10px;
+      width: 6.5ch;
+    }
+
+    .k-range { color: var(--muted); font-size: 12px; }
+
+    .step-label {
+      color: var(--muted);
+      font-size: 13px;
+      min-width: 128px;
+      text-align: center;
+    }
+
+    .hint {
+      margin: 0;
+      padding: 0 14px 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--line);
+    }
+
+    .stat { padding: 12px 14px 14px; border-right: 1px solid var(--line); }
+    .stat:last-child { border-right: 0; }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .stat strong {
+      font-size: 22px;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 12px 14px 0;
+    }
+
+    .section-head h2 { margin: 0; font-size: 15px; font-weight: 650; }
+    .section-head p { margin: 0; color: var(--muted); font-size: 12px; }
+
+    .scroll {
+      position: relative;
+      overflow-x: auto;
+      padding: 12px 14px 14px;
+    }
+
+    .align {
+      display: grid;
+      width: max-content;
+      align-items: stretch;
+    }
+
+    .row-label {
+      display: flex;
+      align-items: center;
+      padding-right: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-weight: 650;
+    }
+
+    .cells { display: flex; width: max-content; }
+
+    .cell {
+      width: var(--cell);
+      height: 58px;
+      flex: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1px var(--line-strong);
+    }
+
+    .cell b {
+      font-size: 18px;
+      font-weight: 650;
+      line-height: 1;
+    }
+
+    .cell small {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .cell.kept { background: var(--surface); }
+    .cell.added { background: var(--half); }
+    .cell.added-start { box-shadow: inset 2px 0 0 var(--arrow), inset 0 0 0 1px var(--line-strong); }
+
+    .cell.pick {
+      background: var(--green);
+      color: #fff;
+      box-shadow: none;
+    }
+
+    .cell.pick small { color: rgba(255, 255, 255, 0.8); }
+
+    .placeholder {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 16px 14px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px 18px;
+      padding: 0 14px 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 6px;
+      vertical-align: -1px;
+      box-shadow: inset 0 0 0 1px var(--line-strong);
+    }
+
+    .legend i.swatch-kept { background: var(--surface); }
+    .legend i.swatch-added { background: var(--half); }
+    .legend i.swatch-pick { background: var(--green); box-shadow: none; }
+
+    .callout {
+      margin: 0 14px 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--arrow);
+      border-radius: 8px;
+      background: var(--arrow-soft);
+    }
+
+    .callout h2 { margin: 0 0 6px; font-size: 14px; font-weight: 650; }
+    .callout p { margin: 0; font-size: 14.5px; line-height: 1.45; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-weight: 650;
+    }
+
+    tr.current { background: var(--arrow-soft); }
+    tr.current td:first-child { box-shadow: inset 3px 0 0 var(--arrow); }
+    tr.active { background: var(--green-soft); }
+    tr.active td:first-child { box-shadow: inset 3px 0 0 var(--green); }
+
+    .word {
+      font-family: "Cascadia Code", "Liberation Mono", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .word i {
+      font-style: normal;
+      background: var(--half);
+    }
+
+    .word u {
+      text-decoration: none;
+      background: var(--green);
+      color: #fff;
+      padding: 0 1px;
+    }
+
+    .formula { padding: 14px 16px 16px; }
+    .formula h2 { margin: 0 0 8px; font-size: 15px; }
+    .formula p { margin: 0 0 10px; color: var(--muted); font-size: 14px; line-height: 1.45; }
+
+    .code {
+      font-family: "Cascadia Code", "Liberation Mono", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 13px;
+      background: var(--row);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: block;
+      line-height: 1.55;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    @media (max-width: 720px) {
+      header.page { flex-direction: column; align-items: flex-start; }
+      .answer { text-align: left; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stat:nth-child(odd) { border-right: 1px solid var(--line); }
+      .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--line); }
+      .stat:nth-child(even) { border-right: 0; }
+      .step-label { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="kicker">LeetCode 3304</p>
+    <nav aria-label="Algorithms">
+      <a href="recursive.html">Recursive jump</a>
+      <a href="simulation.html" aria-current="page">String simulation</a>
+    </nav>
+    <header class="page">
+      <div>
+        <h1>Find the K-th Character</h1>
+        <p class="lede">Start from a. While the word is shorter than <em>k</em>, append a copy where every letter moves forward by one. The answer is the character at position <em>k</em>.</p>
+      </div>
+      <div class="answer">
+        <span>Character</span>
+        <strong id="answer" class="pending">—</strong>
+      </div>
+    </header>
+
+    <section class="panel" aria-label="Controls">
+      <div class="controls">
+        <div class="group">
+          <label class="group-label" for="k-input">k</label>
+          <input class="k-input" id="k-input" type="text" inputmode="numeric" value="5" aria-label="Choose k" autocomplete="off" spellcheck="false">
+          <span class="k-range">1–64</span>
+        </div>
+        <div class="group">
+          <button type="button" id="step">Step</button>
+          <span class="step-label" id="step-label">Ready</span>
+          <button type="button" id="play" aria-pressed="false">Play</button>
+          <button type="button" id="reset">Reset</button>
+        </div>
+      </div>
+      <p class="hint">Right arrow steps. Space plays and pauses.</p>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="panel" aria-label="Current operation">
+      <div class="section-head">
+        <h2>Current word and shifted copy</h2>
+        <p id="op-meta"></p>
+      </div>
+      <div id="op"></div>
+    </section>
+
+    <section class="panel" aria-label="Word after append">
+      <div class="section-head">
+        <h2>After append</h2>
+        <p id="after-meta"></p>
+      </div>
+      <div id="after"></div>
+      <div class="legend">
+        <span><i class="swatch-kept"></i>Already present</span>
+        <span><i class="swatch-added"></i>Newly appended</span>
+        <span><i class="swatch-pick"></i>Position k</span>
+      </div>
+      <div class="callout" id="callout" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" aria-label="Growth history">
+      <div class="section-head">
+        <h2>How the word grew</h2>
+        <p id="history-meta"></p>
+      </div>
+      <div class="scroll" id="history"></div>
+    </section>
+
+    <section class="panel formula">
+      <h2>The append</h2>
+      <p>Each operation appends the next letter of every character already in the word. In the expression <code>index + 1 % 26</code>, the remainder is computed first. <code>1 % 26</code> is 1, so the letter moves forward by one. For k up to 64 the result stays inside a–z.</p>
+      <code class="code">def kthCharacter(self, k: int) -> str:
+    char = "a"
+    alphabet = "abcdefghijklmnopqrstuvwxyz"
+    while len(char) &lt; k:
+        shifted = ""
+        for i in char:
+            shifted += alphabet[alphabet.index(i) + 1 % 26]
+        char += shifted
+    return char[k - 1]</code>
+    </section>
+  </div>
+
+  <script>
+    const MIN_K = 1;
+    const MAX_K = 64;
+    const PLAY_MS = 900;
+
+    function nextChar(ch) {
+      return String.fromCharCode(ch.charCodeAt(0) + 1);
+    }
+
+    function buildGens(k) {
+      const gens = [];
+      let word = "a";
+      gens.push({ word, from: null, shifted: null });
+      while (word.length < k) {
+        let shifted = "";
+        for (const ch of word) shifted += nextChar(ch);
+        const from = word;
+        word += shifted;
+        gens.push({ word, from, shifted });
+      }
+      return gens;
+    }
+
+    const state = { k: 5, cursor: 0, playing: false };
+    let timer = null;
+
+    const kInput = document.getElementById("k-input");
+    const stepBtn = document.getElementById("step");
+    const playBtn = document.getElementById("play");
+    const resetBtn = document.getElementById("reset");
+    const answerEl = document.getElementById("answer");
+    const stepLabel = document.getElementById("step-label");
+    const statsEl = document.getElementById("stats");
+    const opMeta = document.getElementById("op-meta");
+    const opEl = document.getElementById("op");
+    const afterMeta = document.getElementById("after-meta");
+    const afterEl = document.getElementById("after");
+    const historyMeta = document.getElementById("history-meta");
+    const historyEl = document.getElementById("history");
+    const calloutEl = document.getElementById("callout");
+
+    function cellHtml(ch, index, classes) {
+      return `<div class="cell ${classes}"><b>${ch}</b><small>${index}</small></div>`;
+    }
+
+    function render() {
+      const gens = buildGens(state.k);
+      const max = gens.length - 1;
+      const cursor = Math.min(state.cursor, max);
+      const gen = gens[cursor];
+      const done = cursor === max;
+      const opsTotal = max;
+
+      answerEl.textContent = done ? gen.word[state.k - 1] : "—";
+      answerEl.classList.toggle("pending", !done);
+
+      if (opsTotal === 0) stepLabel.textContent = "Done";
+      else if (cursor === 0) stepLabel.textContent = "Ready";
+      else if (done) stepLabel.textContent = "Done";
+      else stepLabel.textContent = "Step " + cursor + " of " + opsTotal;
+
+      stepBtn.disabled = done;
+      playBtn.disabled = opsTotal === 0;
+      playBtn.textContent = state.playing ? "Pause" : "Play";
+      playBtn.setAttribute("aria-pressed", state.playing ? "true" : "false");
+
+      statsEl.innerHTML = [
+        ["k", String(state.k)],
+        ["Length", String(gen.word.length)],
+        ["Operations", cursor + " / " + opsTotal],
+        ["char[k − 1]", done ? gen.word[state.k - 1] : "—"]
+      ].map(([label, value]) => `<div class="stat"><span>${label}</span><strong>${value}</strong></div>`).join("");
+
+      if (cursor === 0) {
+        opMeta.textContent = "length 1";
+        opEl.innerHTML = renderStartWord();
+      } else {
+        opMeta.textContent = "length " + gen.from.length + " → " + gen.word.length;
+        opEl.innerHTML = renderPair(gen);
+      }
+
+      const covers = gen.word.length >= state.k;
+      afterMeta.textContent = covers
+        ? "length " + gen.word.length + " covers k"
+        : "length " + gen.word.length + " is still under k";
+      afterEl.innerHTML = renderAfter(gen, covers);
+
+      const pick = afterEl.querySelector(".pick");
+      if (pick) {
+        const scroller = pick.parentElement.parentElement;
+        const scrollerBox = scroller.getBoundingClientRect();
+        const focusBox = pick.getBoundingClientRect();
+        const delta = (focusBox.left + focusBox.width / 2) - (scrollerBox.left + scrollerBox.width / 2);
+        scroller.scrollLeft += delta;
+      }
+
+      historyMeta.textContent = (cursor + 1) + " stage" + (cursor === 0 ? "" : "s");
+      historyEl.innerHTML = renderHistory(gens, cursor);
+
+      calloutEl.innerHTML = "<h2>" + (done ? "Answer" : (cursor === 0 ? "Start" : "Operation " + cursor)) + "</h2><p>" + calloutBody(gen, cursor, done, opsTotal) + "</p>";
+    }
+
+    function renderStartWord() {
+      return `<div class="scroll"><div class="cells">${cellHtml("a", 1, state.k === 1 ? "kept pick" : "kept")}</div></div>`;
+    }
+
+    function renderPair(gen) {
+      const n = gen.from.length;
+      const columns = "72px repeat(" + n + ", var(--cell))";
+      let cells = `<div class="row-label" style="grid-column:1;grid-row:1">Word</div>
+        <div class="row-label" style="grid-column:1;grid-row:2">+1</div>`;
+      for (let i = 0; i < n; i++) {
+        const col = i + 2;
+        cells += `<div class="cell kept" style="grid-column:${col};grid-row:1"><b>${gen.from[i]}</b><small>${i + 1}</small></div>`;
+        cells += `<div class="cell added" style="grid-column:${col};grid-row:2"><b>${gen.shifted[i]}</b><small>${n + i + 1}</small></div>`;
+      }
+      return `<div class="scroll"><div class="align" style="grid-template-columns:${columns}">${cells}</div></div>`;
+    }
+
+    function renderAfter(gen, covers) {
+      if (gen.from == null && state.k > 1) {
+        return `<p class="placeholder">Step appends the shifted copy. The word is still "${gen.word}".</p>`;
+      }
+      const split = gen.from == null ? gen.word.length : gen.from.length;
+      const html = [...gen.word].map((ch, i) => {
+        const index = i + 1;
+        const classes = [];
+        if (gen.from == null) classes.push("kept");
+        else if (index <= split) classes.push("kept");
+        else classes.push("added");
+        if (gen.from != null && index === split + 1) classes.push("added-start");
+        if (covers && index === state.k) classes.push("pick");
+        return cellHtml(ch, index, classes.join(" "));
+      }).join("");
+      return `<div class="scroll"><div class="cells">${html}</div></div>`;
+    }
+
+    function renderHistory(gens, cursor) {
+      const rows = [];
+      for (let i = 0; i <= cursor; i++) {
+        const gen = gens[i];
+        const marked = markWord(gen);
+        const active = i === cursor ? (cursor === gens.length - 1 ? "active" : "current") : "";
+        const label = i === 0 ? "Start" : "Operation " + i;
+        rows.push(`<tr class="${active}"><td>${label}</td><td>${gen.word.length}</td><td class="word">${marked}</td></tr>`);
+      }
+      return `<table>
+        <thead><tr><th>Stage</th><th>Length</th><th>Word</th></tr></thead>
+        <tbody>${rows.join("")}</tbody>
+      </table>`;
+    }
+
+    function markWord(gen) {
+      const split = gen.from == null ? gen.word.length : gen.from.length;
+      return [...gen.word].map((ch, i) => {
+        const index = i + 1;
+        if (gen.word.length >= state.k && index === state.k) return "<u>" + ch + "</u>";
+        if (index > split) return "<i>" + ch + "</i>";
+        return ch;
+      }).join("");
+    }
+
+    function quoteShort(word) {
+      if (word.length <= 16) return '"' + word + '"';
+      return "length " + word.length;
+    }
+
+    function calloutBody(gen, cursor, done, opsTotal) {
+      if (opsTotal === 0) {
+        return 'word is "a". Position 1 is a, which is char[0].';
+      }
+      if (cursor === 0) {
+        return 'word is "a" and its length is 1. k is ' + state.k + ", so append the shifted copy.";
+      }
+      const grew = "Shift each letter of " + quoteShort(gen.from) + " forward to get " + quoteShort(gen.shifted) + ". Appending it makes " + quoteShort(gen.word) + ", length " + gen.word.length + ".";
+      if (!done) return grew + " Length is still under " + state.k + ".";
+      const ch = gen.word[state.k - 1];
+      return grew + " Length covers k. Position " + state.k + " is " + ch + ", which is char[" + (state.k - 1) + "].";
+    }
+
+    function stopPlay() {
+      state.playing = false;
+      if (timer) clearInterval(timer);
+      timer = null;
+    }
+
+    function stepOnce() {
+      const max = buildGens(state.k).length - 1;
+      if (state.cursor >= max) {
+        stopPlay();
+        render();
+        return;
+      }
+      state.cursor += 1;
+      if (state.cursor >= max) stopPlay();
+      render();
+    }
+
+    function startPlay() {
+      const max = buildGens(state.k).length - 1;
+      if (max === 0) return;
+      if (state.cursor >= max) state.cursor = 0;
+      state.playing = true;
+      stepOnce();
+      if (state.playing) timer = setInterval(stepOnce, PLAY_MS);
+    }
+
+    function commitK() {
+      const raw = kInput.value.trim();
+      const value = Number(raw);
+      if (!/^\d+$/.test(raw) || value < MIN_K || value > MAX_K) {
+        kInput.value = String(state.k);
+        return;
+      }
+      kInput.value = String(value);
+      if (value === state.k) return;
+      stopPlay();
+      state.k = value;
+      state.cursor = 0;
+      render();
+    }
+
+    kInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        commitK();
+        kInput.blur();
+      } else if (event.key === "Escape") {
+        kInput.value = String(state.k);
+        kInput.blur();
+      }
+    });
+    kInput.addEventListener("blur", commitK);
+
+    stepBtn.addEventListener("click", () => {
+      stopPlay();
+      stepOnce();
+    });
+
+    playBtn.addEventListener("click", () => {
+      if (state.playing) {
+        stopPlay();
+        render();
+        return;
+      }
+      startPlay();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      stopPlay();
+      state.cursor = 0;
+      render();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.target === kInput) return;
+      const onButton = event.target.closest && event.target.closest("button");
+      if (event.key === "ArrowRight" && !stepBtn.disabled) {
+        event.preventDefault();
+        stopPlay();
+        stepOnce();
+      } else if (event.key === " " && !onButton && !playBtn.disabled) {
+        event.preventDefault();
+        if (state.playing) {
+          stopPlay();
+          render();
+        } else {
+          startPlay();
+        }
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>

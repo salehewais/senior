@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "من المتصفح حتى الخدمة",
+    "locale": "ar",
+    "quality_profile": "showcase",
+    "output": ".archify/sequence-browser-to-service-20261027-004859/browser-to-service.html"
+  },
+  "participants": [
+    { "id": "browser", "type": "external", "label": "المتصفح", "sublabel": "العميل" },
+    { "id": "dns", "type": "cloud", "label": "DNS", "sublabel": "حل الاسم" },
+    { "id": "cdn", "type": "cloud", "label": "CDN", "sublabel": "حافة الشبكة" },
+    { "id": "gateway", "type": "security", "label": "API Gateway", "sublabel": "دخول موحّد" },
+    { "id": "limiter", "type": "security", "label": "Rate Limiter", "sublabel": "حصة الطلبات" },
+    { "id": "service", "type": "backend", "label": "الخدمة", "sublabel": "منطق العمل" }
+  ],
+  "segments": [
+    { "from": 150, "to": 220, "label": "الاسم" },
+    { "from": 236, "to": 420, "label": "الحافة" },
+    { "from": 430, "to": 570, "label": "الأصل" }
+  ],
+  "messages": [
+    { "id": "resolve", "from": "browser", "to": "dns", "y": 168, "label": "resolve name", "variant": "default" },
+    { "id": "ip", "from": "dns", "to": "browser", "y": 206, "label": "IP address", "variant": "return" },
+    { "id": "get", "from": "browser", "to": "cdn", "y": 250, "label": "HTTPS GET", "variant": "emphasis", "note": "الاتصال مشفّر. الأصل الثابت قد يُخدم من الحافة." },
+    { "id": "forward", "from": "cdn", "to": "gateway", "y": 320, "label": "forward request", "variant": "default" },
+    { "id": "quota", "from": "gateway", "to": "limiter", "y": 360, "label": "check quota", "variant": "security" },
+    { "id": "allowed", "from": "limiter", "to": "gateway", "y": 398, "label": "allowed", "variant": "return" },
+    { "id": "route", "from": "gateway", "to": "service", "y": 440, "label": "route request", "variant": "emphasis" },
+    { "id": "json", "from": "service", "to": "gateway", "y": 478, "label": "200 JSON", "variant": "return" },
+    { "id": "edge-back", "from": "gateway", "to": "cdn", "y": 516, "label": "response", "variant": "return" },
+    { "id": "page", "from": "cdn", "to": "browser", "y": 548, "label": "response", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "browser", "from": 168, "to": 556, "type": "external" },
+    { "participant": "dns", "from": 168, "to": 214, "type": "cloud" },
+    { "participant": "cdn", "from": 250, "to": 556, "type": "cloud" },
+    { "participant": "gateway", "from": 320, "to": 524, "type": "security" },
+    { "participant": "limiter", "from": 360, "to": 406, "type": "security" },
+    { "participant": "service", "from": 440, "to": 486, "type": "backend" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "قبل الخدمة",
+      "items": ["DNS يحوّل الاسم لعنوان", "TLS يحمي الطلب على الطريق"]
+    },
+    {
+      "dot": "emerald",
+      "title": "الحافة",
+      "items": ["CDN يقصّر الطريق للمحتوى القريب", "الغائب عند الحافة يُمرَّر للأصل"]
+    },
+    {
+      "dot": "rose",
+      "title": "الدخول",
+      "items": ["البوابة نقطة دخول واحدة", "الحد يُفحص قبل منطق العمل"]
+    }
+  ]
+}

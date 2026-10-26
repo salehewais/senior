@@ -1,0 +1,55 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "خطوات حل مسألة تصميم في المقابلة",
+    "locale": "ar",
+    "quality_profile": "showcase",
+    "output": ".archify/workflow-interview-steps-20261027-004859/interview-steps.html"
+  },
+  "lanes": [
+    { "id": "speak", "label": "الكلام" },
+    { "id": "board", "label": "اللوحة" },
+    { "id": "risk", "label": "الخطر", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "open", "label": "افتتاح", "fromCol": 0, "toCol": 1 },
+    { "id": "frame", "label": "تأطير", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "build", "label": "بناء", "fromCol": 4, "toCol": 5 }
+  ],
+  "mainPath": ["hear", "reqs", "nums", "contract", "draw", "dive"],
+  "nodes": [
+    { "id": "hear", "lane": "speak", "col": 0, "type": "external", "label": "أعد السؤال", "sublabel": "جملة الافتتاح" },
+    { "id": "skip", "lane": "speak", "col": 2, "type": "backend", "label": "خارج النطاق", "sublabel": "لن أبنيه الآن" },
+    { "id": "reqs", "lane": "board", "col": 1, "type": "backend", "label": "المتطلبات", "sublabel": "وظيفي وغير وظيفي" },
+    { "id": "nums", "lane": "board", "col": 2, "type": "database", "label": "تقدير", "sublabel": "قاعدة تدريب" },
+    { "id": "contract", "lane": "board", "col": 3, "type": "backend", "label": "API والداتا", "sublabel": "العقد والكيانات" },
+    { "id": "draw", "lane": "board", "col": 4, "type": "cloud", "label": "الرسمة", "sublabel": "مسار الطلب" },
+    { "id": "dive", "lane": "risk", "col": 5, "type": "security", "label": "تعمق واحد", "sublabel": "عنق زجاجة" }
+  ],
+  "edges": [
+    { "id": "hear-reqs", "from": "hear", "to": "reqs", "label": "وضّح النطاق", "variant": "emphasis" },
+    { "id": "reqs-nums", "from": "reqs", "to": "nums" },
+    { "id": "nums-contract", "from": "nums", "to": "contract", "label": "بعد الرقم" },
+    { "id": "contract-draw", "from": "contract", "to": "draw", "variant": "emphasis" },
+    { "id": "draw-dive", "from": "draw", "to": "dive", "label": "اختر نقطة", "variant": "emphasis" },
+    { "id": "reqs-skip", "from": "reqs", "to": "skip", "label": "مؤجّل", "variant": "dashed", "role": "branch" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "35 دقيقة",
+      "items": ["الجملة الأولى تعيد السؤال بنطاق واضح", "لا تبدأ بالصناديق"]
+    },
+    {
+      "dot": "amber",
+      "title": "الرقم",
+      "items": ["قل إنه تقدير تدريب", "استخدمه لتبرير قاعدة أو كاش أو طابور"]
+    },
+    {
+      "dot": "rose",
+      "title": "العمق",
+      "items": ["نقطة واحدة تُناقش حتى الآخر", "سمِّ ما ينكسر أولًا وما القرار البديل"]
+    }
+  ]
+}

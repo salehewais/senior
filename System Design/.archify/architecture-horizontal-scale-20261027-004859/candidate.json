@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "خدمة أفقية خلف موازن الحمل",
+    "locale": "ar",
+    "quality_profile": "showcase",
+    "output": ".archify/architecture-horizontal-scale-20261027-004859/horizontal-scale.html"
+  },
+  "components": [
+    { "id": "client", "type": "external", "label": "العميل", "sublabel": "أي نسخة تصلح", "pos": [40, 48], "size": [140, 68] },
+    { "id": "lb", "type": "cloud", "label": "موازن الحمل", "sublabel": "Round Robin", "pos": [490, 40], "size": [170, 84] },
+    { "id": "a1", "type": "backend", "label": "نسخة 1", "sublabel": "بلا حالة محلية", "pos": [280, 220], "size": [150, 68] },
+    { "id": "a2", "type": "backend", "label": "نسخة 2", "sublabel": "بلا حالة محلية", "pos": [500, 220], "size": [150, 68] },
+    { "id": "a3", "type": "backend", "label": "نسخة 3", "sublabel": "بلا حالة محلية", "pos": [720, 220], "size": [150, 68] },
+    { "id": "db", "type": "database", "label": "قاعدة مشتركة", "sublabel": "الحالة خارج النسخة", "pos": [280, 420], "size": [590, 68] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "طبقة التطبيق الأفقية", "wraps": ["lb", "a1", "a2", "a3"] }
+  ],
+  "connections": [
+    { "id": "client-lb", "from": "client", "to": "lb", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "lb-a2", "from": "lb", "to": "a2", "label": "forward", "variant": "emphasis" },
+    { "id": "lb-a1", "from": "lb", "to": "a1", "label": "forward" },
+    { "id": "lb-a3", "from": "lb", "to": "a3", "label": "forward" },
+    { "id": "a1-db", "from": "a1", "to": "db", "label": "SQL" },
+    { "id": "a2-db", "from": "a2", "to": "db", "label": "SQL", "variant": "emphasis" },
+    { "id": "a3-db", "from": "a3", "to": "db", "label": "SQL" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "التوزيع",
+      "items": ["الموازن يختار نسخة سليمة", "النسخ متساوية لأن الحالة ليست عليها"]
+    },
+    {
+      "dot": "emerald",
+      "title": "النمو",
+      "items": ["نسخة جديدة تدخل خلف الموازن", "التحجيم التلقائي يضيفها عند ارتفاع الحمل"]
+    },
+    {
+      "dot": "amber",
+      "title": "الحد",
+      "items": ["القاعدة المشتركة تبقى عنقًا إن لم تُقسَّم", "جلسة على النسخة تكسر التوزيع"]
+    }
+  ]
+}

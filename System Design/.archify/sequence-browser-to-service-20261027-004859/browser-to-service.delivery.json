@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "3c251c37-407e-404c-a1db-47bcf0b41433",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "/home/asm/senior/System Design/.archify/sequence-browser-to-service-20261027-004859/candidate.json",
+  "output": "/home/asm/senior/System Design/.archify/sequence-browser-to-service-20261027-004859/browser-to-service.html",
+  "specification": {
+    "sha256": "43d00eb9d4aab0bd05dfc316418df8c5c8746450fb094fb588f295e44058efeb",
+    "bytes": 3367
+  },
+  "artifact": {
+    "sha256": "425200628ae6d7db86f4aba2b1b83c85ad8d7a6ff33d123c9deb73b61b335754",
+    "bytes": 846387
+  }
+}

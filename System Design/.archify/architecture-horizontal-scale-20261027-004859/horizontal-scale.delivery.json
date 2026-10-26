@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "e037727f-46c1-4d4e-8e0c-ff2edce87dab",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/home/asm/senior/System Design/.archify/architecture-horizontal-scale-20261027-004859/candidate.json",
+  "output": "/home/asm/senior/System Design/.archify/architecture-horizontal-scale-20261027-004859/horizontal-scale.html",
+  "specification": {
+    "sha256": "a92176329da4729f054d825d9f6c2acf774da7d1f5fea9d00a0b01a7f547999d",
+    "bytes": 2530
+  },
+  "artifact": {
+    "sha256": "41ef5bf841e077cf661bd97ac60e657e3c98f03cf496c263f00ca1b699f76078",
+    "bytes": 848010
+  }
+}

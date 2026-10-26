@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Saga بين خدمات الطلب والدفع والمخزون",
+    "locale": "ar",
+    "quality_profile": "showcase",
+    "output": ".archify/architecture-saga-20261027-004859/saga.html"
+  },
+  "components": [
+    { "id": "customer", "type": "external", "label": "العميل", "sublabel": "ينشئ طلبًا", "pos": [40, 168], "size": [132, 64] },
+    { "id": "order", "type": "backend", "label": "خدمة الطلب", "sublabel": "تملك حالة الطلب", "pos": [280, 156], "size": [168, 88] },
+    { "id": "orch", "type": "backend", "label": "منسق الـ Saga", "sublabel": "orchestration", "pos": [560, 148], "size": [176, 104], "tag": "خطوات وتعويض" },
+    { "id": "payment", "type": "backend", "label": "خدمة الدفع", "sublabel": "قاعدة خاصة بها", "pos": [860, 40], "size": [168, 76] },
+    { "id": "inventory", "type": "backend", "label": "خدمة المخزون", "sublabel": "قاعدة خاصة بها", "pos": [860, 250], "size": [168, 76] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "خدمات الصفقة", "wraps": ["order", "orch", "payment", "inventory"] }
+  ],
+  "connections": [
+    { "id": "customer-order", "from": "customer", "to": "order", "label": "create order", "variant": "emphasis" },
+    { "id": "order-orch", "from": "order", "to": "orch", "label": "start saga", "variant": "emphasis" },
+    { "id": "orch-payment", "from": "orch", "to": "payment", "label": "charge" },
+    { "id": "orch-inventory", "from": "orch", "to": "inventory", "label": "reserve" },
+    { "id": "payment-fail", "from": "payment", "to": "orch", "label": "fail", "variant": "dashed" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "الصفقة",
+      "items": ["كل خدمة تعمل محليًا ثم تبلغ المنسق", "لا توجد معاملة واحدة عابرة للخدمات"]
+    },
+    {
+      "dot": "rose",
+      "title": "التعويض",
+      "items": ["فشل الدفع يوقف حجز المخزون", "المنسق يطلب إلغاء الخطوة التي تمت"]
+    },
+    {
+      "dot": "emerald",
+      "title": "البيانات",
+      "items": ["كل خدمة تملك قاعدتها", "حالة الـ Saga عند المنسق لا داخل الجداول الغريبة"]
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/home/asm/senior/System Design/.archify/architecture-cache-aside-20261027-004859/candidate.json",
+    "sha256": "3530796b525f61917da7855e1bb61b1b509284f707581618be96f1e85c098b46",
+    "bytes": 2165
+  },
+  "artifact": {
+    "path": "/home/asm/senior/System Design/.archify/architecture-cache-aside-20261027-004859/cache-aside.html",
+    "sha256": "c8808566b2cfa8ef6f6bc511a7002904f9bcc79c9723f6eea8329550977401b2",
+    "bytes": 843266
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/home/asm/senior/System Design/.archify/architecture-cache-aside-20261027-004859/cache-aside.finalize.json",
+    "summaryReceipt": "/home/asm/senior/System Design/.archify/architecture-cache-aside-20261027-004859/cache-aside.finalize-summary.json",
+    "browserCheckReceipt": "/home/asm/senior/System Design/.archify/architecture-cache-aside-20261027-004859/cache-aside.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-25T09:35:03.428Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1638,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

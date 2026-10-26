@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>مرجع System Design</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <aside class="side">
+    <div class="brand">
+      <p class="eyebrow">مذاكرة المقابلة</p>
+      <h1>المرجع</h1>
+      <p class="brand-en">System Design</p>
+      <p class="brand-note">عربي للكلام، والمصطلح التقني بالإنجليزي. الأرقام قواعد تدريب مش قياس إنتاج.</p>
+      <a class="map-link" href=".archify/index.html">فهرس الرسومات</a>
+    </div>
+    <nav id="phase-nav" aria-label="المراحل"></nav>
+    <footer class="progress">
+      <div class="progress-row">
+        <span id="progress-label">0 من 0</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="bar" aria-hidden="true"><span id="progress-fill"></span></div>
+    </footer>
+  </aside>
+  <main>
+    <header class="top">
+      <div class="search-wrap">
+        <label class="sr" for="q">بحث</label>
+        <input id="q" type="search" placeholder="ابحث بالعربي أو الإنجليزي: Kafka، توفر، sharding" autocomplete="off">
+      </div>
+      <div class="modes" role="group" aria-label="وضع القراءة">
+        <button type="button" id="mode-ref" class="mode is-on" aria-pressed="true">مرجع</button>
+        <button type="button" id="mode-talk" class="mode" aria-pressed="false">كلام بس</button>
+      </div>
+    </header>
+    <div id="stage"></div>
+  </main>
+  <script src="content/p1.js"></script>
+  <script src="content/p2.js"></script>
+  <script src="content/p3.js"></script>
+  <script src="content/p4.js"></script>
+  <script src="content/p5.js"></script>
+  <script src="content/p6.js"></script>
+  <script src="content/p7.js"></script>
+  <script src="content/p8.js"></script>
+  <script src="handbook.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "047f5680-2a1c-4807-b945-aea00254d9b3",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/home/asm/senior/System Design/.archify/explainer-study-path-20261027-013126/candidate.archify.md",
+  "output": "/home/asm/senior/System Design/.archify/explainer-study-path-20261027-013126/study-path.html",
+  "specification": {
+    "sha256": "3e2060d38168129ed6089ef538df8cca4deed676ad45ab6b32a51e0b0654eb97",
+    "bytes": 3735
+  },
+  "artifact": {
+    "sha256": "9961cb5d90886038c66baf0b4a781c9519a88c6f4255114c41619b67c4c59cf3",
+    "bytes": 556839
+  },
+  "explainer": {
+    "preparedSha256": "5b8278f30683c479f2921118b25a8d449fc84b61583741c128e56385481b8851",
+    "dependencies": [
+      {
+        "kind": "diagram-spec",
+        "id": "phase-path",
+        "inline": true,
+        "sha256": "5acc150f0029951ce492705061ff80782ee21cba93afa22e8278979299238595",
+        "bytes": 1353
+      }
+    ]
+  }
+}

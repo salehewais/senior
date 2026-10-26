@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Elimination Game</title>
+  <style>
+    :root {
+      --bg: #f3f1eb;
+      --surface: #fffcf7;
+      --ink: #1c1b18;
+      --muted: #6d6962;
+      --line: #e3dfd6;
+      --line-strong: #cfcabe;
+      --green: #1b7a4a;
+      --green-soft: #e6f4ec;
+      --green-ink: #0f4d2e;
+      --cut: #b45309;
+      --cut-soft: #fbf1e6;
+      --deleted: #8d8880;
+      --arrow: #1e3a5f;
+      --arrow-soft: #e7eef6;
+      --row: #f7f6f2;
+      --danger-soft: #f8efe6;
+      --radius: 10px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141413;
+        --surface: #1c1c1a;
+        --ink: #f4f1ea;
+        --muted: #aaa69d;
+        --line: #32302c;
+        --line-strong: #45423c;
+        --green: #3dbe7a;
+        --green-soft: #163024;
+        --green-ink: #b6ebcd;
+        --cut: #f0a05a;
+        --cut-soft: #2c2118;
+        --deleted: #8a857c;
+        --arrow: #9ec0ea;
+        --arrow-soft: #1c2836;
+        --row: #242422;
+        --danger-soft: #2a241c;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", "Liberation Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+
+    body {
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+    }
+
+    header.page {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+
+    .kicker {
+      margin: 0 0 6px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--green);
+      font-weight: 650;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    .lede {
+      margin: 0;
+      max-width: 62ch;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 15px;
+    }
+
+    .answer {
+      text-align: right;
+      min-width: 140px;
+    }
+
+    .answer span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .answer strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 36px;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      color: var(--green-ink);
+      line-height: 1;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      margin-bottom: 14px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 12px 14px;
+      flex-wrap: wrap;
+    }
+
+    .group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .group-label {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-right: 4px;
+    }
+
+    button {
+      font: inherit;
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+
+    button:hover:not(:disabled) {
+      border-color: var(--ink);
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 2px;
+    }
+
+    button:disabled {
+      opacity: 0.38;
+      cursor: default;
+    }
+
+    .n-input {
+      font: inherit;
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 7px 10px;
+      width: 6.5ch;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .n-input:hover {
+      border-color: var(--ink);
+    }
+
+    .n-input:focus {
+      outline: 2px solid var(--green);
+      outline-offset: 2px;
+      border-color: var(--ink);
+    }
+
+    .n-range {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    button.step {
+      min-width: 108px;
+    }
+
+    .pass-count {
+      color: var(--muted);
+      font-size: 13px;
+      min-width: 92px;
+      text-align: center;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--line);
+    }
+
+    .stat {
+      padding: 12px 14px 14px;
+      border-right: 1px solid var(--line);
+    }
+
+    .stat:last-child { border-right: 0; }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .stat strong {
+      font-size: 22px;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    .stat em {
+      font-style: normal;
+      color: var(--muted);
+      font-size: 12px;
+      margin-left: 6px;
+      font-weight: 500;
+    }
+
+    .stage {
+      padding: 8px 8px 0;
+    }
+
+    svg.line {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 22px;
+      padding: 4px 16px 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 6px;
+      vertical-align: -1px;
+    }
+
+    .swatch-alive {
+      background: var(--green);
+      border-radius: 50%;
+    }
+
+    .swatch-old {
+      border: 1.5px solid var(--deleted);
+      border-radius: 2px;
+    }
+
+    .swatch-cut {
+      border: 2.5px solid var(--cut);
+      border-radius: 2px;
+    }
+
+    .swatch-arrow {
+      width: 18px;
+      height: 2px;
+      background: var(--arrow);
+      vertical-align: 4px;
+      position: relative;
+    }
+
+    .swatch-arrow::after {
+      content: "";
+      position: absolute;
+      right: -1px;
+      top: -3.5px;
+      border-left: 6px solid var(--arrow);
+      border-top: 4.5px solid transparent;
+      border-bottom: 4.5px solid transparent;
+    }
+
+    .callout {
+      margin: 0 14px 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--arrow);
+      border-radius: 8px;
+      background: var(--arrow-soft);
+    }
+
+    .callout h2 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .callout p {
+      margin: 0;
+      line-height: 1.45;
+      font-size: 14.5px;
+    }
+
+    .callout .removed {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .flags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .flag {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      color: var(--muted);
+      background: var(--surface);
+    }
+
+    .flag.on {
+      color: var(--green-ink);
+      border-color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 12px 14px 0;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-weight: 650;
+    }
+
+    tbody tr { cursor: pointer; }
+
+    tbody tr:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: -2px;
+    }
+
+    tbody tr:hover { background: var(--row); }
+
+    tbody tr.active {
+      background: var(--green-soft);
+    }
+
+    tbody tr.active td:first-child {
+      box-shadow: inset 3px 0 0 var(--green);
+    }
+
+    .formula {
+      padding: 14px 16px 16px;
+    }
+
+    .formula h2 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    .formula p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .table-scroll { overflow-x: auto; }
+
+    code {
+      font-family: "Cascadia Code", "Liberation Mono", "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 13px;
+      background: var(--row);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: block;
+      line-height: 1.55;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .empty-note {
+      padding: 8px 16px 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 720px) {
+      header.page { flex-direction: column; align-items: flex-start; }
+      .answer { text-align: left; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stat:nth-child(odd) { border-right: 1px solid var(--line); }
+      .stat:nth-child(1),
+      .stat:nth-child(2) { border-bottom: 1px solid var(--line); }
+      .stat:nth-child(even) { border-right: 0; }
+      th, td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="page">
+      <div>
+        <p class="kicker">LeetCode 390</p>
+        <h1>Elimination Game</h1>
+        <p class="lede">Start with the integers 1 through n and delete every other survivor, alternating left-to-right and right-to-left, until one number remains.</p>
+      </div>
+      <div class="answer">
+        <span>Last remaining</span>
+        <strong id="answer">6</strong>
+      </div>
+    </header>
+
+    <section class="panel" aria-label="Controls and current pass">
+      <div class="controls">
+        <div class="group">
+          <label class="group-label" for="n-input">n</label>
+          <input class="n-input" id="n-input" type="text" inputmode="numeric" value="9" aria-label="Choose n" autocomplete="off" spellcheck="false">
+          <span class="n-range">1–40</span>
+        </div>
+        <div class="group">
+          <button class="step" type="button" id="prev">Previous</button>
+          <span class="pass-count" id="pass-count">Pass 1 of 3</span>
+          <button class="step" type="button" id="next">Next</button>
+        </div>
+      </div>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="panel" aria-label="Number line">
+      <div class="stage">
+        <svg class="line" id="line" viewBox="0 0 960 228" role="img" aria-labelledby="line-title line-desc">
+          <title id="line-title">Number line for the active pass</title>
+          <desc id="line-desc"></desc>
+        </svg>
+      </div>
+      <div class="legend">
+        <span><i class="swatch-alive"></i>Survivor</span>
+        <span><i class="swatch-old"></i>Removed earlier</span>
+        <span><i class="swatch-cut"></i>Removed this pass</span>
+        <span><i class="swatch-arrow"></i>Head arrow, length = step</span>
+      </div>
+      <div class="callout" id="callout" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" aria-label="Pass trace">
+      <div class="section-head">
+        <h2>Passes for this n</h2>
+        <p id="table-caption"></p>
+      </div>
+      <div id="table-slot"></div>
+    </section>
+
+    <section class="panel formula">
+      <h2>When head moves</h2>
+      <p>Survivors are always head, head + step, head + 2·step, and so on. Head advances by step only when the leftmost survivor is deleted.</p>
+      <code>if left_to_right or remaining % 2 == 1:
+    head += step
+remaining //= 2
+step *= 2
+left_to_right = not left_to_right</code>
+    </section>
+  </div>
+
+  <script>
+    const MIN_N = 1;
+    const MAX_N = 40;
+
+    function simulate(n) {
+      const passes = [];
+      let head = 1;
+      let step = 1;
+      let remaining = n;
+      let leftToRight = true;
+
+      while (remaining > 1) {
+        const survivors = [];
+        for (let i = 0; i < remaining; i++) survivors.push(head + i * step);
+
+        const deleted = [];
+        if (leftToRight) {
+          for (let i = 0; i < remaining; i += 2) deleted.push(survivors[i]);
+        } else {
+          for (let i = remaining - 1; i >= 0; i -= 2) deleted.push(survivors[i]);
+        }
+
+        const odd = remaining % 2 === 1;
+        const moves = leftToRight || odd;
+        const before = { head, step, remaining, leftToRight, odd, moves, survivors, deleted };
+        if (moves) head += step;
+        remaining = Math.floor(remaining / 2);
+        step *= 2;
+        leftToRight = !leftToRight;
+        passes.push({
+          ...before,
+          headAfter: head,
+          remainingAfter: remaining
+        });
+      }
+
+      return { answer: head, passes };
+    }
+
+    const state = { n: 9, pass: 0 };
+
+    const svg = document.getElementById("line");
+    const statsEl = document.getElementById("stats");
+    const calloutEl = document.getElementById("callout");
+    const tableSlot = document.getElementById("table-slot");
+    const passCountEl = document.getElementById("pass-count");
+    const answerEl = document.getElementById("answer");
+    const tableCaption = document.getElementById("table-caption");
+    const lineDesc = document.getElementById("line-desc");
+    const prevBtn = document.getElementById("prev");
+    const nextBtn = document.getElementById("next");
+    const nInput = document.getElementById("n-input");
+
+    function svgEl(name, attrs, text) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+      for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+      if (text != null) node.textContent = text;
+      return node;
+    }
+
+    function render() {
+      const model = simulate(state.n);
+      if (model.passes.length === 0) state.pass = 0;
+      else state.pass = Math.max(0, Math.min(state.pass, model.passes.length - 1));
+
+      if (document.activeElement !== nInput) nInput.value = String(state.n);
+
+      answerEl.textContent = String(model.answer);
+      prevBtn.disabled = state.pass <= 0 || model.passes.length === 0;
+      nextBtn.disabled = model.passes.length === 0 || state.pass >= model.passes.length - 1;
+      passCountEl.textContent = model.passes.length === 0
+        ? "No passes"
+        : `Pass ${state.pass + 1} of ${model.passes.length}`;
+
+      if (model.passes.length === 0) renderSingle(model.answer);
+      else renderPass(model, model.passes[state.pass]);
+
+      renderTable(model);
+    }
+
+    function renderSingle(answer) {
+      statsEl.innerHTML = [
+        stat("Head", answer, "only value"),
+        stat("Step", "—"),
+        stat("Remaining", "1"),
+        stat("Direction", "—")
+      ].join("");
+
+      calloutEl.innerHTML = `
+        <h2>Already finished</h2>
+        <p>n is 1, so the list never starts a pass. The last remaining number is ${answer}.</p>`;
+
+      lineDesc.textContent = "A single survivor, the number 1.";
+      drawLine({
+        n: 1,
+        deletedNow: new Set(),
+        deletedOld: new Set(),
+        alive: new Set([1]),
+        head: 1,
+        showArrow: false
+      });
+    }
+
+    function renderPass(model, pass) {
+      const deletedOld = new Set();
+      for (let i = 0; i < state.pass; i++) {
+        for (const value of model.passes[i].deleted) deletedOld.add(value);
+      }
+      const deletedNow = new Set(pass.deleted);
+      const alive = new Set();
+      for (let v = 1; v <= state.n; v++) {
+        if (!deletedOld.has(v) && !deletedNow.has(v)) alive.add(v);
+      }
+
+      statsEl.innerHTML = [
+        stat("Head", pass.head, "before pass"),
+        stat("Step", pass.step),
+        stat("Remaining", pass.remaining, pass.odd ? "odd" : "even"),
+        stat("Direction", pass.leftToRight ? "Left → right" : "Right → left")
+      ].join("");
+
+      const dir = pass.leftToRight ? "Left to right" : "Right to left";
+      const parity = pass.odd ? "odd" : "even";
+      let movement;
+      if (pass.moves && pass.leftToRight) {
+        movement = `The pass deletes head first, so head moves by step: ${pass.head} → ${pass.headAfter}. The arrow ends on the next head.`;
+      } else if (pass.moves) {
+        movement = `The leftmost survivor is deleted, so head moves by step: ${pass.head} → ${pass.headAfter}. The arrow starts at the rightmost survivor and points left across ${pass.step} cells.`;
+      } else {
+        movement = `The leftmost survivor stays, so head does not advance. It remains ${pass.head}. The arrow starts at the rightmost survivor and points left across ${pass.step} cells.`;
+      }
+
+      const removed = pass.deleted.join(", ");
+      calloutEl.innerHTML = `
+        <h2>Pass ${state.pass + 1} · ${dir}</h2>
+        <p>Remaining is ${parity} (${pass.remaining}). ${movement}</p>
+        <p class="removed">This pass removes ${removed}.</p>
+        <div class="flags">
+          <span class="flag ${pass.leftToRight ? "on" : ""}">left_to_right = ${pass.leftToRight}</span>
+          <span class="flag ${pass.odd ? "on" : ""}">remaining % 2 == 1 = ${pass.odd}</span>
+          <span class="flag ${pass.moves ? "on" : ""}">${pass.moves ? "head += step" : "head stays"}</span>
+        </div>`;
+
+      lineDesc.textContent = `${dir}. Head ${pass.head}, step ${pass.step}. Removes ${removed}.`;
+
+      drawLine({
+        n: state.n,
+        deletedNow,
+        deletedOld,
+        alive,
+        head: pass.head,
+        headAfter: pass.headAfter,
+        step: pass.step,
+        remaining: pass.remaining,
+        leftToRight: pass.leftToRight,
+        moves: pass.moves,
+        showArrow: true
+      });
+    }
+
+    function stat(label, value, note) {
+      const extra = note ? `<em>${note}</em>` : "";
+      return `<div class="stat"><span>${label}</span><strong>${value}${extra}</strong></div>`;
+    }
+
+    function drawLine(spec) {
+      const VB_W = 960;
+      const VB_H = 228;
+      svg.setAttribute("viewBox", `0 0 ${VB_W} ${VB_H}`);
+      svg.replaceChildren();
+
+      const padCells = 2;
+      const minV = 1 - padCells;
+      const maxV = spec.n + padCells;
+      const plotL = 28;
+      const plotR = VB_W - 28;
+      const xOf = (v) => plotL + ((v - minV) / (maxV - minV)) * (plotR - plotL);
+      const gap = xOf(2) - xOf(1);
+
+      const arrowY = 46;
+      const stemTop = 62;
+      const stemBot = 92;
+      const markY = 118;
+      const labelY = 156;
+      const baseY = 118;
+
+      const colors = cssColors();
+
+      svg.appendChild(svgEl("line", {
+        x1: xOf(1),
+        y1: baseY,
+        x2: xOf(spec.n),
+        y2: baseY,
+        stroke: colors.line,
+        "stroke-width": 1.5
+      }));
+
+      for (let v = 1; v <= spec.n; v++) {
+        const x = xOf(v);
+        svg.appendChild(svgEl("line", {
+          x1: x, y1: stemTop, x2: x, y2: stemBot,
+          stroke: colors.line,
+          "stroke-width": 1
+        }));
+
+        const isNow = spec.deletedNow.has(v);
+        const isOld = spec.deletedOld.has(v);
+        if (isNow || isOld) {
+          const size = isNow ? 18 : 14;
+          svg.appendChild(svgEl("rect", {
+            x: x - size / 2,
+            y: markY - size / 2,
+            width: size,
+            height: size,
+            rx: 2,
+            fill: colors.surface,
+            stroke: isNow ? colors.cut : colors.deleted,
+            "stroke-width": isNow ? 2.75 : 1.5
+          }));
+        } else {
+          const isNext = spec.moves && v === spec.headAfter && v !== spec.head;
+          svg.appendChild(svgEl("circle", {
+            cx: x,
+            cy: markY,
+            r: isNext ? 12 : 10,
+            fill: colors.green
+          }));
+          if (v === spec.head) {
+            svg.appendChild(svgEl("circle", {
+              cx: x,
+              cy: markY,
+              r: 15,
+              fill: "none",
+              stroke: colors.arrow,
+              "stroke-width": 1.5
+            }));
+          }
+        }
+
+        const labelFill = isNow ? colors.cut : (isOld ? colors.deleted : colors.ink);
+        const weight = v === spec.head || v === spec.headAfter ? "700" : "500";
+        svg.appendChild(svgEl("text", {
+          x, y: labelY,
+          "text-anchor": "middle",
+          "font-size": 15,
+          "font-family": "Segoe UI, Liberation Sans, Helvetica, Arial, sans-serif",
+          "font-weight": weight,
+          fill: labelFill
+        }, String(v)));
+      }
+
+      if (!spec.showArrow) return;
+
+      const dir = spec.leftToRight ? 1 : -1;
+      const anchor = spec.leftToRight
+        ? spec.head
+        : spec.head + (spec.remaining - 1) * spec.step;
+      const x1 = xOf(anchor);
+      const x2 = x1 + dir * spec.step * gap;
+      const tip = 11;
+      const wing = 6;
+      const xNeck = x2 - dir * tip;
+
+      svg.appendChild(svgEl("line", {
+        x1, y1: arrowY,
+        x2: xNeck, y2: arrowY,
+        stroke: colors.arrow,
+        "stroke-width": 2.25
+      }));
+      svg.appendChild(svgEl("polygon", {
+        points: `${x2},${arrowY} ${xNeck},${arrowY - wing} ${xNeck},${arrowY + wing}`,
+        fill: colors.arrow
+      }));
+
+      svg.appendChild(svgEl("line", {
+        x1, y1: arrowY,
+        x2: x1, y2: markY - 16,
+        stroke: colors.arrow,
+        "stroke-width": 1,
+        "stroke-dasharray": "3 3"
+      }));
+
+      const mid = (x1 + x2) / 2;
+      const label = spec.moves && spec.leftToRight ? `step = ${spec.step} → next head` : `step = ${spec.step}`;
+      svg.appendChild(svgEl("text", {
+        x: mid,
+        y: 22,
+        "text-anchor": "middle",
+        "font-size": 13,
+        "font-family": "Segoe UI, Liberation Sans, Helvetica, Arial, sans-serif",
+        "font-weight": "650",
+        fill: colors.arrow
+      }, label));
+
+      if (spec.moves && !spec.leftToRight) {
+        const xn = xOf(spec.headAfter);
+        svg.appendChild(svgEl("text", {
+          x: xn,
+          y: labelY + 22,
+          "text-anchor": "middle",
+          "font-size": 12,
+          "font-family": "Segoe UI, Liberation Sans, Helvetica, Arial, sans-serif",
+          fill: colors.greenInk
+        }, "next head"));
+      }
+
+    }
+
+    function cssColors() {
+      const cs = getComputedStyle(document.documentElement);
+      const pick = (name) => cs.getPropertyValue(name).trim();
+      return {
+        ink: pick("--ink"),
+        muted: pick("--muted"),
+        line: pick("--line-strong"),
+        surface: pick("--surface"),
+        green: pick("--green"),
+        greenInk: pick("--green-ink"),
+        cut: pick("--cut"),
+        deleted: pick("--deleted"),
+        arrow: pick("--arrow")
+      };
+    }
+
+    function renderTable(model) {
+      tableCaption.textContent = model.passes.length
+        ? `${model.passes.length} pass${model.passes.length === 1 ? "" : "es"} · click a row`
+        : "";
+
+      if (model.passes.length === 0) {
+        tableSlot.innerHTML = `<p class="empty-note">No elimination pass. The last remaining number is ${model.answer}.</p>`;
+        return;
+      }
+
+      const rows = model.passes.map((pass, index) => {
+        const headCell = pass.moves
+          ? `${pass.head} → ${pass.headAfter}`
+          : `${pass.head} stays`;
+        return `<tr data-pass="${index}" class="${index === state.pass ? "active" : ""}" role="button" tabindex="0" aria-label="Show pass ${index + 1}">
+          <td>${index + 1}</td>
+          <td>${pass.leftToRight ? "Left to right" : "Right to left"}</td>
+          <td>${headCell}</td>
+          <td>${pass.step}</td>
+          <td>${pass.remaining} → ${pass.remainingAfter}</td>
+        </tr>`;
+      }).join("");
+
+      tableSlot.innerHTML = `
+        <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Pass</th>
+              <th>Direction</th>
+              <th>Head</th>
+              <th>Step</th>
+              <th>Remaining</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        </div>`;
+
+      tableSlot.querySelectorAll("tbody tr").forEach((row) => {
+        const open = () => {
+          state.pass = Number(row.dataset.pass);
+          render();
+        };
+        row.addEventListener("click", open);
+        row.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            open();
+          }
+        });
+      });
+    }
+
+    function commitN() {
+      const raw = nInput.value.trim();
+      const value = Number(raw);
+      if (!/^\d+$/.test(raw) || value < MIN_N || value > MAX_N) {
+        nInput.value = String(state.n);
+        return;
+      }
+      nInput.value = String(value);
+      if (value === state.n) return;
+      state.n = value;
+      state.pass = 0;
+      render();
+    }
+
+    nInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        commitN();
+        nInput.blur();
+      } else if (event.key === "Escape") {
+        nInput.value = String(state.n);
+        nInput.blur();
+      }
+    });
+
+    nInput.addEventListener("blur", commitN);
+
+    prevBtn.addEventListener("click", () => {
+      state.pass -= 1;
+      render();
+    });
+
+    nextBtn.addEventListener("click", () => {
+      state.pass += 1;
+      render();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.target === nInput) return;
+      if (event.key === "ArrowRight" && !nextBtn.disabled) {
+        state.pass += 1;
+        render();
+      } else if (event.key === "ArrowLeft" && !prevBtn.disabled) {
+        state.pass -= 1;
+        render();
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>

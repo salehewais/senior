@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "6f1f3139-ff27-4725-9289-2883edcabcb1",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/home/asm/senior/System Design/.archify/architecture-cache-aside-20261027-004859/candidate.json",
+  "output": "/home/asm/senior/System Design/.archify/architecture-cache-aside-20261027-004859/cache-aside.html",
+  "specification": {
+    "sha256": "3530796b525f61917da7855e1bb61b1b509284f707581618be96f1e85c098b46",
+    "bytes": 2165
+  },
+  "artifact": {
+    "sha256": "c8808566b2cfa8ef6f6bc511a7002904f9bcc79c9723f6eea8329550977401b2",
+    "bytes": 843266
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "منتج ووسيط ومستهلك مع تكرار الرسالة",
+    "locale": "ar",
+    "quality_profile": "showcase",
+    "output": ".archify/sequence-duplicate-message-20261027-004859/duplicate-message.html"
+  },
+  "participants": [
+    { "id": "producer", "type": "backend", "label": "المنتج", "sublabel": "يبعث الحدث" },
+    { "id": "broker", "type": "messagebus", "label": "الوسيط", "sublabel": "طابور أو سجل" },
+    { "id": "consumer", "type": "backend", "label": "المستهلك", "sublabel": "يعالج الرسالة" },
+    { "id": "store", "type": "database", "label": "قاعدة البيانات", "sublabel": "أثر العملية" }
+  ],
+  "segments": [
+    { "from": 150, "to": 380, "label": "التسليم الأول" },
+    { "from": 400, "to": 580, "label": "إعادة التسليم" }
+  ],
+  "messages": [
+    { "id": "publish", "from": "producer", "to": "broker", "y": 172, "label": "publish event", "variant": "emphasis" },
+    { "id": "deliver", "from": "broker", "to": "consumer", "y": 214, "label": "deliver", "variant": "default" },
+    { "id": "apply", "from": "consumer", "to": "store", "y": 258, "label": "apply write", "variant": "emphasis" },
+    { "id": "committed", "from": "store", "to": "consumer", "y": 300, "label": "committed", "variant": "return" },
+    { "id": "ack", "from": "consumer", "to": "broker", "y": 342, "label": "ack", "variant": "return" },
+    { "id": "redeliver", "from": "broker", "to": "consumer", "y": 420, "label": "redeliver", "variant": "dashed", "note": "At-least-once: الـ ack ضاع، فوصلت نفس الرسالة مرة ثانية." },
+    { "id": "apply-again", "from": "consumer", "to": "store", "y": 490, "label": "apply again", "variant": "default", "note": "نفس مفتاح الـ idempotency يمنع أثرًا مكررًا." },
+    { "id": "already", "from": "store", "to": "consumer", "y": 560, "label": "already applied", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "producer", "from": 172, "to": 200, "type": "backend" },
+    { "participant": "broker", "from": 172, "to": 360, "type": "messagebus" },
+    { "participant": "consumer", "from": 214, "to": 568, "type": "backend" },
+    { "participant": "store", "from": 258, "to": 318, "type": "database" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "الضمان",
+      "items": ["الوسيط غالبًا يعد بالتسليم مرة على الأقل", "الضياع الذي نمنعه هو ضياع الرسالة لا تكرارها"]
+    },
+    {
+      "dot": "amber",
+      "title": "التكرار",
+      "items": ["إعادة الإرسال سلوك طبيعي بعد عطل", "المستهلك لازم يكون آمنًا مع التكرار"]
+    },
+    {
+      "dot": "emerald",
+      "title": "الأثر",
+      "items": ["مفتاح الهوية يميّز العملية", "الكتابة الثانية ترى أن الأثر موجود ولا تعيده"]
+    }
+  ]
+}
