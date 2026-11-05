@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>مرجع Enterprise Application Patterns</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --bg: #eef0f5;
+  --surface: #ffffff;
+  --surface-2: #f6f7fb;
+  --ink: #131a2a;
+  --ink-muted: #596177;
+  --accent: #3a50d9;
+  --accent-soft: rgba(58, 80, 217, 0.10);
+  --border: rgba(19, 26, 42, 0.11);
+  --sec: var(--accent);
+  --shadow: 0 1px 2px rgba(19, 26, 42, .05), 0 10px 30px -12px rgba(19, 26, 42, .14);
+  --sidebar-w: 17.5rem;
+  --font-ar: "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-head: "Cairo", "IBM Plex Sans Arabic", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0c1018;
+  --surface: #141a25;
+  --surface-2: #19212f;
+  --ink: #e7ebf4;
+  --ink-muted: #9aa4ba;
+  --accent: #8da2ff;
+  --accent-soft: rgba(141, 162, 255, 0.13);
+  --border: rgba(231, 235, 244, 0.10);
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -14px rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 1rem; }
+body {
+  margin: 0;
+  font-family: var(--font-ar);
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--ink);
+  background: var(--bg);
+  transition: background .3s, color .3s;
+}
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+#progress {
+  position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 50;
+  background: linear-gradient(90deg, #3a50d9, #0e9f8e, #d9822b);
+  transform-origin: right; transform: scaleX(0);
+}
+.layout { display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr); min-height: 100vh; }
+
+/* ---------- sidebar ---------- */
+nav.toc {
+  position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto;
+  padding: 1.25rem 1rem 2rem;
+  background: var(--surface);
+  border-inline-end: 1px solid var(--border);
+  scrollbar-width: thin;
+}
+.toc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding-bottom: .75rem; border-bottom: 1px solid var(--border); }
+nav.toc .toc-title { font-family: var(--font-head); font-weight: 800; font-size: 1.3rem; letter-spacing: .04em; color: var(--ink); margin: 0; }
+.icon-btn {
+  width: 2.1rem; height: 2.1rem; display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 50%; background: var(--surface-2); color: var(--ink);
+  font-size: 1rem; transition: transform .3s, background .2s;
+}
+.icon-btn:hover { background: var(--accent-soft); transform: rotate(25deg); }
+nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: t; }
+nav.toc li { position: relative; }
+nav.toc a {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .4rem .65rem; border-radius: 8px;
+  color: var(--ink-muted); text-decoration: none; font-size: .9rem; line-height: 1.4;
+  transition: background .15s, color .15s;
+}
+nav.toc a::before {
+  content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--dot, var(--border)); opacity: .45; transition: transform .25s, opacity .25s;
+}
+nav.toc a:hover { background: var(--accent-soft); color: var(--ink); }
+nav.toc a.active { background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+nav.toc a.active::before { opacity: 1; transform: scale(1.5); }
+nav.toc li.hidden { display: none; }
+
+/* ---------- main + hero ---------- */
+main.content { padding: 1.5rem clamp(1.25rem, 4vw, 3.5rem) 5rem; max-width: 56rem; width: 100%; margin-inline: auto; }
+.page-header {
+  position: relative; overflow: hidden; isolation: isolate;
+  margin: 0 0 2.5rem; padding: clamp(1.5rem, 4vw, 2.75rem);
+  border-radius: 22px; color: #f4f6ff;
+  background: linear-gradient(135deg, #1d2a6b 0%, #2b3fc4 55%, #0e8f86 130%);
+  box-shadow: var(--shadow);
+  animation: rise .8s cubic-bezier(.2,.7,.2,1) both;
+}
+.page-header::before, .page-header::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; filter: blur(2px); }
+.page-header::before { width: 22rem; height: 22rem; inset-block-start: -9rem; inset-inline-start: -7rem; background: radial-gradient(circle, rgba(255,255,255,.22), transparent 65%); animation: drift 14s ease-in-out infinite alternate; }
+.page-header::after  { width: 16rem; height: 16rem; inset-block-end: -8rem; inset-inline-end: -4rem; background: radial-gradient(circle, rgba(217,130,43,.45), transparent 65%); animation: drift 18s ease-in-out infinite alternate-reverse; }
+.page-header .grid-bg { position: absolute; inset: 0; z-index: -1; opacity: .18;
+  background-image: linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
+  background-size: 28px 28px; mask-image: linear-gradient(to bottom, #000, transparent 85%); }
+.page-header h1 { font-family: var(--font-head); font-weight: 800; font-size: clamp(1.8rem, 4.6vw, 2.8rem); line-height: 1.35; margin: 0 0 .6rem; }
+.page-header .lead { font-size: 1.05rem; color: rgba(244,246,255,.82); max-width: 38rem; margin: 0 0 1.5rem; }
+.stats { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.5rem; }
+.stat { min-width: 6.5rem; padding: .6rem 1rem; border-radius: 14px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); backdrop-filter: blur(6px); }
+.stat b { display: block; font-family: var(--font-head); font-size: 1.7rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.stat span { font-size: .85rem; color: rgba(244,246,255,.8); }
+.toolbar { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.search { position: relative; flex: 1 1 15rem; }
+.search input {
+  width: 100%; font: inherit; font-size: .98rem; color: #fff;
+  padding: .65rem 2.6rem .65rem 3.4rem; border-radius: 12px;
+  background: rgba(10,16,48,.35); border: 1px solid rgba(255,255,255,.28);
+  transition: background .2s, border-color .2s;
+}
+.search input::placeholder { color: rgba(255,255,255,.65); }
+.search input:focus { outline: none; background: rgba(10,16,48,.55); border-color: #fff; }
+.search svg { position: absolute; inset-inline-start: .85rem; inset-block-start: 50%; translate: 0 -50%; width: 1.1rem; height: 1.1rem; opacity: .8; }
+.search kbd { position: absolute; left: .7rem; inset-block-start: 50%; translate: 0 -50%; font: .75rem var(--font-mono); padding: .05rem .4rem; border-radius: 5px; background: rgba(255,255,255,.18); direction: ltr; }
+.btn { font: inherit; font-size: .9rem; cursor: pointer; padding: .62rem 1rem; border-radius: 12px; color: #fff; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); transition: background .2s; }
+.btn:hover { background: rgba(255,255,255,.26); }
+#result-count { font-size: .88rem; color: rgba(244,246,255,.85); min-height: 1.4em; margin-top: .7rem; }
+.empty { display: none; text-align: center; padding: 3rem 1rem; color: var(--ink-muted); border: 1px dashed var(--border); border-radius: 16px; }
+.empty.show { display: block; }
+
+/* ---------- sections ---------- */
+.doc-section { margin-bottom: 3.25rem; scroll-margin-top: 1rem; --sec: var(--accent); }
+.doc-section.hidden, .pattern-card.hidden { display: none; }
+.doc-section > h2 {
+  font-family: var(--font-head); font-weight: 800; font-size: clamp(1.3rem, 2.6vw, 1.65rem); line-height: 1.5;
+  margin: 0 0 1.25rem; padding: 0 1rem 0 0; color: var(--ink);
+  border-inline-start: 5px solid var(--sec); padding-inline-start: .85rem; padding-inline-end: 0;
+}
+.doc-section h3:not(.pattern-title) { font-family: var(--font-head); font-size: 1.2rem; margin: 1.5rem 0 .75rem; }
+.doc-section h4 { font-size: 1rem; margin: 1.25rem 0 .5rem; color: var(--sec); }
+p { margin: 0 0 1rem; }
+.note-inline { font-size: .95rem; color: var(--ink-muted); padding: .7rem 1rem; background: var(--surface-2); border-radius: 10px; }
+
+/* ---------- pattern cards ---------- */
+.pattern-card {
+  position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 0; margin: 1.1rem 0; box-shadow: var(--shadow); overflow: hidden;
+  transition: border-color .2s, box-shadow .2s;
+}
+.pattern-card::before { content: ""; position: absolute; inset-block: 0; inset-inline-start: 0; width: 4px; background: var(--sec); }
+.pattern-card:hover { border-color: color-mix(in srgb, var(--sec) 45%, var(--border)); }
+.pattern-card:target { border-color: var(--sec); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sec) 25%, transparent), var(--shadow); }
+.pattern-title {
+  margin: 0; padding: 1rem 1.4rem; font-family: var(--font-ar); font-size: 1.12rem; font-weight: 600;
+  display: flex; align-items: center; gap: .65rem; cursor: pointer; user-select: none;
+}
+.pattern-title::after {
+  content: ""; margin-inline-start: auto; width: .55rem; height: .55rem; flex: none;
+  border-inline-end: 2px solid var(--ink-muted); border-block-end: 2px solid var(--ink-muted);
+  rotate: 45deg; transition: rotate .3s; translate: 0 -2px;
+}
+.pattern-card.collapsed .pattern-title::after { rotate: -45deg; translate: 0 0; }
+.card-body { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .35s ease; }
+.pattern-card.collapsed .card-body { grid-template-rows: 0fr; }
+.card-inner { overflow: hidden; min-height: 0; padding: 0 1.4rem; }
+.card-inner > :last-child { margin-bottom: 1.25rem; }
+.pattern-card.collapsed .card-inner { visibility: hidden; transition: visibility 0s .35s; }
+.idea-lead { font-weight: 600; margin-top: -.25rem; }
+.pattern-idea { color: var(--ink-muted); font-size: 1rem; padding-inline-start: .9rem; border-inline-start: 2px solid var(--border); }
+.pattern-num {
+  font-family: var(--font-mono); font-size: .82rem; font-weight: 500; direction: ltr;
+  color: var(--sec); background: color-mix(in srgb, var(--sec) 13%, transparent);
+  padding: .1rem .55rem; border-radius: 999px;
+}
+.meta-chip {
+  display: flex; flex-wrap: wrap; gap: .35rem .75rem; align-items: baseline;
+  padding: .65rem .9rem; margin: .75rem 0; border-radius: 10px; font-size: .93rem; line-height: 1.7;
+  background: color-mix(in srgb, var(--c, var(--sec)) 10%, transparent);
+  border-inline-start: 3px solid var(--c, var(--sec));
+}
+.chip-label { font-weight: 700; color: var(--c, var(--sec)); white-space: nowrap; }
+.chip-note { --c: #c27a14; }
+:root[data-theme="dark"] .chip-note { --c: #f0b45a; }
+.chip-goal, .chip-when { --c: #0e8f86; }
+:root[data-theme="dark"] .chip-goal, :root[data-theme="dark"] .chip-when { --c: #4fd1c5; }
+.chip-diff { --c: var(--sec); }
+
+/* ---------- code ---------- */
+.code-wrap { margin: .9rem 0 1.1rem; border-radius: 12px; overflow: hidden; background: #0f1420; border: 1px solid rgba(255,255,255,.08); direction: ltr; }
+.code-bar { display: flex; align-items: center; justify-content: space-between; padding: .35rem .5rem .35rem .9rem; background: #171d2c; border-bottom: 1px solid rgba(255,255,255,.07); }
+.code-bar .dots { display: flex; gap: .35rem; }
+.code-bar .dots i { width: .6rem; height: .6rem; border-radius: 50%; background: #3a4258; }
+.code-bar .lang { font: .75rem var(--font-mono); color: #8a94ad; margin-inline-start: .75rem; margin-inline-end: auto; }
+.copy { font: .78rem var(--font-ar); cursor: pointer; color: #c5cde3; background: transparent; border: 1px solid rgba(255,255,255,.16); border-radius: 7px; padding: .15rem .65rem; transition: background .2s, color .2s; }
+.copy:hover { background: rgba(255,255,255,.1); }
+.copy.done { color: #6ee7b7; border-color: #6ee7b7; }
+.code-block { font-family: var(--font-mono); font-size: .84rem; line-height: 1.65; color: #dbe2f3; padding: 1rem 1.1rem; margin: 0; overflow-x: auto; background: none; border: 0; tab-size: 4; }
+.code-block code { font-family: inherit; }
+.tk-k { color: #ff9ac1; } .tk-s { color: #9be29b; } .tk-c { color: #6f7a96; font-style: italic; }
+.tk-n { color: #ffcf7a; } .tk-f { color: #82b4ff; } .tk-d { color: #c9a6ff; }
+code.inline { font-family: var(--font-mono); font-size: .86em; background: var(--accent-soft); color: var(--accent); padding: .1em .4em; border-radius: 6px; direction: ltr; unicode-bidi: embed; }
+
+/* ---------- tables, flows ---------- */
+.table-wrap { overflow-x: auto; margin: 1rem 0 1.5rem; border-radius: 14px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: .93rem; background: var(--surface); }
+th, td { padding: .8rem 1rem; text-align: start; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+th { background: var(--surface-2); color: var(--ink); font-weight: 700; white-space: nowrap; }
+tbody tr { transition: background .15s; }
+tbody tr:hover { background: var(--accent-soft); }
+tbody td:first-child { font-weight: 600; }
+.order-flow, .integration-flow { list-style: none; margin: 1.25rem 0 1.5rem; padding: 0; position: relative; }
+.order-flow li, .integration-flow li {
+  position: relative; display: flex; gap: 1rem; align-items: flex-start; margin: 0; padding: 0 0 1.4rem;
+}
+.order-flow li:not(:last-child)::before, .integration-flow li:not(:last-child)::before {
+  content: ""; position: absolute; inset-inline-start: 1.05rem; inset-block: 2.3rem 0; width: 2px;
+  background: repeating-linear-gradient(to bottom, var(--sec) 0 5px, transparent 5px 10px); opacity: .5;
+}
+.order-flow li:last-child, .integration-flow li:last-child { padding-bottom: 0; }
+.step-num { flex: none; width: 2.1rem; height: 2.1rem; display: grid; place-items: center; background: var(--sec); color: #fff; font-weight: 700; font-size: .9rem; border-radius: 50%; box-shadow: 0 0 0 5px color-mix(in srgb, var(--sec) 16%, transparent); }
+.step-body { display: flex; flex-direction: column; gap: .15rem; }
+.step-detail { font-size: .88rem; color: var(--ink-muted); font-family: var(--font-mono); direction: ltr; text-align: start; unicode-bidi: embed; }
+.flow-diagram, .tree-diagram { margin: 1rem 0; padding: 1.1rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; text-align: center; font-family: var(--font-mono); font-size: .88rem; }
+.flow-node { display: inline-block; padding: .45rem .9rem; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; margin: .15rem 0; }
+.flow-node.accent { border-color: var(--sec); color: var(--sec); font-weight: 600; }
+.flow-arrow { color: var(--sec); line-height: 1.3; }
+.tree-branches { margin-top: .5rem; text-align: start; display: inline-block; }
+.tree-item { padding: .25rem 0; color: var(--ink-muted); }
+.route-diagram { font-family: var(--font-mono); font-size: .85rem; padding: .8rem 1rem; background: var(--surface-2); border-radius: 10px; margin: .75rem 0; direction: ltr; }
+.route-line { padding: .2rem 0; }
+.odoo-panel {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--sec) 12%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--sec) 40%, var(--border)); border-radius: 20px;
+  padding: 1.6rem 1.8rem 1.4rem; margin-top: 2rem;
+}
+ul, ol { margin: 0 0 1rem; padding-inline-start: 1.4rem; }
+li::marker { color: var(--sec); font-weight: 700; }
+.order-flow li::marker, .integration-flow li::marker { content: none; }
+#top { position: fixed; inset-block-end: 1.25rem; inset-inline-end: 1.25rem; z-index: 40; opacity: 0; pointer-events: none; translate: 0 10px; transition: opacity .25s, translate .25s; background: var(--surface); box-shadow: var(--shadow); }
+#top.show { opacity: 1; pointer-events: auto; translate: 0 0; }
+@keyframes rise { from { opacity: 0; translate: 0 16px; } }
+@keyframes drift { to { translate: 3rem 2rem; } }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  nav.toc { min-width: 0; z-index: 20; max-height: none; border-inline-end: 0; border-bottom: 1px solid var(--border); padding: .6rem 1rem; }
+  .toc-head { margin-bottom: .5rem; padding-bottom: .5rem; }
+  nav.toc ol { display: flex; gap: .3rem; overflow-x: auto; padding-bottom: .25rem; scrollbar-width: none; }
+  nav.toc li { flex: none; }
+  nav.toc a { white-space: nowrap; font-size: .82rem; padding: .35rem .7rem; }
+  main.content { padding-top: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+  <div id="progress"></div>
+  <div class="layout">
+    <nav class="toc" aria-label="أقسام المرجع"><div class="toc-head"><p class="toc-title">POEAA</p><button class="icon-btn" id="theme" type="button" aria-label="تبديل الوضع">☾</button></div><ol><li><a href="#intro">الخريطة</a></li><li><a href="#s1">Domain Logic</a></li><li><a href="#s2">Data Source</a></li><li><a href="#s3">OR Behavioral</a></li><li><a href="#s4">OR Structural</a></li><li><a href="#s5">OR Metadata</a></li><li><a href="#s6">Web Presentation</a></li><li><a href="#s7">Distribution</a></li><li><a href="#s8">Concurrency</a></li><li><a href="#s9">Session State</a></li><li><a href="#s10">Base Patterns</a></li><li><a href="#s11">مع بعض</a></li><li><a href="#s12">خريطة المراجعة</a></li><li><a href="#s13">Odoo & Python</a></li></ol></nav>
+    <main class="content">
+      <header class="page-header">
+<div class="grid-bg"></div>
+<h1>المرجع المنظم لـ Enterprise Application Patterns</h1>
+<p class="lead">خريطة عملية للأنماط اللي بتحدد فين تحط قواعد البزنس، وإزاي توصل للبيانات، وتدير الجلسات والتزامن — بأمثلة كود قصيرة.</p>
+<div class="stats"></div>
+<div class="toolbar">
+  <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="ابحث عن نمط أو كلمة…" aria-label="بحث في المرجع" autocomplete="off"><kbd>/</kbd></label>
+  <button class="btn" id="collapse-all" type="button">طي الكل</button>
+</div>
+<div id="result-count" aria-live="polite"></div>
+</header>
+<section id="intro" class="doc-section">
+<h2>أولًا: نفهم الخريطة قبل ما نحفظ أسماء الأنماط</h2>
+<p>تخيل إن العميل ضغط على زرار «تأكيد الطلب». العملية دي ممكن تمر بالمراحل التالية:</p>
+<ol class="order-flow">
+<li><span class="step-num">1</span><div class="step-body"><strong>استقبال الطلب</strong><span class="step-detail">Web Presentation — Controller</span></div></li>
+<li><span class="step-num">2</span><div class="step-body"><strong>تنسيق العملية</strong><span class="step-detail">Service Layer</span></div></li>
+<li><span class="step-num">3</span><div class="step-body"><strong>تطبيق قواعد البزنس</strong><span class="step-detail">Transaction Script أو Domain Model</span></div></li>
+<li><span class="step-num">4</span><div class="step-body"><strong>قراءة البيانات وكتابتها</strong><span class="step-detail">Repository / Data Mapper / Active Record</span></div></li>
+<li><span class="step-num">5</span><div class="step-body"><strong>إدارة التغييرات</strong><span class="step-detail">Unit of Work / Transaction / Concurrency Control</span></div></li>
+</ol>
+<p class="note-inline">دي خريطة توضيحية وليست معمارية إلزامية. مش كل تطبيق لازم يحتوي على كل المكونات دي، ومش كل Pattern عبارة عن Layer مستقلة.</p>
+<p>والأهم: الأنماط المذكورة في كتاب Patterns of Enterprise Application Architecture بتعالج مشكلات على مستويات مختلفة. هنفصل بينها بدل ما نعتبرها كلها بدائل لبعضها.</p>
+</section>
+<section id="s1" class="doc-section">
+<h2>1. Domain Logic Patterns — فين نحط قواعد البزنس؟</h2>
+<p>خلينا نفترض أن العميل بيشتري منتجًا، وعندنا قواعد مثل:</p>
+<ul>
+<li>مينفعش نبيع كمية أكبر من المتاح.</li>
+<li>فيه خصم للعملاء المميزين.</li>
+<li>إجمالي الطلب يساوي مجموع العناصر بعد الخصم.</li>
+</ul>
+<p>السؤال هنا: هنكتب القواعد دي فين؟</p>
+<article class="pattern-card" id="s1-1-1">
+<h3 class="pattern-title"><span class="pattern-num">1.1</span> Transaction Script</h3>
+<p class="pattern-idea">الفكرة: كل عملية أعمال لها إجراء واضح ينفذ خطواتها.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">def place_order(customer_id, product_id, quantity, repository):
+    product = repository.get_product(product_id)
+    if product.stock &lt; quantity:
+        raise ValueError(&quot;Insufficient stock&quot;)
+    total = product.price * quantity
+    order = {
+        &quot;customer_id&quot;: customer_id,
+        &quot;product_id&quot;: product_id,
+        &quot;quantity&quot;: quantity,
+        &quot;total&quot;: total,
+    }
+    repository.save_order(order)
+    repository.decrease_stock(product_id, quantity)
+    return order</code></pre>
+<p class="idea-lead">إيه اللي بيميزه؟</p>
+<p>المنطق موجود في الإجراء نفسه، والخطوات متسلسلة بوضوح.</p>
+<p>مناسب إمتى؟ لما تكون العمليات محددة وقواعد البزنس بسيطة نسبيًا.</p>
+<p>المشكلة المحتملة: لو عندك عشرات العمليات وقواعد متداخلة، ممكن تكرر نفس القواعد في أماكن مختلفة.</p>
+<div class="meta-chip chip-note"><span class="chip-label">ملحوظة</span><span class="chip-text">ملحوظة مهمة: الكود توضيحي؛ التنفيذ الإنتاجي محتاج Transaction مناسبة، والتحقق من المخزون وتحديثه بشكل آمن ضد الطلبات المتزامنة.</span></div>
+</article>
+<article class="pattern-card" id="s1-1-2">
+<h3 class="pattern-title"><span class="pattern-num">1.2</span> Domain Model</h3>
+<p class="pattern-idea">الفكرة: الكائنات نفسها تحمل بيانات المجال وسلوكه وقواعده.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class Order:
+    def __init__(self, items):
+        self.items = items
+        self.status = &quot;draft&quot;
+
+    def calculate_total(self):
+        return sum(
+            item.quantity * item.unit_price
+        for item in self.items
+        )
+
+    def confirm(self):
+        if not self.items:
+            raise ValueError(&quot;Cannot confirm an empty order&quot;)
+        if self.status != &quot;draft&quot;:
+            raise ValueError(&quot;Order is not in draft state&quot;)
+        self.status = &quot;confirmed&quot;</code></pre>
+<p>هنا <code class="inline">Order</code> مش مجرد مجموعة بيانات؛ هو كمان مسؤول عن قواعد تخص الطلب نفسه.</p>
+<div class="meta-chip chip-diff"><span class="chip-label">الفرق</span><span class="chip-text">الفرق عن Transaction Script: في الأول الإجراء هو مركز المنطق، وفي الثاني سلوك المجال موزع على كائنات المجال المناسبة.</span></div>
+<p>مش كل قاعدة لازم تتحط في <code class="inline">Order</code>؛ مثلًا التحقق من توفر المخزون قد يحتاج خدمة أو كائنًا آخر يتعامل مع مصدر المخزون.</p>
+</article>
+<article class="pattern-card" id="s1-1-3">
+<h3 class="pattern-title"><span class="pattern-num">1.3</span> Table Module</h3>
+<p class="pattern-idea">الفكرة: كائن واحد يحتوي على سلوك ومنطق أعمال مرتبط بصفوف جدول أو View كامل، بدل ما يكون عندك كائن مجال مستقل لكل سجل.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class OrdersTableModule:
+    def __init__(self, rows):
+        self.rows = rows
+
+    def total_for_customer(self, customer_id):
+        return sum(
+            row[&quot;total&quot;]
+        for row in self.rows
+        if row[&quot;customer_id&quot;] == customer_id
+        )</code></pre>
+<p>المثال بيوضح الفكرة بصورة مبسطة؛ تطبيق النمط الفعلي يكون فيه منطق مرتبط ببيانات الجدول، وليس مجرد استعلام واحد.</p>
+<p>مناسب إمتى؟ لما يكون نموذج البيانات قريبًا من الجداول، ومش محتاج Domain Model غني بكائنات مستقلة.</p>
+</article>
+<article class="pattern-card" id="s1-1-4">
+<h3 class="pattern-title"><span class="pattern-num">1.4</span> Service Layer</h3>
+<p class="pattern-idea">الفكرة: واجهة لعمليات التطبيق، تتولى تنسيق تنفيذ الـ use cases.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class OrderService:
+    def __init__(self, order_repository, payment_service):
+        self.order_repository = order_repository
+        self.payment_service = payment_service
+
+    def place_order(self, request):
+        order = self.build_order(request)
+        order.confirm()
+        self.order_repository.save(order)
+        return order
+
+    def build_order(self, request):
+        # Simplified example
+        ...</code></pre>
+<p><code class="inline">Service Layer</code> مش بديل مباشر لـ <code class="inline">Domain Model</code> أو <code class="inline">Transaction Script</code>؛ ممكن تستخدمها مع أي واحد منهم.</p>
+<p>دورها الأساسي تنسيق العملية والتعامل مع حدود التطبيق، بينما قواعد المجال تفضل في المكان المناسب لها.</p>
+</article>
+<h3>مقارنة القسم الأول</h3>
+<div class="table-wrap"><table><thead><tr><th>النمط</th><th>مكان التركيز الأساسي</th></tr></thead><tbody><tr><td>Transaction Script</td><td>إجراء ينفذ العملية</td></tr><tr><td>Domain Model</td><td>كائنات المجال وسلوكها</td></tr><tr><td>Table Module</td><td>منطق مرتبط بصفوف جدول</td></tr><tr><td>Service Layer</td><td>واجهة العمليات وتنسيقها</td></tr></tbody></table></div>
+</section>
+<section id="s2" class="doc-section">
+<h2>2. Data Source Architectural Patterns — إزاي نتعامل مع قاعدة البيانات؟</h2>
+<p>القسم ده مش بيسأل: «فين أحط قواعد البزنس؟»؛ هو بيسأل: إزاي أنظم الكود المسؤول عن الوصول إلى البيانات؟</p>
+<p>هنستخدم جدول <code class="inline">customers</code> كمثال.</p>
+<article class="pattern-card" id="s2-2-1">
+<h3 class="pattern-title"><span class="pattern-num">2.1</span> Table Data Gateway</h3>
+<p>كائن يوفر عمليات التعامل مع جدول كامل، زي البحث والإضافة والتعديل والحذف.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class CustomerTableGateway:
+    def __init__(self, db):
+        self.db = db
+
+    def find_by_email(self, email):
+        return self.db.fetch_one(
+            &quot;SELECT * FROM customers WHERE email = %s&quot;,
+            [email],
+        )
+
+    def insert(self, name, email):
+        return self.db.execute(
+            &quot;INSERT INTO customers (name, email) VALUES (%s, %s)&quot;,
+            [name, email],
+        )</code></pre>
+<p>لاحظ إن الكلاس مسؤول عن عمليات الجدول، مش بالضرورة عن تمثيل عميل واحد.</p>
+</article>
+<article class="pattern-card" id="s2-2-2">
+<h3 class="pattern-title"><span class="pattern-num">2.2</span> Row Data Gateway</h3>
+<p>هنا كل Gateway يمثل سجلًا معينًا، ويوفر عمليات الوصول إليه.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class CustomerRowGateway:
+    def __init__(self, customer_id, db):
+        self.customer_id = customer_id
+        self.db = db
+
+    def get_name(self):
+        row = self.db.fetch_one(
+            &quot;SELECT name FROM customers WHERE id = %s&quot;,
+            [self.customer_id],
+        )
+        return row[&quot;name&quot;] if row else None
+
+    def update_name(self, name):
+        self.db.execute(
+            &quot;UPDATE customers SET name = %s WHERE id = %s&quot;,
+            [name, self.customer_id],
+        )</code></pre>
+<div class="meta-chip chip-diff"><span class="chip-label">الفرق</span><span class="chip-text">الفرق الأساسي: <code class="inline">Table Data Gateway</code> يتعامل مع عمليات على مستوى الجدول، بينما <code class="inline">Row Data Gateway</code> يركز على سجل محدد.</span></div>
+</article>
+<article class="pattern-card" id="s2-2-3">
+<h3 class="pattern-title"><span class="pattern-num">2.3</span> Active Record</h3>
+<p>الكائن يمثل سجلًا من قاعدة البيانات، ويحتوي عادةً على عمليات حفظه وتعديله وحذفه.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class Customer:
+    def __init__(self, customer_id, name):
+        self.id = customer_id
+        self.name = name
+
+    def save(self, repository):
+        repository.update_customer(self.id, self.name)</code></pre>
+<p>المثال ده يوضح وجود سلوك للحفظ بجوار بيانات العميل، لكنه يستخدم Repository لتنفيذ التخزين؛ لذلك هو توضيح للفكرة وليس تطبيقًا حرفيًا كاملًا لـ Active Record.</p>
+<p>في Active Record الفعلي، الكائن نفسه يوفر عادةً واجهة مثل <code class="inline">save()</code> و<code class="inline">delete()</code> ويتولى تفاصيل الاستمرار عبر ORM أو آلية تخزين.</p>
+<p>مثال عملي: نمط Active Record معروف في Django ORM من خلال نماذج مثل <code class="inline">Customer.objects.create(...)</code>، مع ملاحظة أن Django Model لا يطابق النمط حرفيًا في كل تفاصيله.</p>
+</article>
+<article class="pattern-card" id="s2-2-4">
+<h3 class="pattern-title"><span class="pattern-num">2.4</span> Data Mapper</h3>
+<p>هنا بنفصل كائن المجال عن تفاصيل قاعدة البيانات، ونستخدم مكونًا يحول بينهما.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class Customer:
+    def __init__(self, customer_id, name):
+        self.id = customer_id
+        self.name = name
+
+
+class CustomerMapper:
+    def __init__(self, db):
+        self.db = db
+
+    def get_by_id(self, customer_id):
+        row = self.db.fetch_one(
+            &quot;SELECT id, name FROM customers WHERE id = %s&quot;,
+            [customer_id],
+        )
+        if row is None:
+            return None
+        return Customer(row[&quot;id&quot;], row[&quot;name&quot;])</code></pre>
+<p>هنا <code class="inline">Customer</code> لا يعرف SQL ولا يعرف كيف يتصل بقاعدة البيانات.</p>
+</article>
+<h3>الفرق اللي يهمك</h3>
+<div class="table-wrap"><table><thead><tr><th>النمط</th><th>السؤال اللي بيجاوب عنه</th></tr></thead><tbody><tr><td>Table Data Gateway</td><td>إزاي أنفذ عمليات على الجدول؟</td></tr><tr><td>Row Data Gateway</td><td>إزاي أتعامل مع سجل محدد؟</td></tr><tr><td>Active Record</td><td>إزاي الكائن يمثل السجل ويتولى استمراره؟</td></tr><tr><td>Data Mapper</td><td>إزاي أفصل كائن المجال عن تفاصيل التخزين؟</td></tr></tbody></table></div>
+<p>خد بالك: <code class="inline">Table Module</code> من القسم الأول مختلف عن <code class="inline">Table Data Gateway</code>. الأول يهتم بمنطق الأعمال المرتبط بصفوف الجدول، والثاني يهتم بعمليات الوصول للبيانات.</p>
+</section>
+<section id="s3" class="doc-section">
+<h2>3. Object-Relational Behavioral Patterns — إدارة تحميل وحفظ الكائنات</h2>
+<p>هنا بنتكلم عن السلوك الناتج عن التعامل مع كائنات موجودة في الذاكرة ومربوطة بقاعدة بيانات علائقية.</p>
+<article class="pattern-card" id="s3-3-1">
+<h3 class="pattern-title"><span class="pattern-num">3.1</span> Unit of Work</h3>
+<div class="meta-chip chip-problem"><span class="chip-label">المشكلة</span><span class="chip-text">المشكلة: أثناء تنفيذ عملية واحدة، ممكن تعدل عميلًا، وتنشئ طلبًا، وتعدل بيانات المخزون.</span></div>
+<p>بدل ما يكون كل كائن مسؤولًا عن الحفظ بشكل مستقل، يمكن استخدام <code class="inline">Unit of Work</code> لمتابعة التغييرات وتنسيق كتابتها.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class UnitOfWork:
+    def __init__(self, db):
+        self.db = db
+        self.new_objects = []
+        self.dirty_objects = []
+        self.deleted_objects = []
+
+    def register_new(self, obj):
+        self.new_objects.append(obj)
+
+    def register_dirty(self, obj):
+        self.dirty_objects.append(obj)
+
+    def register_deleted(self, obj):
+        self.deleted_objects.append(obj)
+
+    def commit(self):
+        with self.db.transaction():
+            for obj in self.new_objects:
+                obj.insert(self.db)
+            for obj in self.dirty_objects:
+                obj.update(self.db)
+            for obj in self.deleted_objects:
+                obj.delete(self.db)</code></pre>
+<p>ده هيكل توضيحي، مش تنفيذ كامل؛ مثلًا محتاج معالجة لإعادة المحاولة بعد الفشل، ومنع التكرار، وإدارة حالة الكائنات.</p>
+<p>النقطة الدقيقة: <code class="inline">Unit of Work</code> لا يعني بالضرورة أن كل التغييرات تُكتب باستعلام SQL واحد. ممكن ينفذ استعلامات كثيرة داخل Transaction واحدة.</p>
+</article>
+<article class="pattern-card" id="s3-3-2">
+<h3 class="pattern-title"><span class="pattern-num">3.2</span> Identity Map</h3>
+<div class="meta-chip chip-problem"><span class="chip-label">المشكلة</span><span class="chip-text">المشكلة: لو جبت العميل رقم 5 مرتين داخل سياق العمل نفسه، ممكن ينتهي بك الأمر بنسختين من كائن العميل، كل نسخة فيها قيم مختلفة.</span></div>
+<p>الحل: خريطة تربط هوية الكائن بنسخة واحدة داخل السياق.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class CustomerIdentityMap:
+    def __init__(self):
+        self._objects = {}
+
+    def get(self, customer_id):
+        return self._objects.get(customer_id)
+
+    def add(self, customer):
+        self._objects[customer.id] = customer</code></pre>
+<div class="meta-chip chip-usage"><span class="chip-label">الاستخدام</span><span class="chip-text">الاستخدام:</span></div>
+<pre class="code-block" dir="ltr"><code class="language-python">customer = identity_map.get(5)
+if customer is None:
+    customer = mapper.get_by_id(5)
+    if customer is not None:
+        identity_map.add(customer)</code></pre>
+<div class="meta-chip chip-goal"><span class="chip-label">الهدف</span><span class="chip-text">الهدف الأساسي هنا اتساق هوية الكائن داخل السياق، وليس مجرد تسريع الاستعلامات.</span></div>
+<p>وده قريب من الفكرة التي يعتمد عليها ORM عند الاحتفاظ بكائنات محمّلة داخل جلسة أو سياق عمل، مع اختلاف تفاصيل التنفيذ بين الأطر.</p>
+</article>
+<article class="pattern-card" id="s3-3-3">
+<h3 class="pattern-title"><span class="pattern-num">3.3</span> Lazy Load</h3>
+<div class="meta-chip chip-problem"><span class="chip-label">المشكلة</span><span class="chip-text">المشكلة: العميل عنده آلاف الطلبات، لكن الشاشة الحالية محتاجة اسمه فقط.</span></div>
+<p>بدل تحميل كل الطلبات من البداية، نؤجل تحميلها حتى تحتاجها.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class Customer:
+    def __init__(self, customer_id, order_loader):
+        self.id = customer_id
+        self._order_loader = order_loader
+        self._orders = None
+
+    @property
+    def orders(self):
+        if self._orders is None:
+            self._orders = self._order_loader(self.id)
+        return self._orders</code></pre>
+<p>عند أول وصول إلى <code class="inline">customer.orders</code>، يتم التحميل، وبعدها يحتفظ المثال بالنتيجة داخل الكائن.</p>
+<p>لكن خلي بالك من حاجتين:</p>
+<ul>
+<li>ده مثال يدوي، بينما ORM قد يستخدم Proxy أو آلية أخرى لتنفيذ Lazy Loading.</li>
+<li>لو كررت الوصول لعلاقات كثيرة داخل Loop، ممكن تقع في مشكلة <code class="inline">N+1 Queries</code>.</li>
+</ul>
+</article>
+<h3>الفرق بينهم</h3>
+<ul>
+<li><code class="inline">Unit of Work</code>: يتابع التغييرات وينسق حفظها.</li>
+<li><code class="inline">Identity Map</code>: يحافظ على نسخة الكائن المرتبطة بهويته داخل السياق.</li>
+<li><code class="inline">Lazy Load</code>: يؤجل تحميل البيانات حتى الحاجة إليها.</li>
+</ul>
+<p>التلاتة ممكن يعملوا مع بعض في ORM واحد، لأن كل واحد بيحل مشكلة مختلفة.</p>
+</section>
+<section id="s4" class="doc-section">
+<h2>4. Object-Relational Structural Patterns — إزاي نمثل الكائنات في الجداول؟</h2>
+<p>هنا بنحدد طريقة الربط بين نموذج الكائنات ونموذج قاعدة البيانات.</p>
+<article class="pattern-card" id="s4-4-1">
+<h3 class="pattern-title"><span class="pattern-num">4.1</span> Identity Field</h3>
+<p>كل كائن يحتاج هوية مستقرة يمكن ربطها بسجل قاعدة البيانات.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class Customer:
+    def __init__(self, customer_id, name):
+        self.id = customer_id
+        self.name = name</code></pre>
+<p>الخاصية <code class="inline">id</code> هنا بتمثل هوية العميل في التخزين.</p>
+</article>
+<article class="pattern-card" id="s4-4-2">
+<h3 class="pattern-title"><span class="pattern-num">4.2</span> Foreign Key Mapping</h3>
+<p>علاقة كائن بكائن آخر من خلال Foreign Key.</p>
+<pre class="code-block" dir="ltr"><code class="language-sql">CREATE TABLE customers (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE orders (
+    id INTEGER PRIMARY KEY,
+    customer_id INTEGER NOT NULL REFERENCES customers(id)
+);</code></pre>
+<p>كل طلب مرتبط بعميل من خلال <code class="inline">customer_id</code>.</p>
+</article>
+<article class="pattern-card" id="s4-4-3">
+<h3 class="pattern-title"><span class="pattern-num">4.3</span> Association Table Mapping</h3>
+<p>لعلاقة Many-to-Many، نستخدم جدولًا وسيطًا.</p>
+<pre class="code-block" dir="ltr"><code class="language-sql">CREATE TABLE student_courses (
+    student_id INTEGER REFERENCES students(id),
+    course_id INTEGER REFERENCES courses(id),
+    PRIMARY KEY (student_id, course_id)
+);</code></pre>
+<p>الطالب ممكن يشترك في كورسات كثيرة، والكورس ممكن يكون فيه طلاب كثيرون.</p>
+</article>
+<article class="pattern-card" id="s4-4-4">
+<h3 class="pattern-title"><span class="pattern-num">4.4</span> Dependent Mapping</h3>
+<p>ده نمط مهم ومعناه أدق من مجرد إن الكائن الابن تابع للأب.</p>
+<p class="pattern-idea">الفكرة: مسؤولية حفظ الكائن التابع تُدار من خلال Mapping الكائن الأب.</p>
+<p>مثلًا، لما تحفظ <code class="inline">Order</code>، يقوم الـ Mapper الخاص بالطلب بحفظ <code class="inline">OrderItem</code> المرتبط به، بدل ما يحتاج كل عنصر طلب إلى مسار حفظ مستقل.</p>
+<p>ده مختلف عن مجرد وجود Foreign Key أو قاعدة <code class="inline">ON DELETE CASCADE</code>؛ فالأخيرة آلية في قاعدة البيانات، بينما Dependent Mapping يصف مسؤولية الـ Mapping.</p>
+</article>
+<article class="pattern-card" id="s4-4-5">
+<h3 class="pattern-title"><span class="pattern-num">4.5</span> Embedded Value</h3>
+<p>عندك قيمة مركبة مثل العنوان، وتريد تخزينها داخل صف العميل بدل جدول مستقل.</p>
+<pre class="code-block" dir="ltr"><code class="language-sql">CREATE TABLE customers (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    address_street TEXT,
+    address_city TEXT,
+    address_country TEXT
+);</code></pre>
+<p>ده مناسب لو العنوان جزء من بيانات العميل ولا تحتاج إلى إدارته ككيان مستقل. لكن لو العنوان يُشارك بين كيانات، أو يحتاج دورة حياة مستقلة، فقد يكون جدولًا منفصلًا أنسب.</p>
+</article>
+<article class="pattern-card" id="s4-4-6">
+<h3 class="pattern-title"><span class="pattern-num">4.6</span> Serialized LOB</h3>
+<p>بدل تحويل كل تفاصيل كائن معقد إلى أعمدة منفصلة، يمكن تسلسل بياناته في حقل واحد.</p>
+<pre class="code-block" dir="ltr"><code class="language-json">{
+  &quot;theme&quot;: &quot;dark&quot;,
+  &quot;language&quot;: &quot;ar&quot;,
+  &quot;notifications&quot;: true
+}</code></pre>
+<p>ممكن تخزنها في عمود JSON أو حقل نصي كبير.</p>
+<p>لكن التخزين بهذه الطريقة له ثمن: الاستعلام عن الحقول الداخلية وفرض القيود عليها قد يصبح أصعب، بحسب نوع قاعدة البيانات وتصميم التخزين.</p>
+</article>
+<article class="pattern-card" id="s4-4-7">
+<h3 class="pattern-title"><span class="pattern-num">4.7</span> أنماط Mapping للوراثة</h3>
+<p>تخيل عندك <code class="inline">Product</code>، وتحته <code class="inline">Book</code> و<code class="inline">Movie</code>.</p>
+</article>
+<h3>Single Table Inheritance</h3>
+<p>جدول واحد لكل الأنواع</p>
+<p><code class="inline">products(id, type, name, author, director)</code></p>
+<p>مناسب لما تحب تبسط عمليات القراءة، لكن قد يحتوي الجدول على أعمدة غير مستخدمة لكل نوع.</p>
+<h3>Class Table Inheritance</h3>
+<p>جدول للأب وجداول للأنواع الفرعية</p>
+<p><code class="inline">products(id, name)</code>، و<code class="inline">books(id, author)</code>، و<code class="inline">movies(id, director)</code>.</p>
+<p>يفصل بيانات كل نوع، لكن قراءة كائن فرعي قد تتطلب JOIN.</p>
+<h3>Concrete Table Inheritance</h3>
+<p>جدول مستقل لكل نوع نهائي</p>
+<p><code class="inline">books(id, name, author)</code>، و<code class="inline">movies(id, name, director)</code>.</p>
+<p>قد يكرر الأعمدة المشتركة، ويجعل الاستعلام الموحد عن كل المنتجات أصعب.</p>
+<p>مفيش اختيار أفضل في كل الحالات؛ الاختيار يعتمد على شكل البيانات، وطبيعة الاستعلامات، وقيود قاعدة البيانات والـ ORM.</p>
+</section>
+<section id="s5" class="doc-section">
+<h2>5. Object-Relational Metadata Mapping Patterns — وصف الـ Mapping وإدارة الوصول للكائنات</h2>
+<p>الفكرة هنا إنك بدل ما تكتب تفاصيل تحويل كل كائن لجدول في أماكن متفرقة، يكون عندك وصف واضح للعلاقة بين نموذج المجال والتخزين، وواجهات مناسبة للوصول إلى الكائنات.</p>
+<article class="pattern-card" id="s5-5-1">
+<h3 class="pattern-title"><span class="pattern-num">5.1</span> Metadata Mapping</h3>
+<p>بدل ما تكتب SQL وتحويل البيانات يدويًا لكل كلاس، تصف الـ Mapping باستخدام Annotations أو XML أو إعدادات Fluent.</p>
+<p>مثلًا في SQLAlchemy:</p>
+<pre class="code-block" dir="ltr"><code class="language-python">from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import String
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+class Customer(Base):
+    __tablename__ = &quot;customers&quot;
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))</code></pre>
+<p>الـ ORM يقرأ الـ metadata ويفهم إن <code class="inline">Customer</code> مرتبط بجدول <code class="inline">customers</code>، وإن <code class="inline">id</code> مفتاح أساسي.</p>
+<div class="meta-chip chip-note"><span class="chip-label">ملحوظة</span><span class="chip-text">ملحوظة: Metadata Mapping يصف طريقة الربط، لكنه لا يفرض عليك استخدام Domain Model أو Active Record؛ دي قرارات منفصلة نسبيًا.</span></div>
+</article>
+<article class="pattern-card" id="s5-5-2">
+<h3 class="pattern-title"><span class="pattern-num">5.2</span> Query Object</h3>
+<p>الفكرة إنك تمثل الاستعلام نفسه في كائن مستقل، بدل ما يكون مجرد String مبعثر في الكود.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class PendingOrdersQuery:
+    def __init__(self, customer_id):
+        self.customer_id = customer_id
+
+    def execute(self, db):
+        return db.fetch_all(
+            &quot;&quot;&quot;
+            SELECT id, total
+            FROM orders
+            WHERE customer_id = %s
+              AND status = %s
+            &quot;&quot;&quot;,
+            [self.customer_id, &quot;pending&quot;],
+        )</code></pre>
+<p>الكائن هنا يمثل استعلامًا محددًا وقابلًا لإعادة الاستخدام.</p>
+<p>لكن مش كل كلاس اسمه <code class="inline">Query</code> هو بالضرورة تطبيق مميز للنمط، ومش كل استخدام لـ <code class="inline">filter()</code> في ORM يعني أنك تستخدم Query Object.</p>
+</article>
+<article class="pattern-card" id="s5-5-3">
+<h3 class="pattern-title"><span class="pattern-num">5.3</span> Repository</h3>
+<p>ده النمط الناقص من المرجع الأصلي الذي لازم نضيفه.</p>
+<p class="pattern-idea">الفكرة: توفير واجهة تشبه مجموعة من كائنات المجال، بحيث يتعامل المستهلك مع الكائنات بدل ما يعرف تفاصيل SQL أو الجداول.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class OrderRepository:
+    def get_by_id(self, order_id):
+        ...
+
+    def add(self, order):
+        ...
+
+    def find_pending(self):
+        ...</code></pre>
+<p>المستهلك يطلب طلبًا أو مجموعة طلبات، بينما التنفيذ يتولى طريقة الاسترجاع والحفظ.</p>
+<div class="meta-chip chip-diff"><span class="chip-label">الفرق</span><span class="chip-text">الفرق عن <code class="inline">Data Mapper</code>:</span></div>
+<ul>
+<li><code class="inline">Repository</code> ينظم واجهة الوصول إلى كائنات المجال.</li>
+<li><code class="inline">Data Mapper</code> يحول بين كائنات المجال وتمثيلها في مصدر البيانات.</li>
+</ul>
+<p>ممكن تستخدم Repository يعتمد على Data Mapper داخليًا.</p>
+<div class="meta-chip chip-when"><span class="chip-label">متى</span><span class="chip-text">إمتى تحتاج Repository؟ لما تحب تفصل منطق التطبيق عن تفاصيل الاستعلامات والتخزين، خصوصًا لو عندك Domain Model واضح. لكنه مش مطلوب تلقائيًا فوق كل ORM.</span></div>
+</article>
+</section>
+<section id="s6" class="doc-section">
+<h2>6. Web Presentation Patterns — استقبال الطلبات وعرض النتائج</h2>
+<p>القسم ده يخص كيفية التعامل مع طلبات المستخدم، وتنسيق البيانات، وإنتاج الواجهة.</p>
+<article class="pattern-card" id="s6-6-1">
+<h3 class="pattern-title"><span class="pattern-num">6.1</span> Model–View–Controller (MVC)</h3>
+<ul>
+<li>Model: البيانات وسلوك المجال أو نموذج التطبيق، حسب الإطار.</li>
+<li>View: تمثيل النتيجة للمستخدم.</li>
+<li>Controller: يستقبل التفاعل أو الطلب، ويحدد كيفية تنسيق الاستجابة.</li>
+</ul>
+<p>مثلًا، عند عرض منتج:</p>
+
+<div class="flow-diagram" dir="ltr">
+  <div class="flow-node">HTTP Request</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-node accent">Product Controller</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-node">Application / Model</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-node">Product View</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-node">HTTP Response</div>
+</div>
+<p>الـ MVC لا يحدد وحده أين يجب أن توجد كل قاعدة أعمال، ولا يعني أن أي كود داخل Controller خطأ؛ المهم مسؤولية الكود وتعقيده. لكن وضع كل قواعد البزنس داخل Controllers يجعل فصلها وإعادة استخدامها واختبارها أصعب غالبًا.</p>
+</article>
+<article class="pattern-card" id="s6-6-2">
+<h3 class="pattern-title"><span class="pattern-num">6.2</span> Page Controller</h3>
+<p>كل صفحة أو إجراء له معالج خاص به.</p>
+<p>مثلًا:</p>
+<div class="route-diagram" dir="ltr"><div class="route-line">GET /products/10  -&gt; ProductPageController</div><div class="route-line">GET /cart         -&gt; CartPageController</div><div class="route-line">POST /checkout    -&gt; CheckoutController</div></div>
+<p>المعالج هنا مسؤول عن طلب محدد أو صفحة محددة.</p>
+</article>
+<article class="pattern-card" id="s6-6-3">
+<h3 class="pattern-title"><span class="pattern-num">6.3</span> Front Controller</h3>
+<p>بدل ما يكون لكل طلب مدخل مستقل إلى النظام، تمر الطلبات عبر نقطة دخول مركزية، ثم يجري توجيهها للمعالج المناسب.</p>
+
+<div class="tree-diagram" dir="ltr">
+  <div class="flow-node">Requests</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-node accent">Front Controller</div>
+  <div class="tree-branches">
+    <div class="tree-item">→ Product Handler</div>
+    <div class="tree-item">→ Cart Handler</div>
+    <div class="tree-item">→ Checkout Handler</div>
+  </div>
+</div>
+<p>في كثير من تطبيقات الويب، يوجد Front Controller ضمن بنية الإطار نفسه، مثل آليات التوجيه المركزية.</p>
+<div class="meta-chip chip-diff"><span class="chip-label">الفرق</span><span class="chip-text">الفرق: <code class="inline">Front Controller</code> يركز على المدخل المركزي، بينما <code class="inline">Page Controller</code> يركز على معالج صفحة أو إجراء محدد.</span></div>
+</article>
+<article class="pattern-card" id="s6-6-4">
+<h3 class="pattern-title"><span class="pattern-num">6.4</span> Template View</h3>
+<p>قالب يحتوي على هيكل العرض وأماكن تُملأ ببيانات متغيرة.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">&lt;h1&gt;{{ product.name }}&lt;/h1&gt;
+&lt;p&gt;{{ product.price }}&lt;/p&gt;</code></pre>
+<p>القالب مسؤول عن إخراج العرض، وليس عن تنفيذ دورة الشراء بالكامل.</p>
+</article>
+<article class="pattern-card" id="s6-6-5">
+<h3 class="pattern-title"><span class="pattern-num">6.5</span> Transform View</h3>
+<p>عرض يحول بيانات المجال إلى صيغة العرض المطلوبة، مثل HTML.</p>
+<p>المهم في النمط هو التحويل من نموذج بيانات إلى تمثيل مناسب للعرض؛ استخدام XSLT لتحويل XML إلى HTML مجرد مثال ممكن.</p>
+</article>
+<article class="pattern-card" id="s6-6-6">
+<h3 class="pattern-title"><span class="pattern-num">6.6</span> Two Step View</h3>
+<p>إنتاج العرض يتم على مرحلتين:</p>
+<ol>
+<li>تحويل البيانات إلى تمثيل منطقي خاص بالصفحة.</li>
+<li>تحويل هذا التمثيل إلى HTML النهائي، مع تطبيق الشكل العام المشترك.</li>
+</ol>
+<p>ده يساعد على توحيد شكل الصفحات، لكن مش معناه بالضرورة إن كل مشروع يستخدم Layout وHeader وFooter يطبق النمط حرفيًا.</p>
+</article>
+<article class="pattern-card" id="s6-6-7">
+<h3 class="pattern-title"><span class="pattern-num">6.7</span> Application Controller</h3>
+<p>يتولى تنسيق تدفق إجراءات التطبيق، خاصة عندما تكون العملية متعددة الخطوات أو تحتاج قواعد تحدد الخطوة التالية.</p>
+<p>مثلًا:</p>
+
+<div class="flow-diagram" dir="ltr">
+  <div class="flow-node">Cart</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-node">Address</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-node">Payment</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-node accent">Confirmation</div>
+</div>
+<p>قد يحدد النظام إن العميل يرجع إلى العنوان إذا فشل التحقق، أو ينتقل للدفع إذا اكتملت البيانات.</p>
+<p>الـ Application Controller هنا مختلف عن Controller في MVC: الأول يركز على تنسيق تدفق التطبيق، والثاني على معالجة الطلبات والتفاعل مع النموذج والعرض.</p>
+</article>
+</section>
+<section id="s7" class="doc-section">
+<h2>7. Distribution Patterns — التواصل بين العمليات والخدمات</h2>
+<p>المشكلة هنا مش مجرد تنظيم الكود داخل التطبيق؛ بل تكلفة الاتصال عبر الشبكة بين عمليات مستقلة.</p>
+<article class="pattern-card" id="s7-7-1">
+<h3 class="pattern-title"><span class="pattern-num">7.1</span> Remote Facade</h3>
+<p>تخيل إن تطبيق الموبايل محتاج بيانات لوحة تحكم العميل.</p>
+<p>بدل عدة استدعاءات:</p>
+<pre class="diagram-fallback" dir="ltr">GET /customer/5
+GET /customer/5/orders
+GET /customer/5/payments</pre>
+<p>ممكن توفر عملية أكبر:</p>
+<pre class="diagram-fallback" dir="ltr">GET /customer/5/dashboard</pre>
+<p>العملية الثانية ترجع البيانات المطلوبة في استدعاء واحد، لو ده مناسب لطبيعة الاستخدام.</p>
+<div class="meta-chip chip-goal"><span class="chip-label">الفائدة</span><span class="chip-text">الفائدة: تقليل عدد الاستدعاءات البعيدة، وتقديم واجهة مناسبة للعميل.</span></div>
+<p>لكن مش معنى كده إننا نجمع كل شيء في Endpoint واحد ضخم؛ لازم نحافظ على حجم الاستجابة، والصلاحيات، والاعتمادية، واحتياجات كل عميل.</p>
+</article>
+<article class="pattern-card" id="s7-7-2">
+<h3 class="pattern-title"><span class="pattern-num">7.2</span> Data Transfer Object (DTO)</h3>
+<p>كائن مخصص لنقل البيانات بين حدود التطبيق أو العمليات.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">from dataclasses import dataclass
+from decimal import Decimal
+
+@dataclass
+
+class OrderDTO:
+    id: int
+    total: Decimal
+    status: str</code></pre>
+<p>الـ DTO هنا لا يحتاج إلى معرفة كيفية حفظ الطلب في قاعدة البيانات.</p>
+<div class="meta-chip chip-diff"><span class="chip-label">الفرق</span><span class="chip-text">الفرق المهم: الـ DTO ليس هو الـ Domain Model نفسه بالضرورة. ممكن يكون الـ Domain Model غنيًا بالسلوك، بينما DTO يحتوي فقط على البيانات المطلوبة للتواصل.</span></div>
+<p>ووجود DTO لا يعني أنك تحتاج Remote Facade؛ ممكن تستخدم DTO وحده، وممكن تستخدم الاثنين معًا.</p>
+</article>
+</section>
+<section id="s8" class="doc-section">
+<h2>8. Offline Concurrency Patterns — التعامل مع التعارضات</h2>
+<p>هنفترض إن موظفًا فتح طلبًا لتعديله، وفي نفس الوقت موظف آخر عدّل الطلب وحفظه.</p>
+<div class="meta-chip chip-problem"><span class="chip-label">المشكلة</span><span class="chip-text">المشكلة: إزاي نمنع ضياع التعديلات أو تضاربها؟</span></div>
+<article class="pattern-card" id="s8-8-1">
+<h3 class="pattern-title"><span class="pattern-num">8.1</span> Optimistic Offline Lock</h3>
+<p>لا نحجز السجل من البداية. نسمح بالعمل، ثم نتحقق عند الحفظ إن البيانات لم تتغير بطريقة تتعارض مع التعديل.</p>
+<p>مثلًا، جدول الطلبات يحتوي على <code class="inline">version</code>:</p>
+<pre class="code-block" dir="ltr"><code class="language-sql">UPDATE orders
+SET total = 150, version = version + 1
+WHERE id = 10 AND version = 3;</code></pre>
+<p>لو عدد الصفوف المتأثرة صفر، فقد يكون سجل الطلب غير موجود أو أن الإصدار تغير، وبالتالي نحتاج إلى التحقق من السبب والتعامل مع التعارض.</p>
+</article>
+<article class="pattern-card" id="s8-8-2">
+<h3 class="pattern-title"><span class="pattern-num">8.2</span> Pessimistic Offline Lock</h3>
+<p>نحجز البيانات منطقيًا لفترة العمل، بحيث لا تسمح العملية لمستخدم آخر بإجراء تعديل متعارض قبل تحرير الحجز.</p>
+<p>قد تحتاج إلى تخزين:</p>
+<ul>
+<li>هوية صاحب الحجز.</li>
+<li>وقت انتهاء الحجز.</li>
+<li>طريقة تحريره عند الإلغاء أو الفشل.</li>
+</ul>
+<p>وده ليس بالضرورة نفس قفل الصف داخل PostgreSQL؛ لأن قفل قاعدة البيانات عادةً ينتهي مع الـ Transaction، بينما حجز الأعمال قد يمتد لفترة أطول.</p>
+</article>
+<article class="pattern-card" id="s8-8-3">
+<h3 class="pattern-title"><span class="pattern-num">8.3</span> Coarse-Grained Lock</h3>
+<p>بدل حجز كل كائن صغير بشكل مستقل، نحجز مجموعة مترابطة من الكائنات كأنها وحدة واحدة.</p>
+<p>مثلًا، تعديل طلب معين قد يتطلب حجز الطلب نفسه وبعض البيانات التابعة له.</p>
+</article>
+<article class="pattern-card" id="s8-8-4">
+<h3 class="pattern-title"><span class="pattern-num">8.4</span> Implicit Lock</h3>
+<p>بدل ما يطلب كل جزء من التطبيق الحجز يدويًا، تتولى طبقة مشتركة أو إطار العمل تطبيق سياسة الأقفال تلقائيًا.</p>
+<p>مقارنة سريعة:</p>
+</article>
+<div class="table-wrap"><table><thead><tr><th>النمط</th><th>الاستراتيجية</th></tr></thead><tbody><tr><td>Optimistic</td><td>اكتشاف التعارض عند إتمام العملية</td></tr><tr><td>Pessimistic</td><td>منع التعديل المتعارض عن طريق حجز مسبق</td></tr><tr><td>Coarse-Grained</td><td>حجز مجموعة مترابطة كوحدة</td></tr><tr><td>Implicit</td><td>إخفاء تفاصيل تطبيق القفل خلف آلية مشتركة</td></tr></tbody></table></div>
+<p>اختيار النمط يعتمد على احتمال التعارض، وتكلفة الفشل، وطول العملية. ومهم جدًا عدم الخلط بين هذه الأنماط وبين مستويات العزل في قواعد البيانات؛ فهما مفهومان مرتبطان لكنهما ليسا الشيء نفسه.</p>
+</section>
+<section id="s9" class="doc-section">
+<h2>9. Session State Patterns — أين تعيش حالة المستخدم؟</h2>
+<p>خلينا نفصل بين ثلاثة أشياء مختلفة:</p>
+<ol>
+<li>Authentication: مين المستخدم؟</li>
+<li>Session State: إيه الحالة المرتبطة بجلسة استخدامه؟</li>
+<li>Persistent Business Data: إيه البيانات الدائمة مثل سلة محفوظة أو طلب مؤكد؟</li>
+</ol>
+<p>الأنماط الثلاثة هنا بتتكلم عن مكان تخزين حالة الجلسة.</p>
+<article class="pattern-card" id="s9-9-1">
+<h3 class="pattern-title"><span class="pattern-num">9.1</span> Client Session State</h3>
+<p>الحالة محفوظة عند العميل.</p>
+<p>مثال: بعض تفضيلات العرض أو بيانات مؤقتة غير حساسة في المتصفح.</p>
+<p>لكن البيانات الموجودة في المتصفح يمكن تعديلها من العميل، ولذلك لا تعتمد عليها وحدها في حساب السعر أو تقرير صلاحية عملية شراء.</p>
+</article>
+<article class="pattern-card" id="s9-9-2">
+<h3 class="pattern-title"><span class="pattern-num">9.2</span> Server Session State</h3>
+<p>الحالة محفوظة على السيرفر، والعميل يحتفظ عادةً بمعرف جلسة يشير إليها.</p>
+<p>مثال:</p>
+
+<div class="flow-diagram session-diagram" dir="ltr">
+  <div class="flow-node">Browser Cookie: session_id=abc123</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-node">Server</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-node accent">Redis Session</div>
+</div>
+<p>ميزة ده إن البيانات الفعلية تظل تحت تحكم السيرفر، لكنك تحتاج لإدارة انتهاء الجلسة، والتخزين المشترك بين الخوادم عند التوسع، وحماية معرف الجلسة.</p>
+</article>
+<article class="pattern-card" id="s9-9-3">
+<h3 class="pattern-title"><span class="pattern-num">9.3</span> Database Session State</h3>
+<p>حالة الجلسة تُخزن في قاعدة بيانات، بحيث يمكن الاحتفاظ بها واسترجاعها عبر عمليات تشغيل مختلفة وفقًا لسياسة الاحتفاظ.</p>
+<p>لكن ليس كل سجل محفوظ في قاعدة البيانات هو Session State؛ مثلًا سلة مشتريات محفوظة ككيان دائم قد تكون جزءًا من بيانات المجال.</p>
+<p>وJWT؟ هو Token يمكن أن يحمل معلومات عن الهوية والصلاحيات، لكنه لا يمثل تلقائيًا أيًا من أنماط تخزين حالة الجلسة الثلاثة.</p>
+</article>
+</section>
+<section id="s10" class="doc-section">
+<h2>10. Base Patterns — الأنماط الأساسية اللي بتتكرر في أكتر من مكان</h2>
+<p>القسم ده مهم لأنه يحتوي على مفاهيم بتستخدمها في تطبيقات Enterprise مختلفة، مش مجرد أنماط تخص الداتابيز أو الويب.</p>
+<article class="pattern-card" id="s10-10-1">
+<h3 class="pattern-title"><span class="pattern-num">10.1</span> Gateway</h3>
+<p>كائن يغلف طريقة التعامل مع نظام خارجي أو مورد معقد.</p>
+<p>مثال: عندك بوابة دفع خارجية، وعايز باقي التطبيق يتعامل مع واجهة بسيطة بدل تفاصيل HTTP وAPI Keys وصيغ الطلبات.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class PaymentGateway:
+    def charge(self, amount, payment_token):
+        # Call external payment provider
+        ...</code></pre>
+<div class="meta-chip chip-goal"><span class="chip-label">الهدف</span><span class="chip-text">الهدف هو عزل تفاصيل التواصل مع الطرف الخارجي عن بقية التطبيق.</span></div>
+</article>
+<article class="pattern-card" id="s10-10-2">
+<h3 class="pattern-title"><span class="pattern-num">10.2</span> Service Stub</h3>
+<p>بديل مبسط لخدمة حقيقية أثناء الاختبار.</p>
+<p>مثلًا، بدل ما تتصل ببوابة دفع فعلية كل مرة، تستخدم Stub يرجع نتيجة نجاح أو فشل متوقعة.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">class FakePaymentGateway:
+    def charge(self, amount, payment_token):
+        return {&quot;status&quot;: &quot;success&quot;}</code></pre>
+<p>ده مثال أقرب إلى Fake Test Double، بينما <code class="inline">Service Stub</code> بالمعنى الدقيق يوفر بديلًا مبسطًا لاستدعاء خدمة. المهم إنك لا تعتمد على الخدمة الخارجية في كل اختبار.</p>
+</article>
+<article class="pattern-card" id="s10-10-3">
+<h3 class="pattern-title"><span class="pattern-num">10.3</span> Mapper</h3>
+<p>مكون ينقل البيانات بين كائنين أو نموذجين مختلفين من غير ما يجعل كل واحد منهما مسؤولًا عن معرفة تفاصيل الآخر.</p>
+<p>مثال: تحويل بيانات API إلى كائن داخلي في التطبيق.</p>
+<pre class="code-block" dir="ltr"><code class="language-python">def to_customer_dto(customer):
+    return {
+        &quot;id&quot;: customer.id,
+        &quot;display_name&quot;: customer.name,
+    }</code></pre>
+<p>ده مثال على وظيفة تحويل بسيطة؛ الـ Mapper كنمط أوسع قد يتعامل مع نماذج كائنات مستقلة.</p>
+</article>
+<article class="pattern-card" id="s10-10-4">
+<h3 class="pattern-title"><span class="pattern-num">10.4</span> Layer Supertype</h3>
+<p>كلاس أساسي مشترك لكائنات تنتمي إلى طبقة معينة، بحيث يجمع السلوك أو الوظائف المشتركة بينها.</p>
+<p>لكن وجود Base Class لا يعني إنك لازم تحط فيه كل الوظائف المشتركة؛ لو الوظائف غير مترابطة، قد يكون استخدام Composition أنسب.</p>
+</article>
+<article class="pattern-card" id="s10-10-5">
+<h3 class="pattern-title"><span class="pattern-num">10.5</span> Separated Interface</h3>
+<p>تفصل تعريف الواجهة عن تنفيذها، بحيث يستطيع مكون آخر الاعتماد على الواجهة من غير الارتباط المباشر بحزمة التنفيذ.</p>
+<p>مثلًا، منطق الطلبات يعتمد على <code class="inline">PaymentGateway</code> كواجهة، بينما التنفيذ الحقيقي يتصل بمزود دفع معين.</p>
+</article>
+<article class="pattern-card" id="s10-10-6">
+<h3 class="pattern-title"><span class="pattern-num">10.6</span> Registry</h3>
+<p>يوفر نقطة معروفة للوصول إلى مجموعة من الخدمات أو الكائنات المسجلة.</p>
+<p>لكن الـ Registry العام قد يخلق اعتمادًا خفيًا ويصعّب الاختبارات، لذلك مش بديلًا تلقائيًا عن Dependency Injection.</p>
+</article>
+<article class="pattern-card" id="s10-10-7">
+<h3 class="pattern-title"><span class="pattern-num">10.7</span> Value Object</h3>
+<p>كائن تتحدد مساواته بالقيم التي يحملها، وليس بمعرف مستقل.</p>
+<p>مثلًا، مبلغ مالي مكوّن من قيمة وعملة:</p>
+<pre class="code-block" dir="ltr"><code class="language-python">from dataclasses import dataclass
+from decimal import Decimal
+
+@dataclass(frozen=True)
+class Money:
+    amount: Decimal
+    currency: str</code></pre>
+<p>في المثال ده، مبلغ <code class="inline">100 EGP</code> يساوي مبلغًا آخر بنفس القيمة والعملة، بصرف النظر عن كونهما كائنين مختلفين في الذاكرة.</p>
+</article>
+<article class="pattern-card" id="s10-10-8">
+<h3 class="pattern-title"><span class="pattern-num">10.8</span> Money</h3>
+<p>نمط مخصص لتمثيل الأموال بطريقة تراعي القيمة والعملة والعمليات المالية.</p>
+<p>مثلًا، جمع <code class="inline">100 EGP</code> مع <code class="inline">50 USD</code> لا يصح من غير تحويل للعملة وفق قواعد واضحة.</p>
+<p>استخدام <code class="inline">Decimal</code> بدل <code class="inline">float</code> مهم عادةً للحسابات المالية، لكنه وحده لا يكفي لتنفيذ نظام مالي دقيق.</p>
+</article>
+<article class="pattern-card" id="s10-10-9">
+<h3 class="pattern-title"><span class="pattern-num">10.9</span> Special Case</h3>
+<p>بدل ما تكرر شروط التعامل مع حالة خاصة في أماكن متعددة، تمثل الحالة بكائن يوفر سلوكًا مناسبًا.</p>
+<p>مثال: بدل ما كل جزء من التطبيق يتحقق إن العميل غير موجود، يمكن إرجاع كائن <code class="inline">UnknownCustomer</code> بسلوك محدد، إذا كان ده مناسبًا لتصميم النظام.</p>
+<p>لكن مش كل حالة غير موجودة تحتاج إلى Special Case؛ أحيانًا <code class="inline">None</code> أو استثناء واضح أبسط وأصح.</p>
+</article>
+<article class="pattern-card" id="s10-10-10">
+<h3 class="pattern-title"><span class="pattern-num">10.10</span> Plugin</h3>
+<p>يسمح باختيار تنفيذات مختلفة أثناء الإعداد أو التشغيل، بدل ربط النظام بتنفيذ واحد ثابت.</p>
+<p>مثلًا، التطبيق يستخدم مزود دفع محليًا في بيئة الاختبار، ومزودًا آخر في الإنتاج.</p>
+</article>
+</section>
+<section id="s11" class="doc-section">
+<h2>11. إزاي الأنماط دي تشتغل مع بعض في مشروع حقيقي؟</h2>
+<p>هنجمع أهم الأفكار في عملية واحدة: تأكيد طلب شراء.</p>
+<ol class="integration-flow">
+<li><span class="step-num">1</span><div class="step-body"><strong>العميل يرسل الطلب</strong><span class="step-detail">MVC / Front Controller / DTO — يستقبل السيرفر الطلب ويتحقق من شكل البيانات وصلاحيات الوصول.</span></div></li>
+<li><span class="step-num">2</span><div class="step-body"><strong>بدء عملية الأعمال</strong><span class="step-detail">Service Layer + Transaction Script أو Domain Model — تُنسق الخطوات، وتُطبق قواعد الطلب والمخزون.</span></div></li>
+<li><span class="step-num">3</span><div class="step-body"><strong>قراءة البيانات وتعديلها</strong><span class="step-detail">Repository / Data Mapper / Identity Map — يتم استرجاع الكائنات المطلوبة وتحديثها وفق تصميم التخزين.</span></div></li>
+<li><span class="step-num">4</span><div class="step-body"><strong>ضمان صحة العملية</strong><span class="step-detail">Unit of Work + Transaction + Concurrency Control — تُكتب التغييرات ضمن حدود المعاملة المناسبة، مع التعامل مع التعارضات.</span></div></li>
+<li><span class="step-num">5</span><div class="step-body"><strong>التواصل مع بوابة الدفع</strong><span class="step-detail">Gateway / Remote Facade / DTO حسب الحاجة — يُستدعى النظام الخارجي باستخدام واجهة مناسبة، مع مراعاة فشل الشبكة والتكرار الآمن للطلبات.</span></div></li>
+</ol>
+<p>ده نموذج توضيحي، مش قائمة مكونات لازم تنفذها كلها. مثلًا، الدفع الخارجي يحتاج تصميمًا إضافيًا للتعامل مع نجاح الدفع وفشل حفظ الطلب؛ لأن Transaction محلية في PostgreSQL لا تجعل العملية الخارجية جزءًا من نفس المعاملة تلقائيًا.</p>
+</section>
+<section id="s12" class="doc-section">
+<h2>12. الخريطة النهائية للمراجعة</h2>
+<div class="table-wrap"><table><thead><tr><th>القسم</th><th>السؤال الأساسي</th><th>أهم الأنماط</th></tr></thead><tbody><tr><td>Domain Logic</td><td>أين وكيف أنفذ قواعد الأعمال؟</td><td>Transaction Script, Domain Model, Table Module, Service Layer</td></tr><tr><td>Data Source</td><td>كيف أنظم الوصول إلى البيانات؟</td><td>Table Data Gateway, Row Data Gateway, Active Record, Data Mapper</td></tr><tr><td>OR Behavioral</td><td>كيف أتابع وأحمّل وأحفظ الكائنات؟</td><td>Unit of Work, Identity Map, Lazy Load</td></tr><tr><td>OR Structural</td><td>كيف أمثل الكائنات وعلاقاتها في الجداول؟</td><td>Identity Field, Foreign Key Mapping, Embedded Value, Inheritance Mappers</td></tr><tr><td>OR Metadata Mapping</td><td>كيف أصف الربط وأوفر واجهة للوصول إلى الكائنات؟</td><td>Metadata Mapping, Query Object, Repository</td></tr><tr><td>Web Presentation</td><td>كيف أستقبل الطلبات وأنتج العرض؟</td><td>MVC, Page Controller, Front Controller, Template View</td></tr><tr><td>Distribution</td><td>كيف أنقل البيانات وأقلل الاتصالات البعيدة؟</td><td>Remote Facade, DTO</td></tr><tr><td>Offline Concurrency</td><td>كيف أتعامل مع تعارضات التعديل؟</td><td>Optimistic Offline Lock, Pessimistic Offline Lock</td></tr><tr><td>Session State</td><td>أين أخزن حالة الجلسة؟</td><td>Client, Server, Database Session State</td></tr><tr><td>Base Patterns</td><td>ما المفاهيم العامة القابلة لإعادة الاستخدام؟</td><td>Gateway, Mapper, Value Object, Registry, Plugin وغيرها</td></tr></tbody></table></div>
+<p>التصنيف ده ملخص لأهم الأنماط التي ناقشناها، وليس فهرسًا كاملًا لكل الأنماط الفرعية الموجودة في الكتاب.</p>
+</section>
+<section id="s13" class="doc-section odoo-panel">
+<h2>13. أهم حاجة بالنسبة لك كمطور Odoo وPython</h2>
+<p>ما تحاولش تحفظ كل Pattern كأنه مطلوب منك تنفذه يدويًا في كل مشروع. الأفضل إنك تقدر تعمل ثلاث حاجات:</p>
+<ol>
+<li>تتعرف على النمط: لما تشوف الكود، تفهم هو بيحل أي مشكلة.</li>
+<li>تحدد المسؤولية: تفرق بين قواعد البزنس، وتنسيق العملية، والوصول للبيانات، وإدارة المعاملات.</li>
+<li>تختار بناءً على المشكلة: مش بناءً على إن النمط مشهور أو إن المعمارية تبدو أكثر تعقيدًا.</li>
+</ol>
+<p>مثلًا، في Odoo، الـ ORM بيوفر بالفعل آليات للتعامل مع الكائنات والسجلات والتخزين المؤقت وإدارة المعاملات. مش معنى إنك درست <code class="inline">Unit of Work</code> أو <code class="inline">Identity Map</code> إنك لازم تبني تنفيذًا خاصًا بهما فوق Odoo.</p>
+<p>الخطوة الأهم بعد فهم المرجع: دراسة الفروق العملية بين الأنماط المتشابهة، خصوصًا:</p>
+<ul>
+<li><code class="inline">Transaction Script</code> مقابل <code class="inline">Domain Model</code>.</li>
+<li><code class="inline">Service Layer</code> مقابل <code class="inline">Domain Service</code>.</li>
+<li><code class="inline">Repository</code> مقابل <code class="inline">Data Mapper</code> مقابل <code class="inline">Active Record</code>.</li>
+<li><code class="inline">Unit of Work</code> مقابل Database Transaction.</li>
+<li><code class="inline">Identity Map</code> مقابل Cache.</li>
+<li><code class="inline">MVC</code> مقابل Layered Architecture.</li>
+<li><code class="inline">Gateway</code> مقابل <code class="inline">Remote Facade</code>.</li>
+</ul>
+<p>دول أكثر الفروق اللي هتساعدك تستخدم الأنماط في تصميم الأنظمة بدل ما تكتفي بمعرفة تعريفاتها.</p>
+</section>
+    <div class="empty">ما فيش نتائج مطابقة. جرّب كلمة تانية مثل Gateway أو Lock.</div>
+    </main>
+  </div>
+  <button class="icon-btn" id="top" type="button" aria-label="للأعلى">↑</button>
+  <script>
+(function () {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const root = document.documentElement;
+
+  /* ---- theme ---- */
+  const themeBtn = $('#theme');
+  let saved = null;
+  try { saved = localStorage.getItem('poeaa-theme'); } catch (e) {}
+  const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  function setTheme(t) {
+    root.dataset.theme = t;
+    themeBtn.textContent = t === 'dark' ? '☀' : '☾';
+    themeBtn.setAttribute('aria-label', t === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن');
+    try { localStorage.setItem('poeaa-theme', t); } catch (e) {}
+  }
+  setTheme(saved || (prefersDark ? 'dark' : 'light'));
+  themeBtn.addEventListener('click', () => setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'));
+
+  /* ---- color per section ---- */
+  const palette = ['#3a50d9', '#0e8f86', '#c9731a', '#c2410c', '#7c3aed', '#0d7fb8', '#b83280', '#4d7c0f', '#0f766e', '#6d5bd0', '#3a50d9', '#0e8f86', '#c9731a', '#7c3aed'];
+  const sections = $$('.doc-section');
+  const links = $$('nav.toc a');
+  const byId = Object.fromEntries(links.map(l => [l.getAttribute('href').slice(1), l]));
+  sections.forEach((s, i) => {
+    const c = palette[i % palette.length];
+    s.style.setProperty('--sec', c);
+    const l = byId[s.id];
+    if (l) l.style.setProperty('--dot', c);
+  });
+
+  /* ---- stats ---- */
+  const cards = $$('.pattern-card');
+  const stats = [
+    [cards.length, 'نمط'],
+    [sections.length, 'قسم'],
+    [$$('pre.code-block').length, 'مثال كود'],
+  ];
+  const statsEl = $('.stats');
+  stats.forEach(([n, label]) => {
+    const d = document.createElement('div');
+    d.className = 'stat';
+    d.innerHTML = '<b data-n="' + n + '">0</b><span>' + label + '</span>';
+    statsEl.appendChild(d);
+  });
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  $$('.stat b').forEach(b => {
+    const n = +b.dataset.n;
+    if (reduce) { b.textContent = n; return; }
+    const t0 = performance.now(), dur = 900;
+    (function tick(t) {
+      const k = Math.min(1, (t - t0) / dur);
+      b.textContent = Math.round(n * (1 - Math.pow(1 - k, 3)));
+      if (k < 1) requestAnimationFrame(tick);
+    })(t0);
+  });
+
+  /* ---- collapsible cards ---- */
+  cards.forEach(card => {
+    const title = $('.pattern-title', card);
+    const body = document.createElement('div');
+    body.className = 'card-body';
+    const inner = document.createElement('div');
+    inner.className = 'card-inner';
+    while (title.nextSibling) inner.appendChild(title.nextSibling);
+    body.appendChild(inner);
+    card.appendChild(body);
+    title.tabIndex = 0;
+    title.setAttribute('role', 'button');
+    title.setAttribute('aria-expanded', 'true');
+    const toggle = () => {
+      const c = card.classList.toggle('collapsed');
+      title.setAttribute('aria-expanded', String(!c));
+    };
+    title.addEventListener('click', toggle);
+    title.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+  });
+  const collapseBtn = $('#collapse-all');
+  let allCollapsed = false;
+  collapseBtn.addEventListener('click', () => {
+    allCollapsed = !allCollapsed;
+    cards.forEach(c => {
+      c.classList.toggle('collapsed', allCollapsed);
+      $('.pattern-title', c).setAttribute('aria-expanded', String(!allCollapsed));
+    });
+    collapseBtn.textContent = allCollapsed ? 'فتح الكل' : 'طي الكل';
+  });
+  // open a card when it's targeted via hash
+  function openHash() {
+    const t = location.hash && document.getElementById(location.hash.slice(1));
+    if (t && t.classList.contains('pattern-card')) t.classList.remove('collapsed');
+  }
+  addEventListener('hashchange', openHash); openHash();
+
+  /* ---- code blocks: highlight + copy ---- */
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const PY = 'def|class|return|if|elif|else|for|while|in|not|and|or|is|with|as|from|import|raise|try|except|finally|pass|lambda|yield|None|True|False|self|async|await';
+  const SQL = 'SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|JOIN|LEFT|INNER|ON|AND|OR|ORDER|BY|GROUP|LIMIT|AS|NULL|CREATE|TABLE|PRIMARY|KEY|REFERENCES|INTEGER|TEXT|VARCHAR';
+  const rules = {
+    python: new RegExp('(#.*)|("""[\\s\\S]*?"""|\'\'\'[\\s\\S]*?\'\'\'|"(?:\\\\.|[^"\\\\\\n])*"|\'(?:\\\\.|[^\'\\\\\\n])*\')|(@\\w+)|\\b(' + PY + ')\\b|\\b(\\d+(?:\\.\\d+)?)\\b|\\b([A-Za-z_]\\w*)(?=\\()', 'g'),
+    sql: new RegExp('(--.*)|(\'(?:[^\']|\'\')*\')|()\\b(' + SQL + ')\\b|\\b(\\d+)\\b()', 'gi'),
+    json: /()("(?:\\.|[^"\\])*")()()(\b-?\d+(?:\.\d+)?\b|\btrue\b|\bfalse\b|\bnull\b)()/g,
+  };
+  const cls = ['tk-c', 'tk-s', 'tk-d', 'tk-k', 'tk-n', 'tk-f'];
+  function highlight(text, lang) {
+    const re = rules[lang];
+    if (!re) return esc(text);
+    let out = '', last = 0, m;
+    re.lastIndex = 0;
+    while ((m = re.exec(text))) {
+      out += esc(text.slice(last, m.index));
+      let gi = -1;
+      for (let i = 1; i < m.length; i++) if (m[i]) { gi = i - 1; break; }
+      let c = cls[gi] || '';
+      if (lang === 'json') c = 'tk-s';
+      if (lang === 'json' && /^(-?\d|true|false|null)/.test(m[0])) c = 'tk-n';
+      if (lang === 'sql' && gi === 4) c = 'tk-n';
+      out += c ? '<span class="' + c + '">' + esc(m[0]) + '</span>' : esc(m[0]);
+      last = m.index + m[0].length;
+      if (m[0].length === 0) re.lastIndex++;
+    }
+    return out + esc(text.slice(last));
+  }
+  $$('pre.code-block').forEach(pre => {
+    const code = $('code', pre);
+    const raw = code.textContent;
+    const lang = ((code.className.match(/language-(\w+)/) || [])[1]) || 'code';
+    if (rules[lang]) code.innerHTML = highlight(raw, lang);
+    const wrap = document.createElement('div');
+    wrap.className = 'code-wrap';
+    wrap.innerHTML = '<div class="code-bar"><span class="dots"><i></i><i></i><i></i></span><span class="lang">' + lang + '</span><button class="copy" type="button">نسخ</button></div>';
+    pre.replaceWith(wrap);
+    wrap.appendChild(pre);
+    const btn = $('.copy', wrap);
+    btn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(raw); btn.textContent = 'تم النسخ ✓'; btn.classList.add('done'); }
+      catch (e) { btn.textContent = 'تعذّر النسخ'; }
+      setTimeout(() => { btn.textContent = 'نسخ'; btn.classList.remove('done'); }, 1600);
+    });
+  });
+
+  /* ---- search ---- */
+  const input = $('#q'), count = $('#result-count'), empty = $('.empty');
+  const norm = s => s.toLowerCase().replace(/[\u064B-\u0652\u0640]/g, '');
+  const cache = new Map();
+  const textOf = el => { if (!cache.has(el)) cache.set(el, norm(el.textContent)); return cache.get(el); };
+  function filter() {
+    const q = norm(input.value.trim());
+    let shown = 0, shownSecs = 0;
+    sections.forEach(sec => {
+      const secCards = $$('.pattern-card', sec);
+      let visible;
+      if (!q) {
+        secCards.forEach(c => c.classList.remove('hidden'));
+        visible = true;
+      } else if (secCards.length) {
+        let n = 0;
+        secCards.forEach(c => {
+          const hit = textOf(c).includes(q);
+          c.classList.toggle('hidden', !hit);
+          if (hit) { n++; c.classList.remove('collapsed'); }
+        });
+        visible = n > 0; shown += n;
+      } else {
+        visible = textOf(sec).includes(q);
+      }
+      sec.classList.toggle('hidden', !visible);
+      if (visible) shownSecs++;
+      const l = byId[sec.id];
+      if (l) l.parentElement.classList.toggle('hidden', !visible);
+    });
+    empty.classList.toggle('show', !!q && shownSecs === 0);
+    count.textContent = q ? (shownSecs ? 'النتائج: ' + shown + ' نمط في ' + shownSecs + ' قسم' : '') : '';
+  }
+  let timer;
+  input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(filter, 120); });
+  addEventListener('keydown', e => {
+    if (e.key === '/' && !/input|textarea/i.test(document.activeElement.tagName)) {
+      e.preventDefault(); input.focus(); input.scrollIntoView({ block: 'center' });
+    } else if (e.key === 'Escape' && document.activeElement === input) {
+      input.value = ''; filter(); input.blur();
+    }
+  });
+
+  /* ---- toc: smooth scroll + scrollspy ---- */
+  links.forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+  }));
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      links.forEach(l => l.classList.remove('active'));
+      const l = byId[en.target.id];
+      if (!l) return;
+      l.classList.add('active');
+      const ol = l.closest('ol');
+      if (ol.scrollWidth > ol.clientWidth && innerWidth <= 900) {
+        ol.scrollTo({ left: l.offsetLeft - ol.clientWidth / 2 + l.clientWidth / 2, behavior: 'smooth' });
+      } else {
+        l.scrollIntoView({ block: 'nearest' });
+      }
+    });
+  }, { rootMargin: '-20% 0px -65% 0px', threshold: 0 });
+  sections.forEach(s => obs.observe(s));
+
+  /* ---- progress + back to top ---- */
+  const bar = $('#progress'), top = $('#top');
+  function onScroll() {
+    const h = root.scrollHeight - innerHeight;
+    bar.style.transform = 'scaleX(' + (h > 0 ? Math.min(1, scrollY / h) : 0) + ')';
+    top.classList.toggle('show', scrollY > 700);
+  }
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  top.addEventListener('click', () => scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }));
+})();
+</script>
+</body>
+</html>

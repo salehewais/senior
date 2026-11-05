@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "13510d91-70be-4a38-bba2-d9674e82e37c",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/home/asm/senior/Application Architecture/.archify/explainer-library-architecture-20261029-211043/candidate.archify.md",
+  "output": "/home/asm/senior/Application Architecture/.archify/explainer-library-architecture-20261029-211043/library-architecture.html",
+  "specification": {
+    "sha256": "bf101f853f30c636de5d64d3078097f2e3c48c33e280f28f827bd0df9ce7a561",
+    "bytes": 15671
+  },
+  "artifact": {
+    "sha256": "83f31b4bc35cff0713936bd7d12d14a3c152fe88f1b7ce2ed816f63906bbad0f",
+    "bytes": 1747431
+  },
+  "explainer": {
+    "preparedSha256": "390eb2f681026e012977dc7be7b203dc2c3a9dc0802dbe4ea1e0eb3ca0c95399",
+    "dependencies": [
+      {
+        "kind": "diagram-spec",
+        "id": "library-responsibilities",
+        "inline": true,
+        "sha256": "847f9468b5895b7760dfc47f304c9f711a15b9b455b021ffead095fffbca99c9",
+        "bytes": 780
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "mvc-add-book",
+        "inline": true,
+        "sha256": "e7d3b37c8a24531d231cbad561307a1ac737e0c5dcfd5300c1c1fa63eced8ce6",
+        "bytes": 964
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "clean-layout",
+        "inline": true,
+        "sha256": "4e0d3b55b0716e6fd0e4d5e6f529de9686813a3f7d2dee5a949755d5605bd4f6",
+        "bytes": 601
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "hexagonal-flow",
+        "inline": true,
+        "sha256": "cd2ed2ce23caf17e7d3afcaf792a5d7cdd774cebb16504ac9ea51ea5063ac367",
+        "bytes": 897
+      }
+    ]
+  }
+}
