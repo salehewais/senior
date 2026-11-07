@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OOP Mastery Roadmap</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b14;
+    --surface: #0e1420;
+    --surface2: #141b2d;
+    --border: rgba(99,179,237,0.12);
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --accent3: #34d399;
+    --gold: #fbbf24;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --glow: rgba(56,189,248,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    margin-bottom: 80px;
+    position: relative;
+  }
+
+  .header-badge {
+    display: inline-block;
+    background: rgba(56,189,248,0.1);
+    border: 1px solid rgba(56,189,248,0.3);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    padding: 6px 20px;
+    border-radius: 40px;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+
+  header h1 {
+    font-family: 'Tajawal', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #e2e8f0 0%, var(--accent) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 1.1rem;
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  .header-line {
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    margin: 32px auto 0;
+    border-radius: 2px;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    margin-bottom: 64px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    right: 28px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg,
+      transparent,
+      var(--accent) 10%,
+      var(--accent2) 50%,
+      var(--accent3) 90%,
+      transparent
+    );
+    opacity: 0.3;
+  }
+
+  /* Card */
+  .card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    margin-bottom: 24px;
+    position: relative;
+    animation: fadeSlide 0.5s ease both;
+  }
+
+  .card:nth-child(1)  { animation-delay: 0.05s; }
+  .card:nth-child(2)  { animation-delay: 0.1s; }
+  .card:nth-child(3)  { animation-delay: 0.15s; }
+  .card:nth-child(4)  { animation-delay: 0.2s; }
+  .card:nth-child(5)  { animation-delay: 0.25s; }
+  .card:nth-child(6)  { animation-delay: 0.3s; }
+  .card:nth-child(7)  { animation-delay: 0.35s; }
+  .card:nth-child(8)  { animation-delay: 0.4s; }
+  .card:nth-child(9)  { animation-delay: 0.45s; }
+  .card:nth-child(10) { animation-delay: 0.5s; }
+  .card:nth-child(11) { animation-delay: 0.55s; }
+  .card:nth-child(12) { animation-delay: 0.6s; }
+  .card:nth-child(13) { animation-delay: 0.65s; }
+  .card:nth-child(14) { animation-delay: 0.7s; }
+  .card:nth-child(15) { animation-delay: 0.75s; }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .card-body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-body::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+
+  .card-body:hover {
+    border-color: rgba(56,189,248,0.35);
+    transform: translateX(-4px);
+    box-shadow: 0 8px 40px rgba(56,189,248,0.08);
+  }
+
+  .card-body:hover::before { opacity: 1; }
+
+  /* Color variants per phase group */
+  .card[data-group="foundations"] .card-body { border-right: 3px solid #38bdf8; }
+  .card[data-group="foundations"] .card-body::before { background: radial-gradient(circle, rgba(56,189,248,0.12), transparent 70%); }
+
+  .card[data-group="principles"] .card-body { border-right: 3px solid #818cf8; }
+  .card[data-group="principles"] .card-body::before { background: radial-gradient(circle, rgba(129,140,248,0.12), transparent 70%); }
+
+  .card[data-group="patterns"] .card-body { border-right: 3px solid #34d399; }
+  .card[data-group="patterns"] .card-body::before { background: radial-gradient(circle, rgba(52,211,153,0.12), transparent 70%); }
+
+  .card[data-group="advanced"] .card-body { border-right: 3px solid #fbbf24; }
+  .card[data-group="advanced"] .card-body::before { background: radial-gradient(circle, rgba(251,191,36,0.12), transparent 70%); }
+
+  .card[data-group="architecture"] .card-body { border-right: 3px solid #f472b6; }
+  .card[data-group="architecture"] .card-body::before { background: radial-gradient(circle, rgba(244,114,182,0.12), transparent 70%); }
+
+  /* Card header */
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .card-title-group { flex: 1; }
+
+  .phase-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: 0.7;
+  }
+
+  .card[data-group="foundations"] .phase-label { color: #38bdf8; }
+  .card[data-group="principles"] .phase-label { color: #818cf8; }
+  .card[data-group="patterns"] .phase-label { color: #34d399; }
+  .card[data-group="advanced"] .phase-label { color: #fbbf24; }
+  .card[data-group="architecture"] .phase-label { color: #f472b6; }
+
+  .card-title {
+    font-family: 'Tajawal', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .new-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: rgba(251,191,36,0.15);
+    color: var(--gold);
+    border: 1px solid rgba(251,191,36,0.3);
+    vertical-align: middle;
+  }
+
+  /* Sections grid */
+  .card-sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .card-sections { grid-template-columns: 1fr; }
+    .timeline::before { display: none; }
+    .card { grid-template-columns: 1fr; }
+    .step-dot { display: none; }
+  }
+
+  .section {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .section-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .section-icon { font-size: 0.9rem; }
+
+  .section-title.concepts { color: var(--accent); }
+  .section-title.practice { color: var(--accent3); }
+  .section-title.goal    { color: var(--accent2); }
+
+  .section-text {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    line-height: 1.65;
+  }
+
+  .concept-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .tag {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    background: rgba(56,189,248,0.08);
+    color: #7dd3fc;
+    border: 1px solid rgba(56,189,248,0.15);
+    white-space: nowrap;
+  }
+
+  /* Step dot */
+  .step-dot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 28px;
+    width: 58px;
+    flex-shrink: 0;
+  }
+
+  .dot-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1rem;
+    border: 2px solid;
+    position: relative;
+    z-index: 1;
+    background: var(--bg);
+    transition: transform 0.3s;
+  }
+
+  .card:hover .dot-circle { transform: scale(1.1); }
+
+  .card[data-group="foundations"] .dot-circle { border-color: #38bdf8; color: #38bdf8; box-shadow: 0 0 16px rgba(56,189,248,0.2); }
+  .card[data-group="principles"]  .dot-circle { border-color: #818cf8; color: #818cf8; box-shadow: 0 0 16px rgba(129,140,248,0.2); }
+  .card[data-group="patterns"]    .dot-circle { border-color: #34d399; color: #34d399; box-shadow: 0 0 16px rgba(52,211,153,0.2); }
+  .card[data-group="advanced"]    .dot-circle { border-color: #fbbf24; color: #fbbf24; box-shadow: 0 0 16px rgba(251,191,36,0.2); }
+  .card[data-group="architecture"].dot-circle { border-color: #f472b6; color: #f472b6; box-shadow: 0 0 16px rgba(244,114,182,0.2); }
+
+  /* Section dividers */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 48px 0 32px;
+  }
+
+  .section-divider-line { flex: 1; height: 1px; background: var(--border); }
+
+  .section-divider-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .divider-foundations { color: #38bdf8; background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.2); }
+  .divider-principles  { color: #818cf8; background: rgba(129,140,248,0.08); border: 1px solid rgba(129,140,248,0.2); }
+  .divider-patterns    { color: #34d399; background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); }
+  .divider-advanced    { color: #fbbf24; background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); }
+  .divider-architecture{ color: #f472b6; background: rgba(244,114,182,0.08); border: 1px solid rgba(244,114,182,0.2); }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    margin-top: 80px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.8;
+  }
+
+  footer strong { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-badge">خارطة الطريق</div>
+    <h1>إتقان البرمجة كائنية التوجه</h1>
+    <p>مسار تعليمي متكامل من الأساسيات إلى تصميم الأنظمة المعقدة — ١٥ مرحلة مدروسة</p>
+    <div class="header-line"></div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-num">١٥</div><div class="stat-label">مرحلة</div></div>
+    <div class="stat"><div class="stat-num">٥٠+</div><div class="stat-label">مفهوم أساسي</div></div>
+    <div class="stat"><div class="stat-num">١٥</div><div class="stat-label">مشروع تطبيقي</div></div>
+    <div class="stat"><div class="stat-num">٥</div><div class="stat-label">محاور رئيسية</div></div>
+  </div>
+
+  <div class="timeline">
+
+    <!-- FOUNDATIONS -->
+    <div class="section-divider">
+      <div class="section-divider-line"></div>
+      <span class="section-divider-label divider-foundations">🧱 الأساسيات</span>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <!-- Stage 1 -->
+    <div class="card" data-group="foundations">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة الأولى</div>
+            <div class="card-title">OOP Core Pillars</div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">Encapsulation</span>
+              <span class="tag">Abstraction</span>
+              <span class="tag">Inheritance</span>
+              <span class="tag">Polymorphism</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">بناء نظام بسيط لإدارة مكتبة (كتب، مستخدمين) باستخدام الكلاسات والوراثة</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">فهم الأدوات الأساسية لبناء الكائنات وتنظيم الكود</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">١</div></div>
+    </div>
+
+    <!-- Stage 2 -->
+    <div class="card" data-group="foundations">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة الثانية</div>
+            <div class="card-title">Memory & Lifecycle</div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">Stack vs. Heap</span>
+              <span class="tag">Constructors</span>
+              <span class="tag">Destructors</span>
+              <span class="tag">GC / RAII</span>
+              <span class="tag">State Management</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">تتبع إنشاء وتدمير الكائنات في الذاكرة وفهم تأثير المراجع على الـ GC</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">كتابة كود فعال وعدم تسريب الذاكرة (Memory Leaks)</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">٢</div></div>
+    </div>
+
+    <!-- Stage 3 -->
+    <div class="card" data-group="foundations">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة الثالثة</div>
+            <div class="card-title">UML & Relationships</div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">Association</span>
+              <span class="tag">Aggregation</span>
+              <span class="tag">Composition</span>
+              <span class="tag">Dependency</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">رسم UML Class Diagram لنظام جامعي (قسم، أساتذة، طلاب) لتحديد نوع العلاقات</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">التمييز بين العلاقات الرخوة والقوية وتصميم أنظمة قابلة للتوسع</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">٣</div></div>
+    </div>
+
+    <!-- PRINCIPLES -->
+    <div class="section-divider">
+      <div class="section-divider-line"></div>
+      <span class="section-divider-label divider-principles">⚖️ المبادئ</span>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <!-- Stage 4 -->
+    <div class="card" data-group="principles">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة الرابعة</div>
+            <div class="card-title">Coupling & Cohesion <span class="new-badge">جديد</span></div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">High Cohesion</span>
+              <span class="tag">Low Coupling</span>
+              <span class="tag">Law of Demeter</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">أخذ كلاس "آله إله" (God Object) وتقسيمه لكلاسات مستقلة مترابطة داخلياً</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">بناء أنظمة مرنة، تغيير جزء لا يكسر أجزاءً أخرى</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">٤</div></div>
+    </div>
+
+    <!-- Stage 5 -->
+    <div class="card" data-group="principles">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة الخامسة</div>
+            <div class="card-title">SOLID Principles</div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">SRP</span>
+              <span class="tag">OCP</span>
+              <span class="tag">LSP</span>
+              <span class="tag">ISP</span>
+              <span class="tag">DIP</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">إعادة تصميم كود صلب (Rigid) لتطبيق Open/Closed ومبدأ المسؤولية الفردية</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">وضع حجر الأساس للتصميم النظيف والمسؤول</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">٥</div></div>
+    </div>
+
+    <!-- Stage 6 -->
+    <div class="card" data-group="principles">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة السادسة</div>
+            <div class="card-title">Dependency Injection <span class="new-badge">جديد</span></div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">IoC</span>
+              <span class="tag">Constructor Injection</span>
+              <span class="tag">Setter Injection</span>
+              <span class="tag">DI Containers</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">بناء نظام إشعارات يقبل وسائل تواصل مختلفة (Email, SMS) عبر الـ Constructor</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">فصل الاعتمادات وجعل الكود قابلاً للاختبار (Testable) تماماً</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">٦</div></div>
+    </div>
+
+    <!-- Stage 7 -->
+    <div class="card" data-group="principles">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة السابعة</div>
+            <div class="card-title">Design Principles & Anti-Patterns <span class="new-badge">جديد</span></div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">Composition over Inheritance</span>
+              <span class="tag">DRY</span>
+              <span class="tag">KISS</span>
+              <span class="tag">YAGNI</span>
+              <span class="tag">God Object</span>
+              <span class="tag">Spaghetti Code</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">مراجعة كود قديم، تحديد الـ Anti-patterns، وإصلاحها باستخدام Composition</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">تجنب الأخطاء الشائعة واختيار البساطة على التعقيد</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">٧</div></div>
+    </div>
+
+    <!-- PATTERNS -->
+    <div class="section-divider">
+      <div class="section-divider-line"></div>
+      <span class="section-divider-label divider-patterns">🧩 أنماط التصميم</span>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <!-- Stage 8 -->
+    <div class="card" data-group="patterns">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة الثامنة</div>
+            <div class="card-title">Creational Patterns</div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">Factory Method</span>
+              <span class="tag">Abstract Factory</span>
+              <span class="tag">Builder</span>
+              <span class="tag">Singleton</span>
+              <span class="tag">Prototype</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">بناء نظام إنشاء مستندات (PDF, Word) باستخدام Factory/Builder</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">فصل منطق إنشاء الكائنات المعقدة عن منطق استخدامها</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">٨</div></div>
+    </div>
+
+    <!-- Stage 9 -->
+    <div class="card" data-group="patterns">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة التاسعة</div>
+            <div class="card-title">Structural Patterns</div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">Adapter</span>
+              <span class="tag">Bridge</span>
+              <span class="tag">Decorator</span>
+              <span class="tag">Facade</span>
+              <span class="tag">Proxy</span>
+              <span class="tag">Composite</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">بناء نظام دفع يستخدم Adapter للربط مع بوابات دفع مختلفة، وإضافة ضرائب بـ Decorator</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">تكوين هياكل مرنة بين الكائنات المختلفة دون تغيير كودها</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">٩</div></div>
+    </div>
+
+    <!-- Stage 10 -->
+    <div class="card" data-group="patterns">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة العاشرة</div>
+            <div class="card-title">Behavioral Patterns <span class="new-badge">موسّع</span></div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">Observer</span>
+              <span class="tag">Strategy</span>
+              <span class="tag">Command</span>
+              <span class="tag">State</span>
+              <span class="tag">Template Method</span>
+              <span class="tag">Iterator</span>
+              <span class="tag">Mediator</span>
+              <span class="tag">Chain of Responsibility</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">بناء نظام طلبات E-commerce: Cart بـ State، دفع بـ Strategy، إشعارات بـ Observer، خصومات بـ Chain</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">إدارة الاتصال وسلوك الكائنات وتوزيع المسؤوليات بذكاء</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">١٠</div></div>
+    </div>
+
+    <!-- ADVANCED -->
+    <div class="section-divider">
+      <div class="section-divider-line"></div>
+      <span class="section-divider-label divider-advanced">⚡ متقدم</span>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <!-- Stage 11 -->
+    <div class="card" data-group="advanced">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة الحادية عشرة</div>
+            <div class="card-title">Concurrency Patterns <span class="new-badge">جديد</span></div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">Thread Safety</span>
+              <span class="tag">Race Conditions</span>
+              <span class="tag">Producer-Consumer</span>
+              <span class="tag">Read-Write Lock</span>
+              <span class="tag">Active Object</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">جعل الـ Singleton آمناً للمسارات المتعددة وبناء طابور مهام (Task Queue)</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">ضمان سلامة البيانات عند تشغيل النظام على مسارات متوازية</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">١١</div></div>
+    </div>
+
+    <!-- Stage 12 -->
+    <div class="card" data-group="advanced">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة الثانية عشرة</div>
+            <div class="card-title">Performance & Complexity</div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">Time/Space Complexity</span>
+              <span class="tag">Pattern Overhead</span>
+              <span class="tag">Data-Oriented Design</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">تحليل أداء نمط Decorator المتداخل ومقارنة أداء OOP مقابل DOD في معالجة البيانات</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">معرفة متى تضحي بأنماط OOP من أجل الأداء العالي</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">١٢</div></div>
+    </div>
+
+    <!-- ARCHITECTURE -->
+    <div class="section-divider">
+      <div class="section-divider-line"></div>
+      <span class="section-divider-label divider-architecture">🏛️ المعمارية</span>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <!-- Stage 13 -->
+    <div class="card" data-group="architecture">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة الثالثة عشرة</div>
+            <div class="card-title">Architectural Patterns</div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">MVC</span>
+              <span class="tag">MVP</span>
+              <span class="tag">MVVM</span>
+              <span class="tag">Layered Architecture</span>
+              <span class="tag">Clean Architecture</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">بناء تطبيق Task Manager بتقسيم الطبقات: Entities, Use Cases, Controllers, UI</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">تنظيم الكود على مستوى النظام الكامل وعزل منطق العمل عن التقنية</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">١٣</div></div>
+    </div>
+
+    <!-- Stage 14 -->
+    <div class="card" data-group="architecture">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة الرابعة عشرة</div>
+            <div class="card-title">Domain-Driven Design (DDD)</div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">Bounded Contexts</span>
+              <span class="tag">Entities</span>
+              <span class="tag">Value Objects</span>
+              <span class="tag">Aggregates</span>
+              <span class="tag">Repositories</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">تصميم نظام بنكي: تعريف الـ Aggregates (Account) وعزل سياق الحسابات عن سياق القروض</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">محاذاة التصميم التقني مع لغة وأهداف العمل (Business)</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle">١٤</div></div>
+    </div>
+
+    <!-- Stage 15 -->
+    <div class="card" data-group="architecture">
+      <div class="card-body" style="background: linear-gradient(135deg, #0e1420, #0f1a2e); border-color: rgba(244,114,182,0.25);">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="phase-label">المرحلة الخامسة عشرة</div>
+            <div class="card-title" style="font-size:1.4rem;">🏆 Mastery & System Design</div>
+          </div>
+        </div>
+        <div class="card-sections">
+          <div class="section">
+            <div class="section-title concepts"><span class="section-icon">🔷</span> المفاهيم</div>
+            <div class="concept-tags">
+              <span class="tag">Code Smells</span>
+              <span class="tag">Refactoring to Patterns</span>
+              <span class="tag">System Design Interviews</span>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title practice"><span class="section-icon">⚙️</span> التطبيق</div>
+            <div class="section-text">تصميم نظام من الصفر (URL Shortener أو نظام توصيل طلبات) مع مراعاة التوسع</div>
+          </div>
+          <div class="section">
+            <div class="section-title goal"><span class="section-icon">🎯</span> الهدف</div>
+            <div class="section-text">الربط بين كل المفاهيم السابقة وبناء أنظمة حقيقية قابلة للتوسع والصيانة</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-dot"><div class="dot-circle" style="border-color:#f472b6;color:#f472b6;box-shadow:0 0 24px rgba(244,114,182,0.35);">١٥</div></div>
+    </div>
+
+  </div><!-- /timeline -->
+
+  <footer>
+    <p>خارطة طريق شاملة لإتقان <strong>البرمجة كائنية التوجه</strong> — من الأساسيات إلى المعمارية المتقدمة</p>
+    <p style="margin-top:8px; font-size:0.75rem;">١٥ مرحلة · ٥ محاور · مشاريع تطبيقية عملية</p>
+  </footer>
+
+</div>
+</body>
+</html>

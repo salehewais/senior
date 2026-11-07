@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Object-Relational Structural Patterns — POEAA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="أقسام المرجع">
+      <div class="toc-head">
+        <p class="toc-title"><a href="index.html">POEAA</a></p>
+        <button class="icon-btn" id="theme" type="button" aria-label="تبديل الوضع">☾</button>
+      </div>
+      <ol>
+        <li><a href="index.html">الرئيسية</a></li><li><a href="separated-interface.html">Separated Interface</a></li><li><a href="base-patterns.html">Base Patterns</a></li><li><a href="domain-logic-patterns.html">Domain Logic Patterns</a></li><li><a href="data-source-architectural-patterns.html">Data Source Architectural Patterns</a></li><li><a href="object-relational-behavioral-patterns.html">Object-Relational Behavioral Patterns</a></li><li><a href="object-relational-structural-patterns.html" class="active">Object-Relational Structural Patterns</a></li><li><a href="object-relational-metadata-mapping-patterns.html">Object-Relational Metadata Mapping Patterns</a></li><li><a href="web-presentation-patterns.html">Web Presentation Patterns</a></li><li><a href="distribution-patterns.html">Distribution Patterns</a></li><li><a href="offline-concurrency-patterns.html">Offline Concurrency Patterns</a></li><li><a href="session-state-patterns.html">Session State Patterns</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      
+      <header class="page-header">
+        <h1>Object-Relational Structural Patterns</h1>
+        <p class="lead">من مصدر ChatGPT POEAA — صفحة قسم واحد.</p>
+      </header>
+      <h2 class="section-title">Object-Relational Structural Patterns</h2>
+<p>المجموعة دي مختلفة عن المجموعة السابقة.</p>
+<p>في المجموعة السابقة كنا بنتكلم عن سلوك الـ Objects أثناء التعامل مع قاعدة البيانات، زي:</p>
+<ul>
+<li>Unit of Work</li>
+<li>Identity Map</li>
+<li>Lazy Load</li>
+</ul>
+<p>أما هنا فهنركز على <strong>إزاي نمثل العلاقات والتركيب والوراثة بين الـ Objects داخل قاعدة البيانات العلائقية</strong>.</p>
+<p>يعني المشكلة الأساسية:</p>
+<p>إزاي نحوّل الـ Object Structure إلى Relational Database Structure والعكس؟</p>
+<hr>
+<article class="pattern-card" id="1-identity-field">
+<h3 class="pattern-title">1. Identity Field</h3>
+<div class="card-body">
+<p>(Object-Relational Structural Pattern)</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندك Class اسمه Customer:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Customer:
+    def __init__(self, name, email):
+        self.name = name
+        self.email = email</code></pre></div>
+<p>وعندك Database Table:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE customers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(150)
+);</code></pre></div>
+<p>لاحظ إن عندنا اختلاف:</p>
+<ul>
+<li>الـ Database عندها id بيمثل هوية كل Row.</li>
+<li>الـ Object عنده name و<code class="inline">email</code>، لكن مفيش Field بيمثل هوية السجل في قاعدة البيانات.</li>
+</ul>
+<p>طيب لو عندي عميلين بنفس الاسم والإيميل، إزاي أميز كل واحد عن التاني؟</p>
+<p>ولو حملت Customer من قاعدة البيانات وعدلت اسمه، إزاي أعرف أنهي Row المفروض أعمل لها UPDATE؟</p>
+<p>هنا بتظهر المشكلة:</p>
+<p><strong>إزاي نربط هوية الـ Object بهوية الـ Row داخل قاعدة البيانات؟</strong></p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>الحل إننا نضيف Field داخل الـ Object يحتفظ بالـ Database Identity، وغالبًا بيكون هو الـ Primary Key.</p>
+<p>يعني بدل ما الـ Object يحتوي على بيانات العميل فقط، هنضيف id.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Customer:
+    def __init__(self, customer_id, name, email):
+        self.id = customer_id
+        self.name = name
+        self.email = email</code></pre></div>
+<p>وبكده أصبح عندنا تطابق واضح:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Database Row  &lt;---  Identity Field  &lt;---  Customer Object
+     id                    id</code></pre></div>
+<p>الـ id الموجود في الـ Object هو اللي بيربطه بالسجل المقابل في قاعدة البيانات.</p>
+<h2>3. مثال عملي</h2>
+<p>خلينا نشوف دورة حياة الـ Object.</p>
+<p><strong>أولًا: تحميل Customer من Database</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def get_customer(customer_id):
+    row = db.execute(
+        &quot;SELECT id, name, email FROM customers WHERE id = %s&quot;,
+        [customer_id]
+    ).fetchone()
+
+    if row is None:
+        return None
+
+    return Customer(
+        customer_id=row[&quot;id&quot;],
+        name=row[&quot;name&quot;],
+        email=row[&quot;email&quot;]
+    )</code></pre></div>
+<p><strong>ثانيًا: تعديل بيانات العميل</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customer = get_customer(10)
+
+customer.name = &quot;Saleh&quot;</code></pre></div>
+<p><strong>ثالثًا: حفظ التعديل</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def save_customer(customer):
+    db.execute(
+        &quot;&quot;&quot;
+        UPDATE customers
+        SET name = %s, email = %s
+        WHERE id = %s
+        &quot;&quot;&quot;,
+        [
+            customer.name,
+            customer.email,
+            customer.id
+        ]
+    )</code></pre></div>
+<p>لاحظ إننا استخدمنا customer.id لتحديد السجل المطلوب تعديله.</p>
+<p>من غير الـ Identity Field، هنحتاج آلية أخرى لتحديد السجل، وده ممكن يكون معقدًا وغير موثوق.</p>
+<hr>
+<h2>4. علاقته بـ GoF Patterns</h2>
+<p>هل فيه Pattern مباشر في GoF؟</p>
+<p><strong>لا، مفيش GoF Pattern مكافئ مباشر.</strong></p>
+<p>لأن Identity Field مش بيحل مشكلة تصميم سلوك أو تعاون Objects، لكنه بيحل مشكلة Mapping بين هوية الـ Object وهوية الـ Database Row.</p>
+<p>ممكن تلاقي تشابه في بعض الاستخدامات مع:</p>
+<ul>
+<li>Flyweight: بسبب فكرة الهوية وإعادة استخدام Objects، لكن Intent مختلف.</li>
+<li>Proxy: ممكن يستخدم Identity Field لتحديد الـ Object الحقيقي، لكن ده مش جوهر Proxy.</li>
+</ul>
+<p>إذن مفيش داعي نربطه غصبًا بأي GoF Pattern.</p>
+<h2>5. الفرق بين Identity Field وIdentity Map</h2>
+<p>دي نقطة مهمة جدًا لأننا لسه شارحين Identity Map.</p>
+<p><strong>Identity Field:</strong></p>
+<p>الـ Object نفسه بيحتفظ بالـ ID الخاص به.</p>
+<p><strong>Identity Map:</strong></p>
+<p>بتحتفظ بخريطة تربط Database Identity بالـ Object Instance.</p>
+<p>مثال توضيحي:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">                  Identity Map
+                /              \
+          Customer ID 10     Customer ID 20
+                |                 |
+                v                 v
+          Customer Object   Customer Object
+                |                 |
+             id = 10           id = 20</code></pre></div>
+<p>كل Customer عنده Identity Field، والـ Identity Map بتستخدم الهوية دي للوصول إلى الـ Object المناسب.</p>
+<p>يعني:</p>
+<ul>
+<li>Identity Field = تخزين الهوية داخل الـ Object.</li>
+<li>Identity Map = إدارة وربط الـ Object Instances باستخدام الهوية.</li>
+</ul>
+<p>الاتنين ممكن يشتغلوا مع بعض، لكن مش نفس الـ Pattern.</p>
+<hr>
+<h2>6. علاقته بـ Application Architecture وClean Architecture</h2>
+<p>Identity Field مش Application Architecture Pattern.</p>
+<p>هو Pattern على مستوى الـ Object-Relational Mapping.</p>
+<p>في Clean Architecture، ممكن يكون الـ ID موجود داخل الـ Domain Entity:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Customer:
+    def __init__(self, customer_id, name):
+        self.id = customer_id
+        self.name = name</code></pre></div>
+<p>لكن خد بالك من نقطة مهمة:</p>
+<p>مش شرط الـ Domain Identity تكون هي نفسها Database Primary Key.</p>
+<p>مثلًا ممكن يكون عندك:</p>
+<ul>
+<li>Domain Identity: UUID يمثل هوية العميل داخل النظام.</li>
+<li>Database Primary Key: رقم داخلي BIGINT.</li>
+</ul>
+<p>المهم إن الـ Domain يحدد مفهوم الهوية الخاص به، والـ Infrastructure تتولى Mapping مع قاعدة البيانات.</p>
+<h2>7. علاقته بـ DDD</h2>
+<p>في DDD، الـ Entity بتتميز بالهوية (Identity)، مش بمجرد قيم الخصائص.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customer_1 = Customer(id=10, name=&quot;Saleh&quot;)
+customer_2 = Customer(id=20, name=&quot;Saleh&quot;)</code></pre></div>
+<p>رغم إن الاسمين متطابقين، فهما كيانان مختلفان بسبب اختلاف الهوية.</p>
+<p>وده بيفرق الـ Entity عن Value Object.</p>
+<ul>
+<li>Entity: هويتها أساسية في تحديدها.</li>
+<li>Value Object: بتتحدد من خلال قيمها.</li>
+</ul>
+<p>لكن Identity Field في Fowler تحديدًا بيتكلم عن تمثيل هوية الـ Object في الـ Database Mapping، مش عن تعريف Entity في DDD كله.</p>
+<h2>8. علاقته بـ Odoo</h2>
+<p>في Odoo، عندك الـ id الموجود في كل Model تقريبًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">order = self.env[&quot;sale.order&quot;].browse(10)
+
+print(order.id)</code></pre></div>
+<p>الـ id هنا بيمثل هوية السجل.</p>
+<p>وده مثال واضح على فكرة Identity Field.</p>
+<p>لكن لازم نفرق بين وجود id وبين تفاصيل الـ ORM؛ Odoo عنده طبقة ORM كاملة بتدير الـ Recordsets والـ Cache والـ Relations، وIdentity Field مجرد مفهوم واحد داخل الصورة الأكبر.</p>
+<hr>
+<h2>9. إمتى نستخدم Identity Field؟</h2>
+<p>لما تكون محتاج:</p>
+<ul>
+<li>تمييز كل Object عن غيره بهوية ثابتة.</li>
+<li>ربط الـ Object بسجل محدد في قاعدة البيانات.</li>
+<li>تنفيذ UPDATE وDELETE على السجل الصحيح.</li>
+<li>الحفاظ على هوية الـ Entity خلال عمليات التحميل والحفظ.</li>
+</ul>
+<p><strong>الخلاصة:</strong></p>
+<p>Identity Field بيحل مشكلة:</p>
+<blockquote>How can an object identify its corresponding database row?</blockquote>
+<hr>
+<h2>النمط التالي</h2>
+<p><strong>2. Foreign Key Mapping</strong></p>
+<p>وده هيكون مهم جدًا؛ لأننا بعد ما عرفنا إزاي نربط Object بسجل في قاعدة البيانات، هنشوف إزاي نمثل العلاقات بين الـ Objects باستخدام Foreign Keys.</p>
+<p>نكمل يا صاحبي. وصلنا للنمط الثاني في مجموعة <strong>Object-Relational Structural Patterns</strong> من كتاب Fowler.</p>
+<article class="pattern-card" id="2-foreign-key-mapping">
+<h3 class="pattern-title">2. Foreign Key Mapping</h3>
+<div class="card-body">
+<p>(Object-Relational Structural Pattern)</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندنا نظام Sales، وفيه Customer و Order.</p>
+<p>العلاقة في عالم الـ Objects بالشكل ده:</p>
+<ul>
+<li>Customer عنده Orders.</li>
+<li>كل Order تابع لـ Customer واحد.</li>
+</ul>
+<p>ممكن نمثل ده في Python بالشكل التالي:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Customer:
+    def __init__(self, customer_id, name):
+        self.id = customer_id
+        self.name = name
+        self.orders = []
+
+class Order:
+    def __init__(self, order_id, customer):
+        self.id = order_id
+        self.customer = customer</code></pre></div>
+<p>لاحظ إن الـ Order عنده Reference للـ Customer Object نفسه.</p>
+<p>لكن في Relational Database مفيش مفهوم Object Reference بنفس الشكل.</p>
+<p>إحنا عندنا Tables وRows وColumns.</p>
+<p>فإزاي نمثل العلاقة دي داخل قاعدة البيانات؟</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>بنستخدم <strong>Foreign Key</strong> علشان نمثل العلاقة بين السجلات في قاعدة البيانات.</p>
+<p>خلينا نشوف التصميم:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE customers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    customer_id INTEGER REFERENCES customers(id)
+);</code></pre></div>
+<p>لاحظ إن orders.customer_id بيشير إلى customers.id.</p>
+<p>العلاقة أصبحت:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Customer Object  &lt;---  Order Object
+       |                    |
+       |                    |
+       v                    v
+customers Table  &lt;---  orders Table
+                         customer_id</code></pre></div>
+<p>الـ Object عنده Reference للـ Object الآخر، بينما قاعدة البيانات عندها Foreign Key يربط الـ Rows ببعضها.</p>
+<p><strong>دي هي الفكرة الأساسية للنمط: تحويل العلاقة بين الـ Objects إلى علاقة Foreign Key بين الـ Database Rows.</strong></p>
+<hr>
+<h2>3. أنواع العلاقات (Relationships)</h2>
+<p>خلينا نشوف إزاي نستخدم Foreign Key Mapping مع أشهر العلاقات.</p>
+<h3>A. One-to-Many</h3>
+<p>مثال: Customer عنده Orders كتير، وكل Order تابع لـ Customer واحد.</p>
+<p>العلاقة:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Customer 1  &lt;---  N Orders</code></pre></div>
+<p>في قاعدة البيانات، الـ Foreign Key بيتحط في جدول الطرف Many:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE customers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    customer_id INTEGER REFERENCES customers(id)
+);</code></pre></div>
+<p>ليه في جدول orders؟</p>
+<p>لأن كل Order محتاج يحتفظ بهوية الـ Customer الخاص بيه.</p>
+<h3>B. Many-to-One</h3>
+<p>دي نفس العلاقة السابقة لكن من منظور الطرف الآخر.</p>
+<p>الـ Order الواحد مرتبط بـ Customer واحد، لكن Customers ممكن يكون عندهم Orders كتير.</p>
+<p>يعني:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Customer  &lt;---  Order
+   1            N</code></pre></div>
+<p>مفيش تصميم Database جديد هنا؛ هي نفس علاقة One-to-Many، لكن بنبص عليها من الاتجاه العكسي.</p>
+<h3>C. One-to-One</h3>
+<p>مثال: Employee عنده EmployeeProfile واحد.</p>
+<p>ممكن نستخدم Foreign Key مع Unique Constraint:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE employees (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+CREATE TABLE employee_profiles (
+    id SERIAL PRIMARY KEY,
+    employee_id INTEGER UNIQUE
+        REFERENCES employees(id)
+);</code></pre></div>
+<p>وجود UNIQUE بيضمن إن كل Employee مرتبط بحد أقصى Profile واحد.</p>
+<p>ولو عايزين علاقة واحد لواحد إلزامية من الطرفين، لازم نصمم الـ Constraints بما يضمن المشاركة المطلوبة، مش مجرد Foreign Key وUnique في اتجاه واحد.</p>
+<h3>D. Many-to-Many</h3>
+<p>مثال: Student ممكن يسجل في Courses كتير، والـ Course ممكن يكون فيه Students كتير.</p>
+<p>هنا مش هنقدر نحط Foreign Key واحد في أي جدول ويحل العلاقة بالكامل.</p>
+<p>بنحتاج جدول وسيط اسمه <strong>Association Table</strong> أو <strong>Join Table</strong>.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE students (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+CREATE TABLE courses (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+CREATE TABLE student_courses (
+    student_id INTEGER REFERENCES students(id),
+    course_id INTEGER REFERENCES courses(id),
+    PRIMARY KEY (student_id, course_id)
+);</code></pre></div>
+<p>العلاقة:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Students  &lt;---  Student_Courses  &lt;---  Courses</code></pre></div>
+<p>الجدول الوسيط بيحتفظ بعلاقات الطرفين.</p>
+<p>وممكن كمان يحتوي بيانات إضافية، زي تاريخ التسجيل أو الدرجة.</p>
+<hr>
+<h2>4. علاقته بـ GoF Patterns</h2>
+<p>هل يوجد GoF Pattern مكافئ مباشر؟</p>
+<p><strong>لا.</strong></p>
+<p>Foreign Key Mapping مش هدفه تنظيم سلوك Objects أو إنشاء Objects أو التحكم في التعاون بينها.</p>
+<p>هو أسلوب Mapping بين العلاقات في Object Model والعلاقات في Relational Database.</p>
+<p>ممكن تلاحظ تشابهًا سطحيًا مع Adapter لأن فيه تحويل بين شكلين مختلفين، لكن ده مش Intent بتاع Adapter.</p>
+<hr>
+<h2>5. الفرق بين Foreign Key Mapping وData Mapper</h2>
+<p>دي نقطة مهمة.</p>
+<p><strong>Data Mapper:</strong></p>
+<p>مسؤول عن نقل البيانات بين Domain Objects وDatabase مع الحفاظ على استقلال الطرفين.</p>
+<p><strong>Foreign Key Mapping:</strong></p>
+<p>بيحدد إزاي نمثل العلاقات بين Objects باستخدام Foreign Keys في قاعدة البيانات.</p>
+<p>يعني ممكن Data Mapper يستخدم Foreign Key Mapping أثناء تحويل العلاقات، لكن الاتنين مش نفس المستوى من المسؤولية.</p>
+<hr>
+<h2>6. علاقته بـ Application Architecture وClean Architecture</h2>
+<p>Foreign Key Mapping مش Application Architecture Pattern.</p>
+<p>هو Pattern في طبقة الـ Persistence / Data Mapping.</p>
+<p>في Clean Architecture:</p>
+<ul>
+<li>الـ Domain ممكن يحتوي Order عنده Reference إلى Customer أو يحتفظ بـ customer_id حسب التصميم.</li>
+<li>الـ Infrastructure مسؤولة عن تحويل العلاقات إلى Foreign Keys.</li>
+<li>الـ Database بتنفذ Referential Integrity باستخدام Constraints.</li>
+</ul>
+<p>مهم: مش لازم الـ Domain Object يعرف إن العلاقة متنفذة عن طريق Foreign Key أصلًا.</p>
+<hr>
+<h2>7. علاقته بـ DDD</h2>
+<p>في DDD، لازم نفرق بين العلاقات في الـ Domain Model والعلاقات في الـ Database.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Order:
+    def __init__(self, order_id, customer_id):
+        self.id = order_id
+        self.customer_id = customer_id</code></pre></div>
+<p>ممكن نستخدم customer_id بدل ما نحمل Customer Object بالكامل.</p>
+<p>وده بيكون مفيد خصوصًا لما Customer و<code class="inline">Order</code> تابعين لـ Aggregates مختلفة.</p>
+<p>في DDD، غالبًا بنشير إلى Aggregate آخر باستخدام هويته بدل الاحتفاظ بكامل الـ Object Graph.</p>
+<p>لكن خد بالك:</p>
+<p><strong>Foreign Key Mapping مش هو Aggregate Design.</strong></p>
+<p>الـ Foreign Key بيحدد علاقة على مستوى قاعدة البيانات، أما Aggregate Boundaries فبتحدد حدود الاتساق والتحكم في التغييرات على مستوى الـ Domain.</p>
+<hr>
+<h2>8. علاقته بـ Odoo</h2>
+<p>خلينا نربط الكلام بـ Odoo.</p>
+<h3>Many2one</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class SaleOrder(models.Model):
+    _inherit = &quot;sale.order&quot;
+
+    customer_id = fields.Many2one(
+        &quot;res.partner&quot;,
+        string=&quot;Customer&quot;
+    )</code></pre></div>
+<p>دي بتمثل علاقة Many-to-One على مستوى الـ ORM، وبتُخزن عادةً كـ Foreign Key في جدول sale_order.</p>
+<h3>One2many</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Partner(models.Model):
+    _inherit = &quot;res.partner&quot;
+
+    sale_order_ids = fields.One2many(
+        &quot;sale.order&quot;,
+        &quot;partner_id&quot;,
+        string=&quot;Orders&quot;
+    )</code></pre></div>
+<p>لاحظ إن One2many مش معناه وجود عمود إضافي في جدول res_partner.</p>
+<p>هو تمثيل عكسي للعلاقة، والـ Foreign Key موجود في جدول sale_order عن طريق partner_id.</p>
+<h3>Many2many</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Student(models.Model):
+    _name = &quot;school.student&quot;
+
+    course_ids = fields.Many2many(
+        &quot;school.course&quot;,
+        string=&quot;Courses&quot;
+    )</code></pre></div>
+<p>الـ ORM عادةً بينشئ Association Table لتمثيل العلاقة.</p>
+<p>إذن في Odoo:</p>
+<ul>
+<li>Many2one ← Foreign Key.</li>
+<li>One2many ← Reverse relation مبنية على Foreign Key موجود في الطرف الآخر.</li>
+<li>Many2many ← Association Table.</li>
+</ul>
+<p>دي أمثلة عملية واضحة على فكرة Foreign Key Mapping، مع ملاحظة إن Odoo ORM بيقدم طبقة أعلى من مجرد تعريف الـ Foreign Keys.</p>
+<hr>
+<h2>9. ملخص النمط</h2>
+<p>السؤال الذي يجيب عنه Foreign Key Mapping:</p>
+<blockquote>How do you map relationships between objects to foreign keys in a relational database?</blockquote>
+<p>الفكرة الأساسية:</p>
+<p><strong>Object References في عالم الـ Objects ← Foreign Keys في عالم الـ Relational Database.</strong></p>
+<p>والأنماط اللي خلصناها لحد دلوقتي:</p>
+<ol>
+<li>Identity Field — ربط هوية الـ Object بهوية الـ Row.</li>
+<li>Foreign Key Mapping — تمثيل العلاقات باستخدام Foreign Keys.</li>
+</ol>
+<p><strong>النمط التالي في ترتيب Fowler: Association Table Mapping.</strong></p>
+<p>وده هيكمل موضوع العلاقات، لكن هنركز فيه على العلاقات اللي بتحتاج جدول وسيط، وخصوصًا Many-to-Many.</p>
+<p>نكمل يا صاحبي 😂</p>
+<p>النمط الثالث في مجموعة <strong>Object-Relational Structural Patterns</strong> هو:</p>
+<article class="pattern-card" id="3-association-table-mapping">
+<h3 class="pattern-title">3. Association Table Mapping</h3>
+<div class="card-body">
+<p>(Object-Relational Structural Pattern)</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>في النمط السابق، اتكلمنا عن تمثيل العلاقات بين الـ Objects باستخدام Foreign Keys.</p>
+<p>لكن فيه علاقات مش ممكن نمثلها بسهولة باستخدام Foreign Key واحد في أحد الجدولين.</p>
+<p>خلينا ناخد مثال:</p>
+<p>عندنا Student و Course.</p>
+<ul>
+<li>الطالب ممكن يسجل في أكثر من كورس.</li>
+<li>الكورس ممكن يكون فيه أكثر من طالب.</li>
+</ul>
+<p>يعني العلاقة Many-to-Many.</p>
+<p>في عالم الـ Objects ممكن نمثلها كده:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Student:
+    def __init__(self, student_id, name):
+        self.id = student_id
+        self.name = name
+        self.courses = []
+
+class Course:
+    def __init__(self, course_id, name):
+        self.id = course_id
+        self.name = name
+        self.students = []</code></pre></div>
+<p>لكن في Relational Database، لو وضعنا course_id داخل جدول الطلاب، هنقدر نخزن كورس واحد فقط لكل طالب في التصميم البسيط.</p>
+<p>ولو وضعنا student_id داخل جدول الكورسات، هنقدر نخزن طالب واحد فقط لكل كورس.</p>
+<p>إذن محتاجين طريقة تمثل العلاقة نفسها، مش مجرد إضافة Foreign Key في أحد الجدولين.</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>الحل هو إنشاء جدول وسيط مستقل يحتوي على Foreign Keys تشير إلى الجدولين المرتبطين.</p>
+<p>الجدول ده اسمه:</p>
+<p><strong>Association Table</strong></p>
+<p>خلينا نشوف التصميم:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE students (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+CREATE TABLE courses (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+CREATE TABLE student_courses (
+    student_id INTEGER REFERENCES students(id),
+    course_id INTEGER REFERENCES courses(id),
+
+    PRIMARY KEY (student_id, course_id)
+);</code></pre></div>
+<p>بص على العلاقة، وابدأ قراءتها من اليمين:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Courses  &lt;---  Student_Courses  &lt;---  Students</code></pre></div>
+<p>الجدول الموجود في المنتصف مش مجرد جدول بيانات إضافي؛ هو بيمثل العلاقة بين الطالب والكورس.</p>
+<p>مثلًا:</p>
+<p>student_id	course_id</p>
+<p>1	10</p>
+<p>1	20</p>
+<p>2	10</p>
+<p>3	30</p>
+<p>معنى البيانات دي:</p>
+<ul>
+<li>الطالب 1 مسجل في الكورسين 10 و20.</li>
+<li>الطالب 2 مسجل في الكورس 10.</li>
+<li>الطالب 3 مسجل في الكورس 30.</li>
+</ul>
+<p>وبالتالي نفس الطالب ممكن يرتبط بكذا كورس، ونفس الكورس ممكن يرتبط بكذا طالب.</p>
+<p><strong>دي الفكرة الأساسية للنمط: تخزين العلاقة نفسها داخل جدول مستقل يحتوي على مفاتيح الطرفين.</strong></p>
+<hr>
+<h2>3. هل الجدول الوسيط ممكن يحتوي بيانات إضافية؟</h2>
+<p>أيوه، ودي نقطة مهمة جدًا.</p>
+<p>تخيل إن الطالب مش بس بيسجل في الكورس، لكن عندنا معلومات عن عملية التسجيل نفسها:</p>
+<ul>
+<li>تاريخ التسجيل.</li>
+<li>الدرجة النهائية.</li>
+<li>حالة التسجيل.</li>
+<li>تاريخ الانسحاب.</li>
+</ul>
+<p>هل البيانات دي مكانها جدول students أو courses؟</p>
+<p>لا، لأنها تخص العلاقة بين الطالب والكورس، مش الطالب وحده ولا الكورس وحده.</p>
+<p>إذن نضيفها إلى Association Table:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE student_courses (
+    student_id INTEGER REFERENCES students(id),
+    course_id INTEGER REFERENCES courses(id),
+
+    enrollment_date DATE,
+    grade DECIMAL(5, 2),
+    status VARCHAR(30),
+
+    PRIMARY KEY (student_id, course_id)
+);</code></pre></div>
+<p>كده الجدول الوسيط أصبح بيحتفظ بمعلومات العلاقة نفسها.</p>
+<p>وده مثال مهم على إن العلاقة ممكن يكون ليها Attributes خاصة بيها.</p>
+<h3>مثال Python</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Enrollment:
+    def __init__(
+        self,
+        student_id,
+        course_id,
+        enrollment_date,
+        grade=None,
+        status=&quot;enrolled&quot;
+    ):
+        self.student_id = student_id
+        self.course_id = course_id
+        self.enrollment_date = enrollment_date
+        self.grade = grade
+        self.status = status</code></pre></div>
+<p>لاحظ إننا مثلنا عملية التسجيل كـ Object مستقل.</p>
+<p>لكن خد بالك: وجود Object اسمه Enrollment مش شرط في كل تطبيق لـ Association Table Mapping؛ ده اختيار في تصميم الـ Domain Model حسب احتياجات النظام.</p>
+<hr>
+<h2>4. علاقته بـ GoF Patterns</h2>
+<p>هل فيه GoF Pattern مكافئ مباشر؟</p>
+<p><strong>لا، مفيش GoF Pattern مكافئ مباشر.</strong></p>
+<p>لأن Association Table Mapping بيحل مشكلة تخزين العلاقات بين Objects داخل Relational Database.</p>
+<p>مش بيحل مشكلة إنشاء Objects أو تنظيم سلوكها أو التعاون بينها.</p>
+<p>ممكن تلاحظ تشابهًا سطحيًا مع بعض أنماط الـ Structural Design Patterns، لكن مفيش Intent مشترك كفاية علشان نقول إن واحد بديل للتاني.</p>
+<hr>
+<h2>5. الفرق بين Foreign Key Mapping وAssociation Table Mapping</h2>
+<p>دي أهم مقارنة في النمط ده.</p>
+<p><strong>Foreign Key Mapping:</strong></p>
+<p>العلاقة بتتمثل عن طريق Foreign Key موجود في أحد الجدولين.</p>
+<p>مثال: كل Order تابع لـ Customer واحد.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Orders  &lt;---  Customers</code></pre></div>
+<p>والـ Foreign Key موجود في جدول Orders.</p>
+<p><strong>Association Table Mapping:</strong></p>
+<p>العلاقة بتتمثل عن طريق جدول وسيط مستقل.</p>
+<p>مثال: Student وCourse بعلاقة Many-to-Many.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Courses  &lt;---  Student_Courses  &lt;---  Students</code></pre></div>
+<p>الفرق الأساسي مش مجرد وجود Foreign Key؛ لأن Association Table نفسها تحتوي Foreign Keys.</p>
+<p>الفرق هو <strong>مكان وطريقة تخزين العلاقة</strong>:</p>
+<ul>
+<li>Foreign Key Mapping: المفتاح موجود في جدول أحد الطرفين.</li>
+<li>Association Table Mapping: العلاقة لها جدول مستقل.</li>
+</ul>
+<hr>
+<h2>6. علاقته بـ Application Architecture وClean Architecture</h2>
+<p>Association Table Mapping مش Application Architecture Pattern.</p>
+<p>هو أسلوب Mapping داخل طبقة الـ Persistence.</p>
+<p>في Clean Architecture:</p>
+<ul>
+<li>الـ Domain يحدد العلاقة المطلوبة بين الكيانات.</li>
+<li>الـ Repository يوفر طريقة التعامل مع الكيانات والعلاقات.</li>
+<li>الـ Infrastructure تتولى تحويل العلاقة إلى Association Table.</li>
+</ul>
+<p>مثلًا، الـ Domain ممكن يتعامل مع Student و<code class="inline">Course</code> بدون ما يعرف إن قاعدة البيانات عندها جدول اسمه student_courses.</p>
+<p>وده مهم علشان نحافظ على استقلال الـ Domain عن تفاصيل قاعدة البيانات.</p>
+<hr>
+<h2>7. علاقته بـ DDD</h2>
+<p>هنا عندنا نقطة تستحق التركيز.</p>
+<p>لو العلاقة بين Student وCourse مجرد ارتباط، ممكن نمثلها كـ Collection أو References حسب التصميم.</p>
+<p>لكن لو عملية التسجيل نفسها لها Business Rules وحالة وسلوك، ممكن تكون Enrollment كيانًا مستقلًا في الـ Domain.</p>
+<p>مثلاً:</p>
+<ul>
+<li>لا يمكن التسجيل في كورس مكتمل.</li>
+<li>لا يمكن التسجيل مرتين في نفس الكورس.</li>
+<li>لا يمكن الانسحاب بعد موعد معين.</li>
+<li>الدرجة لا يمكن تعديلها بعد اعتماد النتيجة.</li>
+</ul>
+<p>في الحالة دي، Enrollment مش مجرد جدول وسيط تقني؛ ده مفهوم حقيقي في الـ Domain.</p>
+<p>وممكن يكون له Lifecycle وقواعد Business خاصة بيه.</p>
+<p><strong>لكن مهم:</strong> Association Table مش معناها تلقائيًا إننا لازم ننشئ Entity في DDD. القرار يعتمد على معنى العلاقة وقواعد العمل الخاصة بيها.</p>
+<hr>
+<h2>8. علاقته بـ Odoo</h2>
+<p>خلينا نشوف مثال واضح في Odoo.</p>
+<p>افترض عندنا Student وCourse، والطالب ممكن يسجل في كورسات متعددة.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Student(models.Model):
+    _name = &quot;school.student&quot;
+
+    name = fields.Char()
+
+    course_ids = fields.Many2many(
+        &quot;school.course&quot;,
+        string=&quot;Courses&quot;
+    )
+
+class Course(models.Model):
+    _name = &quot;school.course&quot;
+
+    name = fields.Char()
+
+    student_ids = fields.Many2many(
+        &quot;school.student&quot;,
+        string=&quot;Students&quot;
+    )</code></pre></div>
+<p>في الحالة دي Odoo ORM بيمثل العلاقة باستخدام Many2many Relation Table.</p>
+<p>وممكن تحدد اسم الجدول وأعمدته بنفسك:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">course_ids = fields.Many2many(
+    comodel_name=&quot;school.course&quot;,
+    relation=&quot;student_course_rel&quot;,
+    column1=&quot;student_id&quot;,
+    column2=&quot;course_id&quot;,
+    string=&quot;Courses&quot;
+)</code></pre></div>
+<p>الـ Relation Table هنا بتحتوي على المفاتيح التي تربط الطلاب بالكورسات.</p>
+<h3>طيب لو عايز أخزن تاريخ التسجيل والدرجة؟</h3>
+<p>هنا الـ Many2many العادية مش كفاية لو محتاج تدير بيانات العلاقة كسجلات مستقلة.</p>
+<p>ممكن تعمل Model منفصل:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Enrollment(models.Model):
+    _name = &quot;school.enrollment&quot;
+
+    student_id = fields.Many2one(
+        &quot;school.student&quot;,
+        required=True
+    )
+
+    course_id = fields.Many2one(
+        &quot;school.course&quot;,
+        required=True
+    )
+
+    enrollment_date = fields.Date()
+    grade = fields.Float()
+    status = fields.Selection([
+        (&quot;enrolled&quot;, &quot;Enrolled&quot;),
+        (&quot;completed&quot;, &quot;Completed&quot;),
+        (&quot;cancelled&quot;, &quot;Cancelled&quot;),
+    ])</code></pre></div>
+<p>وهنا أصبح عندك Model يمثل عملية التسجيل نفسها.</p>
+<p>وده اختيار مناسب لما العلاقة بقى ليها بيانات وسلوك وقواعد خاصة.</p>
+<hr>
+<h2>9. إمتى نستخدم Association Table Mapping؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>تكون العلاقة Many-to-Many.</li>
+<li>العلاقة نفسها تحتاج تخزين مستقل.</li>
+<li>تحتاج تخزين Attributes تخص العلاقة.</li>
+<li>تحتاج إدارة العلاقة بشكل منفصل عن الطرفين.</li>
+</ul>
+<p><strong>الخلاصة:</strong></p>
+<p>السؤال اللي بيجاوب عنه النمط:</p>
+<blockquote>How do you map an association between objects to a relational database?</blockquote>
+<p>الإجابة:</p>
+<p><strong>عن طريق إنشاء Association Table تحتوي على Foreign Keys للطرفين، وتمثل العلاقة بينهما.</strong></p>
+<hr>
+<h2>وصلنا لفين في المجموعة؟</h2>
+<ol>
+<li><strong>Identity Field:</strong> ربط هوية الـ Object بهوية الـ Database Row.</li>
+<li><strong>Foreign Key Mapping:</strong> تمثيل العلاقة باستخدام Foreign Key.</li>
+<li><strong>Association Table Mapping:</strong> تمثيل العلاقة باستخدام جدول وسيط مستقل.</li>
+</ol>
+<p>النمط التالي في ترتيب Fowler:</p>
+<p><strong>4. Dependent Mapping</strong></p>
+<p>وده هيكون مهم لأنه بيتعامل مع حالة مختلفة: إزاي نخزن Objects تابعة لـ Objects أخرى، بحيث تكون طريقة تخزينها مرتبطة بالـ Owner بتاعها.</p>
+<p>يلا نكمل يا صاحبي 😂</p>
+<p>وصلنا للنمط الرابع في مجموعة <strong>Object-Relational Structural Patterns</strong> في كتاب Fowler.</p>
+<article class="pattern-card" id="4-dependent-mapping">
+<h3 class="pattern-title">4. Dependent Mapping</h3>
+<div class="card-body">
+<p>(Object-Relational Structural Pattern)</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندك Order، وكل Order يحتوي على مجموعة من OrderLine.</p>
+<p>كل OrderLine بتمثل منتجًا داخل الطلب، ومعاها الكمية والسعر.</p>
+<p>في عالم الـ Objects ممكن نمثل ده بالشكل التالي:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Order:
+    def __init__(self, order_id):
+        self.id = order_id
+        self.lines = []
+
+class OrderLine:
+    def __init__(self, product_id, quantity, price):
+        self.product_id = product_id
+        self.quantity = quantity
+        self.price = price</code></pre></div>
+<p>لاحظ إن OrderLine مرتبطة بالـ Order اللي تحتوي عليها.</p>
+<p>لكن عند تخزين البيانات في Database، عندنا سؤال:</p>
+<p>هل لازم كل Object يكون له جدول مستقل وهوية مستقلة؟ وهل لازم نتعامل مع OrderLine باعتبارها كيانًا مستقلًا عن Order؟</p>
+<p>مش بالضرورة.</p>
+<p>في بعض التصميمات، الـ OrderLine ملهاش معنى حقيقي خارج الـ Order الخاصة بيها.</p>
+<p>مثلًا:</p>
+<ul>
+<li>حذف الـ Order يستلزم حذف الـ OrderLines التابعة ليها.</li>
+<li>الـ OrderLine لا يمكن نقلها عشوائيًا إلى Order أخرى.</li>
+<li>دورة حياة الـ OrderLine مرتبطة بدورة حياة الـ Order.</li>
+</ul>
+<p><strong>إذن المشكلة: إزاي نخزن Objects تابعة لـ Objects أخرى، بحيث تكون طريقة تخزينها مرتبطة بالـ Owner؟</strong></p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة Dependent Mapping هي إننا نعامل الـ Dependent Object باعتباره جزءًا من الـ Owner Object من ناحية الـ Persistence Mapping.</p>
+<p>يعني بدل ما نحتاج جدولًا مستقلًا لكل Object، ممكن نخزن بيانات الـ Dependent Object داخل جدول الـ Owner باستخدام أعمدة إضافية.</p>
+<p>خلينا نشوف:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    customer_id INTEGER,
+    order_date DATE,
+
+    line_1_product_id INTEGER,
+    line_1_quantity INTEGER,
+    line_1_price DECIMAL(10, 2),
+
+    line_2_product_id INTEGER,
+    line_2_quantity INTEGER,
+    line_2_price DECIMAL(10, 2)
+);</code></pre></div>
+<p>هنا بيانات الـ Order والـ OrderLines مخزنة داخل نفس الجدول.</p>
+<p>لكن خد بالك: ده مجرد توضيح للفكرة، ومش تصميم عملي مناسب لقائمة OrderLines غير محدودة؛ لأننا هنحتاج عددًا ثابتًا من مجموعات الأعمدة.</p>
+<p>في التطبيقات الواقعية ممكن نستخدم طرق أخرى حسب شكل الـ Dependent Object والـ Mapping المطلوب.</p>
+<p><strong>الفكرة الأساسية: الـ Dependent Object لا يُعامل بالضرورة كسجل مستقل، بل يمكن دمج بياناته في تخزين الـ Owner.</strong></p>
+<h2>3. مثال Python</h2>
+<p>خلينا نمثل الفكرة في الـ Domain Model:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderLine:
+    def __init__(self, product_id, quantity, price):
+        self.product_id = product_id
+        self.quantity = quantity
+        self.price = price
+
+    def subtotal(self):
+        return self.quantity * self.price
+
+class Order:
+    def __init__(self, order_id):
+        self.id = order_id
+        self.lines = []
+
+    def add_line(self, line):
+        self.lines.append(line)
+
+    def total(self):
+        return sum(line.subtotal() for line in self.lines)</code></pre></div>
+<p>لاحظ إن OrderLine هنا Object مستقل في الذاكرة، لكن مش شرط يكون له جدول مستقل في قاعدة البيانات.</p>
+<p>ممكن الـ Mapper يحول الـ Order والـ Lines إلى شكل تخزين واحد.</p>
+<p>مثال توضيحي مبسط:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def save_order(order, db):
+    data = {
+        &quot;id&quot;: order.id,
+        &quot;lines&quot;: [
+            {
+                &quot;product_id&quot;: line.product_id,
+                &quot;quantity&quot;: line.quantity,
+                &quot;price&quot;: str(line.price),
+            }
+            for line in order.lines
+        ],
+    }
+
+    db.save(data)</code></pre></div>
+<p>المثال هنا بيستخدم شكل تخزين افتراضي، مش SQL Relational Mapping كامل.</p>
+<hr>
+<h2>4. علاقته بـ GoF Patterns</h2>
+<p>هل يوجد GoF Pattern مكافئ مباشر؟</p>
+<p><strong>لا، مفيش GoF Pattern مكافئ مباشر.</strong></p>
+<p>لكن ممكن تلاحظ تشابهًا مع:</p>
+<ul>
+<li>Composite: لأن عندنا Object يحتوي Objects أخرى في شكل شجري.</li>
+<li>Flyweight: ممكن يحصل خلط بسبب مشاركة بعض البيانات أو تقليل عدد Objects.</li>
+</ul>
+<p>لكن الفرق:</p>
+<p><strong>Composite</strong> هدفه تمثيل هياكل Objects بشكل هرمي والتعامل مع الأجزاء والمجموعات بصورة موحدة.</p>
+<p>أما <strong>Dependent Mapping</strong> فهدفه تحديد كيفية تخزين الـ Dependent Objects المرتبطة بالـ Owner داخل قاعدة البيانات.</p>
+<p>يعني ممكن تستخدم Composite في الـ Domain Model، وتستخدم Dependent Mapping في الـ Persistence، لكن مش بدائل لبعض.</p>
+<h2>5. الفرق بين Dependent Mapping وAssociation Table Mapping</h2>
+<p>دي نقطة مهمة جدًا.</p>
+<p><strong>Association Table Mapping:</strong></p>
+<p>بنستخدم جدولًا وسيطًا لتخزين العلاقة بين طرفين.</p>
+<p>مثال: Student وCourse.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Courses  &lt;---  Student_Courses  &lt;---  Students</code></pre></div>
+<p><strong>Dependent Mapping:</strong></p>
+<p>بنخزن بيانات Object تابع داخل تخزين الـ Owner، بدل التعامل معه بالضرورة كسجل مستقل.</p>
+<p>مثال: Order وOrderLine.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">OrderLine  &lt;---  Order</code></pre></div>
+<p>الفرق في الهدف:</p>
+<ul>
+<li>Association Table Mapping: تخزين العلاقة بين Objects.</li>
+<li>Dependent Mapping: تخزين بيانات Objects التابعة ضمن تخزين الـ Owner.</li>
+</ul>
+<hr>
+<h2>6. علاقته بـ Application Architecture وClean Architecture</h2>
+<p>النمط ده مش Application Architecture Pattern.</p>
+<p>هو جزء من Persistence Mapping.</p>
+<p>في Clean Architecture:</p>
+<ul>
+<li>الـ Domain يحدد تركيب Order و<code class="inline">OrderLine</code>.</li>
+<li>الـ Infrastructure مسؤولة عن طريقة تخزينهم.</li>
+<li>الـ Domain مش محتاج يعرف هل الـ Lines مخزنة في نفس الجدول أو في جدول منفصل.</li>
+</ul>
+<p>وده مثال مهم على فصل الـ Domain Model عن تفاصيل الـ Persistence.</p>
+<h2>7. علاقته بـ DDD</h2>
+<p>هنا لازم نفرق بين مفهومين:</p>
+<p><strong>Dependent Object في Fowler</strong> و <strong>Entity / Value Object في DDD</strong>.</p>
+<p>مش كل Dependent Object لازم يكون Value Object، ومش كل Value Object لازم يُخزن باستخدام Dependent Mapping.</p>
+<p>لكن فيه علاقة شائعة:</p>
+<p>لو OrderLine عبارة عن جزء من Order، ومش لها هوية مستقلة خارج الـ Order، ممكن تكون Value Object أو جزءًا من Aggregate حسب قواعد المجال.</p>
+<p>وفي DDD، ممكن يكون عندنا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Order Aggregate
+    |
+    +---- OrderLine
+    |
+    +---- OrderLine
+    |
+    +---- OrderLine</code></pre></div>
+<p>الـ Order هنا هو Aggregate Root، والـ OrderLine جزء من الـ Aggregate.</p>
+<p>لكن خد بالك:</p>
+<p><strong>Aggregate Boundary مش هو نفسه Dependent Mapping.</strong></p>
+<p>الأول بيحدد حدود الاتساق والتحكم في التغييرات، والثاني بيحدد طريقة تخزين الـ Objects.</p>
+<p>ممكن يكون عندك Dependent Object مخزن في جدول مستقل، ومع ذلك يظل تابعًا للـ Owner في الـ Domain.</p>
+<hr>
+<h2>8. علاقته بـ Odoo</h2>
+<p>خلينا نستخدم مثال sale.order و<code class="inline">sale.order.line</code>.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class SaleOrder(models.Model):
+    _inherit = &quot;sale.order&quot;
+
+    custom_note = fields.Char()
+
+class SaleOrderLine(models.Model):
+    _inherit = &quot;sale.order.line&quot;
+
+    custom_reference = fields.Char()</code></pre></div>
+<p>في Odoo:</p>
+<ul>
+<li>sale.order له جدول مستقل.</li>
+<li>sale.order.line له جدول مستقل.</li>
+<li>العلاقة بينهما ممثلة باستخدام order_id من نوع Many2one.</li>
+</ul>
+<p>إذن هل sale.order.line مثال على Dependent Mapping؟</p>
+<p><strong>مش من ناحية الـ Persistence Mapping بالمعنى الدقيق للنمط اللي شرحناه.</strong></p>
+<p>لأن Odoo يخزن كل OrderLine في Row مستقلة داخل جدول مستقل.</p>
+<p>لكن ممكن تكون OrderLine تابعة للـ Order من ناحية دورة الحياة والـ Domain Model.</p>
+<p>وده يوضح الفرق بين:</p>
+<ul>
+<li>Domain Dependency.</li>
+<li>Persistence Dependency.</li>
+</ul>
+<p>مش كل Object تابع لغيره في الـ Domain لازم يكون Dependent Mapping في قاعدة البيانات.</p>
+<hr>
+<h2>9. إمتى نستخدم Dependent Mapping؟</h2>
+<p>يكون مناسبًا لما:</p>
+<ul>
+<li>يكون الـ Dependent Object جزءًا من الـ Owner.</li>
+<li>تكون حياته مرتبطة بحياة الـ Owner.</li>
+<li>لا تحتاج التعامل معه كسجل مستقل.</li>
+<li>يكون دمج بياناته في تخزين الـ Owner مناسبًا لطبيعة البيانات.</li>
+</ul>
+<p>لكن لو الـ Objects كثيرة أو متغيرة العدد، لازم تختار استراتيجية تخزين مناسبة؛ مش معنى Dependent Mapping إنك تحشر كل البيانات في أعمدة ثابتة.</p>
+<hr>
+<h2>ملخص النمط</h2>
+<p>السؤال الذي يجيب عنه Dependent Mapping:</p>
+<blockquote>How do you map dependent objects as part of their owner&#x27;s persistence representation?</blockquote>
+<p>الفكرة:</p>
+<p><strong>بدل ما يكون لكل Object تخزين مستقل بالضرورة، ممكن ندمج بيانات الـ Dependent Object داخل تخزين الـ Owner.</strong></p>
+<h2>خريطة المجموعة حتى الآن</h2>
+<ol>
+<li><strong>Identity Field</strong></li>
+</ol>
+<p>ربط هوية الـ Object بهوية الـ Database Row.</p>
+<ol>
+<li><strong>Foreign Key Mapping</strong></li>
+</ol>
+<p>تمثيل العلاقات باستخدام Foreign Keys.</p>
+<ol>
+<li><strong>Association Table Mapping</strong></li>
+</ol>
+<p>تمثيل العلاقات باستخدام جدول وسيط.</p>
+<ol>
+<li><strong>Dependent Mapping</strong></li>
+</ol>
+<p>دمج تخزين الـ Dependent Object مع الـ Owner.</p>
+<p><strong>التالي في الكتاب: Embedded Value.</strong></p>
+<p>وده هيكون مرتبط جدًا بالـ Value Objects اللي شرحناها قبل كده، وهنشوف إزاي نخزن مجموعة قيم داخل جدول الـ Owner بدل ما نحتاج جدولًا مستقلًا لها.</p>
+<p>نكمل يا صاحبي 😂</p>
+<p>النمط الخامس في مجموعة <strong>Object-Relational Structural Patterns</strong> هو:</p>
+<article class="pattern-card" id="5-embedded-value">
+<h3 class="pattern-title">5. Embedded Value</h3>
+<div class="card-body">
+<p>(Object-Relational Structural Pattern)</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندك Customer، وكل Customer عنده عنوان Address.</p>
+<p>في عالم الـ Objects، ممكن نمثل العنوان كـ Object مستقل:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Address:
+    def __init__(self, city, street, postal_code):
+        self.city = city
+        self.street = street
+        self.postal_code = postal_code
+
+class Customer:
+    def __init__(self, customer_id, name, address):
+        self.id = customer_id
+        self.name = name
+        self.address = address</code></pre></div>
+<p>لاحظ إن Customer يحتوي على Address Object.</p>
+<p>لكن في قاعدة البيانات، عندنا اختيارين:</p>
+<ol>
+<li>نعمل جدول مستقل للعناوين ونربطه بالـ Customer.</li>
+<li>نخزن بيانات العنوان داخل جدول الـ Customer نفسه.</li>
+</ol>
+<p>هل فعلًا محتاجين جدول مستقل لكل Address؟</p>
+<p>لو العنوان مجرد مجموعة قيم تخص العميل، ومش محتاجين نتعامل معاه ككيان مستقل، إنشاء جدول منفصل ممكن يكون تعقيدًا غير ضروري.</p>
+<p><strong>إذن المشكلة: إزاي نخزن Value Object داخل جدول الـ Owner من غير ما ننشئ جدولًا مستقلًا له؟</strong></p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة Embedded Value هي إننا نحتفظ بالـ Object كـ Object مستقل داخل الـ Domain Model، لكن عند التخزين ندمج بياناته كأعمدة داخل جدول الـ Owner.</p>
+<p>خلينا نشوف:</p>
+<p>تصميم قاعدة البيانات:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE customers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+
+    address_city VARCHAR(100),
+    address_street VARCHAR(150),
+    address_postal_code VARCHAR(20)
+);</code></pre></div>
+<p>لاحظ إن مفيش جدول اسمه addresses.</p>
+<p>بيانات العنوان موجودة داخل جدول customers.</p>
+<p>العلاقة من ناحية الـ Mapping:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Address Object  &lt;---  Customer Object
+       |                    |
+       |                    |
+       +--------+-----------+
+                |
+                v
+          customers Table
+       ┌─────────────────────┐
+       │ id                  │
+       │ name                │
+       │ address_city        │
+       │ address_street      │
+       │ address_postal_code│
+       └─────────────────────┘</code></pre></div>
+<p>الـ Address لسه Object في الذاكرة، لكن بياناته اتخزنت كجزء من Row الـ Customer.</p>
+<p><strong>وده جوهر Embedded Value.</strong></p>
+<h2>3. مثال Python</h2>
+<p>خلينا نبني المثال بصورة أوضح.</p>
+<h3>Domain Model</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Address:
+    def __init__(self, city, street, postal_code):
+        self.city = city
+        self.street = street
+        self.postal_code = postal_code
+
+class Customer:
+    def __init__(self, customer_id, name, address):
+        self.id = customer_id
+        self.name = name
+        self.address = address</code></pre></div>
+<h3>Persistence Mapping</h3>
+<p>عند الحفظ:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def save_customer(customer, db):
+    db.execute(
+        &quot;&quot;&quot;
+        UPDATE customers
+        SET
+            name = %s,
+            address_city = %s,
+            address_street = %s,
+            address_postal_code = %s
+        WHERE id = %s
+        &quot;&quot;&quot;,
+        (
+            customer.name,
+            customer.address.city,
+            customer.address.street,
+            customer.address.postal_code,
+            customer.id,
+        )
+    )</code></pre></div>
+<p>وعند التحميل:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def load_customer(customer_id, db):
+    row = db.execute(
+        &quot;&quot;&quot;
+        SELECT *
+        FROM customers
+        WHERE id = %s
+        &quot;&quot;&quot;,
+        (customer_id,)
+    ).fetchone()
+
+    if row is None:
+        return None
+
+    address = Address(
+        city=row[&quot;address_city&quot;],
+        street=row[&quot;address_street&quot;],
+        postal_code=row[&quot;address_postal_code&quot;],
+    )
+
+    return Customer(
+        customer_id=row[&quot;id&quot;],
+        name=row[&quot;name&quot;],
+        address=address,
+    )</code></pre></div>
+<p>لاحظ هنا إننا بنعمل Mapping بين:</p>
+<ul>
+<li>مجموعة أعمدة في Database.</li>
+<li>Object واحد في Domain Model.</li>
+</ul>
+<p>ومش محتاجين Query إضافية لتحميل العنوان؛ لأنه موجود بالفعل في نفس Row.</p>
+<hr>
+<h2>4. علاقته بـ GoF Patterns</h2>
+<p>هل فيه GoF Pattern مكافئ مباشر؟</p>
+<p><strong>لا، مفيش GoF Pattern مكافئ مباشر.</strong></p>
+<p>لكن ممكن تلاحظ تشابهًا مع Composite؛ لأن عندنا Object يحتوي Objects أخرى.</p>
+<p>الفرق:</p>
+<ul>
+<li>Composite هدفه تمثيل Hierarchical Object Structures.</li>
+<li>Embedded Value هدفه تحديد طريقة تخزين Value Object داخل جدول الـ Owner.</li>
+</ul>
+<p>ممكن تستخدم Composite في تصميم الـ Objects، وتستخدم Embedded Value في الـ Persistence، لكن كل واحد بيحل مشكلة مختلفة.</p>
+<hr>
+<h2>5. الفرق بين Embedded Value وDependent Mapping</h2>
+<p>دي مقارنة مهمة جدًا.</p>
+<p><strong>Embedded Value:</strong></p>
+<p>بنخزن بيانات Value Object كأعمدة داخل جدول الـ Owner.</p>
+<p>مثال:</p>
+<p>Customer يحتوي على Address، وبيانات العنوان موجودة في جدول Customer.</p>
+<p><strong>Dependent Mapping:</strong></p>
+<p>بنخزن بيانات Object تابع كجزء من تمثيل تخزين الـ Owner، ومش شرط يكون Value Object.</p>
+<p>الفرق الأساسي إن Embedded Value بيركز على تخزين مجموعة قيم كجزء من Row الـ Owner، بينما Dependent Mapping مفهوم أوسع لتخزين Objects التابعة.</p>
+<p>بالتالي Embedded Value ممكن يُعتبر حالة متخصصة من فكرة Dependent Mapping، لكن Fowler بيفصلهم كنمطين مختلفين.</p>
+<hr>
+<h2>6. علاقته بـ Value Object في DDD</h2>
+<p>هنا العلاقة قوية جدًا.</p>
+<p>في DDD، الـ Value Object:</p>
+<ul>
+<li>لا يمتلك Identity مستقلة.</li>
+<li>بيتحدد من خلال قيمه.</li>
+<li>غالبًا بيكون Immutable.</li>
+<li>ممكن يحتوي Business Behavior مرتبط بالقيم.</li>
+</ul>
+<p>مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Money:
+    def __init__(self, amount, currency):
+        self.amount = amount
+        self.currency = currency
+
+    def add(self, other):
+        if self.currency != other.currency:
+            raise ValueError(&quot;Currency mismatch&quot;)
+
+        return Money(
+            self.amount + other.amount,
+            self.currency
+        )</code></pre></div>
+<p>ممكن يكون عندك:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Order:
+    def __init__(self, order_id, total):
+        self.id = order_id
+        self.total = total</code></pre></div>
+<p>والـ Money Object يتخزن داخل جدول orders كعمودين:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    total_amount DECIMAL(12, 2),
+    total_currency VARCHAR(3)
+);</code></pre></div>
+<p>يعني:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Money Object  &lt;---  Order Object
+     |                  |
+     +--------+---------+
+              |
+              v
+         orders Table</code></pre></div>
+<p>لكن انتبه: مش كل Value Object لازم نستخدم معاه Embedded Value؛ ممكن نخزن بعض أنواع الـ Value Objects بطرق أخرى حسب طبيعة البيانات والتصميم.</p>
+<hr>
+<h2>7. علاقته بـ Clean Architecture</h2>
+<p>Embedded Value مش Application Architecture Pattern.</p>
+<p>هو Persistence Mapping Pattern.</p>
+<p>في Clean Architecture:</p>
+<ul>
+<li>الـ Domain يحتوي Address أو Money كـ Objects.</li>
+<li>الـ Infrastructure مسؤولة عن تحويلهم إلى أعمدة.</li>
+<li>الـ Domain مش محتاج يعرف إن address_city عمود في جدول customers.</li>
+</ul>
+<p>وده تطبيق واضح لفصل الـ Domain Model عن تفاصيل التخزين.</p>
+<hr>
+<h2>8. علاقته بـ Odoo</h2>
+<p>خلينا ناخد مثال عملي.</p>
+<p>في Odoo، عندنا res.partner، والعنوان غالبًا ممثل باستخدام Fields داخل نفس Model:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Partner(models.Model):
+    _inherit = &quot;res.partner&quot;
+
+    building_number = fields.Char()
+    street_name = fields.Char()
+    postal_code_custom = fields.Char()</code></pre></div>
+<p>الـ Fields دي بتُخزن عادةً كأعمدة في جدول res_partner.</p>
+<p>لكن هل ده معناه إن Odoo بيطبق Embedded Value بالكامل؟</p>
+<p><strong>مش بالضرورة.</strong></p>
+<p>لأننا هنا بنضيف Fields مباشرة للـ Model، ومش بالضرورة عندنا Value Object مستقل في الـ Domain Model.</p>
+<p>كمان Odoo عنده Delegation وClassical Inheritance وORM mechanisms مختلفة، فلازم نصنف كل حالة حسب تصميمها الفعلي.</p>
+<hr>
+<h2>9. الفرق بين Embedded Value وForeign Key Mapping</h2>
+<p>خلينا نثبت الفرق:</p>
+<p><strong>Embedded Value:</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Address Object  &lt;---  Customer Object
+       \                  /
+        \                /
+         +--------------+
+                |
+                v
+         Customer Table</code></pre></div>
+<p>الـ Address بيتخزن داخل جدول Customer نفسه.</p>
+<p><strong>Foreign Key Mapping:</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Address Table  &lt;---  Customer Table</code></pre></div>
+<p>الـ Customer بيحتفظ بـ Foreign Key يشير إلى سجل مستقل في جدول Address.</p>
+<p>المقارنة	Embedded Value	Foreign Key Mapping</p>
+<p>مكان التخزين	جدول الـ Owner	جدول مرتبط</p>
+<p>Identity مستقلة	غالبًا لا	ممكن توجد</p>
+<p>Query إضافية	غالبًا لا	حسب التحميل</p>
+<p>المشاركة بين عدة Owners	غير مناسبة عادةً	ممكنة حسب العلاقة</p>
+<hr>
+<h2>10. إمتى نستخدم Embedded Value؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>تكون البيانات مجموعة قيم مرتبطة بالـ Owner.</li>
+<li>مفيش احتياج لهوية مستقلة.</li>
+<li>مش محتاج مشاركة نفس السجل بين Owners متعددين.</li>
+<li>البيانات غالبًا بتُقرأ وتُحدّث مع الـ Owner.</li>
+</ul>
+<p>وتجنبه لما يكون عندك Object محتاج Lifecycle مستقل أو علاقات مستقلة أو استعلامات وإدارة منفصلة.</p>
+<hr>
+<h2>ملخص النمط</h2>
+<p>السؤال اللي بيجاوب عنه Embedded Value:</p>
+<blockquote>How do you map a value object into the same database table as its owner?</blockquote>
+<p>الإجابة:</p>
+<p><strong>بنحوّل خصائص الـ Value Object إلى أعمدة داخل جدول الـ Owner.</strong></p>
+<h2>خريطة المجموعة حتى الآن</h2>
+<ol>
+<li><strong>Identity Field</strong> — هوية الـ Object.</li>
+<li><strong>Foreign Key Mapping</strong> — العلاقات باستخدام Foreign Keys.</li>
+<li><strong>Association Table Mapping</strong> — العلاقات باستخدام جدول وسيط.</li>
+<li><strong>Dependent Mapping</strong> — تخزين Objects التابعة ضمن تمثيل الـ Owner.</li>
+<li><strong>Embedded Value</strong> — تخزين Value Object كأعمدة داخل جدول الـ Owner.</li>
+</ol>
+<p><strong>التالي في ترتيب Fowler: Serialized LOB.</strong></p>
+<p>وده هيكون عكس فكرة Embedded Value من ناحية طريقة التخزين تقريبًا: بدل ما نفك خصائص الـ Object إلى أعمدة، هنشوف إزاي نخزن مجموعة Objects كاملة في عمود واحد باستخدام Serialization.</p>
+<p>نكمل يا صاحبي 😂</p>
+<p>النمط السادس في مجموعة <strong>Object-Relational Structural Patterns</strong> هو:</p>
+<article class="pattern-card" id="6-serialized-lob">
+<h3 class="pattern-title">6. Serialized LOB</h3>
+<div class="card-body">
+<p>(Object-Relational Structural Pattern)</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندك Order يحتوي على مجموعة Objects داخلية:</p>
+<ul>
+<li>Order Information</li>
+<li>Order Items</li>
+<li>Shipping Details</li>
+<li>Custom Attributes</li>
+<li>Metadata</li>
+</ul>
+<p>ممكن نمثلها في Python بالشكل التالي:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Order:
+    def __init__(self, order_id, items, shipping, metadata):
+        self.id = order_id
+        self.items = items
+        self.shipping = shipping
+        self.metadata = metadata</code></pre></div>
+<p>في النمط السابق Embedded Value، كنا بنفك خصائص الـ Object ونحولها إلى أعمدة داخل جدول الـ Owner.</p>
+<p>لكن تخيل عندك Object Graph كبير ومتغير، فيه Objects متداخلة وCollections.</p>
+<p>هل لازم نحول كل Property إلى Column؟</p>
+<p>ده ممكن ينتج عنه:</p>
+<ul>
+<li>عدد كبير جدًا من الأعمدة.</li>
+<li>صعوبة التعامل مع Structure متغير.</li>
+<li>تعقيد في Mapping للـ Objects المتداخلة.</li>
+<li>تغييرات متكررة في Schema كل ما شكل الـ Object يتغير.</li>
+</ul>
+<p><strong>إذن المشكلة: إزاي نخزن Object Graph معقد داخل قاعدة بيانات علائقية، من غير ما نفك كل Object إلى أعمدة وجداول؟</strong></p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة Serialized LOB هي:</p>
+<p>نحوّل الـ Object Graph إلى صيغة Serialized، ونخزن الناتج بالكامل داخل عمود واحد في قاعدة البيانات.</p>
+<p>LOB اختصار لـ:</p>
+<p><strong>Large Object</strong></p>
+<p>والمقصود هنا تخزين محتوى كبير داخل عمود، سواء باستخدام نوع BLOB أو CLOB أو نوع مناسب حسب قاعدة البيانات.</p>
+<p>خلينا نشوف الفكرة:</p>
+<p><strong>Object Graph</strong></p>
+<p>Order + Items + Shipping + Metadata</p>
+<p><strong>Serialization</strong></p>
+<p><strong>Serialized Data</strong></p>
+<p>JSON / XML / Binary Representation</p>
+<p><strong>Database Storage</strong></p>
+<p><strong>Single Database Column</strong></p>
+<p>orders.serialized_data</p>
+<p>يعني بدل ما يكون عندنا أعمدة لكل خاصية، بنخزن الـ Object Graph كله في عمود واحد.</p>
+<p>وعند القراءة بنعمل العكس:</p>
+<p><strong>Deserialization</strong> لإعادة بناء الـ Objects.</p>
+<hr>
+<h2>3. مثال عملي باستخدام Python</h2>
+<p>خلينا نستخدم JSON كمثال.</p>
+<h3>أولًا: Domain Objects</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderItem:
+    def __init__(self, product_id, quantity, price):
+        self.product_id = product_id
+        self.quantity = quantity
+        self.price = price
+
+class Shipping:
+    def __init__(self, city, address):
+        self.city = city
+        self.address = address
+
+class Order:
+    def __init__(self, order_id, items, shipping):
+        self.id = order_id
+        self.items = items
+        self.shipping = shipping</code></pre></div>
+<h3>ثانيًا: Serialization</h3>
+<p>JSON مش بيقدر يحول Python Objects تلقائيًا بشكل عام، فهنحتاج نحولها إلى Dictionaries:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">import json
+
+def serialize_order(order):
+    data = {
+        &quot;id&quot;: order.id,
+        &quot;items&quot;: [
+            {
+                &quot;product_id&quot;: item.product_id,
+                &quot;quantity&quot;: item.quantity,
+                &quot;price&quot;: item.price,
+            }
+            for item in order.items
+        ],
+        &quot;shipping&quot;: {
+            &quot;city&quot;: order.shipping.city,
+            &quot;address&quot;: order.shipping.address,
+        },
+    }
+
+    return json.dumps(data)</code></pre></div>
+<h3>ثالثًا: تخزين البيانات</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    serialized_data JSONB NOT NULL
+);</code></pre></div>
+<p>وبعدها ممكن نخزن الناتج في العمود:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">serialized = serialize_order(order)
+
+db.execute(
+    &quot;&quot;&quot;
+    INSERT INTO orders (id, serialized_data)
+    VALUES (%s, %s::jsonb)
+    &quot;&quot;&quot;,
+    (order.id, serialized)
+)</code></pre></div>
+<h3>رابعًا: Deserialization</h3>
+<p>نرجع البيانات إلى Objects:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def deserialize_order(serialized):
+    data = json.loads(serialized)
+
+    items = [
+        OrderItem(
+            product_id=item[&quot;product_id&quot;],
+            quantity=item[&quot;quantity&quot;],
+            price=item[&quot;price&quot;],
+        )
+        for item in data[&quot;items&quot;]
+    ]
+
+    shipping = Shipping(
+        city=data[&quot;shipping&quot;][&quot;city&quot;],
+        address=data[&quot;shipping&quot;][&quot;address&quot;],
+    )
+
+    return Order(
+        order_id=data[&quot;id&quot;],
+        items=items,
+        shipping=shipping,
+    )</code></pre></div>
+<p>كده قدرنا نخزن Object Graph ونرجعه تاني.</p>
+<p>المثال تعليمي. JSONB في PostgreSQL ليس Binary Serialization بالمعنى الحرفي، لكنه تمثيل JSON مخزن داخل قاعدة البيانات. Fowler يتكلم عن Serialization عمومًا، مش JSON فقط.</p>
+<hr>
+<h2>4. علاقته بـ GoF Patterns</h2>
+<p>هل فيه GoF Pattern مكافئ مباشر؟</p>
+<p><strong>لا، مفيش GoF Pattern مكافئ مباشر.</strong></p>
+<p>لكن فيه تشابه مع:</p>
+<ul>
+<li>Memento: لأن الاتنين ممكن يحتفظوا بحالة Object لاستعادتها لاحقًا.</li>
+<li>Prototype: لأننا ممكن نعيد بناء Objects من نسخة محفوظة من بياناتها.</li>
+</ul>
+<p>لكن الفرق في الـ Intent:</p>
+<p><strong>Memento</strong> هدفه حفظ واستعادة حالة Object، غالبًا لدعم Undo/Redo أو استعادة الحالة.</p>
+<p><strong>Serialized LOB</strong> هدفه تخزين Object Graph داخل قاعدة البيانات في صورة Serialized Representation.</p>
+<p>ممكن تستخدم Serialization داخل تطبيق بيطبق Memento، لكن مش معناها إن الاتنين نفس النمط.</p>
+<hr>
+<h2>5. الفرق بين Embedded Value وSerialized LOB</h2>
+<p>دي أهم مقارنة في الجزء ده.</p>
+<p><strong>Embedded Value:</strong></p>
+<p>بنفك الـ Object إلى مجموعة أعمدة واضحة داخل جدول الـ Owner.</p>
+<p>مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE customers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    address_city VARCHAR(100),
+    address_street VARCHAR(100)
+);</code></pre></div>
+<p><strong>Serialized LOB:</strong></p>
+<p>بنحول الـ Object Graph إلى صيغة واحدة ونخزنها في عمود واحد.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE customers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    address_data JSONB
+);</code></pre></div>
+<p>الفرق:</p>
+<p>المقارنة	Embedded Value	Serialized LOB</p>
+<p>طريقة التخزين	أعمدة متعددة	عمود واحد</p>
+<p>البيانات	Properties مفككة	Serialized Structure</p>
+<p>SQL Queries	سهلة نسبيًا	تعتمد على صيغة التخزين</p>
+<p>Schema	أكثر ارتباطًا بالـ Object Structure	أكثر مرونة</p>
+<p>تعديل خاصية	تحديث عمود	تحديث محتوى Serialized</p>
+<hr>
+<h2>6. علاقته بـ Application Architecture وClean Architecture</h2>
+<p>Serialized LOB مش Application Architecture Pattern.</p>
+<p>هو Persistence Mapping Pattern.</p>
+<p>في Clean Architecture:</p>
+<ul>
+<li>الـ Domain يحتوي Objects والـ Business Behavior.</li>
+<li>الـ Infrastructure مسؤولة عن Serialization وDeserialization.</li>
+<li>الـ Repository يخفي تفاصيل التخزين عن الـ Domain.</li>
+</ul>
+<p>مثلاً، الـ Domain يتعامل مع:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">order = repository.get_order(10)</code></pre></div>
+<p>ومش محتاج يعرف إن البيانات مخزنة في JSONB أو BLOB.</p>
+<p>لكن لازم نحافظ على فصل الـ Serialization Format عن الـ Domain Model قدر الإمكان.</p>
+<hr>
+<h2>7. علاقته بـ DDD</h2>
+<p>هنا فيه علاقة مهمة.</p>
+<p>ممكن يكون عندك Aggregate كبير نسبيًا، وتريد تخزينه كوحدة واحدة.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Order Aggregate
+    |
+    +---- OrderLine
+    |
+    +---- ShippingInfo
+    |
+    +---- Metadata</code></pre></div>
+<p>ممكن تستخدم Serialized LOB لتخزين أجزاء من الـ Aggregate.</p>
+<p>لكن فيه نقطة مهمة جدًا:</p>
+<p><strong>DDD لا يفرض إن كل Aggregate يتخزن في Serialized LOB.</strong></p>
+<p>كمان تخزين Aggregate بالكامل في JSON لا يعني تلقائيًا إنك حققت Aggregate Consistency؛ قواعد الاتساق لازم تظل مطبقة في الـ Domain وفي حدود المعاملات.</p>
+<hr>
+<h2>8. علاقته بـ Odoo وPostgreSQL</h2>
+<p>خلينا ناخد مثال من Odoo.</p>
+<p>عندك حقل fields.Json:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class MyModel(models.Model):
+    _name = &quot;my.model&quot;
+
+    name = fields.Char()
+    metadata = fields.Json()</code></pre></div>
+<p>في PostgreSQL، حقل JSON في Odoo بيُخزن باستخدام نوع JSONB.</p>
+<p>وده قريب من فكرة Serialized LOB من ناحية تخزين Structure داخل عمود واحد.</p>
+<p>لكن لازم نفرق بين حاجتين:</p>
+<ul>
+<li>fields.Json مجرد نوع حقل يوفر تخزين JSON.</li>
+<li>Serialized LOB Pattern هو قرار تصميمي لتخزين Object Graph كتمثيل Serialized.</li>
+</ul>
+<p>مش كل JSON Field في Odoo معناه إننا طبقنا Serialized LOB على مستوى التصميم.</p>
+<h3>إمتى ده يكون مفيد في Odoo؟</h3>
+<p>مثلًا لو عندك Integration مع External System وبتحتاج تحتفظ بـ Payload متغير:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">external_payload = fields.Json()</code></pre></div>
+<p>ممكن يكون مناسب لتخزين بيانات الـ Integration اللي مش محتاج تحول كل خاصية فيها إلى Column مستقل.</p>
+<p>لكن لو البيانات أساسية في Business Logic، وبتحتاج:</p>
+<ul>
+<li>Filtering متكرر.</li>
+<li>Joins.</li>
+<li>Constraints.</li>
+<li>Aggregations.</li>
+<li>Reporting.</li>
+</ul>
+<p>فغالبًا الأفضل تصميم Fields وRelations واضحة بدل وضع كل شيء داخل JSON.</p>
+<hr>
+<h2>9. عيوب ومخاطر Serialized LOB</h2>
+<p>لازم نكون واضحين إن المرونة هنا ليها تكلفة.</p>
+<ol>
+<li><strong>Querying:</strong> الاستعلام عن البيانات الداخلية ممكن يكون أصعب أو أقل كفاءة حسب صيغة التخزين.</li>
+<li><strong>Indexing:</strong> محتاج تفكر في Indexes مناسبة للخصائص اللي بتبحث عنها.</li>
+<li><strong>Schema Evolution:</strong> تغيير شكل البيانات يحتاج Versioning أو Migration Strategy.</li>
+<li><strong>Partial Updates:</strong> تعديل جزء صغير من البيانات ممكن يتطلب التعامل مع الـ Serialized Structure.</li>
+<li><strong>Data Integrity:</strong> قيود الـ Foreign Keys والـ Database Constraints مش بنفس سهولة البيانات المفككة إلى جداول وأعمدة.</li>
+<li><strong>Concurrency:</strong> تعديل أجزاء مختلفة من نفس الـ Document ممكن يسبب تعارضات حسب طريقة التحديث.</li>
+</ol>
+<hr>
+<h2>10. إمتى نستخدم Serialized LOB؟</h2>
+<p>مناسب لما:</p>
+<ul>
+<li>عندك Object Graph معقد أو متغير.</li>
+<li>مش محتاج تعمل Queries كثيرة على كل Property.</li>
+<li>البيانات غالبًا بتُقرأ وتُكتب كوحدة واحدة.</li>
+<li>المرونة أهم من Relational Queryability.</li>
+</ul>
+<p>مش مناسب لما تكون البيانات الأساسية محتاجة علاقات واستعلامات وقيود قوية على مستوى قاعدة البيانات.</p>
+<hr>
+<h2>ملخص النمط</h2>
+<p>السؤال اللي بيجاوب عنه Serialized LOB:</p>
+<blockquote>How do you store an object graph as a serialized representation in a single database column?</blockquote>
+<p>الإجابة:</p>
+<p><strong>نحوّل الـ Object Graph إلى Serialized Representation ونخزنه داخل LOB واحد في قاعدة البيانات.</strong></p>
+<h2>خريطة المجموعة حتى الآن</h2>
+<ol>
+<li><strong>Identity Field</strong> — ربط هوية الـ Object بهوية الـ Row.</li>
+<li><strong>Foreign Key Mapping</strong> — تمثيل العلاقات باستخدام Foreign Keys.</li>
+<li><strong>Association Table Mapping</strong> — تمثيل العلاقات باستخدام جدول وسيط.</li>
+<li><strong>Dependent Mapping</strong> — تخزين Objects التابعة ضمن تمثيل الـ Owner.</li>
+<li><strong>Embedded Value</strong> — تخزين Value Object كأعمدة داخل جدول الـ Owner.</li>
+<li><strong>Serialized LOB</strong> — تخزين Object Graph كبيانات Serialized داخل عمود واحد.</li>
+</ol>
+<p><strong>التالي في ترتيب Fowler: Single Table Inheritance.</strong></p>
+<p>وده هيدخلنا في موضوع مهم جدًا: إزاي نمثل الـ Class Inheritance في Object-Oriented Model باستخدام Relational Database؟</p>
+<article class="pattern-card" id="7-single-table-inheritance-sti">
+<h3 class="pattern-title">7. Single Table Inheritance (STI)</h3>
+<div class="card-body">
+<p>خلينا نكمل في <strong>Object-Relational Structural Patterns</strong> بنفس طريقتنا.</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>عندنا في الـ OOP مفهوم اسمه <strong>Inheritance</strong>.</p>
+<p>يعني ممكن يكون عندنا Class أساسي اسمه Payment، ويتفرع منه أنواع مختلفة:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">             Payment
+                |
+        -----------------
+        |               |
+   CardPayment     CashPayment</code></pre></div>
+<p>كل نوع له بيانات مشتركة وبيانات خاصة بيه.</p>
+<p>مثلًا:</p>
+<ul>
+<li>Payment: المبلغ والتاريخ.</li>
+<li>CardPayment: رقم البطاقة وآخر أربعة أرقام.</li>
+<li>CashPayment: الشخص الذي استلم المبلغ.</li>
+</ul>
+<p>المشكلة إن قواعد البيانات العلائقية Relational Databases لا تدعم الـ Class Inheritance بنفس طريقة Python.</p>
+<p>فالسؤال هنا:</p>
+<p><strong>إزاي نمثل الـ Inheritance Hierarchy دي داخل Database؟</strong></p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة <strong>Single Table Inheritance</strong> بسيطة:</p>
+<p>بدل ما نعمل جدول لكل Class، نعمل <strong>جدول واحد فقط</strong> يحتوي على بيانات الـ Parent وكل الـ Subclasses.</p>
+<p>ونضيف عمود اسمه <strong>Discriminator Column</strong> يحدد نوع الـ Object الموجود في كل Row.</p>
+<p><strong>الـ Class Hierarchy في Python</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">               Payment
+                  |
+         -------------------
+         |                 |
+    CardPayment       CashPayment</code></pre></div>
+<hr>
+<p><strong>التمثيل في Database</strong></p>
+<p>جدول واحد اسمه payments</p>
+<p>id	payment_type	amount	card_last4	received_by</p>
+<p>1	card	500	1234	NULL</p>
+<p>2	cash	300	NULL	Ahmed</p>
+<p>3	card	700	5678	NULL</p>
+<hr>
+<p>كل Row يتم تحديد نوعها من خلال payment_type</p>
+<p>(card) CardPayment</p>
+<p>(cash) CashPayment</p>
+<p>لاحظ إن:</p>
+<ul>
+<li>amount موجود لكل أنواع الـ Payment.</li>
+<li>card_last4 خاص بالـ Card Payment.</li>
+<li>received_by خاص بالـ Cash Payment.</li>
+<li>الأعمدة غير المستخدمة في نوع معين بتكون NULL.</li>
+</ul>
+<p>وده جوهر النمط.</p>
+<h2>3. مثال عملي باستخدام Python</h2>
+<p>أولًا، نعرّف الـ Classes:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Payment:
+    def __init__(self, amount):
+        self.amount = amount
+
+class CardPayment(Payment):
+    def __init__(self, amount, card_last4):
+        super().__init__(amount)
+        self.card_last4 = card_last4
+
+class CashPayment(Payment):
+    def __init__(self, amount, received_by):
+        super().__init__(amount)
+        self.received_by = received_by</code></pre></div>
+<p>دلوقتي نحتاج نمثلهم في جدول واحد:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE payments (
+    id INTEGER PRIMARY KEY,
+    payment_type VARCHAR(20) NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    card_last4 VARCHAR(4),
+    received_by VARCHAR(100)
+);</code></pre></div>
+<p>نضيف بيانات:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">INSERT INTO payments
+    (id, payment_type, amount, card_last4, received_by)
+VALUES
+    (1, &#x27;card&#x27;, 500, &#x27;1234&#x27;, NULL),
+    (2, &#x27;cash&#x27;, 300, NULL, &#x27;Ahmed&#x27;);</code></pre></div>
+<p>طيب لما نقرأ البيانات من Database، إزاي نعرف نرجع أي Class؟</p>
+<p>هنا بييجي دور الـ <strong>Discriminator</strong>:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def load_payment(row):
+    if row[&quot;payment_type&quot;] == &quot;card&quot;:
+        return CardPayment(
+            amount=row[&quot;amount&quot;],
+            card_last4=row[&quot;card_last4&quot;]
+        )
+
+    if row[&quot;payment_type&quot;] == &quot;cash&quot;:
+        return CashPayment(
+            amount=row[&quot;amount&quot;],
+            received_by=row[&quot;received_by&quot;]
+        )
+
+    raise ValueError(&quot;Unknown payment type&quot;)</code></pre></div>
+<p>لاحظ إن الـ payment_type هو اللي بيحدد الـ Class اللي هننشئ منه الـ Object.</p>
+<p>إذًا عملية التحميل بتكون:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Python Objects
+      |
+      | Save
+      ↓
+  payments Table
+      |
+      | Load + Discriminator
+      ↓
+Concrete Python Objects</code></pre></div>
+<p>وبصياغة اتجاهها من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Concrete Python Objects  &lt;---  Discriminator  &lt;---  payments Table</code></pre></div>
+<p><strong>ملاحظة مهمة:</strong> الـ Database نفسها مش بتعرف إن فيه Inheritance. إحنا بننفذ استراتيجية التخزين دي عن طريق الـ Schema والـ ORM أو الـ Mapper.</p>
+<h2>4. أقرب GoF Pattern</h2>
+<p>هل فيه GoF Pattern مطابق لـ Single Table Inheritance؟</p>
+<p><strong>لا، مفيش GoF Pattern مكافئ مباشر.</strong></p>
+<p>لكن فيه تشابه جزئي مع:</p>
+<h3>Factory Method</h3>
+<p>لما نقرأ Row ونشوف قيمة payment_type، بنختار الـ Class المناسب لإنشاء الـ Object.</p>
+<p>يعني:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Row + Discriminator
+          |
+          ↓
+     Object Creation
+          |
+     ----------------
+     |              |
+ CardPayment    CashPayment</code></pre></div>
+<p>لكن خلي بالك من الفرق:</p>
+<ul>
+<li><strong>Factory Method:</strong> هدفه تنظيم إنشاء Objects وتحديد الـ Concrete Product.</li>
+<li><strong>Single Table Inheritance:</strong> هدفه تحديد طريقة تخزين Class Inheritance Hierarchy داخل جدول واحد.</li>
+</ul>
+<p>إذًا وجود Factory أثناء تحميل البيانات مش معناه إن STI هو Factory Method.</p>
+<h2>5. علاقته بالأنماط الأخرى</h2>
+<p>أهم مقارنة هنا هي مع أنماط تخزين الـ Inheritance الأخرى.</p>
+<p>النمط	طريقة التخزين</p>
+<p>Single Table Inheritance	جدول واحد لكل الـ Hierarchy</p>
+<p>Class Table Inheritance	جدول للـ Parent وجدول لكل Subclass</p>
+<p>Concrete Table Inheritance	جدول مستقل لكل Concrete Class</p>
+<p>هنشرح كل واحد في وقته، لكن الفرق الأساسي إن STI بيجمع كل البيانات في جدول واحد.</p>
+<h2>6. علاقته بالـ Application Architecture</h2>
+<p>خلينا نفصل بين مستويين:</p>
+<ul>
+<li><strong>Application Architecture:</strong> بنقسم التطبيق إلى Layers أو Components إزاي؟</li>
+<li><strong>Single Table Inheritance:</strong> بنمثل الـ Class Inheritance في قاعدة البيانات إزاي؟</li>
+</ul>
+<p>إذًا STI مش Application Architecture Pattern، ده <strong>Object-Relational Mapping Pattern</strong>.</p>
+<h3>علاقته بـ Clean Architecture</h3>
+<p>تخيل عندنا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Domain Layer:
+    Payment
+    CardPayment
+    CashPayment
+
+Infrastructure Layer:
+    PaymentMapper
+    Database</code></pre></div>
+<p>الـ Domain Layer مش المفروض يعرف إننا بنستخدم:</p>
+<ul>
+<li>جدول واحد.</li>
+<li>عمود اسمه payment_type.</li>
+<li>أعمدة NULL للأنواع الأخرى.</li>
+</ul>
+<p>الـ Infrastructure هي اللي مسؤولة عن تحويل الـ Database Rows إلى Domain Objects والعكس.</p>
+<p>وده مثال واضح على فصل الـ Persistence Concerns عن الـ Domain Model.</p>
+<h2>7. علاقته بـ DDD</h2>
+<p>في DDD ممكن يكون عندك Inheritance داخل الـ Domain Model.</p>
+<p>مثلًا:</p>
+<ul>
+<li>Payment كـ Base Class.</li>
+<li>CardPayment و<code class="inline">CashPayment</code> كـ Subclasses.</li>
+</ul>
+<p>لكن وجود Inheritance في الـ Domain لا يعني إنك لازم تستخدم Single Table Inheritance في قاعدة البيانات.</p>
+<p>ممكن تختار:</p>
+<ul>
+<li>Single Table Inheritance.</li>
+<li>Class Table Inheritance.</li>
+<li>Concrete Table Inheritance.</li>
+<li>أو حتى Composition بدل Inheritance.</li>
+</ul>
+<p><strong>القرار هنا متعلق بشكل الـ Domain Model واحتياجات الـ Persistence، مش مجرد إن عندك وراثة في الكود.</strong></p>
+<h2>8. علاقته بـ Odoo</h2>
+<p>هنا محتاجين نكون دقيقين؛ لأن Odoo عنده أكتر من استراتيجية للـ Model Inheritance.</p>
+<h3>_inherit</h3>
+<p>لما تستخدم _inherit بدون _name، فأنت غالبًا بتوسع Model موجود بالفعل، وتضيف له Fields أو Methods.</p>
+<p>ده مش معناه تلقائيًا إنك بتطبق Single Table Inheritance.</p>
+<h3>_name مع _inherit</h3>
+<p>لما تنشئ Model جديد باستخدام _name و<code class="inline">_inherit</code>، فأنت بتنشئ Model جديد يرث Fields وMethods من Model آخر، وله تمثيل مستقل في قاعدة البيانات.</p>
+<h3>_inherits</h3>
+<p>ده اسمه Delegation Inheritance في Odoo، وبيعتمد على ربط Models ببعض عن طريق Many2one.</p>
+<p>مش Single Table Inheritance.</p>
+<p><strong>الخلاصة:</strong> مجرد استخدام _inherit أو _inherits في Odoo لا يكفي لتصنيف التنفيذ على إنه Fowler&#x27;s Single Table Inheritance. لازم نبص على استراتيجية التخزين الفعلية.</p>
+<hr>
+<h2>9. مميزات وعيوب Single Table Inheritance</h2>
+<p><strong>المميزات:</strong></p>
+<ul>
+<li>جدول واحد فقط.</li>
+<li>Queries أبسط في حالات التعامل مع الـ Hierarchy كلها.</li>
+<li>مفيش Joins بين جداول الـ Parent والـ Subclasses.</li>
+<li>إضافة Subclass جديدة لا تتطلب إنشاء جدول جديد.</li>
+</ul>
+<p><strong>العيوب:</strong></p>
+<ul>
+<li>عدد كبير من الأعمدة التي قد تكون NULL.</li>
+<li>الـ Constraints ممكن تبقى معقدة؛ لأن كل نوع له قواعد مختلفة.</li>
+<li>الجدول ممكن يكبر جدًا مع زيادة أنواع الـ Subclasses.</li>
+<li>الـ Schema مرتبط بقوة بتصميم الـ Inheritance Hierarchy.</li>
+</ul>
+<h2>الخلاصة</h2>
+<p><strong>Single Table Inheritance</strong></p>
+<p>بنمثل الـ Parent Class وكل الـ Subclasses داخل جدول واحد.</p>
+<ul>
+<li>جدول واحد لكل الـ Hierarchy.</li>
+<li>Discriminator يحدد نوع كل Row.</li>
+<li>الـ ORM أو Mapper ينشئ الـ Concrete Class المناسبة.</li>
+<li>لا يوجد GoF Equivalent مباشر.</li>
+<li>مناسب لما يكون عدد الـ Subclasses والأعمدة الإضافية معقولًا.</li>
+</ul>
+<p>النمط التالي في نفس المجموعة هو:</p>
+<p><strong>Class Table Inheritance</strong></p>
+<p>وده هيكون مهم جدًا؛ لأنه بيحل مشكلة الـ NULL الكثيرة الموجودة في Single Table Inheritance، لكن باستخدام استراتيجية تخزين مختلفة.</p>
+<article class="pattern-card" id="2-query-object">
+<h3 class="pattern-title">2. Query Object</h3>
+<div class="card-body">
+</div></article>
+        
+      <nav class="page-nav" aria-label="تنقل الصفحات"><a href="object-relational-behavioral-patterns.html">→ Object-Relational Behavioral Patterns</a><a href="object-relational-metadata-mapping-patterns.html">Object-Relational Metadata Mapping Patterns ←</a></nav>
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const saved = localStorage.getItem('poeaa3-theme');
+    if (saved) root.setAttribute('data-theme', saved);
+    document.getElementById('theme')?.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      if (next === 'dark') root.setAttribute('data-theme', 'dark'); else root.removeAttribute('data-theme');
+      localStorage.setItem('poeaa3-theme', next === 'dark' ? 'dark' : 'light');
+    });
+  </script>
+</body>
+</html>

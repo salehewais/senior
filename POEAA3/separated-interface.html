@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Separated Interface — POEAA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="أقسام المرجع">
+      <div class="toc-head">
+        <p class="toc-title"><a href="index.html">POEAA</a></p>
+        <button class="icon-btn" id="theme" type="button" aria-label="تبديل الوضع">☾</button>
+      </div>
+      <ol>
+        <li><a href="index.html">الرئيسية</a></li><li><a href="separated-interface.html" class="active">Separated Interface</a></li><li><a href="base-patterns.html">Base Patterns</a></li><li><a href="domain-logic-patterns.html">Domain Logic Patterns</a></li><li><a href="data-source-architectural-patterns.html">Data Source Architectural Patterns</a></li><li><a href="object-relational-behavioral-patterns.html">Object-Relational Behavioral Patterns</a></li><li><a href="object-relational-structural-patterns.html">Object-Relational Structural Patterns</a></li><li><a href="object-relational-metadata-mapping-patterns.html">Object-Relational Metadata Mapping Patterns</a></li><li><a href="web-presentation-patterns.html">Web Presentation Patterns</a></li><li><a href="distribution-patterns.html">Distribution Patterns</a></li><li><a href="offline-concurrency-patterns.html">Offline Concurrency Patterns</a></li><li><a href="session-state-patterns.html">Session State Patterns</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      
+      <header class="page-header">
+        <h1>Separated Interface</h1>
+        <p class="lead">من مصدر ChatGPT POEAA — صفحة قسم واحد.</p>
+      </header>
+      <article class="pattern-card" id="1-المشكلة-اللي-separated-interface-بيحلها">
+<h3 class="pattern-title">1. المشكلة اللي Separated Interface بيحلها</h3>
+<div class="card-body">
+<p>تخيل إن عندك Application مسؤول عن إدارة المستخدمين، وبيحتاج يحفظ بياناتهم في PostgreSQL.</p>
+<p>ممكن تبدأ بالكود ده:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class PostgresUserRepository:
+
+    def save(self, user):
+        print(&quot;Saving user to PostgreSQL&quot;)
+
+    def get_by_id(self, user_id):
+        print(&quot;Getting user from PostgreSQL&quot;)</code></pre></div>
+<p>والـ Application يستخدمه:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class UserService:
+
+    def __init__(self):
+        self.repository = PostgresUserRepository()
+
+    def register(self, user):
+        self.repository.save(user)</code></pre></div>
+<p>الكود شغال، لكن عندنا مشكلة معمارية.</p>
+<p>بص على اتجاه الاعتماديات:</p>
+<p><strong>Application</strong></p>
+<p>UserService</p>
+<p>(Depends on concrete class)</p>
+<p>PostgresUserRepository</p>
+<p>Infrastructure implementation</p>
+<p>الـ Application أصبح يعرف تفاصيل الـ Infrastructure.</p>
+<p>طيب لو قررنا نغيّر PostgreSQL إلى MongoDB؟</p>
+<p>هنحتاج نغيّر الكود اللي بيستخدم الـ Repository أو نعيد ترتيب طريقة إنشائه.</p>
+<p>المشكلة مش إن PostgreSQL سيئ، المشكلة إن الـ Application مرتبط بتفصيلة تنفيذية مش المفروض يكون مسؤول عنها.</p>
+</div></article>
+<article class="pattern-card" id="2-الحل-الأول-نستخدم-interface">
+<h3 class="pattern-title">2. الحل الأول: نستخدم Interface</h3>
+<div class="card-body">
+<p>نعمل Abstraction:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from abc import ABC, abstractmethod
+
+class UserRepository(ABC):
+
+    @abstractmethod
+    def save(self, user):
+        pass
+
+    @abstractmethod
+    def get_by_id(self, user_id):
+        pass</code></pre></div>
+<p>ونخلي PostgreSQL ينفذه:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class PostgresUserRepository(UserRepository):
+
+    def save(self, user):
+        print(&quot;Saving to PostgreSQL&quot;)
+
+    def get_by_id(self, user_id):
+        print(&quot;Getting from PostgreSQL&quot;)</code></pre></div>
+<p>والـ Service يعتمد على الـ Abstraction:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class UserService:
+
+    def __init__(self, repository: UserRepository):
+        self.repository = repository
+
+    def register(self, user):
+        self.repository.save(user)</code></pre></div>
+<p>كده حققنا Dependency Inversion على مستوى التصميم.</p>
+<p>لكن خد بالك!</p>
+<p><strong>لسه ما وصلناش بالضرورة إلى Separated Interface.</strong></p>
+<p>ليه؟</p>
+<p>لأننا لسه ما حددناش مكان تعريف الـ Interface بالنسبة للـ Implementation.</p>
+<p>ودي أهم نقطة في النمط.</p>
+</div></article>
+<article class="pattern-card" id="3-هنا-بقى-separated-interface">
+<h3 class="pattern-title">3. هنا بقى Separated Interface</h3>
+<div class="card-body">
+<p>الفكرة إننا ننقل تعريف الـ Interface إلى Package يخص الـ Client، ونخلي الـ Implementation في Package تاني.</p>
+<p>لاحظ إننا مش بننقل الـ Interface لمجرد التنظيم، لكن بننقله عشان نتحكم في Dependency Direction.</p>
+<p>تخيل الهيكل ده:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">project/
+│
+├── application/
+│   ├── interfaces/
+│   │   └── user_repository.py
+│   │
+│   └── services/
+│       └── user_service.py
+│
+└── infrastructure/
+    └── persistence/
+        └── postgres_user_repository.py</code></pre></div>
+<p><strong>أولًا: الـ Interface داخل Application</strong></p>
+<p>application/interfaces/user_repository.py</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from abc import ABC, abstractmethod
+
+class UserRepository(ABC):
+
+    @abstractmethod
+    def save(self, user):
+        pass
+
+    @abstractmethod
+    def get_by_id(self, user_id):
+        pass</code></pre></div>
+<p><strong>ثانيًا: الـ Implementation داخل Infrastructure</strong></p>
+<p>infrastructure/persistence/postgres_user_repository.py</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from application.interfaces.user_repository import UserRepository
+
+class PostgresUserRepository(UserRepository):
+
+    def save(self, user):
+        print(&quot;Saving to PostgreSQL&quot;)
+
+    def get_by_id(self, user_id):
+        print(&quot;Getting from PostgreSQL&quot;)</code></pre></div>
+<p><strong>ثالثًا: الـ Application Service</strong></p>
+<p>application/services/user_service.py</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from application.interfaces.user_repository import UserRepository
+
+class UserService:
+
+    def __init__(self, repository: UserRepository):
+        self.repository = repository
+
+    def register(self, user):
+        self.repository.save(user)</code></pre></div>
+<p>لاحظ دلوقتي إيه اللي حصل:</p>
+</div></article>
+<h2>Dependency Structure</h2>
+<p>(Application Package)</p>
+<p><strong>UserService</strong></p>
+<p>Client</p>
+<p><strong>UserRepository</strong></p>
+<p>Separated Interface</p>
+<hr>
+<p>(Infrastructure Package)</p>
+<p><strong>PostgresUserRepository</strong></p>
+<p>Concrete Implementation</p>
+<p>Implements UserRepository</p>
+<p>الـ Infrastructure تعتمد على تعريف الـ Interface الموجود في Application، وليس العكس.</p>
+<p>لاحظ إن السهم من Infrastructure إلى Application هنا هو Dependency في الكود، وليس اتجاه استدعاء وقت التشغيل بالضرورة.</p>
+<article class="pattern-card" id="4-طيب-مين-بيعمل-instantiate-للـ-implementation؟">
+<h3 class="pattern-title">4. طيب مين بيعمل Instantiate للـ Implementation؟</h3>
+<div class="card-body">
+<p>سؤال مهم جدًا.</p>
+<p>لو الـ UserService مش بيعمل:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">repository = PostgresUserRepository()</code></pre></div>
+<p>يبقى مين هيعمله؟</p>
+<p>هنا بيظهر دور الـ Composition Root أو الـ Dependency Injection Container.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python"># main.py
+
+from application.services.user_service import UserService
+from infrastructure.persistence.postgres_user_repository import (
+    PostgresUserRepository
+)
+
+repository = PostgresUserRepository()
+
+user_service = UserService(repository)</code></pre></div>
+<p>كده عندنا ثلاثة مسؤوليات:</p>
+<p>الجزء	المسؤولية</p>
+<p>Application	يحدد العقد الذي يحتاجه</p>
+<p>Infrastructure	يوفر التنفيذ</p>
+<p>Composition Root	يربط التنفيذ بالعقد</p>
+<p>وده مهم لأن فصل الـ Interface عن الـ Implementation لا يعني إننا ألغينا الحاجة لمعرفة الـ Concrete Class في النظام كله.</p>
+<p>إحنا فقط حددنا المكان المسؤول عن معرفة وربط الاثنين.</p>
+</div></article>
+<article class="pattern-card" id="5-إيه-الفرق-بين-separated-interface-و-dependency-inversion؟">
+<h3 class="pattern-title">5. إيه الفرق بين Separated Interface و Dependency Inversion؟</h3>
+<div class="card-body">
+<p>دي نقطة لازم نقف عندها.</p>
+<p>الاتنين مرتبطين جدًا، لكن مش نفس الحاجة.</p>
+<p><strong>Dependency Inversion Principle (DIP)</strong> هو مبدأ بيقول إن الـ High-level Modules والـ Low-level Modules يعتمدوا على Abstractions بدل الاعتماد المباشر على بعض.</p>
+<p>أما <strong>Separated Interface</strong> فهو Pattern بيقدم طريقة لتنظيم الـ Interface والـ Implementation في Packages مختلفة لتحقيق فصل الاعتماديات.</p>
+<p>يعني:</p>
+<ul>
+<li>DIP بيحدد لك قاعدة تصميمية.</li>
+<li>Separated Interface بيقدم لك أسلوب معماري لتطبيق فكرة الفصل دي.</li>
+</ul>
+<p>وممكن تطبق DIP بدون Separated Interface بالمعنى المحدد للنمط، مثلًا لو الـ Interface والـ Implementation موجودين في نفس الـ Package.</p>
+</div></article>
+<article class="pattern-card" id="6-إيه-علاقته-بالـ-clean-architecture؟">
+<h3 class="pattern-title">6. إيه علاقته بالـ Clean Architecture؟</h3>
+<div class="card-body">
+<p>هنا الموضوع هيبدأ يبقى ممتع.</p>
+<p>في Clean Architecture عندنا قاعدة أساسية:</p>
+<p><strong>Source Code Dependencies Point Inward.</strong></p>
+<p>يعني الطبقات الخارجية تعتمد على الداخلية، وليس العكس.</p>
+<p>تخيل:</p>
+<p>عندنا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Infrastructure
+      |
+      v
+Application
+      |
+      v
+Domain</code></pre></div>
+<p>لو الـ Application محتاج يتعامل مع Database، ممكن يعرّف Interface داخل طبقة Application:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">application/
+    ports/
+        user_repository.py
+
+infrastructure/
+    persistence/
+        postgres_user_repository.py</code></pre></div>
+<p>الـ Infrastructure تنفذ الـ Interface الموجودة في Application.</p>
+<p>هنا عندنا تطبيق واضح لفكرة Separated Interface داخل تنظيم Clean Architecture.</p>
+<p>لكن انتبه: <strong>Clean Architecture مش مبنية على Separated Interface فقط.</strong></p>
+<p>هي بتستخدم مجموعة من المبادئ والأنماط، منها Dependency Inversion وDependency Injection وغيرها.</p>
+</div></article>
+<article class="pattern-card" id="7-إمتى-أستخدم-separated-interface؟">
+<h3 class="pattern-title">7. إمتى أستخدم Separated Interface؟</h3>
+<div class="card-body">
+<p>خلينا ناخد أمثلة عملية:</p>
+<p>السيناريو	هل مناسب؟</p>
+<p>Application يتعامل مع PostgreSQL أو MongoDB	نعم</p>
+<p>Domain يحتاج الوصول إلى External Payment Gateway	نعم</p>
+<p>Application يتعامل مع أكثر من External API	نعم</p>
+<p>كلاس بسيط لا يحتاج أي فصل للاعتماديات	غالبًا لا</p>
+<p>Interface لا يوجد سبب لفصلها عن تنفيذها	غالبًا لا</p>
+<p>مش معنى إن كل Class عندك لازم يكون له Interface.</p>
+<p>الإفراط في إنشاء Interfaces بدون احتياج حقيقي بيعمل تعقيد غير ضروري.</p>
+</div></article>
+<article class="pattern-card" id="8-اختبر-فهمك">
+<h3 class="pattern-title">8. اختبر فهمك</h3>
+<div class="card-body">
+<p>عايزك تجاوب على الأسئلة دي، مش تحفظ الإجابات.</p>
+<p><strong>اختبر استيعابك</strong> (/4)</p>
+<p>[راجع إجاباتي]</p>
+<hr>
+<p><strong>وأخيرًا، عايز ألفت نظرك لحاجة في دراستك للـ PoEAA:</strong></p>
+<p>أنت مش محتاج تحفظ إن Separated Interface هو Interface في Package وImplementation في Package تاني.</p>
+<p>محتاج تفهم السؤال المعماري اللي النمط بيجاوب عليه:</p>
+<blockquote>How can a client depend on an abstraction without depending on the package that provides its implementation?</blockquote>
+<p>لو فهمت السؤال ده، هتقدر تتعرف على النمط في مشاريع مختلفة، حتى لو أسماء الـ Packages والـ Classes مختلفة تمامًا.</p>
+<p>Great. Let&#x27;s study these as a connected group rather than ten unrelated definitions.</p>
+<p>All ten are patterns from Martin Fowler&#x27;s <em>Patterns of Enterprise Application Architecture (PoEAA)</em>. They address recurring problems in enterprise application design, but they don&#x27;t all operate at the same level.</p>
+<p>For example:</p>
+<ul>
+<li><strong>Gateway, Mapper, Service Stub:</strong> deal with communication and integration boundaries.</li>
+<li><strong>Separated Interface, Registry, Plugin:</strong> deal with dependencies, discovery, and extensibility.</li>
+<li><strong>Value Object, Money, Special Case:</strong> deal with domain modeling and representing business concepts.</li>
+<li><strong>Layer Supertype:</strong> deals with shared behavior across architectural layers.</li>
+</ul>
+<p>One important distinction: these are not ten variations of the same idea. Some are infrastructure patterns, some are domain-modeling patterns, and some are architectural organization patterns.</p>
+</div></article>
+        
+      <nav class="page-nav" aria-label="تنقل الصفحات"><a href="index.html">→ الرئيسية</a><a href="base-patterns.html">Base Patterns ←</a></nav>
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const saved = localStorage.getItem('poeaa3-theme');
+    if (saved) root.setAttribute('data-theme', saved);
+    document.getElementById('theme')?.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      if (next === 'dark') root.setAttribute('data-theme', 'dark'); else root.removeAttribute('data-theme');
+      localStorage.setItem('poeaa3-theme', next === 'dark' ? 'dark' : 'light');
+    });
+  </script>
+</body>
+</html>

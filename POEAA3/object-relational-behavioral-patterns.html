@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Object-Relational Behavioral Patterns — POEAA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="أقسام المرجع">
+      <div class="toc-head">
+        <p class="toc-title"><a href="index.html">POEAA</a></p>
+        <button class="icon-btn" id="theme" type="button" aria-label="تبديل الوضع">☾</button>
+      </div>
+      <ol>
+        <li><a href="index.html">الرئيسية</a></li><li><a href="separated-interface.html">Separated Interface</a></li><li><a href="base-patterns.html">Base Patterns</a></li><li><a href="domain-logic-patterns.html">Domain Logic Patterns</a></li><li><a href="data-source-architectural-patterns.html">Data Source Architectural Patterns</a></li><li><a href="object-relational-behavioral-patterns.html" class="active">Object-Relational Behavioral Patterns</a></li><li><a href="object-relational-structural-patterns.html">Object-Relational Structural Patterns</a></li><li><a href="object-relational-metadata-mapping-patterns.html">Object-Relational Metadata Mapping Patterns</a></li><li><a href="web-presentation-patterns.html">Web Presentation Patterns</a></li><li><a href="distribution-patterns.html">Distribution Patterns</a></li><li><a href="offline-concurrency-patterns.html">Offline Concurrency Patterns</a></li><li><a href="session-state-patterns.html">Session State Patterns</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      
+      <header class="page-header">
+        <h1>Object-Relational Behavioral Patterns</h1>
+        <p class="lead">من مصدر ChatGPT POEAA — صفحة قسم واحد.</p>
+      </header>
+      <h2 class="section-title">Object-Relational Behavioral Patterns</h2>
+<p>قبل ما نبدأ، خلينا نفهم المجموعة دي بتتكلم عن إيه.</p>
+<p>إحنا في المجموعة السابقة <strong>Data Source Architectural Patterns</strong> كنا بنركز على إزاي نمثل البيانات ونتعامل مع مصدر البيانات.</p>
+<p>أما هنا فتركيزنا على <strong>سلوك الـ Objects أثناء تعاملها مع قاعدة البيانات</strong>.</p>
+<p>يعني مثلًا:</p>
+<ul>
+<li>إزاي نجمع التعديلات ونحفظها مع بعض؟</li>
+<li>إزاي نضمن إن نفس السجل ميتعملوش منه Objects مكررة؟</li>
+<li>إزاي نأجل تحميل البيانات لحد ما نحتاجها؟</li>
+</ul>
+<p>المجموعة دي في كتاب Fowler بتحتوي على 3 Patterns أساسية:</p>
+<p>الترتيب	Pattern	الفكرة الأساسية</p>
+<p>1	Unit of Work	تتبع التغييرات وتجميع عمليات الحفظ</p>
+<p>2	Identity Map	ضمان وجود نسخة Object واحدة لكل Database Identity داخل سياق معين</p>
+<p>3	Lazy Load	تأجيل تحميل البيانات لحد الحاجة إليها</p>
+<p>نبدأ بالأول.</p>
+<hr>
+<article class="pattern-card" id="1-unit-of-work-pattern">
+<h3 class="pattern-title">1. Unit of Work Pattern</h3>
+<div class="card-body">
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندنا عملية بيع في نظام تجارة إلكترونية.</p>
+<p>العميل عمل Order يحتوي على 3 Products.</p>
+<p>لما ننفذ العملية، ممكن نحتاج نعمل تعديلات على عدة Objects:</p>
+<ol>
+<li>إنشاء Order جديد.</li>
+<li>إنشاء Order Items.</li>
+<li>تقليل مخزون المنتجات.</li>
+<li>تحديث رصيد العميل أو بياناته.</li>
+<li>حفظ كل التعديلات في قاعدة البيانات.</li>
+</ol>
+<p>المشكلة إننا لو حفظنا كل Object بشكل مستقل، ممكن يحصل الآتي:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">حفظ Order             ✓
+حفظ Order Items       ✓
+تحديث Product Stock   ✓
+تحديث Customer        ✗</code></pre></div>
+<p>كده العملية نفذت جزئيًا، وده ممكن يسبب بيانات غير متسقة.</p>
+<p>إحنا محتاجين آلية تجمع التغييرات كلها، وتتعامل معاها باعتبارها وحدة عمل واحدة.</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>الـ <strong>Unit of Work</strong> هو Object بيتابع التغييرات اللي حصلت على مجموعة من Objects أثناء Business Transaction، وبعدين بينظم عمليات حفظ التغييرات دي في قاعدة البيانات.</p>
+<p>يعني بدل ما كل Object يحفظ نفسه فورًا، الـ Unit of Work يتابع:</p>
+<ul>
+<li>الـ Objects الجديدة (New Objects).</li>
+<li>الـ Objects اللي اتعدلت (Dirty Objects).</li>
+<li>الـ Objects اللي اتحذفت (Deleted Objects).</li>
+</ul>
+<p>وعند انتهاء العملية، بنطلب منه تنفيذ commit().</p>
+<p>شوف التصور من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">             Business Operation
+                      |
+                      v
+                 Unit of Work
+                      |
+          +-----------+-----------+
+          |           |           |
+          v           v           v
+        New         Dirty       Deleted
+       Objects      Objects     Objects
+          |           |           |
+          +-----------+-----------+
+                      |
+                      v
+                Database Changes
+                      |
+                      v
+                    Commit</code></pre></div>
+<p>الفكرة إن الـ Unit of Work بيجمع التغييرات، وبعد كده ينظم إرسالها إلى قاعدة البيانات.</p>
+<p><strong>ملحوظة مهمة:</strong> الـ Unit of Work مش مجرد List فيها Objects محتاجة تتحفظ؛ هو كمان مسؤول عن تنظيم دورة حياة التغييرات، وترتيب عمليات الحفظ عند الحاجة، والتعامل مع حدود الـ Transaction.</p>
+<h2>3. مثال Python</h2>
+<p>خلينا نعمل مثال تعليمي بسيط.</p>
+<p>أولًا عندنا Domain Objects:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Product:
+    def __init__(self, product_id, name, quantity):
+        self.id = product_id
+        self.name = name
+        self.quantity = quantity
+
+    def decrease_stock(self, amount):
+        if amount &lt;= 0:
+            raise ValueError(&quot;Amount must be positive&quot;)
+
+        if self.quantity &lt; amount:
+            raise ValueError(&quot;Insufficient stock&quot;)
+
+        self.quantity -= amount
+
+class Order:
+    def __init__(self, order_id, product_id, quantity):
+        self.id = order_id
+        self.product_id = product_id
+        self.quantity = quantity</code></pre></div>
+<p>ثانيًا نعمل Unit of Work:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class UnitOfWork:
+    def __init__(self, repository):
+        self.repository = repository
+
+        self.new_objects = []
+        self.dirty_objects = []
+        self.deleted_objects = []
+
+    def register_new(self, obj):
+        self.new_objects.append(obj)
+
+    def register_dirty(self, obj):
+        self.dirty_objects.append(obj)
+
+    def register_deleted(self, obj):
+        self.deleted_objects.append(obj)
+
+    def commit(self):
+        try:
+            for obj in self.new_objects:
+                self.repository.insert(obj)
+
+            for obj in self.dirty_objects:
+                self.repository.update(obj)
+
+            for obj in self.deleted_objects:
+                self.repository.delete(obj)
+
+            self.repository.commit_transaction()
+
+        except Exception:
+            self.repository.rollback_transaction()
+            raise</code></pre></div>
+<p>ثالثًا: الاستخدام</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">with repository.transaction():
+
+    uow = UnitOfWork(repository)
+
+    product = repository.get_product(10)
+
+    product.decrease_stock(2)
+
+    order = Order(
+        order_id=None,
+        product_id=product.id,
+        quantity=2
+    )
+
+    uow.register_dirty(product)
+    uow.register_new(order)
+
+    uow.commit()</code></pre></div>
+<p>إيه اللي حصل؟</p>
+<ul>
+<li>المنتج اتعدل في الذاكرة.</li>
+<li>الطلب الجديد اتسجل في الـ Unit of Work.</li>
+<li>المنتج المعدل اتسجل في الـ Unit of Work.</li>
+<li>عند commit()، الـ Unit of Work نظم عمليات الحفظ.</li>
+<li>لو حصل خطأ أثناء الحفظ، بنعمل rollback().</li>
+</ul>
+<p>المثال لتوضيح الفكرة، وليس تنفيذًا إنتاجيًا كاملًا. الـ Repository والـ Transaction Manager هنا افتراضيان، كما أن الـ Context Manager يحتاج أن يكون مسؤولًا عن حدود الـ Transaction بصورة متسقة.</p>
+<h2>4. علاقته بأنماط GoF</h2>
+<p>مفيش GoF Pattern مكافئ مباشرة للـ Unit of Work.</p>
+<p>لكن فيه تشابهات في بعض التفاصيل:</p>
+<p>GoF Pattern	وجه التشابه	الاختلاف</p>
+<p>Command	ممكن يمثل كل تغيير كعملية مستقلة	Command بيغلف طلبًا قابلًا للتنفيذ، أما Unit of Work بيجمع تغييرات متعددة وينظم حفظها</p>
+<p>Mediator	ممكن ينسق التعامل بين عدة Objects	Mediator هدفه تنظيم التواصل بين Objects، مش تتبع تغييرات قاعدة البيانات</p>
+<p>Observer	ممكن يستخدم لمراقبة التغييرات	Observer هدفه الإشعار بالتغييرات، مش إدارة عملية Persistence</p>
+<p>إذن مفيش واحد منهم هو Unit of Work.</p>
+<h2>5. علاقته بـ Application Architecture</h2>
+<h3>مع Layered Architecture</h3>
+<p>غالبًا الـ Unit of Work بيكون ضمن طبقة الـ Data Access أو Infrastructure.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">          Presentation
+                |
+                v
+           Application
+                |
+                v
+             Domain
+                |
+                v
+         Data Access Layer
+                |
+                v
+            Unit of Work
+                |
+                v
+             Database</code></pre></div>
+<p>الـ Application Service ممكن تبدأ الـ Unit of Work وتحدد إمتى تعمل Commit أو Rollback.</p>
+<p>والـ Domain نفسه مش محتاج يعرف تفاصيل الحفظ.</p>
+<h3>مع Clean Architecture</h3>
+<p>ممكن نستخدمه مع Clean Architecture بصورة طبيعية.</p>
+<p>الـ Application Layer تتعامل مع abstraction للـ Unit of Work، والـ Infrastructure توفر التنفيذ الفعلي.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Infrastructure  &lt;---  Application  ---&gt;  Domain
+       |
+       v
+   Unit of Work
+       |
+       v
+    Database</code></pre></div>
+<p>الرسم هنا بيوضح أماكن المسؤوليات، مش اتجاه الـ Dependency بشكل حرفي.</p>
+<h2>6. علاقته بـ DDD</h2>
+<p>الـ Unit of Work مهم جدًا في تطبيقات DDD.</p>
+<p>تخيل إن عندك Aggregate Root اسمه Order، وجواه مجموعة OrderItems.</p>
+<p>لما تعدل الطلب، محتاج تحفظ التغييرات المرتبطة بالـ Aggregate بشكل متسق.</p>
+<p>الـ Repository ممكن يكون مسؤولًا عن تحميل وحفظ الـ Aggregate، والـ Unit of Work ينظم حفظ التغييرات ضمن Transaction.</p>
+<p>لكن خلي بالك من فرق مهم:</p>
+<p><strong>Unit of Work مش هو Aggregate.</strong></p>
+<ul>
+<li>Aggregate بيحدد حدود الاتساق (Consistency Boundary) في الـ Domain.</li>
+<li>Unit of Work بيتابع التغييرات وينظم حفظها في قاعدة البيانات.</li>
+</ul>
+<p>ومش شرط كل Unit of Work يساوي Aggregate واحد؛ ممكن وحدة العمل تحتوي عدة Aggregates ضمن Transaction واحدة، حسب التصميم وقواعد الاتساق المطلوبة.</p>
+<h2>7. علاقته بـ Odoo</h2>
+<p>هنا عندنا مثال عملي مهم.</p>
+<p>في Odoo، لما تنفذ عملية من خلال RPC، الـ Framework بيدير Database Cursor وTransaction مرتبطة بالعملية.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">order = self.env[&quot;sale.order&quot;].browse(10)
+
+order.write({
+    &quot;note&quot;: &quot;Updated note&quot;
+})
+
+order.action_confirm()</code></pre></div>
+<p>أنت مش بتعمل commit() بعد كل عملية write() بنفسك.</p>
+<p>الـ Framework بيدير الـ Transaction، وعند نجاح العملية بيتم اعتماد التغييرات، وعند حدوث Exception غير معالج يتم عمل Rollback للـ Transaction.</p>
+<p>وده قريب من مفهوم Unit of Work من ناحية تجميع التغييرات وإدارة اعتمادها أو التراجع عنها.</p>
+<p>لكن مهم نفرق:</p>
+<ul>
+<li>الـ Database Transaction بتضمن خصائص ACID على مستوى قاعدة البيانات.</li>
+<li>الـ Unit of Work Pattern مفهوم أوسع على مستوى التطبيق، بيتابع التغييرات على Objects وينظم عمليات حفظها.</li>
+</ul>
+<p>كمان Odoo ORM عنده آليات خاصة زي Environment Cache وFlush، فلا يصح اختزال كل آليات الـ ORM في Unit of Work فقط.</p>
+<hr>
+<h2>8. الفرق بين Unit of Work وDatabase Transaction</h2>
+<p>دي نقطة مهمة جدًا وممكن تتسأل في Interview.</p>
+<p>Database Transaction	Unit of Work</p>
+<p>بتضمن تنفيذ مجموعة عمليات DB كوحدة ذرية	بتتابع تغييرات مجموعة Objects</p>
+<p>مسؤولة عن Commit وRollback على مستوى DB	بتنظم عمليات Persistence</p>
+<p>مفهوم على مستوى قاعدة البيانات	Pattern على مستوى التطبيق</p>
+<p>ممكن تستخدم بدون Unit of Work	غالبًا يعتمد على Transaction عند الحفظ</p>
+<p>بمعنى أبسط:</p>
+<p><strong>Unit of Work يحدد إيه اللي محتاج يتحفظ، والـ Transaction تضمن إن عمليات قاعدة البيانات تتم كوحدة واحدة.</strong></p>
+<p>الاتنين بيشتغلوا مع بعض، لكن مش نفس الحاجة.</p>
+<hr>
+<h2>9. إمتى نستخدم Unit of Work؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>عندك Business Operation بتعدل عدة Objects.</li>
+<li>محتاج تجمع عمليات الحفظ بدل تنفيذها بشكل منفصل.</li>
+<li>محتاج Commit أو Rollback منظم.</li>
+<li>عندك Domain Model فيه Objects وعلاقات متعددة.</li>
+<li>عايز تتحكم في Persistence بشكل مركزي.</li>
+</ul>
+<h2>الخلاصة</h2>
+<p>ثبت عندك التعريف ده:</p>
+<p><strong>Unit of Work = Track Changes + Organize Persistence + Coordinate Transaction.</strong></p>
+<p>يعني هو المسؤول عن متابعة التغييرات وتجميع عمليات الحفظ وتنظيم تنفيذها.</p>
+<p>والـ Pattern التالي هو <strong>Identity Map</strong>، وده هيكمل معانا الصورة؛ لأننا بعد ما عرفنا إزاي نتابع التغييرات، محتاجين نفهم إزاي نضمن إن نفس السجل في قاعدة البيانات ميتحولش لأكثر من Object داخل نفس سياق العمل.</p>
+<article class="pattern-card" id="2-identity-map-pattern">
+<h3 class="pattern-title">2. Identity Map Pattern</h3>
+<div class="card-body">
+<p>نكمل في مجموعة <strong>Object-Relational Behavioral Patterns</strong> من كتاب Fowler.</p>
+<p>النمط ده مرتبط جدًا بالـ ORM، وخصوصًا لما يكون عندك Objects كتير بتتعامل مع نفس البيانات أثناء تنفيذ عملية واحدة.</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندنا جدول customers في قاعدة البيانات:</p>
+<p>id	name	balance</p>
+<p>10	Ahmed	5000</p>
+<p>وعندنا في التطبيق عمليتين محتاجين يقرؤوا نفس العميل.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customer_1 = load_customer(10)
+customer_2 = load_customer(10)</code></pre></div>
+<p>لو كل استدعاء عمل Query جديدة وأنشأ Object جديد، هيحصل الآتي:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customer_1 is customer_2
+
+# False</code></pre></div>
+<p>مع إن الاتنين بيمثلوا نفس العميل في قاعدة البيانات!</p>
+<p>المشكلة الأكبر تظهر لما نعدل أحد الـ Objects:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customer_1.balance -= 1000
+
+print(customer_1.balance)  # 4000
+print(customer_2.balance)  # 5000</code></pre></div>
+<p>بقى عندنا نسختين مختلفتين من نفس العميل داخل التطبيق.</p>
+<p>وده ممكن يؤدي إلى:</p>
+<ul>
+<li>بيانات غير متسقة داخل نفس العملية.</li>
+<li>تكرار تحميل نفس السجل من قاعدة البيانات.</li>
+<li>صعوبة تتبع التعديلات.</li>
+<li>مشاكل عند حفظ نسخ مختلفة من نفس السجل.</li>
+</ul>
+<p>إذن إحنا محتاجين نضمن إن كل Database Identity يكون ليها Object واحد فقط داخل سياق العمل المحدد.</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>الـ <strong>Identity Map</strong> عبارة عن خريطة (Dictionary) بتحتفظ بالـ Objects اللي تم تحميلها من قاعدة البيانات، وبتربط كل Object بهويته.</p>
+<p>لما نطلب سجل معين:</p>
+<ol>
+<li>نبحث عن هويته في الـ Identity Map.</li>
+<li>لو موجود، نرجع نفس الـ Object.</li>
+<li>لو مش موجود، نقرأه من قاعدة البيانات.</li>
+<li>ننشئ Object ونضيفه للخريطة.</li>
+<li>نرجع الـ Object.</li>
+</ol>
+<p>التصور من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">        Request: Customer ID = 10
+                    |
+                    v
+              Identity Map
+                    |
+             هل الـ ID موجود؟
+               /        \
+             نعم         لا
+              |           |
+              v           v
+        Return Same    Load from DB
+          Object           |
+                           v
+                     Create Object
+                           |
+                           v
+                    Store in Map
+                           |
+                           v
+                      Return Object</code></pre></div>
+<p>الفكرة الأساسية:</p>
+<p><strong>نفس Database Identity = نفس Object Instance داخل نفس Identity Map.</strong></p>
+<p>وده اسمه Identity Consistency.</p>
+<h2>3. مثال Python</h2>
+<p>خلينا نطبق الفكرة باستخدام Dictionary.</p>
+<p><strong>أولًا: Domain Object</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Customer:
+    def __init__(self, customer_id, name, balance):
+        self.id = customer_id
+        self.name = name
+        self.balance = balance</code></pre></div>
+<p><strong>ثانيًا: Identity Map</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class IdentityMap:
+    def __init__(self):
+        self._objects = {}
+
+    def get(self, key):
+        return self._objects.get(key)
+
+    def add(self, key, obj):
+        self._objects[key] = obj</code></pre></div>
+<p><strong>ثالثًا: Customer Repository</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class CustomerRepository:
+    def __init__(self, connection, identity_map):
+        self.connection = connection
+        self.identity_map = identity_map
+
+    def find_by_id(self, customer_id):
+
+        # 1. Check Identity Map
+        customer = self.identity_map.get(customer_id)
+
+        if customer is not None:
+            return customer
+
+        # 2. Load from Database
+        cursor = self.connection.execute(
+            &quot;&quot;&quot;
+            SELECT id, name, balance
+            FROM customers
+            WHERE id = ?
+            &quot;&quot;&quot;,
+            (customer_id,)
+        )
+
+        row = cursor.fetchone()
+
+        if row is None:
+            return None
+
+        # 3. Create Object
+        customer = Customer(*row)
+
+        # 4. Register Object
+        self.identity_map.add(customer_id, customer)
+
+        return customer</code></pre></div>
+<p><strong>رابعًا: الاستخدام</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">identity_map = IdentityMap()
+
+repository = CustomerRepository(
+    connection,
+    identity_map
+)
+
+customer_1 = repository.find_by_id(10)
+customer_2 = repository.find_by_id(10)
+
+print(customer_1 is customer_2)
+# True</code></pre></div>
+<p>لاحظ إننا في المرة الثانية رجعنا نفس الـ Object من الذاكرة، ومحتاجناش نعمل Query جديدة.</p>
+<p>كمان:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customer_1.balance -= 1000
+
+print(customer_2.balance)
+# 4000</code></pre></div>
+<p>لأن الاتنين بيشاوروا على نفس الـ Object.</p>
+<p>المثال تعليمي. في تطبيق حقيقي، لازم نراعي نطاق حياة الـ Identity Map، وتعدد قواعد البيانات أو الشركات، والـ Composite Keys، والتزامن.</p>
+<h2>4. علاقته بأنماط GoF</h2>
+<p>مفيش GoF Pattern مكافئ مباشرة للـ Identity Map.</p>
+<p>لكن ممكن نلاحظ تشابهات:</p>
+<p>GoF Pattern	وجه التشابه	الاختلاف</p>
+<p>Flyweight	إعادة استخدام Objects بدل إنشاء نسخ متكررة	Flyweight هدفه مشاركة الحالة لتقليل استهلاك الذاكرة</p>
+<p>Singleton	ممكن يكون فيه Identity Map واحدة داخل Context معين	Singleton هدفه ضمان Instance واحدة من Class، مش Instance واحدة لكل Database Identity</p>
+<p>Proxy	ممكن يستخدم Object وسيط للوصول إلى Object حقيقي	Proxy بيحل مشكلة التحكم في الوصول، مش منع تكرار تمثيل السجل</p>
+<p>أهم تشابه هنا مع Flyweight هو إعادة الاستخدام، لكن الـ Intent مختلف.</p>
+<h2>5. علاقته بـ Application Architecture</h2>
+<h3>مع Layered Architecture</h3>
+<p>غالبًا الـ Identity Map بتكون ضمن Data Access / Persistence Infrastructure.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">       Presentation Layer
+                |
+                v
+       Application Layer
+                |
+                v
+          Domain Layer
+                |
+                v
+        Data Access Layer
+                |
+                v
+          Identity Map
+                |
+                v
+             Database</code></pre></div>
+<p>الـ Repository أو Data Mapper ممكن يستخدم Identity Map داخليًا.</p>
+<h3>مع Clean Architecture</h3>
+<p>ممكن تستخدم Identity Map في الـ Infrastructure من غير ما الـ Domain يعرف بوجودها.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">        Infrastructure
+        +----------------+
+        |  Repository    |
+        |  Identity Map  |
+        |  Data Mapper   |
+        +----------------+
+                |
+                v
+             Database</code></pre></div>
+<p>الـ Domain يستقبل Domain Objects عادية، ومش محتاج يعرف إزاي الـ Infrastructure بتمنع تكرارها.</p>
+<h2>6. علاقته بـ DDD</h2>
+<p>هنا عندنا نقطة مهمة.</p>
+<p>في DDD، الـ Entity بتتميز بوجود Identity.</p>
+<p>يعني ممكن يكون عندك:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customer_1 = Customer(10, &quot;Ahmed&quot;, 5000)
+customer_2 = Customer(10, &quot;Ahmed&quot;, 5000)</code></pre></div>
+<p>رغم إن الاتنين بيمثلوا نفس العميل من ناحية الـ Database ID، فهما مش نفس الـ Object Instance.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customer_1 is customer_2
+
+# False</code></pre></div>
+<p>الـ Identity Map بتحل المشكلة دي داخل سياق معين عن طريق إعادة نفس الـ Instance.</p>
+<p>لكن لازم نفرق بين:</p>
+<ul>
+<li><strong>Entity Identity:</strong> هوية الكيان في الـ Domain.</li>
+<li><strong>Object Identity:</strong> هوية نسخة الـ Object في الذاكرة.</li>
+<li><strong>Database Identity:</strong> المفتاح اللي بيحدد السجل في قاعدة البيانات.</li>
+</ul>
+<p>الـ Identity Map بتربط بين الـ Database Identity والـ Object Instance.</p>
+<p>كمان Identity Map مش هي Aggregate، ومش هي Repository، لكنها ممكن تكون جزءًا من تنفيذ Repository.</p>
+<h2>7. علاقته بـ Odoo</h2>
+<p>هنا المثال العملي مهم جدًا.</p>
+<p>في Odoo عندك:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customer_1 = self.env[&quot;res.partner&quot;].browse(10)
+customer_2 = self.env[&quot;res.partner&quot;].browse(10)</code></pre></div>
+<p>الاتنين بيمثلوا نفس السجل، لكن خلي بالك:</p>
+<p><strong>مينفعش نعتمد على إن customer_1 is customer_2 هترجع True.</strong></p>
+<p>لأن Odoo Recordsets ليها سلوك خاص، وممكن تنشئ Recordset Objects مختلفة بتشير لنفس السجل.</p>
+<p>الـ Odoo ORM عنده آليات Cache وPrefetch داخل الـ Environment، وده بيقلل تكرار قراءة البيانات وبيحافظ على إدارة البيانات داخل سياق العمل.</p>
+<p>لكن الـ Recordset والـ Identity Map مش نفس الحاجة.</p>
+<p>الـ Identity Map Pattern بيضمن إعادة نفس الـ Object Instance لنفس الهوية داخل نطاق محدد، بينما Odoo عنده آليات ORM أوسع لإدارة الـ Recordsets والـ Cache.</p>
+<h2>8. الفرق بين Identity Map وUnit of Work</h2>
+<p>الاتنين غالبًا بيشتغلوا مع بعض، لكن كل واحد بيحل مشكلة مختلفة.</p>
+<p>Unit of Work	Identity Map</p>
+<p>يتابع التغييرات	يمنع تكرار تمثيل نفس الهوية</p>
+<p>يجمع New Objects	يحتفظ بالـ Loaded Objects</p>
+<p>يتابع Dirty Objects	يرجع نفس الـ Instance</p>
+<p>يتابع Deleted Objects	يقلل تكرار تحميل السجلات</p>
+<p>ينظم عمليات الحفظ	يحافظ على Object Identity</p>
+<p>تصور التعاون بينهم:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">          Application
+               |
+               v
+          Repository
+               |
+       +-------+-------+
+       |               |
+       v               v
+  Identity Map     Unit of Work
+       |               |
+       |               |
+       v               v
+       +-------+-------+
+               |
+               v
+            Database</code></pre></div>
+<p>ببساطة:</p>
+<ul>
+<li>Identity Map بتقول: هل أنا حملت الـ Object ده قبل كده؟</li>
+<li>Unit of Work بتقول: إيه التغييرات اللي حصلت على الـ Objects وعايزين نحفظها؟</li>
+</ul>
+<h2>9. إمتى نستخدم Identity Map؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>نفس السجلات ممكن يتم تحميلها أكثر من مرة أثناء العملية.</li>
+<li>عندك Objects مرتبطة ببعضها وبتشير لنفس Entities.</li>
+<li>عايز تحافظ على اتساق الـ Object Instances.</li>
+<li>عايز تقلل تكرار عمليات القراءة.</li>
+<li>بتستخدم ORM أو Data Mapper فيه إدارة صريحة للـ Object Lifecycle.</li>
+</ul>
+<p><strong>خد بالك:</strong> لازم تحدد عمر الـ Identity Map بعناية. غالبًا بتكون مرتبطة بـ Session أو Unit of Work أو Request، مش Global Map تستمر طول عمر التطبيق؛ لأن الاحتفاظ بالـ Objects لفترة طويلة ممكن يسبب Stale Data واستهلاك ذاكرة زائد.</p>
+<hr>
+<h2>الخلاصة</h2>
+<p>Pattern	الفكرة الأساسية</p>
+<p>Unit of Work	تجميع التغييرات وتنظيم حفظها</p>
+<p>Identity Map	Object واحد لكل Database Identity داخل Context</p>
+<p>Lazy Load	تأجيل تحميل البيانات لوقت الحاجة</p>
+<p>والنمط التالي والأخير في المجموعة دي هو <strong>Lazy Load Pattern</strong>.</p>
+<p>وده هيجاوب على سؤال مهم جدًا:</p>
+<p>إزاي نحمّل Order من قاعدة البيانات من غير ما نحمّل معاه كل Order Items والـ Customer والـ Payments، إلا لما نحتاجهم فعلًا؟</p>
+<p>معاك حق، المشكلة مش في لغة الشرح، المشكلة في اتجاه ترتيب العناصر نفسها. خليني ألتزم بشكل أوضح من هنا.</p>
+<p>هعيد كتابة أهم رسومات المقارنة السابقة، بحيث تبدأ القراءة من اليمين:</p>
+<h2>Identity Map — اتجاه التنفيذ</h2>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">             Request: Customer ID = 10
+                          |
+                          v
+                    Identity Map
+                          |
+                   هل الـ ID موجود؟
+                      /       \
+                    نعم        لا
+                     |          |
+                     v          v
+                نفس الـ Object  Database
+                                  |
+                                  v
+                             إنشاء Object
+                                  |
+                                  v
+                           تخزينه في Map
+                                  |
+                                  v
+                             إرجاع Object</code></pre></div>
+<h2>الفرق بين Unit of Work وIdentity Map</h2>
+<p>Identity Map	Unit of Work</p>
+<p>تمنع تكرار تمثيل نفس السجل	تجمع التغييرات</p>
+<p>تحتفظ بالـ Objects المحملة	تتابع Objects الجديدة</p>
+<p>ترجع نفس الـ Instance	تتابع Objects المعدلة</p>
+<p>تحافظ على Object Identity	تنظم عمليات الحفظ</p>
+<h2>التعاون بينهما</h2>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">       Application
+             |
+             v
+         Repository
+             |
+       +-----+-----+
+       |           |
+       v           v
+  Identity Map   Unit of Work
+       |           |
+       +-----+-----+
+             |
+             v
+          Database</code></pre></div>
+<p><strong>من هنا ورايح:</strong> هخلي الرسومات تبدأ من اليمين، والجداول أرتب أعمدتها بحيث أول مفهوم يكون في أقصى اليمين، والأكواد تفضل بالاتجاه الطبيعي بتاعها.</p>
+<p>ومش هعتبر إن كتابة العربي وحدها كفاية لتحقيق اتجاه القراءة اللي طلبته.</p>
+<p>تمام يا صاحبي 😂 نكمل آخر Pattern في مجموعة <strong>Object-Relational Behavioral Patterns</strong> من كتاب Fowler:</p>
+<article class="pattern-card" id="3-lazy-load">
+<h3 class="pattern-title">3. Lazy Load</h3>
+<div class="card-body">
+<p>(Object-Relational Behavioral Pattern)</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندك Order وفيه 1000 OrderLine، وكل OrderLine مرتبطة بـ Product، وكل Product عنده تفاصيل ومعلومات إضافية.</p>
+<p>لما تعمل Load للـ Order، هل لازم تحمل كل البيانات المرتبطة بيه فورًا؟</p>
+<p>مش بالضرورة.</p>
+<p>ممكن تكون محتاج تعرض رقم الطلب وإجمالي قيمته فقط، ومش محتاج تفاصيل المنتجات أصلًا.</p>
+<p>لو حملت كل البيانات من البداية، هتدفع تكلفة:</p>
+<ul>
+<li>Queries إضافية على قاعدة البيانات.</li>
+<li>استهلاك Memory أكبر.</li>
+<li>وقت أطول لتحميل الـ Object.</li>
+<li>نقل بيانات مش محتاجها في العملية الحالية.</li>
+</ul>
+<p><strong>إذن المشكلة:</strong> إزاي نخلي الـ Object متاح للاستخدام، من غير ما نحمل كل البيانات المرتبطة بيه من البداية؟</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة Lazy Load ببساطة:</p>
+<p><strong>أجّل تحميل البيانات لحد اللحظة اللي أحتاج أستخدمها فيها.</strong></p>
+<p>خلينا نشوف التدفق:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Database  &lt;---  Lazy Loading  &lt;---  Order
+                                      |
+                               Access order.items
+                                      |
+                              Load items from DB</code></pre></div>
+<p>بمعنى إن:</p>
+<ol>
+<li>بنعمل Load للـ Order من غير تحميل كل الـ OrderLine.</li>
+<li>لما نطلب order.items لأول مرة، يحصل تحميل للبيانات.</li>
+<li>البيانات تتحفظ في الـ Object أو الـ Cache.</li>
+<li>الوصول التالي يستخدم البيانات المحملة بدل إعادة تحميلها.</li>
+</ol>
+<p>لاحظ إن Lazy Load مش معناه إن البيانات مش هتتحمل؛ معناه إن <strong>توقيت التحميل اتأجل</strong>.</p>
+<h2>3. طرق تنفيذ Lazy Load عند Fowler</h2>
+<p>Fowler بيشرح أكتر من طريقة لتنفيذ الفكرة، ودي مهمة لأن Lazy Load مش مرتبط بتنفيذ واحد.</p>
+<h3>A. Lazy Initialization</h3>
+<p>بنبدأ الـ Attribute بقيمة غير محملة، زي None، وأول مرة نحتاجها نحملها.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Order:
+    def __init__(self, order_id, repository):
+        self.id = order_id
+        self.repository = repository
+        self._items = None
+
+    @property
+    def items(self):
+        if self._items is None:
+            self._items = self.repository.load_items(self.id)
+
+        return self._items</code></pre></div>
+<p>الاستخدام:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">order = Order(10, repository)
+
+# لسه مفيش تحميل للـ items
+
+items = order.items
+
+# هنا حصل التحميل لأول مرة
+
+items = order.items
+
+# هنا استخدمنا البيانات المحملة</code></pre></div>
+<p><strong>الفكرة:</strong> الـ Object نفسه مسؤول عن اكتشاف إن البيانات لم تُحمّل بعد، وتحميلها عند أول Access.</p>
+<h3>B. Virtual Proxy</h3>
+<p>هنا بنستخدم Object بديل يمثل الـ Object الحقيقي.</p>
+<p>الـ Proxy يستقبل الطلبات، وعند أول استخدام يحمل الـ Real Object ويوجه الطلبات إليه.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Real Object  &lt;---  Virtual Proxy  &lt;---  Client
+                       |
+                  First Access
+                       |
+                  Load Real Object</code></pre></div>
+<p>مثال مبسط:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Product:
+    def __init__(self, product_id, name):
+        self.id = product_id
+        self.name = name
+
+class ProductProxy:
+    def __init__(self, product_id, repository):
+        self.product_id = product_id
+        self.repository = repository
+        self._real_product = None
+
+    def _load(self):
+        if self._real_product is None:
+            self._real_product = self.repository.get(
+                self.product_id
+            )
+
+    @property
+    def name(self):
+        self._load()
+        return self._real_product.name</code></pre></div>
+<p>الـ Client بيتعامل مع ProductProxy وكأنه بيتعامل مع Product، لكن التحميل الحقيقي بيحصل عند الحاجة.</p>
+<h3>C. Value Holder</h3>
+<p>هنا بنستخدم Object صغير يحتفظ بالقيمة أو بطريقة الحصول عليها، ويتولى تحميل القيمة عند أول طلب.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class ValueHolder:
+    def __init__(self, loader):
+        self.loader = loader
+        self._value = None
+        self._loaded = False
+
+    @property
+    def value(self):
+        if not self._loaded:
+            self._value = self.loader()
+            self._loaded = True
+
+        return self._value</code></pre></div>
+<p>الاستخدام:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">items_holder = ValueHolder(
+    lambda: repository.load_items(10)
+)
+
+items = items_holder.value</code></pre></div>
+<p>الفرق هنا إننا فصلنا مسؤولية تأجيل التحميل في Object مستقل اسمه ValueHolder.</p>
+<h3>D. Ghost</h3>
+<p>الـ Object بيتولد في البداية بحالة جزئية، مثل الـ ID وبعض البيانات الأساسية، ولما نحتاج بياناته الكاملة يتم تحميلها.</p>
+<p>مثلاً:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Customer:
+    def __init__(self, customer_id, repository):
+        self.id = customer_id
+        self.repository = repository
+        self._loaded = False
+        self._name = None
+        self._email = None
+
+    def _load(self):
+        if not self._loaded:
+            data = self.repository.get(self.id)
+
+            self._name = data[&quot;name&quot;]
+            self._email = data[&quot;email&quot;]
+
+            self._loaded = True
+
+    @property
+    def name(self):
+        self._load()
+        return self._name
+
+    @property
+    def email(self):
+        self._load()
+        return self._email</code></pre></div>
+<p>الـ Customer موجود بالفعل، لكن بياناته مش كاملة.</p>
+<p>ملاحظة: الطرق الأربع دي أساليب تنفيذ لـ Lazy Load، وليست أربعة Patterns مستقلة ضمن مجموعة Fowler.</p>
+<hr>
+<h2>4. علاقته بـ GoF Patterns</h2>
+<p>أقرب Pattern في GoF هو:</p>
+<p><strong>Proxy Pattern</strong></p>
+<p>Proxy Patternلكن لازم نفرّق بين الـ Intent بتاع الاتنين.</p>
+<ul>
+<li><strong>Lazy Load:</strong> هدفه تأجيل تحميل البيانات لوقت الحاجة.</li>
+<li><strong>Proxy:</strong> هدفه توفير بديل يتحكم في الوصول إلى Object آخر.</li>
+</ul>
+<p>ليه مش بديل مباشر؟</p>
+<p>لأن Lazy Load ممكن يتنفذ من غير Proxy أصلًا، زي Lazy Initialization.</p>
+<p>وفي المقابل، Proxy ممكن يستخدم لأهداف تانية غير Lazy Loading، زي Remote Proxy وProtection Proxy.</p>
+<p>إذن العلاقة:</p>
+<p><strong>Virtual Proxy هو أحد أساليب تنفيذ Lazy Load، لكن Lazy Load مش بالضرورة Proxy.</strong></p>
+<hr>
+<h2>5. الفرق بين Lazy Loading وEager Loading</h2>
+<p>خلينا نقارن الفكرتين.</p>
+<p><strong>Lazy Loading:</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Load Order  &lt;---  Access Items  &lt;---  Load Items</code></pre></div>
+<p>بنحمل الـ Order الأول، وبعد كده الـ Items عند الحاجة.</p>
+<p><strong>Eager Loading:</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Load Order + Items  &lt;---  Access Order</code></pre></div>
+<p>بنحمل الـ Order والـ Items مع بعض من البداية.</p>
+<p>المقارنة	Lazy Loading	Eager Loading</p>
+<p>توقيت التحميل	عند الحاجة	من البداية</p>
+<p>التكلفة الأولية	أقل غالبًا	أعلى غالبًا</p>
+<p>عدد Queries	ممكن يزيد	ممكن يقل</p>
+<p>استهلاك الذاكرة	أقل مبدئيًا	أكبر مبدئيًا</p>
+<p>الخطر الشائع	N+1 Queries	تحميل بيانات غير مطلوبة</p>
+<h3>خد بالك من مشكلة N+1</h3>
+<p>افترض عندك 100 Order، وكل Order عنده Items.</p>
+<p>لو عملت Query لتحميل Orders، وبعد كده كل مرة توصل فيها لـ order.items يحصل Query منفصل:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Orders Query
+     |
+     +---- Order 1 Items Query
+     |
+     +---- Order 2 Items Query
+     |
+     +---- Order 3 Items Query
+     |
+     +---- ...
+     |
+     +---- Order 100 Items Query</code></pre></div>
+<p>بدل Query واحدة أو عدد محدود من Queries، ممكن توصل إلى 101 Query!</p>
+<p>وده سبب إن Lazy Loading مش دائمًا أفضل من Eager Loading.</p>
+<p>الحل أحيانًا يكون Batch Loading أو Prefetching.</p>
+<hr>
+<h2>6. علاقته بالأنماط السابقة</h2>
+<p>مهم جدًا نفصل مسؤوليات الثلاثة:</p>
+<p><strong>Unit of Work</strong></p>
+<p>مسؤوليته تتبع التغييرات وتنظيم عملية الحفظ.</p>
+<p><strong>Identity Map</strong></p>
+<p>مسؤوليتها ضمان إن نفس Database Identity ترجع نفس Object Instance داخل نطاق معين.</p>
+<p><strong>Lazy Load</strong></p>
+<p>مسؤوليته تأجيل تحميل البيانات لحد الحاجة إليها.</p>
+<p>ممكن الثلاثة يشتغلوا مع بعض داخل ORM واحد، لكن كل واحد بيحل مشكلة مختلفة.</p>
+<hr>
+<h2>7. علاقته بالمعمارية وDDD وClean Architecture</h2>
+<p><strong>Application Architecture</strong></p>
+<p>Lazy Load مش Application Architecture Pattern، لكنه سلوك متعلق بطريقة الوصول إلى البيانات وتحميل الـ Objects، وغالبًا بيكون جزء من Persistence Layer أو ORM.</p>
+<p><strong>Clean Architecture</strong></p>
+<p>ممكن الـ Infrastructure Layer تنفذ Lazy Loading باستخدام ORM أو Proxy.</p>
+<p>لكن خلي بالك: لو الـ Domain Objects بقت معتمدة على Database Session أو ORM Proxies بشكل مباشر، ممكن يحصل Coupling غير مرغوب فيه.</p>
+<p><strong>DDD</strong></p>
+<p>ممكن تستخدم Lazy Loading لتحميل Relationships أو Collections، لكن لازم تحترم Aggregate Boundaries.</p>
+<p>مثلًا: مش معنى إن Order عنده علاقة بـ Customer إنك لازم تحمل كل بيانات الـ Customer وكل العلاقات التابعة ليه.</p>
+<p>الـ Aggregate Root هو نقطة الدخول للتعامل مع الـ Aggregate، وLazy Loading مش مبرر لتجاوز الحدود دي.</p>
+<hr>
+<h2>8. علاقته بـ Odoo</h2>
+<p>خلينا ناخد مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">order = self.env[&quot;sale.order&quot;].browse(10)
+
+lines = order.order_line</code></pre></div>
+<p>هنا عندك علاقة بين sale.order و sale.order.line.</p>
+<p>الـ Odoo ORM عنده آليات للتحميل والـ Cache والـ Prefetch، وبالتالي ممكن البيانات المرتبطة تتحمل عند الوصول إليها أو بشكل جماعي حسب السياق.</p>
+<p>لكن مهم جدًا:</p>
+<ul>
+<li>مش كل Access لحقل بيعمل SQL Query فورًا.</li>
+<li>الـ Prefetch ممكن يحمل بيانات سجلات أخرى مع السجل الحالي.</li>
+<li>الـ Cache ممكن يمنع تكرار القراءة من قاعدة البيانات.</li>
+<li>مش دقيق نقول إن كل Odoo Field يستخدم Lazy Load حصريًا.</li>
+</ul>
+<hr>
+<h2>9. إمتى تستخدم Lazy Load؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>عندك بيانات مرتبطة حجمها كبير.</li>
+<li>مش كل العمليات بتحتاج البيانات المرتبطة.</li>
+<li>تكلفة التحميل الأولي عالية.</li>
+<li>عندك تحكم في Session/Connection Lifetime.</li>
+</ul>
+<p>وتجنب الاعتماد عليه بشكل أعمى لما:</p>
+<ul>
+<li>عندك Loop على مجموعة Records.</li>
+<li>كل العمليات تقريبًا محتاجة العلاقات.</li>
+<li>ممكن ينتج عنه N+1 Queries.</li>
+<li>الـ Objects ممكن تعيش بعد انتهاء الـ Database Session.</li>
+</ul>
+<hr>
+<h2 class="section-title">خلصنا Object-Relational Behavioral Patterns 🎯</h2>
+<h2>ملخص المجموعة</h2>
+<p><strong>1. Unit of Work</strong></p>
+<p>Track Changes &amp; Organize Persistence</p>
+<hr>
+<p><strong>2. Identity Map</strong></p>
+<p>Maintain Object Identity</p>
+<hr>
+<p><strong>3. Lazy Load</strong></p>
+<p>Defer Object/Data Loading</p>
+<p>وبكده خلصنا المجموعة دي بالكامل.</p>
+<p><strong>الخطوة التالية في الكتاب:</strong> Object-Relational Structural Patterns، ودي مجموعة مختلفة عن Behavioral Patterns، وهنبدأها من أول Pattern فيها: <strong>Identity Field</strong>.</p>
+<p>يلا بينا يا هندسة 😂 نبدأ المجموعة الجديدة في كتاب <strong>Patterns of Enterprise Application Architecture (PoEAA)</strong>.</p>
+        
+      <nav class="page-nav" aria-label="تنقل الصفحات"><a href="data-source-architectural-patterns.html">→ Data Source Architectural Patterns</a><a href="object-relational-structural-patterns.html">Object-Relational Structural Patterns ←</a></nav>
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const saved = localStorage.getItem('poeaa3-theme');
+    if (saved) root.setAttribute('data-theme', saved);
+    document.getElementById('theme')?.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      if (next === 'dark') root.setAttribute('data-theme', 'dark'); else root.removeAttribute('data-theme');
+      localStorage.setItem('poeaa3-theme', next === 'dark' ? 'dark' : 'light');
+    });
+  </script>
+</body>
+</html>

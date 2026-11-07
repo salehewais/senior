@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Distribution Patterns — POEAA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="أقسام المرجع">
+      <div class="toc-head">
+        <p class="toc-title"><a href="index.html">POEAA</a></p>
+        <button class="icon-btn" id="theme" type="button" aria-label="تبديل الوضع">☾</button>
+      </div>
+      <ol>
+        <li><a href="index.html">الرئيسية</a></li><li><a href="separated-interface.html">Separated Interface</a></li><li><a href="base-patterns.html">Base Patterns</a></li><li><a href="domain-logic-patterns.html">Domain Logic Patterns</a></li><li><a href="data-source-architectural-patterns.html">Data Source Architectural Patterns</a></li><li><a href="object-relational-behavioral-patterns.html">Object-Relational Behavioral Patterns</a></li><li><a href="object-relational-structural-patterns.html">Object-Relational Structural Patterns</a></li><li><a href="object-relational-metadata-mapping-patterns.html">Object-Relational Metadata Mapping Patterns</a></li><li><a href="web-presentation-patterns.html">Web Presentation Patterns</a></li><li><a href="distribution-patterns.html" class="active">Distribution Patterns</a></li><li><a href="offline-concurrency-patterns.html">Offline Concurrency Patterns</a></li><li><a href="session-state-patterns.html">Session State Patterns</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      
+      <header class="page-header">
+        <h1>Distribution Patterns</h1>
+        <p class="lead">من مصدر ChatGPT POEAA — صفحة قسم واحد.</p>
+      </header>
+      <h2 class="section-title">Distribution Patterns</h2>
+<p>قبل ما نبدأ، خلينا نفهم الأول المجموعة دي بتعالج مشكلة إيه.</p>
+<h2>يعني إيه Distribution Patterns؟</h2>
+<p>لما يكون عندنا Application متقسم على أكثر من Process أو Machine، وعايزين الـ Components تتواصل مع بعضها عن طريق Network، بنواجه مشاكل مختلفة عن التواصل العادي داخل نفس البرنامج.</p>
+<p>مثلًا تخيل عندك:</p>
+<ul>
+<li>Web Application.</li>
+<li>Application Server.</li>
+<li>Database Server.</li>
+<li>خدمة خارجية مسؤولة عن الدفع.</li>
+</ul>
+<p>كل جزء ممكن يكون موجود في مكان مختلف، والتواصل بينهم بيتم عن طريق Network.</p>
+<p>وده بيخلق تحديات:</p>
+<ol>
+<li>Network Latency: الاتصال بالشبكة أبطأ من استدعاء Method داخل نفس البرنامج.</li>
+<li>Network Failure: الاتصال ممكن يفشل.</li>
+<li>Serialization: لازم نحول البيانات لصيغة قابلة للإرسال.</li>
+<li>Remote Calls: استدعاء عملية على جهاز آخر مختلف عن استدعاء Method محلية.</li>
+<li>Chatty Communication: كثرة الطلبات الصغيرة ممكن تسبب بطء شديد.</li>
+</ol>
+<p>وهنا بييجي دور Distribution Patterns.</p>
+<h2>خريطة المجموعة</h2>
+<p>في تصنيف Fowler هنركز على نمطين أساسيين:</p>
+<h2>Distribution Patterns</h2>
+<ol>
+<li><strong>Remote Facade</strong></li>
+</ol>
+<p>توفير واجهة Remote بسيطة تقلل عدد الاتصالات وتخفي تعقيد النظام الداخلي.</p>
+<ol>
+<li><strong>Data Transfer Object (DTO)</strong></li>
+</ol>
+<p>نقل مجموعة من البيانات بين العمليات أو الأنظمة في عملية اتصال واحدة.</p>
+<hr>
+<article class="pattern-card" id="1-remote-facade">
+<h3 class="pattern-title">1. Remote Facade</h3>
+<div class="card-body">
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندك E-Commerce Application، والـ Backend موجود على Server، والـ Frontend موجود على Server أو جهاز مختلف.</p>
+<p>داخل الـ Backend عندك Order Object بالشكل ده:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Order:
+
+    def get_customer(self):
+        pass
+
+    def get_items(self):
+        pass
+
+    def calculate_total(self):
+        pass
+
+    def validate(self):
+        pass
+
+    def confirm(self):
+        pass</code></pre></div>
+<p>وعندك Customer وProduct وPayment Objects.</p>
+<p>لو الـ Client حاول يتعامل مع كل Object بشكل مباشر عن طريق Remote Calls، ممكن يحصل الآتي:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Client  ---&gt;  Order.get_customer()
+Client  ---&gt;  Order.get_items()
+Client  ---&gt;  Order.calculate_total()
+Client  ---&gt;  Order.validate()
+Client  ---&gt;  Order.confirm()</code></pre></div>
+<p>المشكلة إن كل استدعاء هنا ممكن يحتاج Network Round Trip.</p>
+<p>يعني لو عندنا 5 عمليات، ممكن نحتاج 5 اتصالات بالشبكة.</p>
+<p>وده يسبب:</p>
+<ul>
+<li>زيادة Latency.</li>
+<li>زيادة Network Overhead.</li>
+<li>اعتماد الـ Client على تفاصيل الـ Domain Objects الداخلية.</li>
+<li>صعوبة تغيير تصميم الـ Backend بدون التأثير على الـ Client.</li>
+<li>زيادة عدد Remote Interfaces اللي لازم تتعرض.</li>
+</ul>
+<p><strong>إحنا محتاجين واجهة Remote بسيطة تخلي الـ Client يتعامل مع النظام من خلال عمليات أكبر وأوضح بدل التعامل المباشر مع تفاصيل الـ Objects الداخلية.</strong></p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة <strong>Remote Facade</strong> إننا نعمل واجهة مركزية تعرض مجموعة من العمليات ذات المستوى الأعلى للـ Remote Client.</p>
+<p>الـ Facade يستقبل طلبًا واحدًا، وبعد كده يتعامل مع الـ Objects الداخلية وينسق تنفيذ العمليات المطلوبة.</p>
+<p>بدل ما الـ Client يتواصل مع كل Object، يتعامل مع Facade واحد.</p>
+<p><strong>Without Remote Facade</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Remote Objects  &lt;---  Network Calls  &lt;---  Client</code></pre></div>
+<hr>
+<p><strong>With Remote Facade</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Domain Objects  &lt;---  Remote Facade  &lt;---  Client</code></pre></div>
+<p>في الرسم، الـ Client موجود أقصى اليمين، والطلب يتحرك ناحية الشمال.</p>
+<p>يعني بدل ما الـ Client يطلب خمس عمليات منفصلة، ممكن يستدعي عملية واحدة:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">order_service.confirm_order(order_id)</code></pre></div>
+<p>والـ Remote Facade يتولى التنسيق داخليًا.</p>
+<h2>3. مثال عملي باستخدام Python</h2>
+<p>هنبني مثال مبسط باستخدام Facade عادي، وبعدها نوضح إزاي نخليه Remote.</p>
+<h3>أولًا: الـ Domain Objects</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Order:
+
+    def __init__(self, order_id, total):
+        self.id = order_id
+        self.total = total
+        self.confirmed = False
+
+    def validate(self):
+        return self.total &gt; 0
+
+    def confirm(self):
+        if not self.validate():
+            raise ValueError(&quot;Invalid order&quot;)
+
+        self.confirmed = True</code></pre></div>
+<h3>ثانيًا: Remote Facade</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderRemoteFacade:
+
+    def __init__(self, repository):
+        self.repository = repository
+
+    def confirm_order(self, order_id):
+
+        order = self.repository.get(order_id)
+
+        if order is None:
+            raise ValueError(&quot;Order not found&quot;)
+
+        order.confirm()
+
+        self.repository.save(order)
+
+        return {
+            &quot;order_id&quot;: order.id,
+            &quot;status&quot;: &quot;confirmed&quot;
+        }</code></pre></div>
+<h3>ثالثًا: الـ Client</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">response = remote_facade.confirm_order(101)
+
+print(response)</code></pre></div>
+<p>الناتج:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">{
+    &quot;order_id&quot;: 101,
+    &quot;status&quot;: &quot;confirmed&quot;
+}</code></pre></div>
+<p>لاحظ إن الـ Client مش محتاج يعرف:</p>
+<ul>
+<li>إزاي نجيب Order من Repository.</li>
+<li>إزاي نتحقق من صحة الطلب.</li>
+<li>إزاي ننفذ Confirmation.</li>
+<li>إزاي نحفظ التعديلات.</li>
+</ul>
+<p>كل ده مخفي خلف Remote Facade.</p>
+<p><strong>ملاحظة مهمة:</strong> الكود السابق يوضح تصميم الـ Facade، لكنه مش Remote فعليًا بمفرده. عشان يبقى Remote Facade لازم نعرضه من خلال وسيلة اتصال شبكية، زي HTTP API أو RPC.</p>
+<h2>4. أقرب GoF Pattern</h2>
+<p>هنا عندنا تشابه واضح مع GoF Facade.</p>
+<p>Facade.</p>
+<p>لكن هل هما نفس النمط؟</p>
+<p><strong>مش بالضبط.</strong></p>
+<h3>GoF Facade</h3>
+<p>هدفه توفير واجهة بسيطة لنظام داخلي معقد، سواء النظام ده محلي أو داخل نفس الـ Process.</p>
+<h3>Remote Facade</h3>
+<p>بيستخدم نفس فكرة الواجهة المبسطة، لكن في سياق Distributed System.</p>
+<p>بالإضافة إلى تبسيط التعامل، بيهتم بمشاكل الاتصال عن بُعد وتقليل Network Calls.</p>
+<p>المقارنة	GoF Facade	Remote Facade</p>
+<p>المشكلة	تعقيد Subsystem	تعقيد التواصل مع Remote System</p>
+<p>الاتصال	غالبًا محلي	عبر Network</p>
+<p>الهدف	تبسيط Interface	تبسيط Remote Interface وتقليل الاتصالات</p>
+<p>Network Latency	مش جزء أساسي	اعتبار أساسي</p>
+<p>إذًا Remote Facade مستوحى من GoF Facade، لكنه متخصص في سياق التوزيع.</p>
+<h2>5. علاقته بـ Application Architecture</h2>
+<p>Remote Facade مش بديل عن Layered Architecture أو Clean Architecture.</p>
+<p>هو Pattern بنستخدمه عند حدود التواصل بين نظامين أو بين Remote Client والـ Server.</p>
+<p>مثلًا داخل Layered Architecture:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">              Remote Client
+                    |
+                    ↓
+              Remote Facade
+                    |
+                    ↓
+             Application Layer
+                    |
+                    ↓
+               Domain Layer
+                    |
+                    ↓
+             Infrastructure</code></pre></div>
+<p>وبالاتجاه من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Infrastructure  &lt;---  Domain  &lt;---  Application Layer  &lt;---  Remote Facade  &lt;---  Remote Client</code></pre></div>
+<p>الـ Remote Facade بيكون نقطة دخول للطلبات القادمة من خارج التطبيق، وبعدها يوجهها للـ Application Layer.</p>
+<h2>6. علاقته بـ Clean Architecture</h2>
+<p>هنا العلاقة مهمة جدًا.</p>
+<p>في Clean Architecture، ممكن نعتبر Remote Facade جزءًا من الـ Inbound Adapters أو واجهة الـ Delivery.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Domain  &lt;---  Use Case  &lt;---  Remote Facade  &lt;---  HTTP / RPC  &lt;---  Client</code></pre></div>
+<p>لكن خلي بالك:</p>
+<p>Remote Facade مش هو Use Case.</p>
+<ul>
+<li>Remote Facade: يستقبل Remote Request ويحولها لاستدعاءات مناسبة.</li>
+<li>Use Case: ينفذ عملية التطبيق.</li>
+<li>Domain: يحتوي على Business Rules.</li>
+</ul>
+<p>والـ Domain لا يعرف أي حاجة عن HTTP أو RPC أو Remote Facade.</p>
+<h2>7. علاقته بـ DDD</h2>
+<p>ممكن نستخدم Remote Facade كواجهة خارجية للتعامل مع Domain Model.</p>
+<p>تخيل إن عندك Order Aggregate، ومش عايز الـ Client يتعامل مع تفاصيله الداخلية.</p>
+<p>بدل ما تعرض الـ Aggregate بالكامل، توفر عمليات واضحة:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">confirm_order(order_id)
+cancel_order(order_id)
+get_order_summary(order_id)</code></pre></div>
+<p>الـ Remote Facade يستدعي Application Services أو Use Cases، وهي بدورها تتعامل مع الـ Aggregates.</p>
+<p>وده مهم لأنك مش عايز Remote Client يقدر يعدل أجزاء داخلية من الـ Aggregate بطريقة تتجاوز Invariants.</p>
+<p>لكن متخلطش بين Remote Facade وDDD Application Service؛ الأول مسؤول عن الواجهة البعيدة، والثاني مسؤول عن تنسيق عملية التطبيق.</p>
+<h2>8. علاقته بـ Odoo</h2>
+<p>تخيل عندك Odoo ERP وMobile Application منفصل.</p>
+<p>بدل ما الموبايل يحتاج ينفذ عدة Requests للوصول إلى تفاصيل Order، ممكن توفر Endpoint واحد:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">@http.route(
+    &quot;/api/orders/confirm&quot;,
+    type=&quot;json&quot;,
+    auth=&quot;user&quot;,
+    methods=[&quot;POST&quot;]
+)
+def confirm_order(self, order_id):
+
+    order = request.env[&quot;sale.order&quot;].browse(order_id)
+
+    order.action_confirm()
+
+    return {
+        &quot;order_id&quot;: order.id,
+        &quot;status&quot;: order.state,
+    }</code></pre></div>
+<p>ده مثال قريب من Remote Facade؛ لأنه بيوفر عملية أعلى مستوى بدل ما يكشف تفاصيل النظام الداخلية.</p>
+<p>لكن مجرد وجود Odoo Controller مش معناه تلقائيًا إنه Remote Facade. لازم يكون دوره فعلًا تجميع العمليات وتوفير واجهة Remote مستقرة ومبسطة.</p>
+<h2>9. إمتى نستخدم Remote Facade؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>عندك Remote Clients محتاجين يتعاملوا مع Backend معقد.</li>
+<li>عايز تقلل Network Round Trips.</li>
+<li>عايز تخفي تفاصيل Domain Objects الداخلية.</li>
+<li>عايز توفر API مستقرة رغم تغيير التصميم الداخلي.</li>
+<li>عندك عمليات تتكون من عدة خطوات داخلية ويمكن تنفيذها من خلال طلب واحد.</li>
+</ul>
+<p>لكن خد بالك: تجميع العمليات في Request واحد لا يعني إنك تحط كل عمليات النظام في Facade واحد ضخم. لازم تقسيم المسؤوليات يفضل واضح.</p>
+<hr>
+<h2>الخلاصة</h2>
+<p><strong>Remote Facade</strong></p>
+<ul>
+<li>يوفر واجهة Remote بسيطة.</li>
+<li>يخفي تعقيد الـ Objects الداخلية.</li>
+<li>يقلل عدد Network Round Trips.</li>
+<li>مستوحى من GoF Facade لكنه متخصص في Distributed Systems.</li>
+<li>يمكن استخدامه كـ Inbound Adapter في Clean Architecture.</li>
+<li>لا يساوي Application Service أو API Gateway.</li>
+</ul>
+<p><strong>النمط التالي: Data Transfer Object (DTO).</strong></p>
+<p>وده هيكمل الصورة؛ لأننا عرفنا إزاي نوفر واجهة Remote للعمليات، ولسه محتاجين نفهم إزاي ننقل البيانات نفسها بكفاءة بين الأنظمة.</p>
+<article class="pattern-card" id="6-two-step-view">
+<h3 class="pattern-title">6. Two Step View</h3>
+<div class="card-body">
+<p>وصلنا لنمط مهم جدًا في تنظيم عملية Presentation، وهو <strong>Two Step View</strong>.</p>
+<p>في النمط السابق Transform View، كنا بنحول البيانات مباشرةً إلى Presentation Output.</p>
+<p>لكن تخيل إن عندك تطبيق كبير فيه عشرات الصفحات والتقارير، وكلها لازم تلتزم بنفس التصميم العام:</p>
+<ul>
+<li>نفس Header.</li>
+<li>نفس Footer.</li>
+<li>نفس الألوان والخطوط.</li>
+<li>نفس طريقة عرض العناوين.</li>
+<li>نفس تنسيق الجداول.</li>
+</ul>
+<p>لو كل صفحة بتنتج HTML كامل بنفسها، هتكرر نفس التصميم في أماكن كتير.</p>
+<p>هنا بيظهر دور Two Step View.</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>افترض عندك 3 صفحات:</p>
+<ul>
+<li>Products Report</li>
+<li>Orders Report</li>
+<li>Customers Report</li>
+</ul>
+<p>كل صفحة عندها بيانات مختلفة، لكن التصميم العام واحد.</p>
+<p>لو استخدمنا Transform View، ممكن كل واحدة تحول بياناتها إلى HTML كامل.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Products Data  ---&gt;  Products HTML
+Orders Data    ---&gt;  Orders HTML
+Customers Data ---&gt;  Customers HTML</code></pre></div>
+<p>المشكلة إن كل صفحة هتحتاج تنفذ نفس قواعد التصميم.</p>
+<p>وبالتالي:</p>
+<ol>
+<li>تكرار Presentation Logic.</li>
+<li>صعوبة تغيير التصميم العام.</li>
+<li>اختلاف شكل الصفحات مع الوقت.</li>
+<li>صعوبة الحفاظ على Consistent UI.</li>
+</ol>
+<p>إحنا محتاجين نفصل بين حاجتين:</p>
+<ul>
+<li>تصميم الصفحة العام.</li>
+<li>التفاصيل الخاصة بكل صفحة.</li>
+</ul>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة Two Step View إننا نقسم عملية إنتاج الـ Presentation إلى مرحلتين.</p>
+<p><strong>المرحلة الأولى:</strong></p>
+<p>نحول البيانات إلى Logical Screen أو Intermediate Representation.</p>
+<p>يعني نجهز شكلًا وسيطًا يحتوي على المعلومات اللي محتاجين نعرضها، بدون ربطها بالتصميم النهائي.</p>
+<p><strong>المرحلة الثانية:</strong></p>
+<p>ناخد الشكل الوسيط ونطبّق عليه Layout عام مسؤول عن التصميم المشترك، وننتج HTML النهائي.</p>
+<p><strong>Two Step View</strong></p>
+<p><strong>Source Data</strong></p>
+<p><strong>Step 1: Logical Screen</strong></p>
+<p>Page-specific presentation structure</p>
+<p><strong>Step 2: Layout / Style</strong></p>
+<p>Shared visual presentation</p>
+<p><strong>Final HTML</strong></p>
+<p>وبالاتجاه من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Final HTML  &lt;---  Shared Layout  &lt;---  Logical Screen  &lt;---  Source Data</code></pre></div>
+<p>لاحظ إن عندنا مرحلتين منفصلتين فعلًا:</p>
+<ul>
+<li>الأولى تحدد <em>ماذا سنعرض؟</em></li>
+<li>الثانية تحدد <em>كيف سيظهر؟</em></li>
+</ul>
+<h2>3. مثال عملي باستخدام Python</h2>
+<p>هنبني مثال بسيط لتقرير Orders.</p>
+<h3>المرحلة الأولى: إنشاء Logical Screen</h3>
+<p>بدل ما ننتج HTML مباشرة، هنجهز Representation وسيط.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def build_orders_screen(orders):
+
+    return {
+        &quot;title&quot;: &quot;Orders Report&quot;,
+        &quot;columns&quot;: [&quot;Order&quot;, &quot;Customer&quot;, &quot;Total&quot;],
+        &quot;rows&quot;: [
+            [
+                order[&quot;id&quot;],
+                order[&quot;customer&quot;],
+                order[&quot;total&quot;]
+            ]
+            for order in orders
+        ]
+    }</code></pre></div>
+<p>البيانات:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">orders = [
+    {
+        &quot;id&quot;: 101,
+        &quot;customer&quot;: &quot;Saleh&quot;,
+        &quot;total&quot;: 1500
+    },
+    {
+        &quot;id&quot;: 102,
+        &quot;customer&quot;: &quot;Ahmed&quot;,
+        &quot;total&quot;: 2000
+    }
+]
+
+screen = build_orders_screen(orders)</code></pre></div>
+<p>الـ Logical Screen الناتج:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">{
+    &quot;title&quot;: &quot;Orders Report&quot;,
+    &quot;columns&quot;: [&quot;Order&quot;, &quot;Customer&quot;, &quot;Total&quot;],
+    &quot;rows&quot;: [
+        [101, &quot;Saleh&quot;, 1500],
+        [102, &quot;Ahmed&quot;, 2000]
+    ]
+}</code></pre></div>
+<p>لاحظ إننا لسه ما حددناش ألوان أو Header أو Footer أو CSS.</p>
+<p>إحنا جهزنا فقط المعلومات المنظمة الخاصة بالصفحة.</p>
+<h3>المرحلة الثانية: تطبيق Shared Layout</h3>
+<p>دلوقتي عندنا Layout عام يقدر يعرض أي Logical Screen بنفس التصميم.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from html import escape
+
+def render_layout(screen):
+
+    headers = &quot;&quot;.join(
+        f&quot;&lt;th&gt;{escape(str(column))}&lt;/th&gt;&quot;
+        for column in screen[&quot;columns&quot;]
+    )
+
+    rows = &quot;&quot;
+
+    for row in screen[&quot;rows&quot;]:
+        cells = &quot;&quot;.join(
+            f&quot;&lt;td&gt;{escape(str(value))}&lt;/td&gt;&quot;
+            for value in row
+        )
+
+        rows += f&quot;&lt;tr&gt;{cells}&lt;/tr&gt;&quot;
+
+    return f&quot;&quot;&quot;
+    &lt;html&gt;
+        &lt;body&gt;
+
+            &lt;header&gt;
+                &lt;h1&gt;My Company&lt;/h1&gt;
+            &lt;/header&gt;
+
+            &lt;main&gt;
+                &lt;h2&gt;{escape(screen[&#x27;title&#x27;])}&lt;/h2&gt;
+
+                &lt;table&gt;
+                    &lt;thead&gt;
+                        &lt;tr&gt;{headers}&lt;/tr&gt;
+                    &lt;/thead&gt;
+
+                    &lt;tbody&gt;</code></pre></div>
+<p>الاستخدام:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">html = render_layout(screen)</code></pre></div>
+<p>الآن عندنا فصل واضح:</p>
+<ul>
+<li>build_orders_screen: مسؤول عن تجهيز محتوى التقرير.</li>
+<li>render_layout: مسؤول عن التصميم العام وإنتاج HTML.</li>
+</ul>
+<p>وممكن نستخدم نفس Layout مع Products Report أو Customers Report، طالما الـ Logical Screen ملتزم بنفس الشكل المتوقع.</p>
+<p>المثال توضيحي مبسط لفكرة المرحلتين، وليس تنفيذًا كاملًا لمواصفات Fowler أو لمحرك Templates إنتاجي.</p>
+<h2>4. أقرب GoF Pattern</h2>
+<p>هل Two Step View له GoF Equivalent مباشر؟</p>
+<p><strong>لا، مفيش GoF Pattern مطابق له مباشرةً.</strong></p>
+<p>لكن فيه تشابهات تستحق نفهمها.</p>
+<h3>1. Builder</h3>
+<p>في Builder بنفصل عملية إنشاء Object معقد عن طريقة تمثيله النهائي.</p>
+<p>وده قريب من فكرة إننا بنجهز Logical Screen في المرحلة الأولى.</p>
+<p>لكن الفرق:</p>
+<ul>
+<li>Builder هدفه بناء Objects معقدة خطوة بخطوة.</li>
+<li>Two Step View هدفه فصل إعداد محتوى الشاشة عن تطبيق التصميم العام.</li>
+</ul>
+<p>ممكن نستخدم Builder لبناء Logical Screen، لكن مش هو Two Step View نفسه.</p>
+<h3>2. Template Method</h3>
+<p>ممكن يكون عندنا Layout عام يحدد هيكل العرض، وكل نوع صفحة يحدد تفاصيله.</p>
+<p>لكن Template Method قائم على وراثة وتخصيص خطوات Algorithm، بينما Two Step View قائم على مرحلتين منفصلتين لإنتاج Presentation.</p>
+<p><strong>إذًا التشابهات دي أدوات تنفيذ محتملة، مش بدائل للنمط.</strong></p>
+<h2>5. الفرق بين Template View وTransform View وTwo Step View</h2>
+<p>خلينا نربط الثلاثة ببعض.</p>
+<p><strong>Template View</strong></p>
+<p>Template + Data</p>
+<p>Template</p>
+<p>Data</p>
+<p><strong>Template Engine</strong></p>
+<p><strong>HTML</strong></p>
+<hr>
+<p><strong>Transform View</strong></p>
+<p>Source Data</p>
+<p><strong>Transformation</strong></p>
+<p><strong>Presentation Output</strong></p>
+<hr>
+<p><strong>Two Step View</strong></p>
+<p>Source Data</p>
+<p><strong>Step 1: Logical Screen</strong></p>
+<p><strong>Step 2: Shared Layout</strong></p>
+<p><strong>Final Presentation</strong></p>
+<p>الفرق الجوهري:</p>
+<ul>
+<li>Template View: يدمج Template مع Data.</li>
+<li>Transform View: يحول Data إلى Presentation.</li>
+<li>Two Step View: يقسم التحويل إلى مرحلتين، محتوى الشاشة ثم التصميم العام.</li>
+</ul>
+<h2>6. علاقته بـ Application Architecture</h2>
+<p>Two Step View هو Presentation Pattern، وممكن نستخدمه داخل MVC أو Layered Architecture.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Final HTML
+    ↑
+    |
+Shared Layout
+    ↑
+    |
+Logical Screen
+    ↑
+    |
+Controller / Presenter
+    ↑
+    |
+Application Layer</code></pre></div>
+<p>وبالاتجاه من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Final HTML  &lt;---  Shared Layout  &lt;---  Logical Screen  &lt;---  Presenter  &lt;---  Application Layer</code></pre></div>
+<p>مش معنى وجود Logical Screen إننا أنشأنا Application Layer جديدة؛ دي مجرد مرحلة وسيطة في عملية العرض.</p>
+<h2>7. علاقته بـ Clean Architecture</h2>
+<p>في Clean Architecture، ممكن نربط المرحلتين بالـ Output Boundary وPresenter.</p>
+<p>مثلًا:</p>
+<ul>
+<li>Use Case ينفذ العملية.</li>
+<li>Output Boundary يحدد شكل النتيجة المطلوبة من التطبيق.</li>
+<li>Presenter يبني View Model أو Logical Screen.</li>
+<li>Web View أو Layout يحول الـ Representation إلى HTML.</li>
+</ul>
+<p>لكن لازم نفرق بين مفاهيم Fowler وClean Architecture:</p>
+<p><strong>Logical Screen في Two Step View مش بالضرورة هو نفسه View Model في Clean Architecture.</strong></p>
+<p>فيه تقارب في الغرض، لكن المصطلحين جايين من سياقين مختلفين.</p>
+<p>والأهم إن الـ Domain ما يعرفش أي حاجة عن Layout أو HTML.</p>
+<h2>8. علاقته بـ DDD</h2>
+<p>ممكن نستخدم Two Step View مع DDD بالشكل ده:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Final HTML
+    ↑
+    |
+Shared Layout
+    ↑
+    |
+Logical Screen
+    ↑
+    |
+Application Result
+    ↑
+    |
+Domain</code></pre></div>
+<p>لكن الـ Logical Screen مش Domain Object.</p>
+<p>مثلًا لو عندك Order Aggregate، مش المفروض الـ Aggregate يكون مسؤول عن تحديد:</p>
+<ul>
+<li>شكل الجدول.</li>
+<li>ترتيب الأعمدة.</li>
+<li>لون حالة الطلب.</li>
+<li>Header التقرير.</li>
+</ul>
+<p>دي Presentation Responsibilities.</p>
+<p>الـ Application Layer يجهز النتيجة، وبعدها Presentation Layer تتعامل مع تحويلها للشكل المناسب.</p>
+<h2>9. علاقته بـ Odoo</h2>
+<p>في Odoo، ممكن نلاحظ فصلًا مشابهًا في بعض أنظمة التقارير:</p>
+<ul>
+<li>Python يجهز البيانات.</li>
+<li>QWeb يحدد شكل التقرير.</li>
+<li>Report Layout يوفر تصميمًا مشتركًا.</li>
+<li>PDF Rendering ينتج الملف النهائي.</li>
+</ul>
+<p>لكن لازم نكون دقيقين:</p>
+<p>مجرد وجود QWeb Template وExternal Layout مش معناه إن كل تقارير Odoo تطبق Fowler&#x27;s Two Step View حرفيًا.</p>
+<p>النمط يكون أقرب عندما يكون عندنا فعلًا فصل بين Intermediate Presentation Structure وبين Layout النهائي، مش مجرد Template Inheritance.</p>
+<hr>
+<h2>10. إمتى نستخدم Two Step View؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>عندك صفحات أو تقارير كثيرة بتشارك نفس التصميم.</li>
+<li>محتاج توحد شكل الـ Presentation.</li>
+<li>محتاج تفصل محتوى الشاشة عن طريقة عرضه.</li>
+<li>عندك Presentation Logic معقدة نسبيًا ومحتاج تقسيمها لمراحل.</li>
+</ul>
+<p>لكن لو عندك صفحة بسيطة، فغالبًا Template View كفاية، ومش محتاج تضيف مرحلة وسيطة تزيد التعقيد.</p>
+<hr>
+<h2>الخلاصة</h2>
+<p><strong>Two Step View</strong></p>
+<ul>
+<li>يقسم إنتاج Presentation إلى مرحلتين.</li>
+<li>المرحلة الأولى: إنشاء Logical Screen.</li>
+<li>المرحلة الثانية: تطبيق Shared Layout.</li>
+<li>يساعد على توحيد التصميم وإعادة استخدامه.</li>
+<li>لا يوجد GoF Equivalent مباشر.</li>
+<li>يمكن استخدامه مع MVC وClean Architecture وDDD.</li>
+</ul>
+<p><strong>النمط التالي والأخير في مجموعتنا: Application Controller.</strong></p>
+<p>وده مهم جدًا؛ لأنه هيخلينا ننتقل من تنظيم عرض الصفحة نفسها إلى تنظيم <strong>تدفق التنقل والتحكم في تنفيذ العمليات داخل التطبيق</strong>.</p>
+<article class="pattern-card" id="2-data-transfer-object-dto">
+<h3 class="pattern-title">2. Data Transfer Object (DTO)</h3>
+<div class="card-body">
+<p>في النمط السابق <strong>Remote Facade</strong>، اتكلمنا عن توفير واجهة Remote تقلل عدد الاتصالات بين الـ Client والـ Server.</p>
+<p>لكن فيه سؤال مهم:</p>
+<p><strong>لما الـ Client يستدعي Remote Facade، هننقل البيانات بين الطرفين إزاي؟</strong></p>
+<p>هل ننقل الـ Domain Objects نفسها؟ ولا ننقل مجموعة بيانات بسيطة مخصصة لعملية النقل؟</p>
+<p>هنا بيظهر دور <strong>Data Transfer Object (DTO)</strong>.</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندك Order Object داخل الـ Backend:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Order:
+
+    def __init__(self, order_id, customer, items):
+        self.id = order_id
+        self.customer = customer
+        self.items = items
+
+    def calculate_total(self):
+        return sum(
+            item.price * item.quantity
+            for item in self.items
+        )
+
+    def confirm(self):
+        # Business rules
+        pass</code></pre></div>
+<p>الـ Order ده مش مجرد بيانات، ده كمان يحتوي على Business Behavior.</p>
+<p>لو حاولنا نرسل الـ Object نفسه إلى Remote Client، هنواجه مشاكل:</p>
+<ol>
+<li>الـ Client ممكن يحتاج بيانات معينة فقط من الـ Object.</li>
+<li>ممكن يكون الـ Object مرتبطًا بـ Objects أخرى كثيرة.</li>
+<li>ممكن يحتوي على Methods وBehavior مش محتاجين ننقلها.</li>
+<li>ممكن نكشف تفاصيل داخلية من الـ Domain Model.</li>
+<li>Serialization للـ Object المعقد ممكن تكون صعبة.</li>
+<li>ممكن نحتاج Network Calls إضافية لجلب كل جزء من البيانات.</li>
+</ol>
+<p>مثلًا لو الموبايل محتاج يعرض ملخص الطلب، فهو مش محتاج يعرف كل تفاصيل الـ Order Aggregate.</p>
+<p>إحنا محتاجين شكل بسيط من البيانات يكون مخصصًا للنقل.</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة <strong>Data Transfer Object</strong> إننا ننشئ Object يحتوي على مجموعة من البيانات المطلوبة للنقل بين العمليات أو الأنظمة.</p>
+<p>الـ DTO غالبًا بيكون عبارة عن Fields وبدون Business Logic.</p>
+<p>بدل ما ننقل Domain Object بالكامل، بنحول البيانات المطلوبة إلى DTO ونرسله للطرف الآخر.</p>
+<p><strong>DTO Flow</strong></p>
+<p><strong>Remote Client</strong></p>
+<p><strong>Data Transfer Object</strong></p>
+<p>Serializable data structure</p>
+<p><strong>Remote Server</strong></p>
+<p>وبالاتجاه من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Remote Server  &lt;---  DTO  &lt;---  Remote Client</code></pre></div>
+<p>الـ DTO ممكن ينتقل بصيغة JSON أو XML أو غيرها.</p>
+<h2>3. مثال عملي باستخدام Python</h2>
+<p>هنبني مثال Order Summary.</p>
+<h3>أولًا: Domain Object</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Order:
+
+    def __init__(self, order_id, customer, items):
+        self.id = order_id
+        self.customer = customer
+        self.items = items
+
+    def calculate_total(self):
+        return sum(
+            item[&quot;price&quot;] * item[&quot;quantity&quot;]
+            for item in self.items
+        )</code></pre></div>
+<p>الـ Domain Object عنده بيانات وسلوك.</p>
+<h3>ثانيًا: إنشاء DTO</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from dataclasses import dataclass
+
+@dataclass
+class OrderDTO:
+
+    order_id: int
+    customer_name: str
+    total: float
+    status: str</code></pre></div>
+<p>لاحظ إن الـ DTO لا يحتوي على Business Rules.</p>
+<p>هو مجرد شكل منظم للبيانات اللي عايزين ننقلها.</p>
+<h3>ثالثًا: تحويل Domain Object إلى DTO</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def to_order_dto(order):
+
+    return OrderDTO(
+        order_id=order.id,
+        customer_name=order.customer,
+        total=order.calculate_total(),
+        status=&quot;confirmed&quot;
+    )</code></pre></div>
+<h3>رابعًا: إرسال البيانات</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from dataclasses import asdict
+import json
+
+order = Order(
+    order_id=101,
+    customer=&quot;Saleh&quot;,
+    items=[
+        {&quot;price&quot;: 100, &quot;quantity&quot;: 2},
+        {&quot;price&quot;: 200, &quot;quantity&quot;: 1},
+    ]
+)
+
+dto = to_order_dto(order)
+
+payload = json.dumps(asdict(dto))
+
+print(payload)</code></pre></div>
+<p>الناتج:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">json</span></div><pre class="code-block"><code class="language-json">{
+    &quot;order_id&quot;: 101,
+    &quot;customer_name&quot;: &quot;Saleh&quot;,
+    &quot;total&quot;: 400,
+    &quot;status&quot;: &quot;confirmed&quot;
+}</code></pre></div>
+<p>إيه اللي حصل؟</p>
+<ol>
+<li>عندنا Domain Object داخل الـ Server.</li>
+<li>اخترنا البيانات المطلوبة للنقل.</li>
+<li>حولناها إلى DTO.</li>
+<li>عملنا Serialization إلى JSON.</li>
+<li>بقى عندنا Payload قابل للإرسال عبر Network.</li>
+</ol>
+<p><strong>ملحوظة:</strong> Serialization مش هو DTO نفسه؛ الـ DTO هو هيكل البيانات، أما Serialization فهي عملية تحويله إلى صيغة قابلة للنقل أو التخزين.</p>
+<h2>4. هل DTO لازم يكون Read Only؟</h2>
+<p>مش شرط.</p>
+<p>DTO ممكن يستخدم في اتجاهين:</p>
+<p><strong>Server → Client</strong></p>
+<p>مثلًا إرسال Order Details.</p>
+<p><strong>Client → Server</strong></p>
+<p>مثلًا استقبال بيانات إنشاء Order.</p>
+<p>مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">@dataclass
+class CreateOrderDTO:
+
+    customer_id: int
+    product_id: int
+    quantity: int</code></pre></div>
+<p>الـ Client يرسل البيانات دي للـ Server.</p>
+<p>بعد كده الـ Server يحولها إلى Command أو Input Model مناسب للعملية.</p>
+<p>لكن خلي بالك: استقبال DTO لا يعني الثقة في بياناته. لازم نعمل Validation وAuthorization ونطبق Business Rules داخل التطبيق والـ Domain.</p>
+<h2>5. أقرب GoF Pattern</h2>
+<p>هل DTO له GoF Equivalent مباشر؟</p>
+<p><strong>لا، مفيش GoF Pattern مطابق له.</strong></p>
+<p>لكن ممكن تلاحظ تشابهات مع بعض الأنماط.</p>
+<h3>1. Value Object</h3>
+<p>فيه تشابه لأن DTO غالبًا بيكون Object بسيط يحمل بيانات، وممكن يكون Immutable.</p>
+<p>لكن الفرق:</p>
+<ul>
+<li><strong>Value Object:</strong> يمثل قيمة لها معنى داخل نموذج المجال، وتهمنا خصائصها وقيمتها.</li>
+<li><strong>DTO:</strong> يمثل بيانات مخصصة للنقل بين حدود النظام.</li>
+</ul>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">@dataclass(frozen=True)
+class Money:
+    amount: float
+    currency: str</code></pre></div>
+<p>ده ممكن يكون Value Object داخل الـ Domain.</p>
+<p>أما:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">@dataclass
+class OrderDTO:
+    order_id: int
+    total: float</code></pre></div>
+<p>ده DTO مخصص للنقل.</p>
+<p>إذًا مش كل DTO هو Value Object، ومش كل Value Object هو DTO.</p>
+<h3>2. Transfer Object</h3>
+<p>ممكن تلاقي اسم Transfer Object في مراجع أخرى، وهو قريب جدًا من DTO.</p>
+<p>لكن في GoF الأصلي مفيش Pattern بالاسم ده.</p>
+<h2>6. الفرق بين DTO وRemote Facade</h2>
+<p>دي نقطة مهمة لأن النمطين بيكملوا بعض.</p>
+<p>المقارنة	Remote Facade	DTO</p>
+<p>المسؤولية	توفير واجهة للعمليات البعيدة	نقل البيانات</p>
+<p>يمثل	Operations	Data</p>
+<p>مثال	confirm_order()	OrderDTO</p>
+<p>الهدف	تقليل Remote Calls وتبسيط الواجهة	نقل البيانات بكفاءة</p>
+<p>العلاقة	يستخدم DTO غالبًا	ينتقل عبر Remote Facade</p>
+<p>بمعنى آخر:</p>
+<p>Remote Facade يحدد <em>إيه العمليات المتاحة</em>، والـ DTO يحدد <em>شكل البيانات التي تنتقل</em>.</p>
+<p>ممكن نشوف الاثنين مع بعض:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Remote Server
+      |
+      ↓
+Remote Facade
+      |
+      ↓
+OrderDTO
+      |
+      ↓
+Network
+      |
+      ↓
+Remote Client</code></pre></div>
+<p>وبالاتجاه من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Remote Client  &lt;---  Network  &lt;---  OrderDTO  &lt;---  Remote Facade  &lt;---  Remote Server</code></pre></div>
+<h2>7. علاقته بـ Application Architecture</h2>
+<p>DTO مش Application Architecture Pattern مستقل.</p>
+<p>هو نمط بيظهر عند حدود التواصل بين Layers أو Processes أو Systems.</p>
+<p>مثلًا في Layered Architecture:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Presentation Layer
+        |
+        ↓
+Application Layer
+        |
+        ↓
+Domain Layer</code></pre></div>
+<p>ممكن الـ Presentation Layer تستقبل DTO، وتحوله إلى Input Model، ثم تستدعي Application Layer.</p>
+<p>وممكن Application Layer ترجع Output Data تتحول إلى DTO قبل إرسالها للـ Client.</p>
+<p>لكن مهم: مش لازم كل Layer يكون ليها DTO خاص بيها. استخدام DTO بين Layers محلية أحيانًا يكون مجرد تعقيد غير ضروري.</p>
+<h2>8. علاقته بـ Clean Architecture</h2>
+<p>هنا DTO مهم جدًا عند حدود الـ Adapters.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">HTTP Response
+      ↑
+      |
+Response DTO
+      ↑
+      |
+Presenter
+      ↑
+      |
+Use Case Output
+      ↑
+      |
+Domain</code></pre></div>
+<p>وبالاتجاه من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">HTTP Response  &lt;---  Response DTO  &lt;---  Presenter  &lt;---  Use Case  &lt;---  Domain</code></pre></div>
+<p>لكن خلي بالك من الفرق بين DTO وDomain Model.</p>
+<p>الـ Domain لا يجب أن يعتمد على DTO خاص بـ HTTP أو Framework خارجي.</p>
+<p>وممكن يكون عندنا أنواع مختلفة من DTOs:</p>
+<ul>
+<li>Request DTO.</li>
+<li>Response DTO.</li>
+<li>Event DTO.</li>
+<li>Integration DTO.</li>
+</ul>
+<p>كل واحد له غرض مختلف حسب حدود التواصل.</p>
+<h2>9. علاقته بـ DDD</h2>
+<p>في DDD، DTO غالبًا بيستخدم عند حدود Application Layer أو Integration Layer.</p>
+<p>مثلًا عندك Order Aggregate:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Order:
+
+    def confirm(self):
+        # Validate domain rules
+        pass</code></pre></div>
+<p>مش المفروض نرسل الـ Aggregate نفسه للـ External System.</p>
+<p>بدل كده نجهز DTO:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">@dataclass
+class OrderConfirmationDTO:
+
+    order_id: int
+    customer_id: int
+    total: float</code></pre></div>
+<p>وده بيساعدنا نحافظ على استقلالية الـ Domain Model.</p>
+<p>لكن فيه نقطة مهمة:</p>
+<p><strong>DTO مش هو Domain Event.</strong></p>
+<ul>
+<li>DTO هدفه نقل البيانات.</li>
+<li>Domain Event بيمثل حقيقة حصلت داخل الـ Domain.</li>
+</ul>
+<p>ممكن Domain Event يتحول إلى Integration Event أو Event DTO قبل نشره لنظام خارجي، لكن المفاهيم مش متطابقة.</p>
+<h2>10. علاقته بـ Odoo</h2>
+<p>في Odoo، عند التعامل مع Mobile App أو External API، من الأفضل غالبًا نرجع بيانات منظمة بدل ما نكشف Recordsets أو تفاصيل ORM مباشرة.</p>
+<p>مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">@http.route(
+    &quot;/api/orders/&lt;int:order_id&gt;&quot;,
+    type=&quot;json&quot;,
+    auth=&quot;user&quot;
+)
+def get_order(self, order_id):
+
+    order = request.env[&quot;sale.order&quot;].browse(order_id)
+
+    if not order.exists():
+        return {&quot;error&quot;: &quot;Order not found&quot;}
+
+    return {
+        &quot;id&quot;: order.id,
+        &quot;name&quot;: order.name,
+        &quot;partner&quot;: order.partner_id.name,
+        &quot;amount_total&quot;: order.amount_total,
+        &quot;state&quot;: order.state,
+    }</code></pre></div>
+<p>الـ Dictionary هنا بيؤدي دور DTO في واجهة الـ API، رغم إننا مش عاملين Class باسم DTO.</p>
+<p>وده مهم لأن:</p>
+<ul>
+<li>مش بنرسل Odoo Recordset نفسه.</li>
+<li>بنحدد البيانات اللي مسموح تظهر.</li>
+<li>بنفصل External API Contract عن تفاصيل ORM.</li>
+<li>نقدر نغير تفاصيل داخلية في Odoo بدون ما نكسر الـ Client طالما حافظنا على الـ Contract.</li>
+</ul>
+<hr>
+<h2>11. إمتى نستخدم DTO؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>بتنقل بيانات عبر Network.</li>
+<li>عندك Remote Facade أو API.</li>
+<li>عايز تفصل External Contract عن Domain Model.</li>
+<li>محتاج تتحكم في البيانات المكشوفة للـ Client.</li>
+<li>عندك Integration بين أنظمة مختلفة.</li>
+<li>محتاج تجميع بيانات من عدة Objects في Response واحدة.</li>
+</ul>
+<p>لكن تجنب استخدام DTO لكل Object ولكل Method بدون سبب؛ كثرة التحويلات والـ Mapping ممكن تعمل Boilerplate كبير.</p>
+<hr>
+<h2>الخلاصة النهائية لـ Distribution Patterns</h2>
+<h2>Distribution Patterns</h2>
+<p><strong>1. Remote Facade</strong></p>
+<p>يوفر واجهة Remote مبسطة ويقلل عدد الاتصالات بين Client وServer.</p>
+<hr>
+<p><strong>2. Data Transfer Object (DTO)</strong></p>
+<p>ينقل مجموعة بيانات منظمة بين العمليات والأنظمة.</p>
+<p>والعلاقة بينهم:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Remote Client  &lt;---  Network  &lt;---  DTO  &lt;---  Remote Facade  &lt;---  Server</code></pre></div>
+<p><strong>ملاحظة تصنيفية:</strong> النمطين دول هما النمطين الأساسيين تحت Distribution Patterns في خريطة Fowler التي ندرسها.</p>
+<p>وبكده نكون خلصنا المجموعة دي. المجموعة التالية في خريطة PoEAA هي <strong>Offline Concurrency Patterns</strong>، ودي هتربطنا بموضوع الـ Concurrency والـ Transactions اللي اتكلمنا عنه قبل كده.</p>
+<p>يلا بينا يا صاحبي 😂 نبدأ مجموعة جديدة من كتاب <strong>Patterns of Enterprise Application Architecture (PoEAA)</strong>، ودي من أهم المجموعات لأنها مرتبطة مباشرةً بالـ Transactions والـ Database والـ Concurrency.</p>
+        
+      <nav class="page-nav" aria-label="تنقل الصفحات"><a href="web-presentation-patterns.html">→ Web Presentation Patterns</a><a href="offline-concurrency-patterns.html">Offline Concurrency Patterns ←</a></nav>
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const saved = localStorage.getItem('poeaa3-theme');
+    if (saved) root.setAttribute('data-theme', saved);
+    document.getElementById('theme')?.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      if (next === 'dark') root.setAttribute('data-theme', 'dark'); else root.removeAttribute('data-theme');
+      localStorage.setItem('poeaa3-theme', next === 'dark' ? 'dark' : 'light');
+    });
+  </script>
+</body>
+</html>

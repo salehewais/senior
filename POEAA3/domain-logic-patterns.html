@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Domain Logic Patterns — POEAA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="أقسام المرجع">
+      <div class="toc-head">
+        <p class="toc-title"><a href="index.html">POEAA</a></p>
+        <button class="icon-btn" id="theme" type="button" aria-label="تبديل الوضع">☾</button>
+      </div>
+      <ol>
+        <li><a href="index.html">الرئيسية</a></li><li><a href="separated-interface.html">Separated Interface</a></li><li><a href="base-patterns.html">Base Patterns</a></li><li><a href="domain-logic-patterns.html" class="active">Domain Logic Patterns</a></li><li><a href="data-source-architectural-patterns.html">Data Source Architectural Patterns</a></li><li><a href="object-relational-behavioral-patterns.html">Object-Relational Behavioral Patterns</a></li><li><a href="object-relational-structural-patterns.html">Object-Relational Structural Patterns</a></li><li><a href="object-relational-metadata-mapping-patterns.html">Object-Relational Metadata Mapping Patterns</a></li><li><a href="web-presentation-patterns.html">Web Presentation Patterns</a></li><li><a href="distribution-patterns.html">Distribution Patterns</a></li><li><a href="offline-concurrency-patterns.html">Offline Concurrency Patterns</a></li><li><a href="session-state-patterns.html">Session State Patterns</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      
+      <header class="page-header">
+        <h1>Domain Logic Patterns</h1>
+        <p class="lead">من مصدر ChatGPT POEAA — صفحة قسم واحد.</p>
+      </header>
+      <h2 class="section-title">Domain Logic Patterns</h2>
+<p>قبل ما نبدأ، فيه نقطة مهمة جدًا: المجموعة دي في الكتاب فيها <strong>4 Patterns</strong>، مش 3:</p>
+<ol>
+<li>Transaction Script</li>
+<li>Domain Model</li>
+<li>Table Module</li>
+<li>Service Layer</li>
+</ol>
+<p>وده وفقًا لفهرس Fowler الرسمي وفصل الكتاب التاسع. martinfowler.comoreilly.com</p>
+<hr>
+<article class="pattern-card" id="1-transaction-script">
+<h3 class="pattern-title">1. Transaction Script</h3>
+<div class="card-body">
+<p>(Domain Logic Pattern)</p>
+</div></article>
+<h2>1. المشكلة (The Problem)</h2>
+<p>تخيل إن عندك E-commerce System، والعميل عايز يعمل Checkout.</p>
+<p>العملية دي محتاجة:</p>
+<ol>
+<li>التأكد إن المنتجات متاحة.</li>
+<li>حساب إجمالي الطلب.</li>
+<li>تطبيق الخصم.</li>
+<li>حساب تكلفة الشحن.</li>
+<li>إنشاء الطلب.</li>
+<li>خصم الكميات من المخزون.</li>
+<li>تسجيل عملية الدفع.</li>
+</ol>
+<p>السؤال هنا: هننظم الـ Business Logic دي إزاي؟</p>
+<p>أبسط طريقة إننا نكتب Procedure مسؤولة عن تنفيذ العملية كلها.</p>
+<p>لكن تخيل إن عندك 50 عملية مختلفة في النظام، وكل عملية فيها Business Logic خاصة بيها.</p>
+<p>إزاي ننظم الكود بحيث نقدر نفهم كل عملية ونعدلها بسهولة؟</p>
+<h2>2. الفكرة (The Solution)</h2>
+<p>فكرة Transaction Script بسيطة:</p>
+<p><strong>كل Business Transaction أو User Action ليها Procedure مسؤولة عن تنفيذ الـ Logic الخاص بيها.</strong></p>
+<p>يعني بدل ما نوزع الـ Business Logic على مجموعة Objects، بننظمها حول العمليات نفسها.</p>
+<p>مثلًا:</p>
+<ul>
+<li>checkout_order()</li>
+<li>cancel_order()</li>
+<li>register_customer()</li>
+<li>calculate_shipping()</li>
+</ul>
+<p>كل Function مسؤولة عن تنفيذ Use Case أو عملية معينة.</p>
+<p>مش شرط تكون Function واحدة ضخمة؛ ممكن تستدعي Helper Functions، لكن التنظيم الأساسي يفضل قائمًا على العمليات.</p>
+<h2>3. مثال عملي باستخدام Python</h2>
+<p>خلينا نعمل Checkout بسيط.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderRepository:
+    def save(self, order):
+        print(&quot;Order saved&quot;)
+
+class InventoryRepository:
+    def decrease_stock(self, product_id, quantity):
+        print(f&quot;Stock decreased: {product_id}&quot;)
+
+class PaymentGateway:
+    def charge(self, amount):
+        print(f&quot;Charged: {amount}&quot;)
+
+def checkout_order(cart, payment_gateway,
+                   order_repository, inventory_repository):
+
+    # 1. Validate products
+    for item in cart:
+        if item[&quot;quantity&quot;] &lt;= 0:
+            raise ValueError(&quot;Invalid quantity&quot;)
+
+        if item[&quot;stock&quot;] &lt; item[&quot;quantity&quot;]:
+            raise ValueError(&quot;Insufficient stock&quot;)
+
+    # 2. Calculate total
+    total = sum(
+        item[&quot;price&quot;] * item[&quot;quantity&quot;]
+        for item in cart
+    )
+
+    # 3. Apply discount
+    if total &gt;= 1000:
+        total *= 0.9
+
+    # 4. Process payment
+    payment_gateway.charge(total)
+
+    # 5. Save order
+    order = {
+        &quot;items&quot;: cart,
+        &quot;total&quot;: total,
+    }
+
+    order_repository.save(order)
+
+    # 6. Decrease stock
+    for item in cart:
+        inventory_repository.decrease_stock(
+            item[&quot;product_id&quot;],
+            item[&quot;quantity&quot;],
+        )
+
+    return order</code></pre></div>
+<p>لاحظ هنا إن الـ Business Logic كلها متجمعة داخل Procedure واحدة مسؤولة عن عملية Checkout.</p>
+<p>والـ Repositories والـ Gateway مجرد Dependencies بتتعامل معاها الـ Procedure.</p>
+<p><strong>ملحوظة:</strong> المثال توضيحي لفكرة Transaction Script، وليس تنفيذًا Production-ready؛ لأن الدفع والمخزون والـ Database محتاجين Transaction Management وتعامل مع حالات الفشل والتعويض.</p>
+<h2>4. أقرب GoF Pattern</h2>
+<p>هنا عندنا تشابه مع نمطين، لكن مفيش GoF Pattern مكافئ مباشرة.</p>
+<h3>Command</h3>
+<p><strong>وجه التشابه:</strong></p>
+<p>الـ Command بيمثل طلب أو عملية يمكن تنفيذها، وTransaction Script برضه ممكن يمثل عملية معينة.</p>
+<p><strong>الاختلاف في Intent:</strong></p>
+<p>Command	Transaction Script</p>
+<p>يحول الطلب إلى Object	ينظم الـ Business Logic في Procedures</p>
+<p>يسمح بتغليف الطلب وتمريره وتخزينه أو تأجيله	يركز على تنفيذ العملية</p>
+<p>يدعم Undo/Queue وغيرها حسب التصميم	مش بيشترط أيًا من ده</p>
+<p>ممكن تنفذ Transaction Script داخل Command، لكن ده مش معناه إنهم نفس الـ Pattern.</p>
+<h3>Template Method</h3>
+<p><strong>وجه التشابه:</strong></p>
+<p>ممكن تلاحظ إن Transaction Script عنده خطوات متتابعة لتنفيذ العملية.</p>
+<p><strong>الاختلاف:</strong></p>
+<p>Template Method بيحدد Skeleton لخوارزمية داخل Base Class، والـ Subclasses بتخصص بعض الخطوات.</p>
+<p>أما Transaction Script فمش محتاج Inheritance أصلًا.</p>
+<h2>5. علاقته بالـ Application Architecture</h2>
+<p>Transaction Script هو طريقة لتنظيم الـ Domain Logic، وليس Architecture كاملة.</p>
+<p>ممكن تستخدمه داخل:</p>
+<ul>
+<li>Layered Architecture.</li>
+<li>Clean Architecture.</li>
+<li>Hexagonal Architecture.</li>
+</ul>
+<p>مثلًا في Clean Architecture:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Presentation
+     |
+     v
+Application Use Case
+     |
+     v
+Transaction Script
+     |
+     v
+Output Ports
+     |
+     v
+Infrastructure</code></pre></div>
+<p>لكن خلي بالك: ده توزيع توضيحي، مش شرط إن كل Transaction Script يبقى في مكان اسمه Application أو Domain. المهم هو فصل المسؤوليات واتجاه الاعتماديات.</p>
+<h2>6. علاقته بـ DDD</h2>
+<p>هنا فيه فرق مهم جدًا.</p>
+<p>Transaction Script مش هو الأسلوب الأساسي اللي DDD بيبني عليه الـ Domain Model.</p>
+<p>في DDD، بنحاول نمثل مفاهيم المجال وسلوكها داخل Domain Objects، خصوصًا لما تكون قواعد العمل معقدة ومترابطة.</p>
+<p>أما Transaction Script فبيحط منطق العملية أساسًا في Procedure.</p>
+<p>وده لا يعني إن Transaction Script غلط أو غير احترافي.</p>
+<p>Fowler نفسه بيعتبره اختيارًا مناسبًا للأنظمة ذات الـ Domain Logic البسيطة نسبيًا. accc.orgraw.githubusercontent.com</p>
+<hr>
+<h2>7. إمتى أستخدمه؟</h2>
+<p>الحالة	الاختيار</p>
+<p>Business Logic بسيطة	Transaction Script مناسب</p>
+<p>CRUD Operations بسيطة	Transaction Script مناسب</p>
+<p>قواعد معقدة ومترابطة بين Entities	Domain Model غالبًا أنسب</p>
+<p>نفس القواعد مستخدمة في عمليات متعددة	راجع احتمالية استخراج Domain Model</p>
+<p>Workflow طويل ومعقد	قد تحتاج تنظيمًا إضافيًا</p>
+<h2>الخلاصة</h2>
+<p><strong>Transaction Script</strong> بينظم الـ Business Logic حول العمليات (Transactions)، بحيث كل عملية ليها Procedure مسؤولة عن تنفيذها.</p>
+<p>وأهم نقطة عايزك تخرج بيها:</p>
+<p>الفرق الجوهري بين Transaction Script وDomain Model مش مجرد إن واحد Functions والتاني Classes.</p>
+<p>الفرق هو <strong>إحنا بننظم الـ Business Logic حول إيه؟</strong></p>
+<ul>
+<li>Transaction Script: حول العمليات.</li>
+<li>Domain Model: حول مفاهيم المجال وسلوكها.</li>
+</ul>
+<p>وده هيكون محور المقارنة لما نبدأ الـ Pattern اللي بعده.</p>
+<p><strong>التالي: Domain Model</strong> — وده من أهم الأنماط في المجموعة؛ لأنه بيغير طريقة تفكيرك في توزيع الـ Business Logic بالكامل.</p>
+<p>يلا بينا يا هندسة. وصلنا لأهم Pattern في المجموعة دي من ناحية طريقة التفكير في الـ Business Logic.</p>
+<article class="pattern-card" id="2-domain-model">
+<h3 class="pattern-title">2. Domain Model</h3>
+<div class="card-body">
+<p>(Domain Logic Pattern)</p>
+</div></article>
+<h2>1. المشكلة (The Problem)</h2>
+<p>خلينا نستخدم نفس مثال الـ E-commerce اللي بدأنا بيه.</p>
+<p>عندنا نظام فيه:</p>
+<ul>
+<li>Customers</li>
+<li>Orders</li>
+<li>Products</li>
+<li>Payments</li>
+<li>Discounts</li>
+<li>Inventory</li>
+</ul>
+<p>وعندنا قواعد Business مختلفة:</p>
+<ul>
+<li>الطلب لا يمكن إلغاؤه بعد الشحن.</li>
+<li>الخصم لا يمكن أن يتجاوز حدًا معينًا.</li>
+<li>لا يمكن تأكيد الطلب بدون منتجات.</li>
+<li>إجمالي الطلب لازم يساوي مجموع عناصره بعد تطبيق الخصومات.</li>
+<li>بعض العملاء عندهم شروط خصم مختلفة.</li>
+</ul>
+<p>في البداية ممكن نكتب كل ده داخل Functions منفصلة.</p>
+<p>لكن مع زيادة النظام، هنواجه مشاكل:</p>
+<ol>
+<li>نفس القاعدة ممكن تتكرر في أكتر من مكان.</li>
+<li>الـ Business Logic ممكن تتوزع بين Services وControllers.</li>
+<li>تعديل قاعدة واحدة ممكن يحتاج تعديلات في أماكن متعددة.</li>
+<li>العلاقات بين مفاهيم الـ Business مش بتكون واضحة في الكود.</li>
+</ol>
+<p>المشكلة الأساسية هنا إننا بننظم الـ Logic حول العمليات، بينما طبيعة المجال نفسها بقت معقدة ومترابطة.</p>
+<h2>2. الفكرة (The Solution)</h2>
+<p>تعريف Fowler:</p>
+<p><strong>An object model of the domain that incorporates both behavior and data.</strong> martinfowler.comaccc.org</p>
+<p>يعني إيه؟</p>
+<p>بدل ما نخلي الـ Business Logic كلها داخل Functions مستقلة، بنبني مجموعة Objects بتمثل مفاهيم المجال الحقيقي.</p>
+<p>وكل Object بيجمع:</p>
+<ul>
+<li>Data: البيانات التي تخص المفهوم.</li>
+<li>Behavior: السلوك والقواعد المرتبطة بالمفهوم.</li>
+</ul>
+<p>مثلًا:</p>
+<p>Order مش مجرد Object بيحتوي على id و<code class="inline">total</code>.</p>
+<p>هو كمان مسؤول عن سلوكيات الطلب، زي:</p>
+<ul>
+<li>add_item()</li>
+<li>remove_item()</li>
+<li>confirm()</li>
+<li>cancel()</li>
+<li>calculate_total()</li>
+</ul>
+<p>بالتالي بنحاول نخلي الـ Business Rules قريبة من الـ Business Data اللي بتخصها.</p>
+<p>وده هو جوهر Domain Model.</p>
+<h2>3. مثال عملي باستخدام Python</h2>
+<p>هنبني نموذج صغير للطلبات.</p>
+<p><strong>أولًا: Product</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Product:
+    def __init__(self, product_id, name, price):
+        if price &lt;= 0:
+            raise ValueError(&quot;Price must be positive&quot;)
+
+        self.id = product_id
+        self.name = name
+        self.price = price</code></pre></div>
+<p><strong>ثانيًا: OrderItem</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderItem:
+    def __init__(self, product, quantity):
+        if quantity &lt;= 0:
+            raise ValueError(&quot;Quantity must be positive&quot;)
+
+        self.product = product
+        self.quantity = quantity
+
+    def subtotal(self):
+        return self.product.price * self.quantity</code></pre></div>
+<p>لاحظ إن حساب الـ Subtotal موجود في OrderItem، لأنه مسؤول عن تمثيل عنصر الطلب وكميته.</p>
+<p><strong>ثالثًا: Order</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Order:
+    def __init__(self):
+        self.items = []
+        self.status = &quot;draft&quot;
+
+    def add_item(self, item):
+        if self.status != &quot;draft&quot;:
+            raise ValueError(&quot;Cannot modify confirmed order&quot;)
+
+        self.items.append(item)
+
+    def calculate_total(self):
+        return sum(
+            item.subtotal()
+            for item in self.items
+        )
+
+    def confirm(self):
+        if not self.items:
+            raise ValueError(&quot;Cannot confirm empty order&quot;)
+
+        if self.status != &quot;draft&quot;:
+            raise ValueError(&quot;Order cannot be confirmed&quot;)
+
+        self.status = &quot;confirmed&quot;
+
+    def cancel(self):
+        if self.status == &quot;shipped&quot;:
+            raise ValueError(&quot;Cannot cancel shipped order&quot;)
+
+        self.status = &quot;cancelled&quot;</code></pre></div>
+<p><strong>رابعًا: الاستخدام</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">product = Product(
+    product_id=1,
+    name=&quot;Laptop&quot;,
+    price=500
+)
+
+item = OrderItem(
+    product=product,
+    quantity=2
+)
+
+order = Order()
+
+order.add_item(item)
+
+print(order.calculate_total())  # 1000
+
+order.confirm()
+
+print(order.status)  # confirmed</code></pre></div>
+<h2>4. إيه اللي اتغير مقارنة بـ Transaction Script؟</h2>
+<p>دي أهم مقارنة في الموضوع كله.</p>
+<p>في Transaction Script:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def confirm_order(order):
+    if not order[&quot;items&quot;]:
+        raise ValueError(&quot;Empty order&quot;)
+
+    if order[&quot;status&quot;] != &quot;draft&quot;:
+        raise ValueError(&quot;Invalid status&quot;)
+
+    order[&quot;status&quot;] = &quot;confirmed&quot;</code></pre></div>
+<p>الـ Procedure هي اللي مسؤولة عن تنفيذ قواعد العملية.</p>
+<p>أما في Domain Model:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">order.confirm()</code></pre></div>
+<p>الـ Order نفسه مسؤول عن تطبيق قواعد تأكيد الطلب.</p>
+<p>لاحظ إن الفرق مش مجرد تحويل Function إلى Method.</p>
+<p>الفرق في <strong>مكان امتلاك الـ Business Rules والمسؤولية عنها</strong>.</p>
+<p>Transaction Script	Domain Model</p>
+<p>ينظم الـ Logic حول العمليات	ينظم الـ Logic حول مفاهيم المجال</p>
+<p>الإجراءات مسؤولة عن تنفيذ القواعد	Objects تحتوي البيانات والسلوك</p>
+<p>مناسب للـ Logic البسيطة	مناسب للـ Logic المعقدة</p>
+<p>ممكن تلاقي قواعد المجال موزعة على Procedures	نحاول تجميع القواعد بالقرب من المفاهيم التي تخصها</p>
+<h2>5. أقرب GoF Pattern</h2>
+<p>هنا مفيش GoF Pattern واحد مكافئ لـ Domain Model؛ لأنه أسلوب أوسع لتنظيم الـ Domain Logic.</p>
+<p>لكن فيه تشابهات مهمة.</p>
+<h3>Strategy</h3>
+<p><strong>وجه التشابه:</strong></p>
+<p>الاتنين ممكن يستخدموا Objects لتمثيل سلوكيات مختلفة.</p>
+<p>مثلًا عندنا طرق مختلفة لحساب الخصم:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class DiscountStrategy:
+    def calculate(self, total):
+        raise NotImplementedError
+
+class RegularDiscount(DiscountStrategy):
+    def calculate(self, total):
+        return 0
+
+class PremiumDiscount(DiscountStrategy):
+    def calculate(self, total):
+        return total * 0.10</code></pre></div>
+<p>ممكن الـ Domain Model يستخدم Strategy لحساب الخصم.</p>
+<p><strong>الاختلاف في Intent:</strong></p>
+<ul>
+<li>Strategy هدفه فصل Algorithm قابل للتغيير أو الاستبدال.</li>
+<li>Domain Model هدفه تمثيل المجال وبياناته وسلوكه.</li>
+</ul>
+<p>يعني Strategy ممكن يكون جزء من Domain Model، لكنه مش بديل عنه.</p>
+<h3>State</h3>
+<p><strong>وجه التشابه:</strong></p>
+<p>ممكن يكون عندنا Order بيتصرف بشكل مختلف حسب حالته.</p>
+<p>مثلًا:</p>
+<ul>
+<li>Draft</li>
+<li>Confirmed</li>
+<li>Shipped</li>
+<li>Cancelled</li>
+</ul>
+<p>وده قريب من مشكلة State Pattern.</p>
+<p><strong>الاختلاف في Intent:</strong></p>
+<ul>
+<li>State بينظم السلوك المتغير حسب الحالة الداخلية للـ Object.</li>
+<li>Domain Model بيمثل المجال ككل، بما فيه البيانات والقواعد والعلاقات.</li>
+</ul>
+<p>ممكن تستخدم State داخل Domain Model لتنظيم دورة حياة Order، لكن مش كل Domain Model محتاج State Pattern.</p>
+<h2>6. علاقته بالـ Application Architecture</h2>
+<p>Domain Model مش Architecture كاملة، لكنه طريقة لتنظيم الـ Business Logic.</p>
+<p>ممكن تستخدمه داخل:</p>
+<ul>
+<li>Layered Architecture.</li>
+<li>Clean Architecture.</li>
+<li>Hexagonal Architecture.</li>
+<li>Onion Architecture.</li>
+</ul>
+<p>مثلًا في Clean Architecture:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">        Presentation
+              |
+              v
+         Application
+              |
+              v
+          Domain
+              ^
+              |
+       Infrastructure</code></pre></div>
+<p>الـ Domain Model بيكون في أعمق طبقة منطقية.</p>
+<p>والـ Application Use Cases بتنسق تنفيذ العمليات باستخدام الـ Domain Objects.</p>
+<p>أما Infrastructure فمسؤولة عن التفاصيل التقنية زي Database وExternal APIs.</p>
+<p><strong>ملحوظة:</strong> الرسم توضيحي للعلاقات، وليس ترتيبًا إلزاميًا لملفات المشروع.</p>
+<h2>7. علاقته بـ DDD</h2>
+<p>هنا لازم نقف شوية.</p>
+<p><strong>Domain Model في PoEAA هو Pattern، بينما DDD منهجية أوسع لتصميم البرمجيات حول الـ Domain.</strong></p>
+<p>في DDD، الـ Domain Model يعتبر عنصرًا أساسيًا.</p>
+<p>لكن DDD بيقدم مفاهيم وتفاصيل إضافية، منها:</p>
+<ul>
+<li>Entities</li>
+<li>Value Objects</li>
+<li>Aggregates</li>
+<li>Domain Services</li>
+<li>Domain Events</li>
+<li>Repositories</li>
+<li>Bounded Contexts</li>
+</ul>
+<p>مش معنى كده إن كل Domain Model لازم يكون DDD كامل.</p>
+<p>ممكن تعمل Domain Model بسيط من غير ما تطبق كل مفاهيم DDD.</p>
+<p>والعكس مهم: وجود Classes وObjects في المشروع لا يعني تلقائيًا إن عندك Domain Model غني.</p>
+<p>Fowler بيؤكد إن Domain Model مناسب خصوصًا لما تكون قواعد العمل والعلاقات معقدة، وده أحد الأسباب اللي بتخلي DDD يهتم بيه. martinfowler.comlearn.microsoft.com</p>
+<hr>
+<h2>8. إمتى أستخدمه؟</h2>
+<p>الحالة	الاختيار</p>
+<p>CRUD بسيط جدًا	Transaction Script غالبًا أبسط</p>
+<p>قواعد Business قليلة ومستقلة	Transaction Script ممكن يكون كافيًا</p>
+<p>قواعد كثيرة ومترابطة	Domain Model</p>
+<p>سلوك يتغير حسب حالة الـ Entity	Domain Model مع إمكانية استخدام State</p>
+<p>قواعد معقدة خاصة بمفاهيم المجال	Domain Model</p>
+<h2>9. نقطة مهمة: Anemic Domain Model</h2>
+<p>فيه مصطلح لازم تعرفه اسمه:</p>
+<p><strong>Anemic Domain Model</strong></p>
+<p>وده بيحصل لما تعمل Classes شكلها Domain Model، لكن هي في الحقيقة مجرد Data Containers.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Order:
+    def __init__(self):
+        self.items = []
+        self.status = &quot;draft&quot;
+        self.total = 0</code></pre></div>
+<p>وبعدين تحط كل الـ Business Logic في Services خارجية:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderService:
+    def confirm(self, order):
+        if not order.items:
+            raise ValueError(&quot;Empty order&quot;)
+
+        order.status = &quot;confirmed&quot;</code></pre></div>
+<p>هنا الـ Order مجرد بيانات، والـ Service هي اللي تمتلك قواعده.</p>
+<p>ده مش بالضرورة تصميم غلط في كل الحالات، لكن لو هدفك تطبيق Domain Model غني، فده بيكون عكس الاتجاه اللي بتحاول توصله.</p>
+<hr>
+<h2>الخلاصة</h2>
+<p>الـ Domain Model بيغير طريقة تنظيم التفكير في الـ Business Logic:</p>
+<ul>
+<li>Transaction Script: العملية هي مركز التنظيم.</li>
+<li>Domain Model: مفاهيم المجال وسلوكها هي مركز التنظيم.</li>
+</ul>
+<p>وأهم حاجة: <strong>Domain Model مش معناه إننا نحول كل Function إلى Method داخل Class.</strong></p>
+<p>المطلوب إننا نفهم مفاهيم الـ Business ونحدد كل قاعدة وسلوك مسؤولية مين.</p>
+<hr>
+<p><strong>السؤال اللي عايزك تفكر فيه قبل ما ننتقل لـ Table Module:</strong></p>
+<p>لو عندي Order، وعندي قاعدة بتقول إن العميل Premium بياخد خصم 10%.</p>
+<p>هل الأفضل إن Order يحسب الخصم بنفسه؟ ولا Customer؟ ولا نعمل DiscountPolicy مستقلة؟</p>
+<p>مفيش إجابة واحدة صحيحة في كل الأنظمة؛ المهم تحدد المسؤولية بناءً على معنى القاعدة في الـ Domain.</p>
+<p>نكمل يا هندسة. المرة دي عندنا Pattern مهم جدًا، خصوصًا لما نتعامل مع قواعد بيانات علائقية ونحاول ننظم الـ Business Logic من غير ما نبني Domain Model كامل.</p>
+<article class="pattern-card" id="3-table-module">
+<h3 class="pattern-title">3. Table Module</h3>
+<div class="card-body">
+<p>(Domain Logic Pattern)</p>
+</div></article>
+<h2>1. المشكلة (The Problem)</h2>
+<p>تخيل إن عندك نظام لإدارة المبيعات، وفيه جدول اسمه:</p>
+<p>orders</p>
+<p>والجدول ده بيحتوي على آلاف الطلبات.</p>
+<p>عندك عمليات زي:</p>
+<ul>
+<li>حساب إجمالي المبيعات.</li>
+<li>حساب الضريبة.</li>
+<li>حساب الخصومات.</li>
+<li>تحديد الطلبات المتأخرة.</li>
+<li>حساب إجمالي مبيعات كل عميل.</li>
+</ul>
+<p>ممكن تنفذ كل عملية داخل Functions منفصلة، وده قريب من Transaction Script.</p>
+<p>وممكن تعمل Object لكل Order، وتخلي كل Order مسؤول عن سلوكه، وده قريب من Domain Model.</p>
+<p>لكن فيه حالة تالتة:</p>
+<p>أنت عايز تنظم الـ Business Logic حول جدول قاعدة البيانات نفسه، بحيث يكون عندك Object واحد مسؤول عن منطق جدول معين.</p>
+<p>إزاي نعمل ده؟</p>
+<h2>2. الفكرة (The Solution)</h2>
+<p><strong>Table Module</strong> هو Object يحتوي على Business Logic مرتبطة بجدول معين في قاعدة البيانات.</p>
+<p>يعني بدل ما تعمل Object مستقل لكل Row، بتعمل Object يمثل الجدول ككل، وعملياته بتشتغل على مجموعة السجلات.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">                 SalesTableModule
+                        |
+          +-------------+-------------+
+          |             |             |
+       orders        customers      products</code></pre></div>
+<p>للتوضيح، في تطبيقنا ممكن يكون عندنا:</p>
+<ul>
+<li>OrdersTableModule</li>
+<li>CustomersTableModule</li>
+<li>ProductsTableModule</li>
+</ul>
+<p>وكل واحد مسؤول عن Business Logic الخاصة بالجدول اللي بيمثله.</p>
+<p><strong>الفرق الجوهري:</strong> الـ Table Module بيتعامل مع مجموعة Rows، مش مع كل Row باعتباره Object مستقل له سلوكه الخاص.</p>
+<h2>3. مثال عملي باستخدام Python</h2>
+<p>هنعمل مثال بسيط لإدارة الطلبات.</p>
+<p><strong>أولًا: البيانات</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">orders = [
+    {
+        &quot;id&quot;: 1,
+        &quot;customer_id&quot;: 10,
+        &quot;amount&quot;: 500,
+        &quot;status&quot;: &quot;confirmed&quot;,
+    },
+    {
+        &quot;id&quot;: 2,
+        &quot;customer_id&quot;: 10,
+        &quot;amount&quot;: 300,
+        &quot;status&quot;: &quot;confirmed&quot;,
+    },
+    {
+        &quot;id&quot;: 3,
+        &quot;customer_id&quot;: 20,
+        &quot;amount&quot;: 700,
+        &quot;status&quot;: &quot;cancelled&quot;,
+    },
+]</code></pre></div>
+<p><strong>ثانيًا: Table Module</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrdersTableModule:
+
+    def __init__(self, orders):
+        self.orders = orders
+
+    def calculate_total_sales(self):
+        return sum(
+            order[&quot;amount&quot;]
+            for order in self.orders
+            if order[&quot;status&quot;] == &quot;confirmed&quot;
+        )
+
+    def calculate_customer_sales(self, customer_id):
+        return sum(
+            order[&quot;amount&quot;]
+            for order in self.orders
+            if (
+                order[&quot;customer_id&quot;] == customer_id
+                and order[&quot;status&quot;] == &quot;confirmed&quot;
+            )
+        )
+
+    def cancel_order(self, order_id):
+        for order in self.orders:
+            if order[&quot;id&quot;] == order_id:
+                if order[&quot;status&quot;] == &quot;cancelled&quot;:
+                    raise ValueError(&quot;Already cancelled&quot;)
+
+                order[&quot;status&quot;] = &quot;cancelled&quot;
+                return
+
+        raise ValueError(&quot;Order not found&quot;)</code></pre></div>
+<p><strong>ثالثًا: الاستخدام</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">orders_module = OrdersTableModule(orders)
+
+print(orders_module.calculate_total_sales())
+# 800
+
+print(orders_module.calculate_customer_sales(10))
+# 800
+
+orders_module.cancel_order(1)
+
+print(orders_module.calculate_total_sales())
+# 300</code></pre></div>
+<p>لاحظ هنا إننا ما عملناش Order Object لكل طلب.</p>
+<p>عندنا Object واحد مسؤول عن منطق مجموعة الطلبات.</p>
+<p>وده جوهر Table Module.</p>
+<p>المثال مبسط لتوضيح النمط؛ في التطبيق الحقيقي هتحتاج فصل الوصول للبيانات وإدارة المعاملات والتحقق من سلامة التعديلات.</p>
+<h2>4. أقرب GoF Pattern</h2>
+<p>مفيش GoF Pattern مكافئ مباشرة لـ Table Module، لكن فيه تشابهات تستحق المقارنة.</p>
+<h3>Facade</h3>
+<p><strong>وجه التشابه:</strong></p>
+<p>ممكن Table Module يقدم مجموعة عمليات من خلال واجهة واحدة، وده يشبه Facade في تبسيط التعامل مع مجموعة من التفاصيل.</p>
+<p><strong>الاختلاف في Intent:</strong></p>
+<p>Facade	Table Module</p>
+<p>يبسط التعامل مع Subsystem	ينظم Business Logic الخاصة بجدول</p>
+<p>يخفي تعقيد مجموعة من المكونات	يمثل منطق جدول معين</p>
+<p>مش شرط يحتوي Business Logic	يحتوي Business Logic</p>
+<p>إذًا Table Module مش Facade، حتى لو واجهته بتبدو مشابهة له.</p>
+<h3>Strategy</h3>
+<p>ممكن تستخدم Strategy داخل Table Module لتغيير طريقة حساب الضريبة أو الخصم.</p>
+<p>لكن:</p>
+<ul>
+<li>Strategy مسؤوليته تبديل Algorithm.</li>
+<li>Table Module مسؤوليته تنظيم Logic مرتبطة بجدول.</li>
+</ul>
+<p>يعني Strategy ممكن يكون جزءًا منه، لكنه مش بديل عنه.</p>
+<h2>5. الفرق بين Transaction Script وDomain Model وTable Module</h2>
+<p>دي أهم مقارنة في المجموعة لحد دلوقتي.</p>
+<p>المقارنة	Transaction Script	Domain Model	Table Module</p>
+<p>محور التنظيم	العملية	Domain Objects	جدول البيانات</p>
+<p>الوحدة الأساسية	Procedure	Object لكل مفهوم/كيان	Object لكل جدول</p>
+<p>التعامل مع البيانات	حسب العملية	Objects فردية مترابطة	مجموعة Rows</p>
+<p>السلوك	داخل Procedures	داخل Domain Objects	داخل Table Modules</p>
+<p>التعقيد المناسب	بسيط نسبيًا	متوسط إلى معقد	متوسط نسبيًا</p>
+<p>خلينا نثبت الفرق بمثال:</p>
+<p>لو عندنا 1000 Order:</p>
+<ul>
+<li>Transaction Script: تنفذ عملية على الطلبات من خلال Procedure.</li>
+<li>Domain Model: ممكن يكون عندك 1000 Order Object، كل واحد يحمل بياناته وسلوكه.</li>
+<li>Table Module: عندك OrdersTableModule واحد يتعامل مع مجموعة الطلبات.</li>
+</ul>
+<p>طبعًا دي مقارنة على مستوى أسلوب تنظيم الـ Logic، مش قاعدة إن كل تطبيق لازم يحمل 1000 Object في الذاكرة.</p>
+<h2>6. علاقته بالـ Application Architecture</h2>
+<p>Table Module مش Architecture Pattern، لكنه طريقة لتنظيم الـ Domain Logic.</p>
+<p>ممكن يظهر في Layered Architecture بالشكل ده:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Presentation Layer
+        |
+        v
+Business Logic Layer
+        |
+        v
+OrdersTableModule
+        |
+        v
+Data Access Layer
+        |
+        v
+Database</code></pre></div>
+<p>وممكن تستخدمه داخل Clean Architecture أيضًا، بشرط الحفاظ على اتجاه الاعتماديات.</p>
+<p>مثلًا، لو الـ Table Module جزء من الـ Domain Logic، فلا ينبغي أن يعتمد مباشرة على PostgreSQL أو ORM محدد.</p>
+<p>أما تفاصيل جلب البيانات وحفظها فتكون خارج الـ Domain.</p>
+<h2>7. علاقته بـ DDD</h2>
+<p>هنا لازم نفرّق بين المصطلحات.</p>
+<p>Table Module مش هو Entity ولا Aggregate في DDD.</p>
+<p>في DDD:</p>
+<ul>
+<li>الـ Entity بيمثل كيان له Identity وسلوك.</li>
+<li>الـ Aggregate بيحدد حدود الاتساق والتحكم في التعديلات.</li>
+<li>الـ Table Module بيمثل منطقًا متعلقًا بجدول ومجموعة سجلات.</li>
+</ul>
+<p>بالتالي مش بنعتبر Table Module تطبيقًا لـ DDD.</p>
+<p>هو أسلوب مختلف لتنظيم الـ Domain Logic، وغالبًا Domain Model بيكون أنسب لما تكون عندك قواعد واتصالات معقدة بين الكيانات.</p>
+<h2>8. علاقته بأودو (Odoo)</h2>
+<p>خلينا نربط الكلام بحاجة تعرفها.</p>
+<p>في Odoo عندك Model زي:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class SaleOrder(models.Model):
+    _name = &quot;sale.order&quot;</code></pre></div>
+<p>ممكن تلاحظ إن الـ Model عنده Methods بتتعامل مع Recordsets:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def action_confirm(self):
+    for order in self:
+        # Business logic
+        ...</code></pre></div>
+<p>هل ده معناه إن Odoo بيطبق Table Module؟</p>
+<p><strong>لا، مش بالضرورة.</strong></p>
+<p>رغم وجود تشابه ظاهري، Odoo ORM عنده مفهوم Recordset خاص به، والـ Model Methods بتشتغل على Recordsets، لكن ده مش كافي لتصنيفه كـ Table Module.</p>
+<p>السبب إن Table Module له Intent محدد في Fowler، ومجرد إن Object بيتعامل مع مجموعة Records لا يثبت استخدام النمط.</p>
+<p>دي نقطة مهمة جدًا عشان ما نخلطش بين Record Set وTable Module وOdoo Recordset.</p>
+<hr>
+<h2>9. إمتى أستخدمه؟</h2>
+<p>الحالة	الاختيار</p>
+<p>منطق بسيط متعلق بعملية واحدة	Transaction Script</p>
+<p>منطق معقد مرتبط بكيانات وسلوكها	Domain Model</p>
+<p>منطق منظم حول جدول ومجموعة سجلات	Table Module</p>
+<p>قواعد متشابكة بين كيانات متعددة	Domain Model غالبًا أنسب</p>
+<h2>الخلاصة</h2>
+<p><strong>Table Module</strong> بيجمع الـ Business Logic المرتبطة بجدول معين داخل Object واحد، وبيتعامل مع مجموعة السجلات بدل ما ينشئ Domain Object مستقل لكل سجل.</p>
+<p>والفرق الأساسي بين الأنماط الثلاثة:</p>
+<ul>
+<li>Transaction Script: العملية هي محور التنظيم.</li>
+<li>Domain Model: الكيانات ومفاهيم المجال هي محور التنظيم.</li>
+<li>Table Module: الجدول هو محور التنظيم.</li>
+</ul>
+<hr>
+<p><strong>التالي: Service Layer</strong></p>
+<p>وده Pattern مهم جدًا لأنه هيخلينا نفهم العلاقة بين الـ Application Operations والـ Domain Logic، وكمان هنقدر نقارن بينه وبين Application Service في Clean Architecture وDDD.</p>
+<p>طبعًا يا هندسة 😂</p>
+<p>هننتقل دلوقتي إلى مجموعة <strong>Domain Logic Patterns</strong> في كتاب:</p>
+<p><em>Patterns of Enterprise Application Architecture — Martin Fowler</em></p>
+<p>وهنحافظ على نفس المنهج اللي اتفقنا عليه:</p>
+<ol>
+<li>المشكلة التي يعالجها الـ Pattern.</li>
+<li>الفكرة والحل (The Solution).</li>
+<li>مثال عملي باستخدام Python.</li>
+<li>أقرب GoF Pattern، ووجه التشابه والاختلاف في الـ Intent.</li>
+<li>علاقته بالـ Application Architecture.</li>
+<li>علاقته بـ Clean Architecture وDDD لما يكون فيه ارتباط حقيقي.</li>
+</ol>
+<p>وهنشرح كل Pattern لوحده، من غير ما نخلط بينه وبين الأنماط القريبة منه. والشرح بالعربي من اليمين للشمال، والأكواد في مقاطع مستقلة.</p>
+<h2 class="section-title">Domain Logic Patterns</h2>
+<p>قبل ما نبدأ، فيه نقطة مهمة جدًا: المجموعة دي في الكتاب فيها <strong>4 Patterns</strong>، مش 3:</p>
+<ol>
+<li>Transaction Script</li>
+<li>Domain Model</li>
+<li>Table Module</li>
+<li>Service Layer</li>
+</ol>
+<p>وده وفقًا لفهرس Fowler الرسمي وفصل الكتاب التاسع. martinfowler.comoreilly.com</p>
+<hr>
+<article class="pattern-card" id="1-transaction-script">
+<h3 class="pattern-title">1. Transaction Script</h3>
+<div class="card-body">
+<p>(Domain Logic Pattern)</p>
+</div></article>
+<h2>1. المشكلة (The Problem)</h2>
+<p>تخيل إن عندك E-commerce System، والعميل عايز يعمل Checkout.</p>
+<p>العملية دي محتاجة:</p>
+<ol>
+<li>التأكد إن المنتجات متاحة.</li>
+<li>حساب إجمالي الطلب.</li>
+<li>تطبيق الخصم.</li>
+<li>حساب تكلفة الشحن.</li>
+<li>إنشاء الطلب.</li>
+<li>خصم الكميات من المخزون.</li>
+<li>تسجيل عملية الدفع.</li>
+</ol>
+<p>السؤال هنا: هننظم الـ Business Logic دي إزاي؟</p>
+<p>أبسط طريقة إننا نكتب Procedure مسؤولة عن تنفيذ العملية كلها.</p>
+<p>لكن تخيل إن عندك 50 عملية مختلفة في النظام، وكل عملية فيها Business Logic خاصة بيها.</p>
+<p>إزاي ننظم الكود بحيث نقدر نفهم كل عملية ونعدلها بسهولة؟</p>
+<h2>2. الفكرة (The Solution)</h2>
+<p>فكرة Transaction Script بسيطة:</p>
+<p><strong>كل Business Transaction أو User Action ليها Procedure مسؤولة عن تنفيذ الـ Logic الخاص بيها.</strong></p>
+<p>يعني بدل ما نوزع الـ Business Logic على مجموعة Objects، بننظمها حول العمليات نفسها.</p>
+<p>مثلًا:</p>
+<ul>
+<li>checkout_order()</li>
+<li>cancel_order()</li>
+<li>register_customer()</li>
+<li>calculate_shipping()</li>
+</ul>
+<p>كل Function مسؤولة عن تنفيذ Use Case أو عملية معينة.</p>
+<p>مش شرط تكون Function واحدة ضخمة؛ ممكن تستدعي Helper Functions، لكن التنظيم الأساسي يفضل قائمًا على العمليات.</p>
+<h2>3. مثال عملي باستخدام Python</h2>
+<p>خلينا نعمل Checkout بسيط.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderRepository:
+    def save(self, order):
+        print(&quot;Order saved&quot;)
+
+class InventoryRepository:
+    def decrease_stock(self, product_id, quantity):
+        print(f&quot;Stock decreased: {product_id}&quot;)
+
+class PaymentGateway:
+    def charge(self, amount):
+        print(f&quot;Charged: {amount}&quot;)
+
+def checkout_order(cart, payment_gateway,
+                   order_repository, inventory_repository):
+
+    # 1. Validate products
+    for item in cart:
+        if item[&quot;quantity&quot;] &lt;= 0:
+            raise ValueError(&quot;Invalid quantity&quot;)
+
+        if item[&quot;stock&quot;] &lt; item[&quot;quantity&quot;]:
+            raise ValueError(&quot;Insufficient stock&quot;)
+
+    # 2. Calculate total
+    total = sum(
+        item[&quot;price&quot;] * item[&quot;quantity&quot;]
+        for item in cart
+    )
+
+    # 3. Apply discount
+    if total &gt;= 1000:
+        total *= 0.9
+
+    # 4. Process payment
+    payment_gateway.charge(total)</code></pre></div>
+<p>لاحظ هنا إن الـ Business Logic كلها متجمعة داخل Procedure واحدة مسؤولة عن عملية Checkout.</p>
+<p>والـ Repositories والـ Gateway مجرد Dependencies بتتعامل معاها الـ Procedure.</p>
+<p><strong>ملحوظة:</strong> المثال توضيحي لفكرة Transaction Script، وليس تنفيذًا Production-ready؛ لأن الدفع والمخزون والـ Database محتاجين Transaction Management وتعامل مع حالات الفشل والتعويض.</p>
+<h2>4. أقرب GoF Pattern</h2>
+<p>هنا عندنا تشابه مع نمطين، لكن مفيش GoF Pattern مكافئ مباشرة.</p>
+<h3>Command</h3>
+<p><strong>وجه التشابه:</strong></p>
+<p>الـ Command بيمثل طلب أو عملية يمكن تنفيذها، وTransaction Script برضه ممكن يمثل عملية معينة.</p>
+<p><strong>الاختلاف في Intent:</strong></p>
+<p>Command	Transaction Script</p>
+<p>يحول الطلب إلى Object	ينظم الـ Business Logic في Procedures</p>
+<p>يسمح بتغليف الطلب وتمريره وتخزينه أو تأجيله	يركز على تنفيذ العملية</p>
+<p>يدعم Undo/Queue وغيرها حسب التصميم	مش بيشترط أيًا من ده</p>
+<p>ممكن تنفذ Transaction Script داخل Command، لكن ده مش معناه إنهم نفس الـ Pattern.</p>
+<h3>Template Method</h3>
+<p><strong>وجه التشابه:</strong></p>
+<p>ممكن تلاحظ إن Transaction Script عنده خطوات متتابعة لتنفيذ العملية.</p>
+<p><strong>الاختلاف:</strong></p>
+<p>Template Method بيحدد Skeleton لخوارزمية داخل Base Class، والـ Subclasses بتخصص بعض الخطوات.</p>
+<p>أما Transaction Script فمش محتاج Inheritance أصلًا.</p>
+<h2>5. علاقته بالـ Application Architecture</h2>
+<p>Transaction Script هو طريقة لتنظيم الـ Domain Logic، وليس Architecture كاملة.</p>
+<p>ممكن تستخدمه داخل:</p>
+<ul>
+<li>Layered Architecture.</li>
+<li>Clean Architecture.</li>
+<li>Hexagonal Architecture.</li>
+</ul>
+<p>مثلًا في Clean Architecture:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Presentation
+     |
+     v
+Application Use Case
+     |
+     v
+Transaction Script
+     |
+     v
+Output Ports
+     |
+     v
+Infrastructure</code></pre></div>
+<p>لكن خلي بالك: ده توزيع توضيحي، مش شرط إن كل Transaction Script يبقى في مكان اسمه Application أو Domain. المهم هو فصل المسؤوليات واتجاه الاعتماديات.</p>
+<h2>6. علاقته بـ DDD</h2>
+<p>هنا فيه فرق مهم جدًا.</p>
+<p>Transaction Script مش هو الأسلوب الأساسي اللي DDD بيبني عليه الـ Domain Model.</p>
+<p>في DDD، بنحاول نمثل مفاهيم المجال وسلوكها داخل Domain Objects، خصوصًا لما تكون قواعد العمل معقدة ومترابطة.</p>
+<p>أما Transaction Script فبيحط منطق العملية أساسًا في Procedure.</p>
+<p>وده لا يعني إن Transaction Script غلط أو غير احترافي.</p>
+<p>Fowler نفسه بيعتبره اختيارًا مناسبًا للأنظمة ذات الـ Domain Logic البسيطة نسبيًا. accc.orgraw.githubusercontent.com</p>
+<hr>
+<h2>7. إمتى أستخدمه؟</h2>
+<p>الحالة	الاختيار</p>
+<p>Business Logic بسيطة	Transaction Script مناسب</p>
+<p>CRUD Operations بسيطة	Transaction Script مناسب</p>
+<p>قواعد معقدة ومترابطة بين Entities	Domain Model غالبًا أنسب</p>
+<p>نفس القواعد مستخدمة في عمليات متعددة	راجع احتمالية استخراج Domain Model</p>
+<p>Workflow طويل ومعقد	قد تحتاج تنظيمًا إضافيًا</p>
+<h2>الخلاصة</h2>
+<p><strong>Transaction Script</strong> بينظم الـ Business Logic حول العمليات (Transactions)، بحيث كل عملية ليها Procedure مسؤولة عن تنفيذها.</p>
+<p>وأهم نقطة عايزك تخرج بيها:</p>
+<p>الفرق الجوهري بين Transaction Script وDomain Model مش مجرد إن واحد Functions والتاني Classes.</p>
+<p>الفرق هو <strong>إحنا بننظم الـ Business Logic حول إيه؟</strong></p>
+<ul>
+<li>Transaction Script: حول العمليات.</li>
+<li>Domain Model: حول مفاهيم المجال وسلوكها.</li>
+</ul>
+<p>وده هيكون محور المقارنة لما نبدأ الـ Pattern اللي بعده.</p>
+<p><strong>التالي: Domain Model</strong> — وده من أهم الأنماط في المجموعة؛ لأنه بيغير طريقة تفكيرك في توزيع الـ Business Logic بالكامل.</p>
+<p>نكمل يا هندسة. وصلنا لآخر Pattern في مجموعة <strong>Domain Logic Patterns</strong>، وده من أكتر الأنماط اللي بيحصل فيها خلط مع مصطلحات تانية في Clean Architecture وDDD.</p>
+<article class="pattern-card" id="4-service-layer">
+<h3 class="pattern-title">4. Service Layer</h3>
+<div class="card-body">
+<p>(Domain Logic Pattern)</p>
+</div></article>
+<h2>1. المشكلة (The Problem)</h2>
+<p>تخيل عندك E-commerce System، وعندك أكتر من طريقة للتعامل مع الطلبات:</p>
+<ul>
+<li>Web Application.</li>
+<li>Mobile Application.</li>
+<li>REST API.</li>
+<li>Background Jobs.</li>
+<li>Admin Dashboard.</li>
+</ul>
+<p>كل واحدة من دول محتاجة تنفذ عمليات زي:</p>
+<ul>
+<li>إنشاء Order.</li>
+<li>تأكيد Order.</li>
+<li>إلغاء Order.</li>
+<li>حساب إجمالي الطلب.</li>
+</ul>
+<p>السؤال: هل هنكتب الـ Business Logic داخل كل Controller أو API Endpoint؟</p>
+<p>طبعًا لأ.</p>
+<p>لأننا لو عملنا كده، هنواجه مشاكل:</p>
+<ol>
+<li>تكرار الـ Business Logic بين Web وMobile وAPI.</li>
+<li>اختلاف سلوك العملية حسب طريقة استدعائها.</li>
+<li>صعوبة التحكم في Transactions.</li>
+<li>صعوبة تحديد العمليات المتاحة للتطبيقات الخارجية.</li>
+<li>صعوبة اختبار الـ Business Operations بشكل مستقل عن Presentation.</li>
+</ol>
+<p>إحنا محتاجين طبقة توفر واجهة موحدة للعمليات اللي التطبيق بيقدمها.</p>
+<h2>2. الفكرة (The Solution)</h2>
+<p>تعريف Fowler:</p>
+<p><strong>A Service Layer defines an application&#x27;s boundary and its set of available operations from the perspective of interfacing client layers.</strong> oreilly.commartinfowler.com</p>
+<p>خلينا نفهم التعريف.</p>
+<p>الـ Service Layer هي طبقة بتحدد:</p>
+<ul>
+<li>Application Boundary: حدود التطبيق والعمليات المتاحة منه.</li>
+<li>Application Operations: العمليات اللي الـ Clients يقدروا يطلبوها.</li>
+<li>Coordination: تنسيق تنفيذ العمليات المختلفة.</li>
+<li>Transaction Control: التحكم في حدود المعاملات عند الحاجة.</li>
+</ul>
+<p>بمعنى أبسط:</p>
+<p>بدل ما الـ Controller يعرف تفاصيل تنفيذ Checkout، هو بيطلب من Service Layer تنفيذ العملية.</p>
+<p>والـ Service Layer هي اللي بتنسق التنفيذ.</p>
+<h2>3. مثال عملي باستخدام Python</h2>
+<p>هنستخدم نفس مثال الـ E-commerce.</p>
+<p><strong>أولًا: Domain Model</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Order:
+    def __init__(self):
+        self.items = []
+        self.status = &quot;draft&quot;
+
+    def add_item(self, item):
+        if self.status != &quot;draft&quot;:
+            raise ValueError(&quot;Cannot modify order&quot;)
+
+        self.items.append(item)
+
+    def calculate_total(self):
+        return sum(
+            item[&quot;price&quot;] * item[&quot;quantity&quot;]
+            for item in self.items
+        )
+
+    def confirm(self):
+        if not self.items:
+            raise ValueError(&quot;Empty order&quot;)
+
+        if self.status != &quot;draft&quot;:
+            raise ValueError(&quot;Invalid order status&quot;)
+
+        self.status = &quot;confirmed&quot;</code></pre></div>
+<p>لاحظ إن الـ Order مسؤول عن قواعده الداخلية.</p>
+<p><strong>ثانيًا: Repository</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderRepository:
+    def save(self, order):
+        print(&quot;Order saved&quot;)
+
+    def get_by_id(self, order_id):
+        print(f&quot;Fetching order: {order_id}&quot;)
+        return Order()</code></pre></div>
+<p><strong>ثالثًا: Service Layer</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderService:
+
+    def __init__(self, order_repository):
+        self.order_repository = order_repository
+
+    def create_order(self, items):
+        order = Order()
+
+        for item in items:
+            order.add_item(item)
+
+        self.order_repository.save(order)
+
+        return order
+
+    def confirm_order(self, order_id):
+        order = self.order_repository.get_by_id(order_id)
+
+        order.confirm()
+
+        self.order_repository.save(order)
+
+        return order.calculate_total()</code></pre></div>
+<p>هنا OrderService بتنسق العملية:</p>
+<ol>
+<li>تجيب الطلب من Repository.</li>
+<li>تستدعي سلوك الـ Domain Model.</li>
+<li>تحفظ التغييرات.</li>
+<li>ترجع النتيجة للـ Client.</li>
+</ol>
+<p>لاحظ إن OrderService مش هي اللي بتقرر هل الطلب الفارغ ينفع يتأكد ولا لأ.</p>
+<p>القرار ده موجود في Order.confirm().</p>
+<p>وده فصل مهم بين مسؤولية التنسيق ومسؤولية قواعد المجال.</p>
+<p><strong>رابعًا: Controller</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderController:
+
+    def __init__(self, order_service):
+        self.order_service = order_service
+
+    def confirm(self, order_id):
+        total = self.order_service.confirm_order(order_id)
+
+        return {
+            &quot;status&quot;: &quot;success&quot;,
+            &quot;total&quot;: total,
+        }</code></pre></div>
+<p>الـ Controller مش محتاج يعرف تفاصيل الـ Repository أو طريقة تأكيد الطلب.</p>
+<p>هو بيتعامل مع Service Layer.</p>
+<h2>4. أقرب GoF Pattern</h2>
+<p>مفيش GoF Pattern مكافئ مباشرة لـ Service Layer، لكن فيه تشابهات مهمة.</p>
+<h3>Facade</h3>
+<p><strong>وجه التشابه:</strong></p>
+<p>الاتنين ممكن يوفروا واجهة بسيطة تخفي تفاصيل مجموعة من العمليات الداخلية.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">order_service.confirm_order(order_id)</code></pre></div>
+<p>الـ Client مش محتاج يعرف كل التفاصيل اللي بتحصل داخليًا.</p>
+<p><strong>الاختلاف في Intent:</strong></p>
+<p>Facade	Service Layer</p>
+<p>يبسط واجهة Subsystem	يحدد Application Boundary</p>
+<p>يخفي تعقيد مجموعة مكونات	يوفر مجموعة Application Operations</p>
+<p>ممكن يكون مجرد واجهة تنسيقية	ممكن يدير Transactions وينسق Domain Logic</p>
+<p>إذًا Service Layer مش مجرد Facade، رغم وجود تشابه واضح.</p>
+<h3>Mediator</h3>
+<p><strong>وجه التشابه:</strong></p>
+<p>الاتنين ممكن يقللوا الترابط المباشر بين مجموعة من Objects.</p>
+<p><strong>الاختلاف في Intent:</strong></p>
+<ul>
+<li>Mediator ينظم التواصل والتفاعل بين Objects.</li>
+<li>Service Layer تعرض Application Operations وتنسق تنفيذها.</li>
+</ul>
+<p>ممكن Service Layer تستخدم Mediator داخليًا، لكن مش هما نفس النمط.</p>
+<h2>5. الفرق بين Service Layer وDomain Model</h2>
+<p>دي نقطة مهمة جدًا.</p>
+<p>خلينا نفترض إن عندنا عملية تأكيد الطلب.</p>
+<p>مين مسؤول عن إيه؟</p>
+<p>المسؤولية	Domain Model	Service Layer</p>
+<p>هل الطلب الفارغ يمكن تأكيده؟	نعم	لا</p>
+<p>تغيير حالة الطلب	نعم	يطلب تنفيذ التغيير</p>
+<p>حساب قيمة الطلب	حسب قواعد المجال	ممكن ينسق استدعاء الحساب</p>
+<p>جلب الطلب من Repository	لا	نعم، عادةً</p>
+<p>تنسيق العملية	لا، مش مسؤوليته الأساسية	نعم</p>
+<p>تحديد حدود المعاملة	ليس مسؤوليته الأساسية	ممكن يكون مسؤولًا عنها</p>
+<p>القاعدة المهمة:</p>
+<p><strong>Domain Model يمتلك قواعد المجال، وService Layer تنسق تنفيذ Application Operations.</strong></p>
+<p>لكن ده مش معناه إن كل Business Logic لازم تكون داخل Domain Model؛ فيه قواعد تنسيقية أو قواعد خاصة بالـ Use Case مكانها الطبيعي في Application Service.</p>
+<h2>6. علاقته بالـ Application Architecture</h2>
+<p>هنا هنبدأ نربط الأنماط بالمعمارية.</p>
+<p>ممكن Service Layer تظهر في Layered Architecture بالشكل ده:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Presentation Layer
+        |
+        v
+   Service Layer
+        |
+        v
+   Domain Layer
+        |
+        v
+ Data Access Layer</code></pre></div>
+<p>وده مثال شائع، مش الشكل الوحيد الممكن.</p>
+<h3>Clean Architecture</h3>
+<p>في Clean Architecture عندنا Application Layer، واللي غالبًا بتحتوي على Use Cases.</p>
+<p>ممكن نعتبر الـ Application Services تنفيذًا لفكرة Service Layer، لكن مش كل Application Service لازم يكون مطابقًا حرفيًا لتعريف Fowler.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Presentation
+     |
+     v
+Application
+     |
+     +---- ConfirmOrderUseCase
+     |
+     +---- CreateOrderUseCase
+     |
+     v
+Domain
+     |
+     v
+Infrastructure</code></pre></div>
+<p>الـ Use Case هنا ممكن يمثل Application Operation من العمليات اللي بتقدمها Service Layer.</p>
+<p>لكن لازم ناخد بالنا من نقطة:</p>
+<p><strong>Service Layer في Fowler مش هي نفسها Clean Architecture Application Layer بالكامل.</strong></p>
+<p>الأولى Pattern لتنظيم العمليات وحدود التطبيق، والثانية جزء من Architecture أوسع بتحدد توزيع المسؤوليات واتجاه الاعتماديات.</p>
+<h2>7. علاقته بـ DDD</h2>
+<p>في DDD عندنا مفهوم اسمه:</p>
+<p><strong>Application Service</strong></p>
+<p>وده قريب جدًا من Service Layer.</p>
+<p>الـ Application Service مسؤولة عن:</p>
+<ul>
+<li>تنسيق Use Cases.</li>
+<li>استدعاء Repositories.</li>
+<li>استدعاء Domain Objects.</li>
+<li>التحكم في Workflow.</li>
+<li>إدارة المعاملات حسب التصميم.</li>
+</ul>
+<p>لكنها مش المفروض تتحول لمكان نحط فيه كل قواعد المجال.</p>
+<p>كمان DDD عنده مفهوم مختلف اسمه:</p>
+<p><strong>Domain Service</strong></p>
+<p>وده مسؤول عن Domain Logic لا تنتمي بشكل طبيعي إلى Entity أو Value Object واحد.</p>
+<p>مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class MoneyTransferService:
+
+    def transfer(self, source, destination, amount):
+        if source.balance &lt; amount:
+            raise ValueError(&quot;Insufficient balance&quot;)
+
+        source.withdraw(amount)
+        destination.deposit(amount)</code></pre></div>
+<p>هنا عملية التحويل بتتعلق بحسابين، وممكن يكون من الأنسب تمثيلها كـ Domain Service حسب نموذج المجال.</p>
+<p>أما Application Service فممكن تستدعي Domain Service دي وتنسق العملية مع Repository وTransaction.</p>
+<p>إذًا:</p>
+<p>Application Service	Domain Service</p>
+<p>تنسيق Use Cases	تنفيذ Domain Logic</p>
+<p>تتعامل مع Repositories	تتعامل مع Domain Objects</p>
+<p>تهتم بـ Application Workflow	تهتم بقواعد المجال</p>
+<p>غالبًا في Application Layer	في Domain Layer</p>
+<h2>8. علاقته بأودو (Odoo)</h2>
+<p>خلينا نربط الكلام بأودو.</p>
+<p>لما يكون عندك:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class SaleOrder(models.Model):
+    _inherit = &quot;sale.order&quot;
+
+    def action_confirm(self):
+        ...</code></pre></div>
+<p>مش معنى إن عندك Method اسمها action_confirm إنها تلقائيًا Service Layer.</p>
+<p>دي Method على الـ Model، وممكن تكون جزءًا من Domain/Application Behavior حسب مسؤولياتها الفعلية.</p>
+<p>أما لو عندك Service مسؤولة عن تنسيق عملية كاملة، مثل:</p>
+<ol>
+<li>جلب الطلب.</li>
+<li>التحقق من صلاحيات العملية.</li>
+<li>استدعاء action_confirm.</li>
+<li>إرسال حدث إلى نظام خارجي.</li>
+<li>تسجيل نتيجة العملية.</li>
+</ol>
+<p>فهنا بنقرب من فكرة Service Layer.</p>
+<p>لكن Odoo عنده تصميم Framework خاص به، ومش صح نصنف كل Model Method أو Controller على إنه تطبيق حرفي لـ Service Layer.</p>
+<hr>
+<h2>9. إمتى أستخدم Service Layer؟</h2>
+<p>الحالة	هل Service Layer مناسبة؟</p>
+<p>عندك Web وMobile وAPI بيستخدموا نفس العمليات	نعم</p>
+<p>محتاج تنسيق عدة Domain Objects	نعم</p>
+<p>محتاج تنظيم حدود Use Cases	نعم</p>
+<p>عندك CRUD بسيط جدًا	ممكن تكون بسيطة جدًا</p>
+<p>عايز تحط كل Business Rules في مكان واحد	لا، ده غالبًا هيؤدي إلى Anemic Domain Model</p>
+<h2>الخلاصة النهائية</h2>
+<p>Service Layer بتحدد العمليات اللي التطبيق بيقدمها للـ Clients، وبتنسق تنفيذها باستخدام الـ Domain Model والـ Repositories والخدمات الأخرى.</p>
+<p>والفرق الأساسي:</p>
+<ul>
+<li>Transaction Script: تنظيم الـ Business Logic حول العمليات.</li>
+<li>Domain Model: تنظيم الـ Business Logic حول مفاهيم المجال.</li>
+<li>Table Module: تنظيم الـ Business Logic حول الجداول.</li>
+<li>Service Layer: تحديد وتنظيم Application Operations وتنسيق تنفيذها.</li>
+</ul>
+<hr>
+<h2 class="section-title">مراجعة مجموعة Domain Logic Patterns كاملة</h2>
+<p>Chapter 9 — Fowler</p>
+<p>Pattern	السؤال الأساسي الذي يجيب عنه</p>
+<p>Transaction Script	كيف أنظم الـ Logic حول كل عملية؟</p>
+<p>Domain Model	كيف أمثل المجال وسلوكه في Objects؟</p>
+<p>Table Module	كيف أنظم الـ Logic حول جدول كامل؟</p>
+<p>Service Layer	كيف أحدد عمليات التطبيق وأنسق تنفيذها؟</p>
+<p><strong>ملحوظة مهمة:</strong> الأنماط الأربعة مش اختيارات متعارضة بالكامل. ممكن تستخدم Service Layer مع Domain Model، مثلًا، لأن كل واحد بيعالج مشكلة مختلفة.</p>
+<p>وبكده نكون خلصنا مجموعة <strong>Domain Logic Patterns</strong> بالكامل.</p>
+<p>لا يا هندسة، <strong>Service Layer مش نوع من Separated Interface، ومفيش علاقة تصنيفية مباشرة بينهم.</strong></p>
+<p>لكن ممكن تستخدم الاتنين مع بعض في نفس التصميم.</p>
+<p>خليني أوضح الفرق؛ لأن السؤال ده مهم معماريًا.</p>
+<h2>1. كل Pattern بيحل مشكلة مختلفة</h2>
+<p><strong>Service Layer</strong></p>
+<p>بيجاوب عن السؤال:</p>
+<p>إزاي أحدد العمليات اللي التطبيق بيقدمها للـ Clients، وأنظم تنفيذها؟</p>
+<p>مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderService:
+
+    def create_order(self, items):
+        ...
+
+    def confirm_order(self, order_id):
+        ...
+
+    def cancel_order(self, order_id):
+        ...</code></pre></div>
+<p><strong>Separated Interface</strong></p>
+<p>بيجاوب عن سؤال مختلف:</p>
+<p>إزاي أفصل تعريف الـ Interface عن الـ Implementation، وأخلي الـ Dependency Direction مناسب؟</p>
+<p>مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">application/
+    interfaces/
+        order_repository.py
+
+    services/
+        order_service.py
+
+infrastructure/
+    postgres/
+        order_repository.py</code></pre></div>
+<h2>2. إزاي نستخدم الاتنين مع بعض؟</h2>
+<p>تخيل التصميم التالي:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">             Presentation
+                  |
+                  v
+          OrderService
+                  |
+                  v
+          OrderRepository
+             (Interface)
+                  ^
+                  |
+       PostgresOrderRepository
+          (Implementation)</code></pre></div>
+<p>هنا عندنا:</p>
+<ul>
+<li>OrderService: بتطبق فكرة Service Layer.</li>
+<li>OrderRepository: العقد أو الـ Interface.</li>
+<li>PostgresOrderRepository: التنفيذ الفعلي.</li>
+<li>فصل الـ Interface عن التنفيذ: تطبيق لفكرة Separated Interface.</li>
+</ul>
+<p>لاحظ إن Service Layer ممكن تعتمد على Separated Interface، لكن ده لا يجعلها نوعًا منه.</p>
+<h2>3. مقارنة مباشرة</h2>
+<p>المقارنة	Service Layer	Separated Interface</p>
+<p>التصنيف	Domain Logic Pattern	Base Pattern</p>
+<p>المشكلة	تنظيم Application Operations	فصل العقد عن التنفيذ</p>
+<p>التركيز	Application Boundary	Dependency Structure</p>
+<p>يحتاج Interface؟	لا	نعم</p>
+<p>ممكن تستخدمهم معًا؟	نعم	نعم</p>
+<h2>4. نقطة أعمق شوية</h2>
+<p>ممكن أصلًا تعمل Service Layer بدون Separated Interface:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderService:
+
+    def __init__(self):
+        self.repository = PostgresOrderRepository()</code></pre></div>
+<p>وده يحقق فكرة Service Layer، لكنه لا يحقق فصل الاعتماديات بالطريقة اللي بيستهدفها Separated Interface.</p>
+<p>وممكن تعمل Separated Interface من غير Service Layer، مثلًا مع Repository أو Gateway.</p>
+<hr>
+<p><strong>الخلاصة:</strong></p>
+<p>العلاقة بينهم علاقة تكامل وليست علاقة وراثة أو تصنيف.</p>
+<ul>
+<li>Service Layer بتنظم <em>ما الذي يقدمه التطبيق؟</em></li>
+<li>Separated Interface بتنظم <em>أين يوجد العقد؟ ومن يعتمد على من؟</em></li>
+</ul>
+<p>ودي نقطة مهمة جدًا في فهمك للعلاقة بين PoEAA وClean Architecture: ممكن تجمع Patterns من مجموعات مختلفة لتحقيق تصميم معماري واحد.</p>
+<p>طيب كمل بنفس النمط في ال</p>
+<h2>Data Source Architectural Patterns</h2>
+<p>تمام يا هندسة 😂</p>
+<p>ندخل على مجموعة جديدة من كتاب Fowler:</p>
+        
+      <nav class="page-nav" aria-label="تنقل الصفحات"><a href="base-patterns.html">→ Base Patterns</a><a href="data-source-architectural-patterns.html">Data Source Architectural Patterns ←</a></nav>
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const saved = localStorage.getItem('poeaa3-theme');
+    if (saved) root.setAttribute('data-theme', saved);
+    document.getElementById('theme')?.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      if (next === 'dark') root.setAttribute('data-theme', 'dark'); else root.removeAttribute('data-theme');
+      localStorage.setItem('poeaa3-theme', next === 'dark' ? 'dark' : 'light');
+    });
+  </script>
+</body>
+</html>

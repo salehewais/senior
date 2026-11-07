@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Offline Concurrency Patterns — POEAA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="أقسام المرجع">
+      <div class="toc-head">
+        <p class="toc-title"><a href="index.html">POEAA</a></p>
+        <button class="icon-btn" id="theme" type="button" aria-label="تبديل الوضع">☾</button>
+      </div>
+      <ol>
+        <li><a href="index.html">الرئيسية</a></li><li><a href="separated-interface.html">Separated Interface</a></li><li><a href="base-patterns.html">Base Patterns</a></li><li><a href="domain-logic-patterns.html">Domain Logic Patterns</a></li><li><a href="data-source-architectural-patterns.html">Data Source Architectural Patterns</a></li><li><a href="object-relational-behavioral-patterns.html">Object-Relational Behavioral Patterns</a></li><li><a href="object-relational-structural-patterns.html">Object-Relational Structural Patterns</a></li><li><a href="object-relational-metadata-mapping-patterns.html">Object-Relational Metadata Mapping Patterns</a></li><li><a href="web-presentation-patterns.html">Web Presentation Patterns</a></li><li><a href="distribution-patterns.html">Distribution Patterns</a></li><li><a href="offline-concurrency-patterns.html" class="active">Offline Concurrency Patterns</a></li><li><a href="session-state-patterns.html">Session State Patterns</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      
+      <header class="page-header">
+        <h1>Offline Concurrency Patterns</h1>
+        <p class="lead">من مصدر ChatGPT POEAA — صفحة قسم واحد.</p>
+      </header>
+      <h2 class="section-title">Offline Concurrency Patterns</h2>
+<h2>أولًا: نفهم المشكلة اللي المجموعة بتحلها</h2>
+<p>قبل ما ندخل في الأنماط، لازم نفهم معنى <strong>Offline Concurrency</strong>.</p>
+<p>تخيل عندك نظام ERP، وفيه موظفين بيشتغلوا على نفس الـ Order.</p>
+<ul>
+<li>الموظف الأول فتح الطلب الساعة 10:00.</li>
+<li>الموظف الثاني فتح نفس الطلب الساعة 10:01.</li>
+<li>الموظف الأول عدّل الكمية وحفظ الساعة 10:05.</li>
+<li>الموظف الثاني عدّل السعر وحفظ الساعة 10:06.</li>
+</ul>
+<p>المشكلة إن الموظف الثاني ممكن يحفظ نسخة قديمة من البيانات، وبالتالي يمسح تعديل الموظف الأول بدون ما يقصد.</p>
+<p>وده اسمه <strong>Lost Update Problem</strong>.</p>
+<p>طيب ليه بنسميها Offline Concurrency؟</p>
+<p>لأن المستخدم ممكن يفتح البيانات ويشتغل عليها لفترة طويلة، بينما الـ Database Transaction نفسها مش مفتوحة طول الفترة دي.</p>
+<p>يعني عندنا فرق بين:</p>
+<p><strong>Database Transaction:</strong></p>
+<ul>
+<li>قصيرة نسبيًا.</li>
+<li>تبدأ وتنفذ عمليات وتنتهي بـ Commit أو Rollback.</li>
+<li>بتحمي مجموعة عمليات داخل حدود قاعدة البيانات.</li>
+</ul>
+<p><strong>Business Transaction:</strong></p>
+<ul>
+<li>ممكن تبدأ لما المستخدم يفتح شاشة.</li>
+<li>تستمر دقائق أو ساعات.</li>
+<li>تشمل قراءة وتعديل ومراجعة وحفظ.</li>
+<li>ممكن تمر بعدة Database Transactions.</li>
+</ul>
+<p>وده جوهر المشكلة: الـ Database مش هتفضل فاتحة Transaction واحدة طول فترة عمل المستخدم.</p>
+<h2>خريطة المجموعة</h2>
+<p>في تصنيف Fowler، هنمشي على الأنماط الأربعة دي:</p>
+<h2>Offline Concurrency Patterns</h2>
+<ol>
+<li><strong>Optimistic Offline Lock</strong></li>
+</ol>
+<p>اكتشاف التعارض عند الحفظ بدل منع المستخدمين من التعديل مسبقًا.</p>
+<ol>
+<li><strong>Pessimistic Offline Lock</strong></li>
+</ol>
+<p>حجز البيانات لمستخدم واحد لمنع الآخرين من تعديلها في نفس الوقت.</p>
+<ol>
+<li><strong>Coarse-Grained Lock</strong></li>
+</ol>
+<p>تحديد نطاق القفل ليشمل مجموعة من Objects المرتبطة.</p>
+<ol>
+<li><strong>Implicit Lock</strong></li>
+</ol>
+<p>إخفاء تفاصيل إدارة الأقفال خلف آليات أو Components أخرى.</p>
+<hr>
+<article class="pattern-card" id="1-optimistic-offline-lock">
+<h3 class="pattern-title">1. Optimistic Offline Lock</h3>
+<div class="card-body">
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>نرجع لمثال الـ Order.</p>
+<p>عندنا موظفين فتحوا نفس الطلب في نفس الوقت.</p>
+<p><strong>سيناريو Lost Update</strong></p>
+<p>الطلب رقم 101، والكمية الأصلية 10.</p>
+<p><strong>الموظف الأول</strong></p>
+<h2 class="section-title">10</h2>
+<p>الكمية التي قرأها</p>
+<p>يعدلها إلى 15</p>
+<p><strong>الموظف الثاني</strong></p>
+<h2 class="section-title">10</h2>
+<p>الكمية التي قرأها</p>
+<p>يعدلها إلى 20</p>
+<hr>
+<p><strong>تسلسل الحفظ</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Database  &lt;---  Save: Quantity = 15  &lt;---  Employee 1
+
+Database  &lt;---  Save: Quantity = 20  &lt;---  Employee 2</code></pre></div>
+<p>(Lost Update)</p>
+<p>التعديل الأول اختفى، وأصبحت الكمية 20 بدلًا من اكتشاف التعارض.</p>
+<p>المشكلة إن الموظف الثاني مش عارف إن حد عدّل البيانات بعد ما قرأها.</p>
+<p>إحنا محتاجين نكتشف إن البيانات اتغيرت قبل ما نسمح بالحفظ.</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة <strong>Optimistic Offline Lock</strong> إننا نفترض إن التعارضات مش بتحصل كثيرًا، وبالتالي نسمح لأكثر من مستخدم يقرأ ويعدل نفس البيانات بدون حجزها.</p>
+<p>لكن عند الحفظ، نتحقق إن البيانات لم تتغير منذ لحظة قراءتها.</p>
+<p>لو اتغيرت، نرفض الحفظ ونبلغ المستخدم بوجود Conflict.</p>
+<p>أشهر طريقة لتنفيذ الفكرة هي استخدام <strong>Version Number</strong>.</p>
+<p>كل Record عنده Version:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Order ID = 101
+Quantity = 10
+Version  = 1</code></pre></div>
+<p>لما المستخدم يقرأ البيانات، يحتفظ بالـ Version اللي قرأه.</p>
+<p>وعند الحفظ، نقارن الـ Version الحالي في قاعدة البيانات بالـ Version اللي المستخدم قرأه.</p>
+<ul>
+<li>لو متساويين: نسمح بالتعديل ونزيد Version.</li>
+<li>لو مختلفين: نرفض التعديل لأن فيه تغيير حصل بعد القراءة.</li>
+</ul>
+<p><strong>Optimistic Offline Lock</strong></p>
+<p><strong>قبل التعديل</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Database Version = 1
+User A Version   = 1
+User B Version   = 1</code></pre></div>
+<hr>
+<p><strong>الموظف الأول يحفظ</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Database Version = 1
+User A Version   = 1
+
+Update succeeds
+Database Version = 2</code></pre></div>
+<p>(First Update Accepted)</p>
+<hr>
+<p><strong>الموظف الثاني يحفظ</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Database Version = 2
+User B Version   = 1
+
+2 != 1</code></pre></div>
+<p>(Concurrency Conflict)</p>
+<p>النظام يرفض التعديل بدل ما يسمح بـ Lost Update.</p>
+<p>وبالاتجاه من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Database  &lt;---  Version Check  &lt;---  Save Request  &lt;---  User</code></pre></div>
+<h2>3. مثال عملي باستخدام Python وSQL</h2>
+<p>هنستخدم Version Column.</p>
+<h3>أولًا: تصميم الجدول</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE orders (
+    id INTEGER PRIMARY KEY,
+    quantity INTEGER NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1
+);</code></pre></div>
+<p>البيانات:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">id | quantity | version
+---|----------|--------
+1  | 10       | 1</code></pre></div>
+<h3>ثانيًا: قراءة البيانات</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def get_order(cursor, order_id):
+
+    cursor.execute(
+        &quot;&quot;&quot;
+        SELECT id, quantity, version
+        FROM orders
+        WHERE id = %s
+        &quot;&quot;&quot;,
+        (order_id,)
+    )
+
+    return cursor.fetchone()</code></pre></div>
+<p>المستخدم هيقرأ:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">{
+    &quot;id&quot;: 1,
+    &quot;quantity&quot;: 10,
+    &quot;version&quot;: 1
+}</code></pre></div>
+<h3>ثالثًا: الحفظ مع التحقق من Version</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def update_order(
+    cursor,
+    order_id,
+    new_quantity,
+    expected_version
+):
+
+    cursor.execute(
+        &quot;&quot;&quot;
+        UPDATE orders
+        SET
+            quantity = %s,
+            version = version + 1
+        WHERE
+            id = %s
+            AND version = %s
+        &quot;&quot;&quot;,
+        (
+            new_quantity,
+            order_id,
+            expected_version
+        )
+    )
+
+    if cursor.rowcount == 0:
+        raise Exception(
+            &quot;Concurrency Conflict&quot;
+        )</code></pre></div>
+<p>ركز في الجزء ده:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">WHERE id = %s AND version = %s</code></pre></div>
+<p>إحنا مش بنعمل Update لمجرد إن الـ Record موجود.</p>
+<p>إحنا بنعمل Update بشرط إن الـ Version ما زال هو نفسه اللي المستخدم قرأه.</p>
+<p>والعملية كلها عبارة عن SQL Statement واحدة، وبالتالي التحقق والتعديل بيحصلوا بشكل Atomic على مستوى قاعدة البيانات.</p>
+<h3>رابعًا: السيناريو</h3>
+<p>الموظف الأول:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">update_order(
+    cursor,
+    order_id=1,
+    new_quantity=15,
+    expected_version=1
+)</code></pre></div>
+<p>النتيجة:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">quantity = 15
+version  = 2</code></pre></div>
+<p>الموظف الثاني:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">update_order(
+    cursor,
+    order_id=1,
+    new_quantity=20,
+    expected_version=1
+)</code></pre></div>
+<p>النتيجة:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Concurrency Conflict</code></pre></div>
+<p>لأن Version الحالي أصبح 2، بينما الموظف الثاني بيحاول الحفظ باستخدام Version قديم وهو 1.</p>
+<p><strong>ملحوظة مهمة:</strong> لازم عملية التعديل تكون داخل Transaction، ولازم نتعامل مع Conflict بشكل مناسب، مثل إعادة تحميل البيانات ومراجعة التعديلات. مينفعش نعيد تنفيذ نفس التعديل القديم تلقائيًا بدون فهم أثره.</p>
+<h2>4. هل Version Number هي الطريقة الوحيدة؟</h2>
+<p>لا.</p>
+<p>فيه أكثر من طريقة لتنفيذ Optimistic Locking:</p>
+<ol>
+<li><strong>Version Number:</strong> رقم يزيد مع كل تعديل.</li>
+<li><strong>Timestamp:</strong> مقارنة آخر وقت تعديل.</li>
+<li><strong>Hash / Original Values:</strong> مقارنة القيم القديمة بالقيم الحالية.</li>
+</ol>
+<p>لكن Version Number غالبًا أوضح وأكثر أمانًا من الاعتماد على Timestamp، خصوصًا لو دقة الوقت أو تزامنه مش مضمونين.</p>
+<h2>5. أقرب GoF Pattern</h2>
+<p>هل Optimistic Offline Lock له GoF Equivalent مباشر؟</p>
+<p><strong>لا، مفيش GoF Pattern مطابق له.</strong></p>
+<p>لكن ممكن تلاحظ تشابهات جزئية:</p>
+<h3>Observer</h3>
+<p>ممكن تستخدم Observer لإبلاغ المستخدم إن البيانات اتغيرت.</p>
+<p>لكن الفرق:</p>
+<ul>
+<li>Observer هدفه نشر الإشعارات عند حدوث تغييرات.</li>
+<li>Optimistic Offline Lock هدفه منع الكتابة بناءً على نسخة قديمة.</li>
+</ul>
+<h3>State</h3>
+<p>ممكن يكون عندك حالة للـ Record أو عملية الحفظ، مثل:</p>
+<ul>
+<li>Unchanged</li>
+<li>Modified</li>
+<li>Conflict</li>
+</ul>
+<p>لكن State مش هو Optimistic Offline Lock.</p>
+<p>الـ Optimistic Offline Lock آلية لإدارة التزامن والتحقق من صلاحية التعديل، وليس Behavioral Pattern من GoF.</p>
+<h2>6. علاقته بـ Application Architecture</h2>
+<p>Optimistic Offline Lock مش بديل عن Layered أو Clean Architecture.</p>
+<p>هو Concurrency Pattern ممكن نستخدمه داخل أي Application Architecture تحتاج حماية التعديلات المتزامنة.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Database  &lt;---  Repository  &lt;---  Application Service  &lt;---  Controller  &lt;---  User</code></pre></div>
+<p>وقت الحفظ، الـ Repository أو Data Access Layer ينفذ عملية الـ Version Check والـ Conditional Update.</p>
+<p>وممكن الـ Application Service يتعامل مع Conflict ويقرر إزاي يرجع النتيجة للمستخدم.</p>
+<h2>7. علاقته بـ Clean Architecture</h2>
+<p>في Clean Architecture ممكن يكون التنفيذ موزع كالتالي:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Database  &lt;---  Repository  &lt;---  Use Case  &lt;---  Input Adapter  &lt;---  User</code></pre></div>
+<ul>
+<li>Input Adapter يستقبل التعديل والـ Version المتوقع.</li>
+<li>Use Case ينسق عملية التحديث.</li>
+<li>Repository ينفذ الـ Conditional Update.</li>
+<li>Database تضمن Atomicity للشرط والتعديل.</li>
+</ul>
+<p>لو حصل Conflict، الـ Repository يرجع نتيجة واضحة أو يرفع Exception مناسبة، والـ Use Case يحدد طريقة التعامل معها.</p>
+<p>والـ Domain ممكن يحتوي على قواعد العمل، لكنه مش محتاج يعرف تفاصيل SQL أو كيفية تنفيذ Version Check.</p>
+<h2>8. علاقته بـ DDD</h2>
+<p>في DDD، ممكن نستخدم Optimistic Concurrency Control لحماية Aggregate من التعديل بناءً على نسخة قديمة.</p>
+<p>تخيل إن عندك Order Aggregate.</p>
+<p>موظفان حمّلا نفس الـ Aggregate، وكل واحد عمل تعديل مستقل.</p>
+<p>عند حفظ الأول، يتغير الـ Version.</p>
+<p>وعند محاولة حفظ الثاني، Repository يكتشف إن الـ Version اختلف ويرفض الحفظ.</p>
+<p>ده مهم للحفاظ على <strong>Aggregate Invariants</strong> ومنع تعديل قديم من الكتابة فوق حالة أحدث.</p>
+<p>لكن لازم نفرق بين:</p>
+<ul>
+<li>Version الخاص بالتزامن.</li>
+<li>Business Status الخاص بالـ Order.</li>
+</ul>
+<p>مثلًا version = 5 مش معناه إن الطلب في الحالة الخامسة؛ ده مجرد رقم يمثل نسخة البيانات.</p>
+<h2>9. علاقته بـ Odoo وPostgreSQL</h2>
+<p>دي نقطة مهمة بالنسبة لطبيعة أنظمة ERP.</p>
+<p>في PostgreSQL عندنا MVCC، وده بيسمح للـ Transactions بقراءة نسخ متسقة من البيانات حسب مستوى العزل.</p>
+<p>لكن <strong>MVCC مش هو نفسه Optimistic Offline Lock</strong>.</p>
+<p>الفرق:</p>
+<ul>
+<li>MVCC ينظم رؤية النسخ والتزامن على مستوى قاعدة البيانات.</li>
+<li>Optimistic Offline Lock يحمي Business Transaction طويلة نسبيًا من الكتابة فوق تعديلات مستخدم آخر.</li>
+</ul>
+<p>يعني وجود MVCC مش معناه تلقائيًا إن عندك حماية كاملة من Lost Updates الناتجة عن تعديل المستخدم لنسخة قديمة.</p>
+<p>في Odoo، لو عندك عملية طويلة بين فتح الفورم وحفظه، لازم تفكر في كيفية اكتشاف التعديلات المتزامنة، خصوصًا لو فيه Custom Logic أو API أو عمليات خارج دورة الحفظ المعتادة.</p>
+<p>ولا تفترض إن كل موديلات Odoo عندها Version Column مخصص بنفس آلية المثال؛ آلية الحماية لازم تتحدد وتُنفذ حسب تصميم العملية.</p>
+<h2>10. إمتى نستخدم Optimistic Offline Lock؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>عدد التعارضات المتوقع قليل.</li>
+<li>المستخدمون ممكن يفتحوا نفس البيانات لفترات طويلة.</li>
+<li>مش عايز تحجز البيانات أثناء عمل المستخدم.</li>
+<li>محتاج تمنع Lost Updates.</li>
+<li>تقدر تطلب من المستخدم مراجعة التعديلات عند حدوث Conflict.</li>
+</ul>
+<p>لكن لو التعارضات كثيرة جدًا، أو تكلفة رفض العملية وإعادتها عالية، ممكن تفكر في Pessimistic Offline Lock.</p>
+<hr>
+<h2>الخلاصة</h2>
+<p><strong>Optimistic Offline Lock</strong></p>
+<ul>
+<li>يسمح لأكثر من مستخدم بتعديل نفس البيانات مبدئيًا.</li>
+<li>لا يحجز الـ Record أثناء فترة عمل المستخدم.</li>
+<li>يتحقق من عدم تغير البيانات عند الحفظ.</li>
+<li>أشهر تطبيق له Version Number.</li>
+<li>يمنع Lost Update عن طريق رفض التعديلات القديمة.</li>
+<li>مناسب عندما تكون التعارضات قليلة نسبيًا.</li>
+</ul>
+<p><strong>النمط التالي: Pessimistic Offline Lock.</strong></p>
+<p>وهنا هنقلب الفكرة تمامًا: بدل ما نسمح للجميع بالتعديل ونكتشف التعارض عند الحفظ، هنحاول نحجز البيانات من البداية حتى لا يعدلها مستخدم آخر في نفس الوقت.</p>
+<article class="pattern-card" id="2-pessimistic-offline-lock">
+<h3 class="pattern-title">2. Pessimistic Offline Lock</h3>
+<div class="card-body">
+<p>بعد ما فهمنا <strong>Optimistic Offline Lock</strong>، هننتقل لفكرة عكسية تقريبًا.</p>
+<p>في Optimistic كنا بنسمح لأكثر من مستخدم يشتغل على نفس البيانات، ونكتشف التعارض وقت الحفظ.</p>
+<p>أما هنا، فهنحاول نمنع التعارض من البداية عن طريق <strong>حجز البيانات (Locking)</strong>.</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندنا نظام ERP، وموظف فاتح أمر بيع (Sales Order) وبيعدّل فيه.</p>
+<p>في نفس الوقت، موظف تاني فتح نفس الأمر وعايز يعدّل فيه.</p>
+<p>إحنا عايزين نضمن إن موظف واحد فقط هو اللي يقدر يعدّل الأمر في الوقت ده.</p>
+<p>المشكلة إننا مش بنتكلم عن Database Transaction قصيرة؛ إحنا بنتكلم عن عملية مستخدم ممكن تستمر عدة دقائق.</p>
+<p>مينفعش نفتح Database Transaction ونسيبها مفتوحة طول الوقت؛ ده ممكن يسبب مشاكل في الـ Locks والـ Connections والـ Transaction Management.</p>
+<p>إذن محتاجين Lock مستقل عن عمر الـ Database Transaction.</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة <strong>Pessimistic Offline Lock</strong> إن المستخدم يحجز الـ Business Object قبل ما يبدأ تعديله.</p>
+<p>لو الحجز نجح، يقدر يكمل شغله.</p>
+<p>لو مستخدم تاني حاول يحجز نفس الـ Object، النظام يرفض أو يجعله ينتظر حسب تصميم النظام.</p>
+<p>التدفق من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">User A  &lt;---  Acquire Lock  &lt;---  Order 101
+                                  |
+User B  &lt;---  Lock Rejected  &lt;---  Order 101</code></pre></div>
+<p>بمعنى:</p>
+<ol>
+<li>المستخدم الأول يطلب حجز Order 101.</li>
+<li>النظام يمنحه الـ Lock.</li>
+<li>المستخدم الأول يعدّل ويحفظ.</li>
+<li>المستخدم الأول يحرر الـ Lock.</li>
+<li>المستخدم الثاني يقدر يحجز الطلب بعد كده.</li>
+</ol>
+<p><strong>مثال توضيحي</strong></p>
+<p><strong>Order #101</strong> (Locked)</p>
+<hr>
+<p>الموظف الأول (Lock Owner)</p>
+<p>الموظف الثاني (Access Denied)</p>
+<p>الحجز هنا على مستوى الـ Business Object، وليس مجرد قفل SQL Transaction مفتوحة طوال فترة عمل الموظف.</p>
+<h2>3. مثال عملي باستخدام Python</h2>
+<p>هننفذ مثال مبسط باستخدام جدول منفصل لإدارة الأقفال.</p>
+<h3>أولًا: تصميم الجدول</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE offline_locks (
+    resource_type VARCHAR(100) NOT NULL,
+    resource_id INTEGER NOT NULL,
+    owner_id INTEGER NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+
+    PRIMARY KEY (resource_type, resource_id)
+);</code></pre></div>
+<p>الجدول ده بيحدد:</p>
+<ul>
+<li>نوع الـ Object المحجوز.</li>
+<li>الـ ID الخاص به.</li>
+<li>المستخدم اللي حجزه.</li>
+<li>وقت انتهاء الحجز.</li>
+</ul>
+<h3>ثانيًا: الحصول على Lock</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def acquire_lock(
+    cursor,
+    resource_type,
+    resource_id,
+    owner_id,
+    expires_at
+):
+    cursor.execute(
+        &quot;&quot;&quot;
+        INSERT INTO offline_locks (
+            resource_type,
+            resource_id,
+            owner_id,
+            expires_at
+        )
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT DO NOTHING
+        &quot;&quot;&quot;,
+        (
+            resource_type,
+            resource_id,
+            owner_id,
+            expires_at
+        )
+    )
+
+    return cursor.rowcount == 1</code></pre></div>
+<p>لو المستخدم الأول حجز الطلب، الـ INSERT ينجح.</p>
+<p>لو المستخدم الثاني حاول يحجز نفس الطلب، الـ Primary Key يمنع إنشاء Lock آخر لنفس الـ Resource.</p>
+<h3>ثالثًا: تحرير الـ Lock</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def release_lock(
+    cursor,
+    resource_type,
+    resource_id,
+    owner_id
+):
+    cursor.execute(
+        &quot;&quot;&quot;
+        DELETE FROM offline_locks
+        WHERE resource_type = %s
+          AND resource_id = %s
+          AND owner_id = %s
+        &quot;&quot;&quot;,
+        (
+            resource_type,
+            resource_id,
+            owner_id
+        )
+    )</code></pre></div>
+<p>لاحظ إننا بنتأكد من owner_id قبل الحذف، عشان مستخدم ما يقدرش يحرر Lock مملوك لمستخدم تاني.</p>
+<p><strong>ملحوظة مهمة:</strong> المثال ده توضيحي، ومحتاج إدارة صحيحة للـ Transactions، وانتهاء الصلاحية، وتجديد الحجز، والتحقق من ملكية الـ Lock قبل كل عملية حفظ. مجرد وجود expires_at في الجدول مش كفاية لتطبيق انتهاء الحجز تلقائيًا.</p>
+<h3>رابعًا: إيه اللي يحصل لو المستخدم قفل الصفحة بدون ما يحرر الـ Lock؟</h3>
+<p>هنا بنواجه مشكلة مهمة جدًا.</p>
+<p>تخيل المستخدم حجز الطلب، وبعدها:</p>
+<ul>
+<li>قفل المتصفح.</li>
+<li>الإنترنت فصل.</li>
+<li>الجهاز عمل Restart.</li>
+<li>المستخدم نسي يحرر الحجز.</li>
+</ul>
+<p>الطلب ممكن يفضل محجوز للأبد!</p>
+<p>عشان كده بنستخدم مفهوم اسمه <strong>Lease / Lock Expiration</strong>.</p>
+<p>يعني الـ Lock بيكون له مدة صلاحية.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Lock Owner = User A
+Expires At = 10:30</code></pre></div>
+<p>لو المستخدم لم يجدد الحجز قبل 10:30، النظام يسمح بانتهاء الـ Lock.</p>
+<p>وممكن المستخدم يجدد الحجز دوريًا عن طريق <strong>Heartbeat</strong>.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">User A  &lt;---  Renew Lock  &lt;---  Lock Manager</code></pre></div>
+<p>لكن فيه مشكلة إضافية: ماذا لو انتهى الحجز القديم، وحصل مستخدم آخر على حجز جديد، وبعدها المستخدم القديم حاول الحفظ؟</p>
+<p>هنا نحتاج نتأكد إن المستخدم القديم لم يعد يملك صلاحية التعديل.</p>
+<p>في الأنظمة الأكثر تعقيدًا ممكن نستخدم <strong>Fencing Token</strong>، وهو رقم متزايد مع كل Lock جديد، بحيث ترفض طبقة التخزين أي عملية قادمة من صاحب Lock قديم.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">User A gets token = 10
+Lock expires
+
+User B gets token = 11
+
+User A tries to save with token = 10
+                         |
+                         v
+                    Rejected</code></pre></div>
+<p>دي نقطة مهمة جدًا في الأنظمة الموزعة؛ لأن انتهاء الـ Lock وحده لا يضمن إن صاحب الحجز القديم توقف فعلًا عن تنفيذ العمليات.</p>
+<hr>
+<h2>4. أقرب GoF Pattern</h2>
+<p>هل عندنا GoF Pattern مطابق لـ Pessimistic Offline Lock؟</p>
+<p><strong>لا، مفيش نظير مباشر.</strong></p>
+<p>لكن فيه تشابه في الفكرة مع:</p>
+<p><strong>1. Monitor Object</strong></p>
+<ul>
+<li>Monitor Object بينظم الوصول المتزامن إلى Object داخل عملية أو بيئة تشغيل مشتركة.</li>
+<li>Pessimistic Offline Lock ينظم وصول المستخدمين إلى Business Object خلال Business Transaction طويلة.</li>
+</ul>
+<p>الفرق إن Monitor Object غالبًا مرتبط بالتزامن داخل الذاكرة، بينما Pessimistic Offline Lock مرتبط بالتزامن بين مستخدمين وعمليات مستقلة.</p>
+<p><strong>2. Proxy</strong></p>
+<p>ممكن تستخدم Proxy لمنع الوصول إلى Object غير متاح أو غير محجوز للمستخدم.</p>
+<p>لكن Proxy مجرد وسيلة لتنظيم الوصول، وليس آلية الـ Offline Lock نفسها.</p>
+<p>إذن التشابه هنا في بعض آليات التنفيذ، مش في الـ Intent الأساسي.</p>
+<hr>
+<h2>5. علاقته بـ Application Architecture</h2>
+<p>زي ما اتفقنا، ده مش Application Architecture مستقل.</p>
+<p>ممكن تستخدمه داخل Layered Architecture أو Clean Architecture.</p>
+<p>مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">User  &lt;---  Controller  &lt;---  Application Service
+                                  |
+                                  v
+                            Lock Manager
+                                  |
+                                  v
+                              Database</code></pre></div>
+<p>الـ Application Service ينسق العملية:</p>
+<ol>
+<li>يطلب حجز الـ Object.</li>
+<li>ينفذ الـ Business Operation.</li>
+<li>يحفظ التعديلات.</li>
+<li>يحرر الحجز.</li>
+</ol>
+<p>والـ Lock Manager مسؤول عن تفاصيل إدارة الحجز.</p>
+<p>مهم نفصل بين مسؤولية إدارة الحجز ومسؤولية تنفيذ الـ Business Logic.</p>
+<h2>6. علاقته بـ Clean Architecture</h2>
+<p>في Clean Architecture ممكن نعرّف Interface لإدارة الأقفال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from typing import Protocol
+
+class LockManager(Protocol):
+
+    def acquire(self, resource_id: int, owner_id: int):
+        ...
+
+    def release(self, resource_id: int, owner_id: int):
+        ...</code></pre></div>
+<p>والـ Use Case يعتمد على الـ Interface بدل الاعتماد المباشر على PostgreSQL.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class UpdateOrder:
+
+    def __init__(self, lock_manager, order_repository):
+        self.lock_manager = lock_manager
+        self.order_repository = order_repository
+
+    def execute(self, order_id, user_id, quantity):
+
+        acquired = self.lock_manager.acquire(
+            order_id,
+            user_id
+        )
+
+        if not acquired:
+            raise Exception(&quot;Order is already locked&quot;)
+
+        try:
+            order = self.order_repository.get(order_id)
+            order.update_quantity(quantity)
+
+            self.order_repository.save(order)
+
+        finally:
+            self.lock_manager.release(order_id, user_id)</code></pre></div>
+<p>ده مثال مبسط، لكنه يوضح فصل الـ Policy عن الـ Mechanism.</p>
+<p>في تطبيق حقيقي لازم كمان نراعي إن الـ Lock يفضل محميًا خلال عملية الحفظ، وإن فشل الحفظ أو انقطاع الاتصال لا يترك النظام في حالة غير متسقة.</p>
+<h2>7. علاقته بـ DDD</h2>
+<p>ممكن نستخدم Pessimistic Offline Lock مع الـ Aggregate.</p>
+<p>تخيل عندك:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Order Aggregate
+    |
+    +-- Order Lines
+    |
+    +-- Customer Reference</code></pre></div>
+<p>لو عندك عملية تعديل حساسة على الـ Order، ممكن تحجز الـ Aggregate كله بحيث تمنع مستخدمًا آخر من إجراء عملية متعارضة عليه.</p>
+<p>لكن خد بالك:</p>
+<p><strong>الـ Lock مش جزء من الـ Aggregate بالضرورة.</strong></p>
+<p>هو آلية لإدارة التزامن، وممكن تكون مسؤولية Application Layer أو Infrastructure Layer.</p>
+<p>كمان لازم تحدد نطاق الحجز بناءً على قواعد العمل، مش لمجرد إن Objects مرتبطة ببعض.</p>
+<h2>8. علاقته بـ Odoo</h2>
+<p>في Odoo، تخيل إن عندك عملية تخصيص مخزون أو معالجة أمر بيع، وفيه أكثر من مستخدم بيحاول يعدل نفس الـ Business Resource.</p>
+<p>ممكن تحتاج Lock منطقي على مستوى العملية، لكن لازم تفرق بين حاجتين:</p>
+<ul>
+<li>PostgreSQL SELECT FOR UPDATE: قفل على مستوى Database Transaction، وينتهي مع انتهاء الـ Transaction.</li>
+<li>Pessimistic Offline Lock: حجز يستمر خلال فترة عمل المستخدم، حتى لو كل عملية Database Transaction انتهت بالفعل.</li>
+</ul>
+<p>فمش كل استخدام لـ SELECT FOR UPDATE يعتبر Pessimistic Offline Lock.</p>
+<p>كمان لو هتطبق Lock Manager مخصص في Odoo، لازم تراعي تعدد الـ Workers، وملكية الحجز، وانتهاء الصلاحية، وعدم السماح بتعديل البيانات بعد فقدان الحجز.</p>
+<hr>
+<h2>9. مقارنة Optimistic وPessimistic</h2>
+<p>خلينا نثبت الفرق؛ لأن النمطين بيتلخبطوا بسهولة.</p>
+<p>المقارنة	Optimistic	Pessimistic</p>
+<p>الفكرة	اكتشاف التعارض	منع التعارض مسبقًا</p>
+<p>الحجز	لا يوجد حجز مسبق	يوجد حجز</p>
+<p>تعدد المستخدمين	مسموح مبدئيًا	مستخدم واحد يملك الحجز</p>
+<p>اكتشاف المشكلة	عند الحفظ	عند طلب الحجز</p>
+<p>التكلفة	تكلفة التعامل مع Conflict	تكلفة إدارة Lock</p>
+<p>الأنسب	تعارضات قليلة	تعارضات متكررة أو مكلفة</p>
+<h2>10. إمتى نستخدم Pessimistic Offline Lock؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>التعارضات متكررة.</li>
+<li>تكلفة حدوث التعارض عالية.</li>
+<li>إعادة تنفيذ العملية صعبة.</li>
+<li>محتاج تضمن إن مستخدم واحد فقط يعدل موردًا معينًا في نفس الوقت.</li>
+</ul>
+<p>لكن تجنبه لو الحجز هيعطل المستخدمين باستمرار، أو لو المستخدمين ممكن ينسوا تحرير الأقفال، أو لو نظامك موزع ومش عندك آلية موثوقة لإدارة انتهاء الحجز.</p>
+<hr>
+<h2 class="section-title">النمط الثالث: Coarse-Grained Lock</h2>
+<p>النقطة اللي وصلنالها مهمة:</p>
+<p>في Pessimistic Offline Lock عرفنا إزاي نحجز Object.</p>
+<p>لكن ظهر سؤال جديد:</p>
+<p><strong>ماذا لو العملية الواحدة بتتعامل مع مجموعة Objects مرتبطة ببعض؟ هل نحجز كل Object لوحده؟</strong></p>
+<p>وده بالضبط اللي هنتكلم عنه في <strong>Coarse-Grained Lock</strong>.</p>
+<p>هنشوف إزاي نختار نطاق القفل، وليه أحيانًا قفل Object واحد مش كفاية، وإيه علاقته بالـ Aggregate في DDD.</p>
+<article class="pattern-card" id="3-coarse-grained-lock">
+<h3 class="pattern-title">3. Coarse-Grained Lock</h3>
+<div class="card-body">
+<p>النمط ده مرتبط جدًا باللي فات، لكن فيه اختلاف مهم لازم نفهمه.</p>
+<p>في <strong>Pessimistic Offline Lock</strong> كنا بنجاوب عن السؤال:</p>
+<blockquote>إزاي أمنع أكثر من مستخدم من تعديل نفس الـ Business Object في نفس الوقت؟</blockquote>
+<p>أما في <strong>Coarse-Grained Lock</strong> فالسؤال مختلف:</p>
+<blockquote>إيه حجم أو نطاق الـ Object اللي المفروض أحجزه أصلًا؟</blockquote>
+<p>يعني المشكلة هنا مش مجرد إزاي نعمل Lock، لكن <strong>نحجز إيه بالضبط؟</strong></p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندنا نظام مبيعات، وعندنا Order بالشكل ده:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Order #100
+    |
+    +--- Order Line #1
+    |
+    +--- Order Line #2
+    |
+    +--- Order Line #3
+    |
+    +--- Payment</code></pre></div>
+<p>موظف بيعدل Order Line #1، وموظف تاني بيعدل Order Line #2.</p>
+<p>لو عملنا Lock لكل Object بشكل مستقل، الاتنين ممكن يشتغلوا في نفس الوقت.</p>
+<p>لكن ماذا لو تعديل الـ Order Line الأول أثر على إجمالي الطلب، وتعديل الثاني أثر على نفس الإجمالي؟</p>
+<p>ممكن نواجه مشاكل في اتساق البيانات (Consistency).</p>
+<p>ولو قررنا نحجز كل Object لوحده، هنحتاج ندير مجموعة Locks:</p>
+<ul>
+<li>Lock للـ Order.</li>
+<li>Lock لكل Order Line.</li>
+<li>Lock للـ Payment.</li>
+<li>Lock لأي Object مرتبط بالعملية.</li>
+</ul>
+<p>وده ممكن يؤدي إلى تعقيد كبير في إدارة الأقفال.</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>بدل ما نحجز كل Object بشكل مستقل، بنحدد <strong>مجموعة Objects مترابطة</strong> ونعتبرها وحدة واحدة للحجز.</p>
+<p>يعني بدل:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Line #1  &lt;---  Lock A
+
+Line #2  &lt;---  Lock B
+
+Payment  &lt;---  Lock C
+
+Order    &lt;---  Lock D</code></pre></div>
+<p>نحجز الـ Order بالكامل:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Order #100
+    |
+    +--- Order Line #1
+    |
+    +--- Order Line #2
+    |
+    +--- Order Line #3
+    |
+    +--- Payment
+
+          ^
+          |
+     One Shared Lock</code></pre></div>
+<p>وبالترتيب من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Order + Lines + Payment  &lt;---  One Coarse-Grained Lock</code></pre></div>
+<p>بالتالي أي مستخدم يريد تعديل جزء من المجموعة المحجوزة لازم يحصل على نفس الـ Lock.</p>
+<p>الفكرة الأساسية هي تقليل عدد الأقفال التي يجب إدارتها، عن طريق توسيع نطاق القفل.</p>
+<p><strong>مثال: Order #100</strong></p>
+<p>Order (Locked)</p>
+<hr>
+<p>Order Line #1 (Protected)</p>
+<p>Order Line #2 (Protected)</p>
+<p>Payment (Protected)</p>
+<p>الـ Lock واحد على مستوى Order، لكن تأثيره يمتد إلى العمليات التي تعدّل الأجزاء التابعة له.</p>
+<h2>3. مثال Python</h2>
+<p>هنفترض إن عندنا Order يحتوي على مجموعة Order Lines.</p>
+<p>بدل ما نحجز كل Line، هنحجز الـ Order نفسه.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class LockManager:
+
+    def __init__(self):
+        self.locks = {}
+
+    def acquire(self, resource_id, owner_id):
+        if resource_id in self.locks:
+            return False
+
+        self.locks[resource_id] = owner_id
+        return True
+
+    def release(self, resource_id, owner_id):
+        if self.locks.get(resource_id) != owner_id:
+            return False
+
+        del self.locks[resource_id]
+        return True</code></pre></div>
+<p>استخدامه:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">locks = LockManager()
+
+# User A locks Order 100
+locks.acquire(&quot;order:100&quot;, &quot;user_a&quot;)
+
+# User B wants to update Line 1
+can_update = locks.acquire(&quot;order:100&quot;, &quot;user_b&quot;)
+
+print(can_update)  # False</code></pre></div>
+<p>لاحظ إننا لم نستخدم:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">locks.acquire(&quot;order_line:1&quot;, &quot;user_b&quot;)</code></pre></div>
+<p>لأننا قررنا إن نطاق الحجز هو الـ Order بالكامل.</p>
+<p>لكن فيه شرط مهم جدًا:</p>
+<p><strong>كل العمليات التي تعدّل أجزاء الـ Order لازم تحترم نفس Lock.</strong></p>
+<p>لو فيه API أو Background Job بيعدل الـ Order Lines من غير ما يتحقق من Lock الـ Order، يبقى الحماية غير مكتملة.</p>
+<p>المثال هنا تعليمي فقط؛ وفي الإنتاج نحتاج Lock Manager مشتركًا بين كل الـ Workers، مع تخزين ذري للأقفال وانتهاء صلاحيتها.</p>
+<hr>
+<h2>4. أقرب GoF Pattern</h2>
+<p>هل Coarse-Grained Lock له GoF Pattern مطابق؟</p>
+<p><strong>لا يوجد GoF Pattern مطابق له.</strong></p>
+<p>لكن ممكن نلاحظ تشابهًا جزئيًا مع:</p>
+<p><strong>Facade Pattern</strong></p>
+<p>الـ Facade بيقدم واجهة موحدة للتعامل مع مجموعة من الأنظمة أو الكائنات الفرعية.</p>
+<p>أما Coarse-Grained Lock فبيتعامل مع مجموعة Objects كنطاق واحد للحجز.</p>
+<p>الفرق:</p>
+<ul>
+<li>Facade هدفه تبسيط واجهة الاستخدام.</li>
+<li>Coarse-Grained Lock هدفه تقليل تعقيد إدارة التزامن عن طريق توسيع نطاق الحجز.</li>
+</ul>
+<p>إذن التشابه في التعامل مع مجموعة Objects من خلال نقطة واحدة، وليس في الـ Intent.</p>
+<hr>
+<h2>5. علاقته بـ Application Architecture</h2>
+<p>النمط ده مش Architecture مستقلة، لكنه ممكن يظهر داخل أي Application Architecture.</p>
+<p>مثلًا في Layered Architecture:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">User  &lt;---  Controller  &lt;---  Application Service
+                                  |
+                                  v
+                              Lock Manager
+                                  |
+                                  v
+                              Order Scope</code></pre></div>
+<p>الـ Application Service يطلب حجز الـ Order بالكامل قبل تنفيذ العملية.</p>
+<p>ومش مهم إذا كان النظام Layered أو Clean أو Hexagonal؛ المهم إن كل عمليات التعديل على نفس النطاق تحترم سياسة الحجز.</p>
+<h2>6. علاقته بـ Clean Architecture</h2>
+<p>في Clean Architecture ممكن نعرّف Port مسؤول عن الحجز:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderLock(Protocol):
+
+    def acquire(self, order_id: int, user_id: int) -&gt; bool:
+        ...
+
+    def release(self, order_id: int, user_id: int) -&gt; bool:
+        ...</code></pre></div>
+<p>الـ Use Case يتعامل مع OrderLock بدل تفاصيل قاعدة البيانات.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Database Lock Implementation
+             |
+             v
+       OrderLock Port
+             ^
+             |
+        Use Case
+             ^
+             |
+        Controller</code></pre></div>
+<p>لاحظ اتجاه الاعتماد في الرسم من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Controller  ---&gt;  Use Case  ---&gt;  OrderLock Interface</code></pre></div>
+<p>والـ Infrastructure هي اللي تنفذ الـ Interface.</p>
+<p>المهم هنا إن Clean Architecture لا تفرض علينا نطاق القفل؛ تحديد النطاق قرار متعلق بالـ Business Requirements.</p>
+<hr>
+<h2>7. علاقته بـ DDD</h2>
+<p>هنا عندنا ارتباط مهم جدًا.</p>
+<p>في DDD عندنا مفهوم اسمه <strong>Aggregate</strong>.</p>
+<p>الـ Aggregate عبارة عن مجموعة Objects مرتبطة ببعض، وبتتعامل مع قواعد اتساق محددة من خلال Aggregate Root.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Order (Aggregate Root)
+    |
+    +--- OrderLine
+    |
+    +--- OrderLine
+    |
+    +--- OrderLine</code></pre></div>
+<p>ممكن يكون الـ Order هو نطاق الحجز المناسب، لأن التعديلات على الـ Order Lines لازم تحافظ على قواعد الـ Order.</p>
+<p>لكن خلي بالك من نقطة دقيقة:</p>
+<p><strong>Coarse-Grained Lock مش هو نفسه Aggregate.</strong></p>
+<ul>
+<li>Aggregate مفهوم في DDD لتحديد حدود الاتساق والتحكم في التعديلات.</li>
+<li>Coarse-Grained Lock نمط لإدارة التزامن على نطاق مجموعة Objects.</li>
+</ul>
+<p>ممكن نستخدم حدود الـ Aggregate لتحديد نطاق الـ Lock، لكن مش شرط يكونوا متطابقين في كل نظام.</p>
+<p>كمان مش كل Object مرتبط بالـ Order لازم يكون جزءًا من نفس الـ Aggregate أو يدخل في نفس الحجز.</p>
+<hr>
+<h2>8. علاقته بـ Odoo</h2>
+<p>خلينا ناخد مثال من Odoo.</p>
+<p>عندنا:</p>
+<ul>
+<li>sale.order</li>
+<li>sale.order.line</li>
+</ul>
+<p>لو قررنا إن تعديل أي sale.order.line لازم يتم في ظل حجز الـ sale.order الأب، يبقى ممكن نستخدم الـ Order ID باعتباره Lock Resource.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">sale.order
+    |
+    +--- sale.order.line
+    |
+    +--- sale.order.line
+    |
+    +--- sale.order.line
+
+        One Lock on sale.order</code></pre></div>
+<p>أي عملية تعديل على الـ Lines لازم تتحقق من حجز الـ Order.</p>
+<p>لكن لازم ننتبه:</p>
+<ul>
+<li>Odoo ORM مش هيفرض علينا السياسة دي تلقائيًا.</li>
+<li>لازم نغطي كل مسارات التعديل: UI، RPC، API، Cron، وعمليات الـ Background.</li>
+<li>قفل الـ Order لا يمنع تلقائيًا أي كود يكتب مباشرة على الـ Lines.</li>
+<li>لا نحتاج بالضرورة إلى قفل كل الـ Database Rows؛ ممكن نستخدم Lock منطقيًا مستقلًا عن Database Row Locks.</li>
+</ul>
+<hr>
+<h2>9. عيوب ومميزات Coarse-Grained Lock</h2>
+<p><strong>المميزات:</strong></p>
+<ul>
+<li>عدد أقفال أقل.</li>
+<li>إدارة أبسط للتزامن.</li>
+<li>يقلل تعارضات التعديلات داخل مجموعة مترابطة.</li>
+<li>مناسب عندما تكون Objects مرتبطة بقواعد اتساق مشتركة.</li>
+</ul>
+<p><strong>العيوب:</strong></p>
+<ul>
+<li>ممكن يمنع مستخدمًا من تعديل جزء لا يتعارض فعليًا مع تعديل مستخدم آخر.</li>
+<li>يقلل مستوى الـ Concurrency.</li>
+<li>ممكن يسبب انتظارًا غير ضروري.</li>
+<li>اختيار نطاق كبير جدًا يجعل النظام أقل قابلية للتوسع.</li>
+</ul>
+<p>مثال:</p>
+<p>لو موظف بيعدل عنوان Order، وموظف تاني بيعدل ملاحظة داخل Order Line، ممكن ما يكونش فيه تعارض حقيقي بين العمليتين، لكن الـ Coarse-Grained Lock هيمنعهم من العمل معًا.</p>
+<p>وده هو الـ Trade-off الأساسي.</p>
+<hr>
+<h2>10. الفرق بين الأنماط الثلاثة حتى الآن</h2>
+<p>النمط	السؤال الذي يجيب عنه</p>
+<p>Optimistic Offline Lock	إزاي أكتشف التعارض عند الحفظ؟</p>
+<p>Pessimistic Offline Lock	إزاي أحجز المورد قبل التعديل؟</p>
+<p>Coarse-Grained Lock	إيه نطاق المورد اللي هحجزه؟</p>
+<hr>
+<h2 class="section-title">النمط الرابع والأخير: Implicit Lock</h2>
+<p>هنا هنتكلم عن مشكلة مختلفة شوية:</p>
+<p>لو عندنا Locking Strategy، هل لازم كل Developer يفتكر بنفسه إنه يعمل Acquire وRelease في كل عملية؟</p>
+<p>ولا ممكن نخلي الـ Lock يحصل بشكل ضمني من خلال آلية موجودة في النظام؟</p>
+<p>وده موضوع <strong>Implicit Lock</strong>.</p>
+<article class="pattern-card" id="4-implicit-lock">
+<h3 class="pattern-title">4. Implicit Lock</h3>
+<div class="card-body">
+<p>وصلنا لآخر نمط في مجموعة <strong>Offline Concurrency Patterns</strong>.</p>
+<p>في الأنماط السابقة كنا بنحدد مين يحجز الـ Object، وإمتى، وإيه نطاق الحجز.</p>
+<p>لكن هنا عندنا سؤال مختلف:</p>
+<p><strong>هل لازم الـ Developer يطلب الـ Lock بنفسه في كل عملية؟ ولا ممكن النظام يدير عملية الحجز بشكل ضمني؟</strong></p>
+<p>وده جوهر Implicit Lock.</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل إن عندك نظام بيستخدم Pessimistic Offline Lock.</p>
+<p>كل مرة Developer يكتب Use Case لتعديل Order، لازم يفتكر يعمل:</p>
+<ol>
+<li>Acquire Lock.</li>
+<li>ينفذ التعديلات.</li>
+<li>Release Lock.</li>
+</ol>
+<p>مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def update_order(order_id, user_id):
+
+    lock_manager.acquire(order_id, user_id)
+
+    try:
+        order = repository.get(order_id)
+        order.update()
+        repository.save(order)
+
+    finally:
+        lock_manager.release(order_id, user_id)</code></pre></div>
+<p>المشكلة إن عندك عشرات أو مئات العمليات اللي بتتعامل مع نفس الـ Objects.</p>
+<p>ممكن Developer ينسى يعمل Acquire Lock في عملية معينة.</p>
+<p>أو يعمل Lock على الـ Order وينسى إن فيه عملية تانية بتعدل نفس الـ Order من خلال مسار مختلف.</p>
+<p>وبالتالي سياسة التزامن مش مطبقة بشكل موحد.</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>بدل ما كل Developer يكون مسؤول عن طلب الـ Lock يدويًا، نخلي النظام يتولى تحديد الأقفال المطلوبة والحصول عليها ضمن آلية تنفيذ العملية.</p>
+<p>يعني الـ Lock يحصل <strong>Implicitly</strong> بدل ما يكون استدعاءً صريحًا في كل Use Case.</p>
+<p>مثال توضيحي:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">User Request  &lt;---  Application Service
+                          |
+                          v
+                    Lock Manager
+                          |
+                          v
+                    Business Logic</code></pre></div>
+<p>الـ Application Service أو آلية وسيطة تعرف الموارد المطلوب حجزها، وتدير الحجز تلقائيًا.</p>
+<p>لكن خد بالك: كلمة Implicit مش معناها إن النظام بيخمن لوحده كل الـ Objects اللي محتاج يقفلها.</p>
+<p>لازم يكون فيه مصدر واضح للمعلومات، مثل:</p>
+<ul>
+<li>Metadata.</li>
+<li>Mapping بين أنواع العمليات والموارد.</li>
+<li>Unit of Work.</li>
+<li>Transaction Context.</li>
+<li>قواعد محددة في الـ Framework.</li>
+</ul>
+<p>الفكرة إن الـ Developer مش مضطر يكرر تفاصيل الحجز في كل مكان.</p>
+<h2>3. مثال Python</h2>
+<p>هنستخدم Decorator لتوضيح الفكرة.</p>
+<p>بدل ما نكتب Acquire وRelease داخل كل Use Case، هنعرّف الـ Lock كـ Metadata على العملية.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from functools import wraps
+
+def requires_lock(resource_arg):
+
+    def decorator(func):
+
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+
+            resource_id = kwargs[resource_arg]
+            owner_id = kwargs[&quot;user_id&quot;]
+
+            acquired = self.lock_manager.acquire(
+                resource_id,
+                owner_id
+            )
+
+            if not acquired:
+                raise Exception(&quot;Resource is locked&quot;)
+
+            try:
+                return func(self, *args, **kwargs)
+
+            finally:
+                self.lock_manager.release(
+                    resource_id,
+                    owner_id
+                )
+
+        return wrapper
+
+    return decorator</code></pre></div>
+<p>استخدامه:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderService:
+
+    def __init__(self, lock_manager, repository):
+        self.lock_manager = lock_manager
+        self.repository = repository
+
+    @requires_lock(&quot;order_id&quot;)
+    def update_order(self, order_id, user_id):
+
+        order = self.repository.get(order_id)
+
+        order.update()
+
+        self.repository.save(order)</code></pre></div>
+<p>لاحظ الفرق.</p>
+<p><strong>Explicit Locking:</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">lock_manager.acquire(...)
+try:
+    # Business Logic
+finally:
+    lock_manager.release(...)</code></pre></div>
+<p><strong>Implicit Locking:</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">@requires_lock(&quot;order_id&quot;)
+def update_order(...):
+    # Business Logic</code></pre></div>
+<p>الـ Decorator بيدير عملية الحجز والتحرير بدل ما نكررها داخل الـ Business Logic.</p>
+<p>المثال تعليمي: في تطبيق حقيقي لازم نتأكد من إن الـ Lock يمتد طوال الـ Business Transaction المطلوبة، وليس فقط طوال تنفيذ HTTP Request قصير، مع دعم الـ Lease وملكية الحجز والتعامل مع فشل العملية.</p>
+<hr>
+<h2>4. أقرب GoF Pattern</h2>
+<p>مفيش GoF Pattern مطابق تمامًا لـ Implicit Lock.</p>
+<p>لكن عندنا تشابهات مهمة:</p>
+<p><strong>1. Proxy Pattern</strong></p>
+<p>الـ Proxy ممكن يعترض الوصول إلى Object وينفذ عمليات إضافية قبل تمرير الطلب.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Client  &lt;---  Proxy  &lt;---  Real Object
+                  |
+                  +--- Acquire Lock</code></pre></div>
+<p>لكن Proxy هدفه التحكم في الوصول إلى Object، بينما Implicit Lock هدفه تطبيق سياسة الحجز بدون تكرار طلبها في كل عملية.</p>
+<p><strong>2. Decorator Pattern</strong></p>
+<p>الـ Decorator بيضيف مسؤولية إضافية حول تنفيذ العملية الأصلية.</p>
+<p>وده أقرب للمثال اللي كتبناه، لأننا أضفنا Locking Behavior حول الـ Use Case.</p>
+<p>لكن برضه مش نفس الـ Intent.</p>
+<p>الـ Decorator وسيلة تنفيذ، مش نمط التزامن نفسه.</p>
+<h2>5. علاقته بـ Application Architecture</h2>
+<p>Implicit Lock مش Architecture مستقلة.</p>
+<p>هو أسلوب لتطبيق سياسة التزامن داخل الـ Application Architecture.</p>
+<p>ممكن تلاقيه في:</p>
+<ul>
+<li>Layered Architecture.</li>
+<li>Clean Architecture.</li>
+<li>Hexagonal Architecture.</li>
+</ul>
+<p>مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">User  &lt;---  Controller  &lt;---  Application Service
+                                  |
+                                  v
+                            Lock Interceptor
+                                  |
+                                  v
+                              Lock Manager
+                                  |
+                                  v
+                              Database</code></pre></div>
+<p>الـ Lock Interceptor يتولى تطبيق سياسة الحجز، والـ Lock Manager مسؤول عن إدارة ملكية الأقفال.</p>
+<h2>6. علاقته بـ Clean Architecture</h2>
+<p>في Clean Architecture نقدر نفصل الموضوع كالتالي:</p>
+<ul>
+<li>الـ Use Case يحدد العملية التي تحتاج Lock.</li>
+<li>الـ Port يعرّف واجهة الحجز.</li>
+<li>الـ Infrastructure تنفذ آلية الحجز.</li>
+<li>Decorator أو Interceptor يضيف السلوك بشكل تلقائي.</li>
+</ul>
+<p>مثلاً:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">HTTP Request  &lt;---  Controller  &lt;---  Use Case
+                                      |
+                                      v
+                                Lock Policy
+                                      |
+                                      v
+                                Lock Port
+                                      ^
+                                      |
+                              Infrastructure</code></pre></div>
+<p>وهنا عندنا قرار معماري مهم:</p>
+<p>هل الـ Lock Policy جزء من الـ Use Case نفسه، أم نطبقه من خلال Interceptor؟</p>
+<p>الإجابة تعتمد على طبيعة الـ Business Rule.</p>
+<p>لو العملية لا يمكن تنفيذها بدون حجز مورد معين، لازم يكون الـ Use Case واضحًا في اعتماده على سياسة الحجز، حتى لو تفاصيل التنفيذ مخفية خلف Decorator أو Interceptor.</p>
+<p>مش معنى إننا استخدمنا Implicit Lock إننا نخفي Business Rule مهمة عن التطبيق.</p>
+<h2>7. علاقته بـ DDD</h2>
+<p>هنا نقدر نستفيد من الـ Aggregate Metadata أو الـ Application Services.</p>
+<p>مثلاً ممكن يكون عندنا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Update Order
+    |
+    +--- Requires Lock: Order Aggregate
+
+Cancel Order
+    |
+    +--- Requires Lock: Order Aggregate
+
+Update Customer
+    |
+    +--- Requires Lock: Customer Aggregate</code></pre></div>
+<p>النظام يحدد الـ Lock المطلوب بناءً على العملية.</p>
+<p>لكن لازم ننتبه:</p>
+<ul>
+<li>الـ Aggregate يحدد حدود الاتساق في DDD.</li>
+<li>Implicit Lock يحدد طريقة تطبيق سياسة الحجز.</li>
+<li>مش كل Aggregate لازم يكون عليه Lock.</li>
+<li>ومش كل عملية على Aggregate تستلزم Offline Lock.</li>
+</ul>
+<h2>8. علاقته بـ Odoo</h2>
+<p>في Odoo ممكن نعمل آلية مشابهة باستخدام:</p>
+<ul>
+<li>Decorators.</li>
+<li>Model Methods.</li>
+<li>Service Classes.</li>
+<li>Context.</li>
+<li>Custom Lock Manager.</li>
+</ul>
+<p>مثلاً ممكن يكون عندنا Model Method مسؤولة عن تعديل Order، وكل عمليات التعديل تمر من خلال طبقة مشتركة تتحقق من Lock.</p>
+<p>لكن فيه نقطة مهمة جدًا:</p>
+<p>استخدام Decorator وحده مش كفاية لو فيه طرق أخرى للوصول للبيانات.</p>
+<p>لو فيه Developer بيعدل الـ Order من خلال RPC أو Cron أو API، لازم كل مسارات الكتابة تخضع لنفس سياسة الحجز.</p>
+<p>كمان الـ Context في Odoo مش وسيلة حماية أمنية؛ المستخدم ممكن يمرر قيم Context بنفسه، فلازم التحقق من ملكية الـ Lock يتم من مصدر موثوق.</p>
+<hr>
+<h2>9. الفرق بين الأنماط الأربعة</h2>
+<p>خلينا نربط المجموعة كلها ببعض:</p>
+<p>النمط	السؤال الأساسي</p>
+<p>Optimistic Offline Lock	إزاي أكتشف التعارض عند الحفظ؟</p>
+<p>Pessimistic Offline Lock	إزاي أحجز الـ Object قبل التعديل؟</p>
+<p>Coarse-Grained Lock	إيه حجم ونطاق الـ Lock؟</p>
+<p>Implicit Lock	إزاي أطبق الـ Lock بدون تكرار طلبه يدويًا؟</p>
+<h2>10. الخريطة النهائية لـ Offline Concurrency Patterns</h2>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Offline Concurrency Patterns
+          |
+          +--- Optimistic Offline Lock
+          |
+          +--- Pessimistic Offline Lock
+          |              |
+          |              +--- Coarse-Grained Lock
+          |              |
+          |              +--- Implicit Lock</code></pre></div>
+<p>الرسم بيوضح علاقتهم المفاهيمية في الدراسة، مش شجرة وراثة أو تصنيف رسمي لعلاقة الأنماط ببعضها.</p>
+<hr>
+<p><strong>وبكده نكون خلصنا Offline Concurrency Patterns الأربعة في خريطة PoEAA اللي ماشيين عليها.</strong></p>
+<p>النقطة الأهم: الأنماط الأربعة مش بدائل لبعضها بالضرورة؛ ممكن تستخدم Pessimistic Offline Lock مع Coarse-Grained Lock وتطبق إدارته بطريقة Implicit.</p>
+<p>وده معناه إننا بنتعامل مع قرارات مختلفة: استراتيجية التزامن، نطاق الحجز، وطريقة تطبيقه.</p>
+<p>كمل بنفس الاسلوب من اليمين للشمال</p>
+<h2>Session State Patterns</h2>
+<p>تمام يا هندسة 😂 نبدأ مجموعة جديدة من كتاب <strong>Patterns of Enterprise Application Architecture (PoEAA)</strong>، وهي:</p>
+        
+      <nav class="page-nav" aria-label="تنقل الصفحات"><a href="distribution-patterns.html">→ Distribution Patterns</a><a href="session-state-patterns.html">Session State Patterns ←</a></nav>
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const saved = localStorage.getItem('poeaa3-theme');
+    if (saved) root.setAttribute('data-theme', saved);
+    document.getElementById('theme')?.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      if (next === 'dark') root.setAttribute('data-theme', 'dark'); else root.removeAttribute('data-theme');
+      localStorage.setItem('poeaa3-theme', next === 'dark' ? 'dark' : 'light');
+    });
+  </script>
+</body>
+</html>

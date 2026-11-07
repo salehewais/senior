@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Session State Patterns — POEAA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="أقسام المرجع">
+      <div class="toc-head">
+        <p class="toc-title"><a href="index.html">POEAA</a></p>
+        <button class="icon-btn" id="theme" type="button" aria-label="تبديل الوضع">☾</button>
+      </div>
+      <ol>
+        <li><a href="index.html">الرئيسية</a></li><li><a href="separated-interface.html">Separated Interface</a></li><li><a href="base-patterns.html">Base Patterns</a></li><li><a href="domain-logic-patterns.html">Domain Logic Patterns</a></li><li><a href="data-source-architectural-patterns.html">Data Source Architectural Patterns</a></li><li><a href="object-relational-behavioral-patterns.html">Object-Relational Behavioral Patterns</a></li><li><a href="object-relational-structural-patterns.html">Object-Relational Structural Patterns</a></li><li><a href="object-relational-metadata-mapping-patterns.html">Object-Relational Metadata Mapping Patterns</a></li><li><a href="web-presentation-patterns.html">Web Presentation Patterns</a></li><li><a href="distribution-patterns.html">Distribution Patterns</a></li><li><a href="offline-concurrency-patterns.html">Offline Concurrency Patterns</a></li><li><a href="session-state-patterns.html" class="active">Session State Patterns</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      
+      <header class="page-header">
+        <h1>Session State Patterns</h1>
+        <p class="lead">من مصدر ChatGPT POEAA — صفحة قسم واحد.</p>
+      </header>
+      <h2 class="section-title">Session State Patterns</h2>
+<p>قبل ما نبدأ، لازم نفهم المشكلة اللي المجموعة دي بتحاول تحلها.</p>
+<h2>يعني إيه Session State؟</h2>
+<p>تخيل إن المستخدم دخل نظام ERP وعمل Login.</p>
+<p>بعد كده بدأ يتنقل بين صفحات النظام:</p>
+<ul>
+<li>فتح صفحة العملاء.</li>
+<li>اختار Customer معين.</li>
+<li>بدأ يعمل Order.</li>
+<li>اختار منتجات.</li>
+<li>انتقل لصفحة الدفع.</li>
+</ul>
+<p>السؤال هنا: إزاي التطبيق يحتفظ بالمعلومات المرتبطة بالمستخدم خلال تنقله بين الطلبات المختلفة؟</p>
+<p>لأن HTTP بطبيعته Stateless، يعني كل Request مستقلة عن الطلب اللي قبلها، والتطبيق مش بيفتكر تلقائيًا إن الطلبين جايين من نفس المستخدم.</p>
+<p>إذن محتاجين آلية للاحتفاظ بحالة المستخدم عبر مجموعة Requests.</p>
+<p>وده اللي بنسميه <strong>Session State</strong>.</p>
+<h2>خريطة Session State Patterns</h2>
+<p>عندنا في PoEAA ثلاثة أنماط أساسية:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Session State Patterns
+          |
+          +--- Client Session State
+          |
+          +--- Server Session State
+          |
+          +--- Database Session State</code></pre></div>
+<p>الاختلاف الأساسي بينهم هو: <strong>أين يتم تخزين حالة الـ Session؟</strong></p>
+<ul>
+<li>Client Session State: عند العميل.</li>
+<li>Server Session State: في ذاكرة السيرفر.</li>
+<li>Database Session State: في قاعدة البيانات.</li>
+</ul>
+<p>هنبدأ بأول نمط.</p>
+<hr>
+<article class="pattern-card" id="1-client-session-state">
+<h3 class="pattern-title">1. Client Session State</h3>
+<div class="card-body">
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>عندنا Web Application، والمستخدم بيعمل Requests متعددة.</p>
+<p>مثلاً:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Open Products
+      |
+Add Product
+      |
+Update Quantity
+      |
+Checkout</code></pre></div>
+<p>كل Request مستقلة عن الثانية.</p>
+<p>لكن التطبيق محتاج يحتفظ بمعلومات زي:</p>
+<ul>
+<li>User Preferences.</li>
+<li>Shopping Cart.</li>
+<li>Selected Language.</li>
+<li>Current Workflow Information.</li>
+</ul>
+<p>ممكن نخزن المعلومات دي في السيرفر، لكن ده هيحتاج إدارة Sessions على السيرفر نفسه.</p>
+<p>السؤال: هل ممكن نخزن حالة المستخدم عند العميل بدل السيرفر؟</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة <strong>Client Session State</strong> هي تخزين بيانات الـ Session على جهاز المستخدم نفسه، بحيث العميل يرسل البيانات دي مع كل Request يحتاجها التطبيق.</p>
+<p>بالتالي السيرفر مش محتاج يحتفظ بنسخة من حالة كل مستخدم في ذاكرته.</p>
+<p>التدفق من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Server  &lt;---  Session Data  &lt;---  Client</code></pre></div>
+<p>مثال:</p>
+<p>المستخدم اختار اللغة العربية، والسلة فيها منتجين.</p>
+<p>ممكن نخزن الحالة بالشكل ده:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">json</span></div><pre class="code-block"><code class="language-json">{
+    &quot;language&quot;: &quot;ar&quot;,
+    &quot;cart&quot;: [
+        {
+            &quot;product_id&quot;: 10,
+            &quot;quantity&quot;: 2
+        },
+        {
+            &quot;product_id&quot;: 20,
+            &quot;quantity&quot;: 1
+        }
+    ]
+}</code></pre></div>
+<p>العميل يحتفظ بالبيانات، ويرسلها مع الطلبات المناسبة.</p>
+<p><strong>مثال: Shopping Cart</strong></p>
+<p><strong>Client Browser</strong> (Stores State)</p>
+<hr>
+<p>Product A × 2 Quantity: 2</p>
+<p>Product B × 1 Quantity: 1</p>
+<hr>
+<p>السيرفر يستقبل حالة السلة مع الطلب، بدل الاحتفاظ بحالة Session كاملة في ذاكرته.</p>
+<p>لكن هنا فيه سؤال مهم:</p>
+<p>هل ينفع نخزن البيانات دي في Cookie عادية؟</p>
+<p>ممكن، لكن فيه اعتبارات مهمة:</p>
+<ul>
+<li>حجم الـ Cookie محدود.</li>
+<li>البيانات ممكن المستخدم يقرأها أو يحاول يعدلها.</li>
+<li>لازم نحمي سلامة البيانات من التلاعب.</li>
+<li>لازم نراعي إن الـ Cookie بتتبعت تلقائيًا مع الطلبات المطابقة لنطاقها، وده له اعتبارات أمنية.</li>
+</ul>
+<p>عشان كده ممكن نستخدم:</p>
+<ul>
+<li>Signed Cookies.</li>
+<li>Encrypted Cookies.</li>
+<li>Tokens تحتوي على Session Claims.</li>
+</ul>
+<p><strong>مهم:</strong> التوقيع (Signing) يمنع اكتشاف التعديل غير المصرح به، لكنه لا يخفي محتوى البيانات. التشفير (Encryption) هو اللي يوفر السرية.</p>
+<hr>
+<h2>3. مثال Python</h2>
+<p>هنعمل مثال مبسط يوضح الفكرة باستخدام Flask.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from flask import Flask, request, make_response
+import json
+
+app = Flask(__name__)
+
+@app.route(&quot;/cart&quot;)
+def get_cart():
+
+    cart = request.cookies.get(&quot;cart&quot;)
+
+    if cart:
+        cart_data = json.loads(cart)
+    else:
+        cart_data = []
+
+    response = make_response({
+        &quot;cart&quot;: cart_data
+    })
+
+    return response
+
+@app.route(&quot;/cart/add/&lt;int:product_id&gt;&quot;)
+def add_to_cart(product_id):
+
+    cart = request.cookies.get(&quot;cart&quot;)
+
+    if cart:
+        cart_data = json.loads(cart)
+    else:
+        cart_data = []
+
+    cart_data.append({
+        &quot;product_id&quot;: product_id,
+        &quot;quantity&quot;: 1
+    })
+
+    response = make_response({
+        &quot;message&quot;: &quot;Product added&quot;
+    })
+
+    response.set_cookie(
+        &quot;cart&quot;,
+        json.dumps(cart_data)
+    )
+
+    return response</code></pre></div>
+<p>ده مثال تعليمي فقط، وليس تطبيقًا آمنًا للإنتاج؛ لأن المستخدم يقدر يغيّر قيمة الـ Cookie، ومفيش توقيع أو تشفير أو معالجة لتكرار المنتج.</p>
+<p>في تطبيق حقيقي ممكن نستخدم Cookie موقعة ومشفرة، أو نخزن بيانات غير حساسة فقط عند العميل.</p>
+<p>والأهم: <strong>ماينفعش نثق في بيانات العميل عند تنفيذ عمليات مالية أو تغيير أسعار أو صلاحيات.</strong></p>
+<p>مثلًا سعر المنتج لازم يتحدد ويتحقق منه على السيرفر، مش من قيمة مرسلة داخل الـ Cookie.</p>
+<h2>4. أقرب GoF Pattern</h2>
+<p>هل فيه GoF Pattern مطابق لـ Client Session State؟</p>
+<p><strong>لا يوجد GoF Pattern مطابق مباشرةً.</strong></p>
+<p>لكن فيه تشابه جزئي مع:</p>
+<p><strong>Memento Pattern</strong></p>
+<p>الـ Memento بيحفظ حالة Object بحيث نقدر نسترجعها لاحقًا.</p>
+<p>أما Client Session State فهدفه تخزين حالة المستخدم عند العميل ونقلها بين Requests.</p>
+<p>الفرق في الـ Intent:</p>
+<ul>
+<li>Memento: حفظ واسترجاع حالة Object.</li>
+<li>Client Session State: إدارة حالة المستخدم عبر Requests باستخدام تخزين Client-Side.</li>
+</ul>
+<p>ممكن تستخدم Memento كآلية لحفظ حالة، لكن مش هو نفس النمط.</p>
+<h2>5. علاقته بـ Application Architecture</h2>
+<p>Client Session State مش Application Architecture مستقلة.</p>
+<p>ممكن تستخدمه داخل:</p>
+<ul>
+<li>Layered Architecture.</li>
+<li>Clean Architecture.</li>
+<li>Hexagonal Architecture.</li>
+</ul>
+<p>مثلاً:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Client  &lt;---  HTTP Request + Session Data  &lt;---  Controller
+                                                    |
+                                                    v
+                                               Application
+                                                    |
+                                                    v
+                                                 Domain</code></pre></div>
+<p>الـ Controller يستقبل بيانات الـ Session ويحوّلها إلى بيانات مناسبة للتطبيق.</p>
+<p>لكن مش المفروض الـ Domain يعتمد على تفاصيل الـ Cookie أو HTTP Session.</p>
+<h2>6. علاقته بـ Clean Architecture</h2>
+<p>في Clean Architecture، بيانات الـ Session تعتبر جزءًا من الـ Input القادم من الخارج.</p>
+<p>ممكن يكون عندنا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class CheckoutInput:
+
+    def __init__(self, user_id, cart_items):
+        self.user_id = user_id
+        self.cart_items = cart_items</code></pre></div>
+<p>الـ Controller يقرأ البيانات من الـ Client، ويتحقق من شكلها، وبعدها يمررها للـ Use Case.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Client  &lt;---  Controller  &lt;---  Checkout Use Case</code></pre></div>
+<p>لكن فيه فرق مهم:</p>
+<p>الـ Client Session State مش معناها إننا ننقل Business State بالكامل للعميل.</p>
+<p>مثلًا:</p>
+<ul>
+<li>اختيار اللغة: مناسب للتخزين عند العميل.</li>
+<li>شكل الواجهة: مناسب للتخزين عند العميل.</li>
+<li>محتويات سلة التسوق: ممكن تخزينها عند العميل مع إعادة التحقق على السيرفر.</li>
+<li>رصيد الحساب البنكي: لا، لازم مصدر الحقيقة يكون موثوقًا على السيرفر.</li>
+</ul>
+<h2>7. علاقته بـ DDD</h2>
+<p>DDD بيفرق بين:</p>
+<ul>
+<li>Domain State.</li>
+<li>Application State.</li>
+<li>Presentation State.</li>
+</ul>
+<p>Client Session State غالبًا مناسب للاحتفاظ بجزء من الـ Presentation أو Application State.</p>
+<p>مثلاً:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">User Session
+    |
+    +--- Selected Language
+    |
+    +--- Current Page
+    |
+    +--- UI Preferences
+    |
+    +--- Temporary Workflow Data</code></pre></div>
+<p>لكن لا ينبغي اعتبار البيانات الموجودة عند العميل مصدر الحقيقة للـ Aggregate.</p>
+<p>لو المستخدم أرسل:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">json</span></div><pre class="code-block"><code class="language-json">{
+    &quot;order_total&quot;: 100
+}</code></pre></div>
+<p>مش معنى كده إن الـ Domain يقبل إن إجمالي الطلب هو 100.</p>
+<p>لازم يحسب الإجمالي من البيانات الموثوقة وقواعد العمل.</p>
+<h2>8. علاقته بـ Odoo</h2>
+<p>في Odoo عندنا Session مرتبطة بمستخدم الويب، وبيتم التعامل معها من خلال HTTP Layer.</p>
+<p>لكن لازم نفرّق بين:</p>
+<ul>
+<li>Client Session State: الحالة نفسها مخزنة عند العميل.</li>
+<li>Server Session State: العميل يحتفظ بمعرّف Session، والحالة الفعلية موجودة عند السيرفر.</li>
+</ul>
+<p>في تطبيق Odoo، مجرد إن الـ Browser عنده Cookie فيها Session ID مش معناه إن Odoo بيستخدم Client Session State.</p>
+<p>الـ Session ID مجرد وسيلة للتعرف على الـ Session، ومش هو بيانات الـ Session نفسها.</p>
+<hr>
+<h2>9. المميزات والعيوب</h2>
+<p><strong>المميزات:</strong></p>
+<ul>
+<li>يقلل احتياج السيرفر لتخزين Session لكل مستخدم.</li>
+<li>يسهل التوسع الأفقي (Horizontal Scaling) من ناحية حالة الجلسة.</li>
+<li>لا يحتاج بالضرورة إلى Session Store مشترك بين السيرفرات.</li>
+<li>مناسب للبيانات الصغيرة وغير الحساسة.</li>
+</ul>
+<p><strong>العيوب:</strong></p>
+<ul>
+<li>حجم البيانات محدود.</li>
+<li>العميل ممكن يحاول التلاعب بالبيانات.</li>
+<li>إرسال البيانات المتكررة يزيد حجم الـ Requests.</li>
+<li>التشفير والتوقيع وإدارة المفاتيح يضيفوا تعقيدًا.</li>
+<li>إلغاء Session أو تحديث حالتها فورًا أصعب لو كل البيانات موجودة عند العميل.</li>
+</ul>
+<h2>10. إمتى نستخدم Client Session State؟</h2>
+<p>استخدمه لما تكون البيانات:</p>
+<ul>
+<li>صغيرة.</li>
+<li>مناسبة للتخزين عند العميل.</li>
+<li>لا تحتاج تحكمًا مركزيًا مستمرًا في تحديثها وإلغائها.</li>
+<li>يمكن التحقق منها عند السيرفر قبل تنفيذ أي Business Operation حساسة.</li>
+</ul>
+<hr>
+<p><strong>الخلاصة:</strong></p>
+<p>Client Session State بيحل مشكلة الاحتفاظ بحالة المستخدم عن طريق نقل مسؤولية تخزين الحالة إلى العميل بدل السيرفر.</p>
+<p>لكن ده لا يعني إننا ننقل مسؤولية الـ Business Rules أو مصدر الحقيقة للعميل.</p>
+<hr>
+<h2 class="section-title">النمط التالي: Server Session State</h2>
+<p>هنا هنقلب الفكرة تمامًا.</p>
+<p>بدل ما نخزن حالة المستخدم عند العميل، هنخزنها عند السيرفر، والعميل يحتفظ فقط بمعرّف الـ Session.</p>
+<p>وهنفهم الفرق بين تخزين الحالة في Server Memory وبين استخدام Session Store مشترك، وليه الموضوع ده مهم جدًا في الأنظمة اللي فيها أكثر من Application Server.</p>
+<article class="pattern-card" id="2-server-session-state">
+<h3 class="pattern-title">2. Server Session State</h3>
+<div class="card-body">
+<p>في النمط السابق <strong>Client Session State</strong> كنا بنخزن حالة المستخدم عند العميل نفسه.</p>
+<p>دلوقتي هنستخدم العكس تمامًا:</p>
+<p><strong>هنخزن حالة المستخدم عند السيرفر، والعميل هيحتفظ فقط بمعرّف الـ Session.</strong></p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندنا مستخدم دخل نظام ERP وعمل Login.</p>
+<p>بعد تسجيل الدخول، بدأ ينفذ مجموعة عمليات:</p>
+<ul>
+<li>اختار الشركة الحالية.</li>
+<li>اختار اللغة.</li>
+<li>حدد مجموعة فلاتر للتقارير.</li>
+<li>بدأ عملية إنشاء Order.</li>
+<li>اختار منتجات وكميات.</li>
+</ul>
+<p>إحنا محتاجين نحتفظ بالحالة دي بين الـ Requests المختلفة.</p>
+<p>ممكن نخزن كل البيانات عند العميل، لكن ده مش مناسب دائمًا، خصوصًا لو البيانات كبيرة أو حساسة أو محتاجة تحكم مركزي.</p>
+<p>إذن نحتاج مكانًا على السيرفر يحتفظ بحالة كل مستخدم.</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة <strong>Server Session State</strong> هي إن السيرفر يحتفظ ببيانات الـ Session، بينما العميل يحتفظ بمعرّف يحدد الـ Session الخاصة به.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Client  &lt;---  Session ID  &lt;---  Server</code></pre></div>
+<p>العميل مش محتاج يعرف تفاصيل الحالة المخزنة عند السيرفر.</p>
+<p>كل اللي محتاجه إنه يرسل Session ID مع كل Request.</p>
+<p>والسيرفر يستخدم الـ ID لاسترجاع الحالة.</p>
+<h3>مثال عملي</h3>
+<p>المستخدم عمل Login، والسيرفر أنشأ Session:</p>
+<p><strong>Server Session Store</strong></p>
+<p>Session ID</p>
+<p>abc123</p>
+<hr>
+<p>User ID</p>
+<p>42</p>
+<p>Current Company</p>
+<p>5</p>
+<p>Language</p>
+<p>ar</p>
+<p>Cart</p>
+<p>Product A × 2</p>
+<p>الـ Browser يحتفظ فقط بالـ Session ID.</p>
+<p>وعندما يرسل Request جديدة:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Browser  &lt;---  Request + Session ID  &lt;---  Server</code></pre></div>
+<p>السيرفر يستخرج الـ Session ID، ويبحث عن البيانات المرتبطة به.</p>
+<h3>شكل المعمارية</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Browser  &lt;---  Session ID  &lt;---  Application Server
+                                      |
+                                      v
+                                Session Store
+                                      |
+                                      v
+                                Session Data</code></pre></div>
+<p>لاحظ إن الـ Session Store ممكن يكون داخل ذاكرة السيرفر نفسه، أو خدمة تخزين خارجية.</p>
+<p>وده هيفرق معانا جدًا لما نبدأ نتكلم عن Distributed Systems.</p>
+<h2>3. مثال Python</h2>
+<p>هنستخدم Flask لتوضيح الفكرة.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from flask import Flask, session, jsonify
+
+app = Flask(__name__)
+
+app.secret_key = &quot;development-secret-key&quot;
+
+@app.route(&quot;/login&quot;)
+def login():
+
+    session[&quot;user_id&quot;] = 42
+    session[&quot;company_id&quot;] = 5
+    session[&quot;language&quot;] = &quot;ar&quot;
+
+    return jsonify({
+        &quot;message&quot;: &quot;Logged in&quot;
+    })
+
+@app.route(&quot;/profile&quot;)
+def profile():
+
+    return jsonify({
+        &quot;user_id&quot;: session.get(&quot;user_id&quot;),
+        &quot;company_id&quot;: session.get(&quot;company_id&quot;),
+        &quot;language&quot;: session.get(&quot;language&quot;)
+    })</code></pre></div>
+<p>هنا فيه تفصيلة مهمة جدًا:</p>
+<p><strong>Flask الافتراضي بيستخدم Secure Cookie Session، مش Server-Side Session Store.</strong></p>
+<p>يعني البيانات نفسها بتكون مخزنة داخل Cookie موقعة عند العميل، مش داخل ذاكرة السيرفر.</p>
+<p>إذن المثال السابق يوضح واجهة التعامل مع Session، لكنه ليس تنفيذًا حقيقيًا لـ Server Session State.</p>
+<p>خلينا نعمل تنفيذًا توضيحيًا باستخدام Server-Side Dictionary:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from flask import Flask, request, jsonify
+import uuid
+
+app = Flask(__name__)
+
+sessions = {}
+
+@app.route(&quot;/login&quot;)
+def login():
+
+    session_id = str(uuid.uuid4())
+
+    sessions[session_id] = {
+        &quot;user_id&quot;: 42,
+        &quot;company_id&quot;: 5,
+        &quot;language&quot;: &quot;ar&quot;
+    }
+
+    response = jsonify({
+        &quot;message&quot;: &quot;Logged in&quot;
+    })
+
+    response.set_cookie(
+        &quot;session_id&quot;,
+        session_id,
+        httponly=True,
+        secure=True,
+        samesite=&quot;Lax&quot;
+    )
+
+    return response
+
+@app.route(&quot;/profile&quot;)
+def profile():
+
+    session_id = request.cookies.get(&quot;session_id&quot;)
+
+    user_session = sessions.get(session_id)
+
+    if not user_session:
+        return jsonify({&quot;error&quot;: &quot;Invalid session&quot;}), 401
+
+    return jsonify(user_session)</code></pre></div>
+<p>في المثال ده:</p>
+<ul>
+<li>الـ Dictionary هو Session Store.</li>
+<li>السيرفر هو اللي بيحتفظ بالبيانات.</li>
+<li>العميل بيحتفظ بالـ Session ID.</li>
+<li>كل Request بتستخدم الـ ID للوصول إلى الحالة.</li>
+</ul>
+<p>ده مثال تعليمي فقط؛ Dictionary مش مناسب للإنتاج لأنه بيضيع عند إعادة تشغيل السيرفر، ومش مشترك بين Workers أو Servers، ومفيهوش انتهاء صلاحية أو إدارة آمنة للـ Sessions.</p>
+<hr>
+<h2>4. ماذا يحدث لو عندنا أكثر من Application Server؟</h2>
+<p>هنا تظهر أهمية النمط في الأنظمة الكبيرة.</p>
+<p>تخيل عندنا Application Server عدد 2:</p>
+<ul>
+<li>Server A</li>
+<li>Server B</li>
+</ul>
+<p>والمستخدم سجل الدخول من خلال Server A.</p>
+<p>الـ Session اتخزنت في ذاكرة Server A.</p>
+<p>بعد كده المستخدم بعت Request جديدة، والـ Load Balancer وجّهها إلى Server B.</p>
+<p>المشكلة إن Server B مش عنده Session المستخدم!</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">                         Load Balancer
+                         /            \
+                        v              v
+                  Server A          Server B
+                      |                  |
+                      v                  v
+                Local Sessions      Local Sessions</code></pre></div>
+<p>هنا عندنا أكثر من حل:</p>
+<ol>
+<li>Sticky Sessions: الـ Load Balancer يحاول يوجه المستخدم دائمًا لنفس السيرفر.</li>
+<li>Shared Session Store: كل السيرفرات تستخدم نفس مخزن الـ Sessions.</li>
+<li>Client Session State: تخزين الحالة عند العميل بدل السيرفر، لو طبيعة البيانات تسمح بذلك.</li>
+</ol>
+<p>الحل الشائع في الأنظمة الموزعة هو Shared Session Store، مثل Redis.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">User  &lt;---  Load Balancer  &lt;---  Server A
+                    |
+                    +--- Server B
+                    |
+                    v
+              Shared Redis
+                    |
+                    v
+              Session Data</code></pre></div>
+<p>وبالتالي أي Application Server يقدر يسترجع Session المستخدم.</p>
+<hr>
+<h2>5. أقرب GoF Pattern</h2>
+<p>مفيش GoF Pattern مطابق لـ Server Session State.</p>
+<p>لكن فيه تشابه جزئي مع:</p>
+<p><strong>Registry Pattern</strong></p>
+<p>لأن عندنا مكان مركزي نقدر من خلاله نصل إلى بيانات مرتبطة بمعرّف معين.</p>
+<p>لكن الفرق:</p>
+<ul>
+<li>Registry: آلية للوصول إلى Objects أو Services مسجلة.</li>
+<li>Server Session State: تخزين حالة المستخدم واسترجاعها عبر Requests.</li>
+</ul>
+<p>ممكن تستخدم Registry-like mechanism في تنفيذ Session Store، لكن مش هما نفس النمط.</p>
+<p>كمان فيه تشابه مع <strong>Memento Pattern</strong> من ناحية حفظ واسترجاع الحالة، لكنه مش بديل مباشر.</p>
+<h2>6. علاقته بـ Application Architecture</h2>
+<p>Server Session State مش Architecture مستقلة.</p>
+<p>ممكن نستخدمه في Layered أو Clean أو Hexagonal Architecture.</p>
+<p>مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Browser  &lt;---  HTTP Request + Session ID  &lt;---  Controller
+                                                   |
+                                                   v
+                                              Session Service
+                                                   |
+                                                   v
+                                              Session Store</code></pre></div>
+<p>الـ Controller أو Middleware يستخرج الـ Session ID.</p>
+<p>بعدها Session Service تسترجع الحالة المطلوبة.</p>
+<p>ومن الأفضل إن الـ Domain Layer مايعرفش حاجة عن HTTP Session أو Cookie أو Redis.</p>
+<h2>7. علاقته بـ Clean Architecture</h2>
+<p>في Clean Architecture ممكن نعرّف Port للتعامل مع Session:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from typing import Protocol
+
+class SessionStore(Protocol):
+
+    def get(self, session_id: str):
+        ...
+
+    def save(self, session_id: str, data: dict):
+        ...
+
+    def delete(self, session_id: str):
+        ...</code></pre></div>
+<p>والـ Infrastructure توفر Implementation باستخدام Redis أو Database أو Memory.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Redis Implementation  &lt;---  SessionStore Port  &lt;---  Application Service</code></pre></div>
+<p>الـ Application Service يعتمد على Interface، مش على Redis مباشرة.</p>
+<p>لكن فيه نقطة مهمة:</p>
+<p>مش كل بيانات الـ Session لازم تدخل الـ Use Case.</p>
+<p>مثلًا اللغة الحالية أو إعدادات الواجهة ممكن تتعامل معاها طبقة الـ Presentation.</p>
+<p>أما بيانات مرتبطة بعملية Business طويلة، فممكن تحتاج إدارة مختلفة حسب طبيعة العملية.</p>
+<h2>8. علاقته بـ DDD</h2>
+<p>لازم نفرق بين Session State وDomain State.</p>
+<p>مثلاً:</p>
+<p><strong>Session State:</strong></p>
+<ul>
+<li>المستخدم الحالي.</li>
+<li>اللغة المختارة.</li>
+<li>الشركة الحالية.</li>
+<li>تفضيلات العرض.</li>
+<li>بيانات مؤقتة للتنقل.</li>
+</ul>
+<p><strong>Domain State:</strong></p>
+<ul>
+<li>حالة Order.</li>
+<li>رصيد Account.</li>
+<li>حالة Invoice.</li>
+<li>قواعد تسعير المنتج.</li>
+</ul>
+<p>الـ Session مش المفروض تكون مصدر الحقيقة للـ Domain Objects.</p>
+<p>مثلًا لو المستخدم اختار Company ID في الـ Session، لازم التطبيق يتحقق إن المستخدم عنده صلاحية الوصول للشركة دي.</p>
+<p>وجود القيمة في Session مش معناه إنها موثوقة أو مسموح بها تلقائيًا.</p>
+<hr>
+<h2>9. علاقته بـ Odoo</h2>
+<p>في Odoo عندنا Server-Side Session State بشكل واضح.</p>
+<p>الـ Browser بيحتفظ بـ Session Cookie، والسيرفر يستخدم الـ Session ID للوصول إلى بيانات الـ Session.</p>
+<p>ومن المعلومات اللي ممكن ترتبط بالـ Session:</p>
+<ul>
+<li>User Identity.</li>
+<li>Context.</li>
+<li>Company Information.</li>
+<li>Language.</li>
+<li>Authentication Information.</li>
+</ul>
+<p>لكن لازم نفرق بين الـ Session وبين الـ Database Transaction.</p>
+<p>الـ Session ممكن تستمر عبر Requests كثيرة، بينما كل HTTP Request لها دورة Transaction خاصة بها في Odoo.</p>
+<p>يعني:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Session Lifetime  &lt;---  Multiple HTTP Requests</code></pre></div>
+<p>بينما:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Database Transaction  &lt;---  One Request Lifecycle</code></pre></div>
+<p>وده فرق مهم جدًا، خصوصًا لما نتعامل مع عمليات طويلة أو Background Jobs.</p>
+<hr>
+<h2>10. المميزات والعيوب</h2>
+<p><strong>المميزات:</strong></p>
+<ul>
+<li>السيرفر يتحكم في حالة المستخدم.</li>
+<li>مناسب للبيانات الأكبر نسبيًا من Client-Side Cookies.</li>
+<li>يقدر يلغي Session أو يعدلها من السيرفر.</li>
+<li>البيانات الحساسة مش مضطرة تتخزن داخل العميل.</li>
+<li>ممكن مشاركة الحالة بين عدة Application Servers باستخدام Shared Store.</li>
+</ul>
+<p><strong>العيوب:</strong></p>
+<ul>
+<li>يحتاج مساحة تخزين على السيرفر أو خدمة خارجية.</li>
+<li>كل Request قد تحتاج قراءة Session من المخزن.</li>
+<li>محتاج إدارة Expiration وCleanup.</li>
+<li>محتاج حل لمشكلة مشاركة Sessions بين السيرفرات.</li>
+<li>Session Store نفسه ممكن يصبح نقطة ضغط أو فشل.</li>
+</ul>
+<p>كمان لازم نراعي Session Fixation وSession Hijacking، ونستخدم Session ID عشوائي قوي، وHTTPS، وCookie Security Flags، وتجديد Session ID بعد تسجيل الدخول.</p>
+<hr>
+<h2>11. مقارنة Client وServer Session State</h2>
+<p>المقارنة	Client Session	Server Session</p>
+<p>مكان الحالة	العميل	السيرفر</p>
+<p>ما يرسله العميل	بيانات الحالة	Session ID</p>
+<p>تحكم السيرفر	محدود نسبيًا	أكبر</p>
+<p>حجم البيانات	محدود	أكبر نسبيًا</p>
+<p>إلغاء الحالة	أصعب	أسهل مركزيًا</p>
+<p>مشاركة الحالة بين Servers	غير مطلوبة غالبًا	تحتاج Shared Store أو Sticky Sessions</p>
+<hr>
+<h2 class="section-title">النمط الثالث: Database Session State</h2>
+<p>لسه عندنا نمط أخير في المجموعة.</p>
+<p>السؤال اللي هنبدأ منه:</p>
+<p>إحنا في Server Session State خزّنا الحالة في Memory أو Redis.</p>
+<p>لكن ماذا لو عايزين Session State تكون محفوظة بشكل دائم في Database، وتستمر حتى لو Application Server اتعمله Restart؟</p>
+<p>وده موضوع <strong>Database Session State</strong>.</p>
+<p>هنشوف إيه الفرق الحقيقي بين تخزين Session في Redis وتخزينها في Database، وإمتى نختار كل واحد.</p>
+<article class="pattern-card" id="3-database-session-state">
+<h3 class="pattern-title">3. Database Session State</h3>
+<div class="card-body">
+<p>وصلنا لآخر نمط في مجموعة <strong>Session State Patterns</strong>.</p>
+<p>في النمط السابق <strong>Server Session State</strong> كنا بنخزن حالة المستخدم على السيرفر، سواء في Memory أو في Shared Store زي Redis.</p>
+<p>لكن هنا هنستخدم قاعدة البيانات نفسها لتخزين حالة الـ Session.</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندنا نظام Enterprise Application فيه آلاف المستخدمين.</p>
+<p>كل مستخدم عنده Session تحتوي على بيانات مختلفة:</p>
+<ul>
+<li>User ID.</li>
+<li>Current Company.</li>
+<li>Language.</li>
+<li>Shopping Cart.</li>
+<li>Workflow Progress.</li>
+<li>Temporary Application Data.</li>
+</ul>
+<p>لو خزّنا الـ Sessions في ذاكرة Application Server، هنواجه مشكلة لما السيرفر يعمل Restart.</p>
+<p>ولو استخدمنا Redis، هنحتاج ندير Redis كخدمة إضافية، ونتأكد من إعدادات Persistence والـ Replication والـ Recovery حسب متطلبات النظام.</p>
+<p>السؤال:</p>
+<p>هل ممكن نخزن الـ Session State في قاعدة البيانات نفسها، بحيث تكون جزءًا من البيانات اللي النظام بيديرها؟</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة <strong>Database Session State</strong> هي تخزين حالة المستخدم في جدول داخل Database.</p>
+<p>العميل يحتفظ فقط بالـ Session ID، والسيرفر يستخدمه للوصول إلى البيانات المخزنة.</p>
+<p>التدفق من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Browser  &lt;---  Session ID  &lt;---  Application Server
+                                      |
+                                      v
+                                  Database
+                                      |
+                                      v
+                                  Session Data</code></pre></div>
+<p>مثلاً نعمل جدول:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">CREATE TABLE user_sessions (
+    session_id VARCHAR(255) PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    session_data JSONB NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);</code></pre></div>
+<p>ممكن نخزن البيانات بالشكل ده:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">json</span></div><pre class="code-block"><code class="language-json">{
+    &quot;company_id&quot;: 5,
+    &quot;language&quot;: &quot;ar&quot;,
+    &quot;cart&quot;: [
+        {
+            &quot;product_id&quot;: 10,
+            &quot;quantity&quot;: 2
+        }
+    ]
+}</code></pre></div>
+<p>وبالتالي كل Session ليها Record مستقل في قاعدة البيانات.</p>
+<h2>3. مثال Python باستخدام PostgreSQL</h2>
+<p>هنستخدم psycopg كمثال مبسط.</p>
+<h3>حفظ Session</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">import json
+
+def save_session(conn, session_id, user_id, data, expires_at):
+
+    with conn.cursor() as cursor:
+        cursor.execute(
+            &quot;&quot;&quot;
+            INSERT INTO user_sessions (
+                session_id,
+                user_id,
+                session_data,
+                expires_at
+            )
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (session_id)
+            DO UPDATE SET
+                session_data = EXCLUDED.session_data,
+                expires_at = EXCLUDED.expires_at
+            &quot;&quot;&quot;,
+            (
+                session_id,
+                user_id,
+                json.dumps(data),
+                expires_at
+            )
+        )
+
+    conn.commit()</code></pre></div>
+<h3>استرجاع Session</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def get_session(conn, session_id):
+
+    with conn.cursor() as cursor:
+        cursor.execute(
+            &quot;&quot;&quot;
+            SELECT session_data
+            FROM user_sessions
+            WHERE session_id = %s
+              AND expires_at &gt; NOW()
+            &quot;&quot;&quot;,
+            (session_id,)
+        )
+
+        row = cursor.fetchone()
+
+    if not row:
+        return None
+
+    return row[0]</code></pre></div>
+<h3>حذف Session</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">def delete_session(conn, session_id):
+
+    with conn.cursor() as cursor:
+        cursor.execute(
+            &quot;&quot;&quot;
+            DELETE FROM user_sessions
+            WHERE session_id = %s
+            &quot;&quot;&quot;,
+            (session_id,)
+        )
+
+    conn.commit()</code></pre></div>
+<p>لاحظ إننا بنستخدم expires_at عشان نتأكد إن الـ Session لسه صالحة.</p>
+<p>وممكن نعمل Scheduled Job يحذف الـ Sessions المنتهية دوريًا.</p>
+<p>المثال للتوضيح، وفي الإنتاج لازم نراعي Connection Pooling، وإدارة المعاملات، وتحديث الجلسة بشكل ذري عند تعدد الطلبات، وحماية Session ID، وتحديد سياسة انتهاء الصلاحية.</p>
+<hr>
+<h2>4. إيه اللي يميز Database Session State عن Server Session State؟</h2>
+<p>خلينا نرجع خطوة.</p>
+<p><strong>Server Session State</strong> بيحدد مكان تخزين الحالة بشكل عام: عند السيرفر.</p>
+<p>لكن مكان التخزين ممكن يكون:</p>
+<ul>
+<li>In-Memory.</li>
+<li>Redis.</li>
+<li>Database.</li>
+</ul>
+<p>أما <strong>Database Session State</strong> فهو نمط محدد بيستخدم قاعدة البيانات لتخزين الحالة.</p>
+<p>يعني العلاقة بينهم إن Database Session State يعتبر أحد أساليب تطبيق Server-Side Session Storage.</p>
+<p>مثال مقارنة:</p>
+<p><strong>Server Session State باستخدام Memory</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Client  &lt;---  Server A  &lt;---  Memory</code></pre></div>
+<p>(Local to Server)</p>
+<hr>
+<p><strong>Server Session State باستخدام Redis</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Client  &lt;---  Server A  &lt;---  Redis
+                     ^
+                     |
+                  Server B</code></pre></div>
+<p>(Shared Store)</p>
+<hr>
+<p><strong>Database Session State</strong></p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Client  &lt;---  Server  &lt;---  PostgreSQL</code></pre></div>
+<p>(Database Persistence)</p>
+<p>ملحوظة: Redis ممكن يكون عنده Persistence، وبالتالي مش معنى استخدام Redis إن البيانات هتضيع بالضرورة عند Restart. الموضوع متعلق بإعداداته ومتطلبات الاستمرارية.</p>
+<h2>5. أقرب GoF Pattern</h2>
+<p>مفيش GoF Pattern مطابق لـ Database Session State.</p>
+<p>لكن فيه تشابه جزئي مع:</p>
+<p><strong>Data Mapper Pattern</strong></p>
+<p>لأننا بنحتاج نحول بيانات الـ Session من شكلها داخل التطبيق إلى شكل قابل للتخزين في قاعدة البيانات، والعكس.</p>
+<p>لكن الفرق:</p>
+<ul>
+<li>Data Mapper مسؤول عن نقل البيانات بين Objects وDatabase.</li>
+<li>Database Session State مسؤول عن مكان وطريقة تخزين حالة المستخدم.</li>
+</ul>
+<p>Data Mapper ممكن يكون وسيلة تنفيذ، لكنه مش نفس النمط.</p>
+<p>وممكن كمان تلاحظ تشابهًا مع Repository، لأننا ممكن نوفر واجهة لإدارة Sessions، لكن Repository نفسه مش بديل عن Database Session State.</p>
+<h2>6. علاقته بـ Application Architecture</h2>
+<p>النمط ده مش Application Architecture مستقلة.</p>
+<p>ممكن تستخدمه داخل Layered Architecture أو Clean Architecture أو Hexagonal Architecture.</p>
+<p>مثلاً:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Browser  &lt;---  Controller  &lt;---  Application Service
+                                      |
+                                      v
+                                Session Repository
+                                      |
+                                      v
+                                  Database</code></pre></div>
+<p>الـ Application Service بيتعامل مع Session Repository، والـ Repository مسؤول عن القراءة والكتابة في قاعدة البيانات.</p>
+<p>لكن مش كل Business Operation لازم تعتمد على Session Repository مباشرة.</p>
+<h2>7. علاقته بـ Clean Architecture</h2>
+<p>ممكن نعرّف Port لإدارة Session:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from typing import Protocol
+
+class SessionRepository(Protocol):
+
+    def get(self, session_id: str):
+        ...
+
+    def save(self, session_id: str, data: dict):
+        ...
+
+    def delete(self, session_id: str):
+        ...</code></pre></div>
+<p>والـ Infrastructure تنفذ الـ Port باستخدام PostgreSQL.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">PostgreSQL Implementation  &lt;---  SessionRepository Port  &lt;---  Application</code></pre></div>
+<p>وبكده الـ Application مش محتاجة تعرف إننا بنستخدم PostgreSQL.</p>
+<p>ممكن نستبدلها بـ Redis أو أي Storage تاني من غير تغيير في الـ Business Logic.</p>
+<h2>8. علاقته بـ DDD</h2>
+<p>هنا لازم نفرق بين حاجتين:</p>
+<p><strong>Session State مش بالضرورة Domain State.</strong></p>
+<p>مثلاً:</p>
+<p>Session State	Domain State</p>
+<p>اللغة المختارة	حالة الطلب</p>
+<p>الشركة الحالية	رصيد الحساب</p>
+<p>الصفحة الحالية	حالة الفاتورة</p>
+<p>الفلاتر المختارة	قواعد التسعير</p>
+<p>ممكن نخزن Session في Database، لكن ده مش معناه إننا حولناها إلى Domain Entity.</p>
+<p>ومش معنى إن البيانات موجودة في نفس قاعدة البيانات إن ليها نفس المسؤوليات أو نفس دورة الحياة.</p>
+<p>كمان لو عندنا Workflow طويل ومهم، لازم نفكر هل ده فعلًا مجرد Session State، ولا Business Process محتاج Persistence مستقلة.</p>
+<p>مثلًا عملية اعتماد فاتورة ممكن تستمر أيامًا؛ مينفعش نعتمد على Session المستخدم لحفظ تقدم العملية، لأنها مرتبطة بعمر الجلسة، بينما العملية التجارية لها دورة حياة مستقلة.</p>
+<h2>9. علاقته بـ Odoo</h2>
+<p>في Odoo، قاعدة البيانات هي المكان الأساسي لتخزين بيانات الـ Business، لكن لازم نفرق بين تخزين بيانات المستخدم والجلسة.</p>
+<p>ممكن تعمل Custom Session Model لو عندك احتياج خاص لتخزين حالة إضافية في Database.</p>
+<p>لكن مش معنى إن Odoo بيستخدم PostgreSQL إن كل بيانات الـ Session بتتخزن داخل PostgreSQL.</p>
+<p>كمان لازم تراعي:</p>
+<ul>
+<li>انتهاء صلاحية الـ Session.</li>
+<li>تنظيف الـ Records القديمة.</li>
+<li>عدم تخزين بيانات حساسة بدون حماية مناسبة.</li>
+<li>عدم الخلط بين Session وUser Preferences.</li>
+<li>عدم استخدام Session كبديل لتخزين Business Workflow.</li>
+</ul>
+<hr>
+<h2>10. المميزات والعيوب</h2>
+<p><strong>المميزات:</strong></p>
+<ul>
+<li>البيانات بتفضل موجودة بعد Restart للـ Application Server.</li>
+<li>كل Application Servers تقدر تستخدم نفس قاعدة البيانات.</li>
+<li>إدارة البيانات والـ Expiration ممكن تتم باستخدام SQL.</li>
+<li>ممكن الاستفادة من Backup وRecovery الخاصين بقاعدة البيانات.</li>
+</ul>
+<p><strong>العيوب:</strong></p>
+<ul>
+<li>كل قراءة أو تحديث للـ Session ممكن يضيف ضغطًا على Database.</li>
+<li>ممكن يزيد عدد Queries في كل Request.</li>
+<li>محتاج Indexing مناسب على Session ID وExpiration.</li>
+<li>ممكن Session Store ينافس عمليات الـ Business على نفس موارد قاعدة البيانات.</li>
+<li>إدارة التحديثات المتزامنة للـ Session محتاجة تصميم دقيق.</li>
+</ul>
+<hr>
+<h2>11. مقارنة الأنماط الثلاثة</h2>
+<p>المقارنة	Client	Server	Database</p>
+<p>مكان الحالة	العميل	السيرفر	Database</p>
+<p>مكان Session ID	العميل	العميل	العميل</p>
+<p>تخزين الحالة مركزيًا	لا	حسب التنفيذ	نعم</p>
+<p>تحمل Restart	غالبًا نعم	حسب التخزين	حسب إعدادات DB</p>
+<p>مشاركة عدة Servers	مش مطلوبة غالبًا	تحتاج Shared Store	متاحة</p>
+<p>ضغط Database	غير مباشر	حسب التنفيذ	مباشر</p>
+<hr>
+<h2 class="section-title">الخريطة النهائية لـ Session State Patterns</h2>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Session State Patterns
+          |
+          +--- Client Session State
+          |
+          +--- Server Session State
+          |
+          +--- Database Session State</code></pre></div>
+<p><strong>الخلاصة المهمة:</strong></p>
+<p>الأنماط الثلاثة بتجاوب عن سؤال واحد:</p>
+<blockquote>فين نخزن حالة المستخدم بين الـ HTTP Requests؟</blockquote>
+<ul>
+<li>Client: عند العميل.</li>
+<li>Server: عند السيرفر.</li>
+<li>Database: في قاعدة البيانات.</li>
+</ul>
+<p>لكن اختيار مكان التخزين مش قرار منفصل عن طبيعة البيانات، وحجمها، وأمانها، ومدة حياتها، ومتطلبات التوسع.</p>
+<p><strong>وبكده نكون خلصنا Session State Patterns الثلاثة.</strong></p>
+<p>تمام يا هندسة 😂 نبدأ مجموعة جديدة من كتاب <strong>Patterns of Enterprise Application Architecture (PoEAA)</strong>، وهي:</p>
+<h2 class="section-title">Session State Patterns</h2>
+<p>قبل ما نبدأ، لازم نفهم المشكلة اللي المجموعة دي بتحاول تحلها.</p>
+<h2>يعني إيه Session State؟</h2>
+<p>تخيل إن المستخدم دخل نظام ERP وعمل Login.</p>
+<p>بعد كده بدأ يتنقل بين صفحات النظام:</p>
+<ul>
+<li>فتح صفحة العملاء.</li>
+<li>اختار Customer معين.</li>
+<li>بدأ يعمل Order.</li>
+<li>اختار منتجات.</li>
+<li>انتقل لصفحة الدفع.</li>
+</ul>
+<p>السؤال هنا: إزاي التطبيق يحتفظ بالمعلومات المرتبطة بالمستخدم خلال تنقله بين الطلبات المختلفة؟</p>
+<p>لأن HTTP بطبيعته Stateless، يعني كل Request مستقلة عن الطلب اللي قبلها، والتطبيق مش بيفتكر تلقائيًا إن الطلبين جايين من نفس المستخدم.</p>
+<p>إذن محتاجين آلية للاحتفاظ بحالة المستخدم عبر مجموعة Requests.</p>
+<p>وده اللي بنسميه <strong>Session State</strong>.</p>
+<h2>خريطة Session State Patterns</h2>
+<p>عندنا في PoEAA ثلاثة أنماط أساسية:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Session State Patterns
+          |
+          +--- Client Session State
+          |
+          +--- Server Session State
+          |
+          +--- Database Session State</code></pre></div>
+<p>الاختلاف الأساسي بينهم هو: <strong>أين يتم تخزين حالة الـ Session؟</strong></p>
+<ul>
+<li>Client Session State: عند العميل.</li>
+<li>Server Session State: في ذاكرة السيرفر.</li>
+<li>Database Session State: في قاعدة البيانات.</li>
+</ul>
+<p>هنبدأ بأول نمط.</p>
+<hr>
+<article class="pattern-card" id="1-client-session-state">
+<h3 class="pattern-title">1. Client Session State</h3>
+<div class="card-body">
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>عندنا Web Application، والمستخدم بيعمل Requests متعددة.</p>
+<p>مثلاً:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Open Products
+      |
+Add Product
+      |
+Update Quantity
+      |
+Checkout</code></pre></div>
+<p>كل Request مستقلة عن الثانية.</p>
+<p>لكن التطبيق محتاج يحتفظ بمعلومات زي:</p>
+<ul>
+<li>User Preferences.</li>
+<li>Shopping Cart.</li>
+<li>Selected Language.</li>
+<li>Current Workflow Information.</li>
+</ul>
+<p>ممكن نخزن المعلومات دي في السيرفر، لكن ده هيحتاج إدارة Sessions على السيرفر نفسه.</p>
+<p>السؤال: هل ممكن نخزن حالة المستخدم عند العميل بدل السيرفر؟</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة <strong>Client Session State</strong> هي تخزين بيانات الـ Session على جهاز المستخدم نفسه، بحيث العميل يرسل البيانات دي مع كل Request يحتاجها التطبيق.</p>
+<p>بالتالي السيرفر مش محتاج يحتفظ بنسخة من حالة كل مستخدم في ذاكرته.</p>
+<p>التدفق من اليمين للشمال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Server  &lt;---  Session Data  &lt;---  Client</code></pre></div>
+<p>مثال:</p>
+<p>المستخدم اختار اللغة العربية، والسلة فيها منتجين.</p>
+<p>ممكن نخزن الحالة بالشكل ده:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">json</span></div><pre class="code-block"><code class="language-json">{
+    &quot;language&quot;: &quot;ar&quot;,
+    &quot;cart&quot;: [
+        {
+            &quot;product_id&quot;: 10,
+            &quot;quantity&quot;: 2
+        },
+        {
+            &quot;product_id&quot;: 20,
+            &quot;quantity&quot;: 1
+        }
+    ]
+}</code></pre></div>
+<p>العميل يحتفظ بالبيانات، ويرسلها مع الطلبات المناسبة.</p>
+<p><strong>مثال: Shopping Cart</strong></p>
+<p><strong>Client Browser</strong> (Stores State)</p>
+<hr>
+<p>Product A × 2 Quantity: 2</p>
+<p>Product B × 1 Quantity: 1</p>
+<hr>
+<p>السيرفر يستقبل حالة السلة مع الطلب، بدل الاحتفاظ بحالة Session كاملة في ذاكرته.</p>
+<p>لكن هنا فيه سؤال مهم:</p>
+<p>هل ينفع نخزن البيانات دي في Cookie عادية؟</p>
+<p>ممكن، لكن فيه اعتبارات مهمة:</p>
+<ul>
+<li>حجم الـ Cookie محدود.</li>
+<li>البيانات ممكن المستخدم يقرأها أو يحاول يعدلها.</li>
+<li>لازم نحمي سلامة البيانات من التلاعب.</li>
+<li>لازم نراعي إن الـ Cookie بتتبعت تلقائيًا مع الطلبات المطابقة لنطاقها، وده له اعتبارات أمنية.</li>
+</ul>
+<p>عشان كده ممكن نستخدم:</p>
+<ul>
+<li>Signed Cookies.</li>
+<li>Encrypted Cookies.</li>
+<li>Tokens تحتوي على Session Claims.</li>
+</ul>
+<p><strong>مهم:</strong> التوقيع (Signing) يمنع اكتشاف التعديل غير المصرح به، لكنه لا يخفي محتوى البيانات. التشفير (Encryption) هو اللي يوفر السرية.</p>
+<hr>
+<h2>3. مثال Python</h2>
+<p>هنعمل مثال مبسط يوضح الفكرة باستخدام Flask.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from flask import Flask, request, make_response
+import json
+
+app = Flask(__name__)
+
+@app.route(&quot;/cart&quot;)
+def get_cart():
+
+    cart = request.cookies.get(&quot;cart&quot;)
+
+    if cart:
+        cart_data = json.loads(cart)
+    else:
+        cart_data = []
+
+    response = make_response({
+        &quot;cart&quot;: cart_data
+    })
+
+    return response
+
+@app.route(&quot;/cart/add/&lt;int:product_id&gt;&quot;)
+def add_to_cart(product_id):
+
+    cart = request.cookies.get(&quot;cart&quot;)
+
+    if cart:
+        cart_data = json.loads(cart)
+    else:
+        cart_data = []
+
+    cart_data.append({
+        &quot;product_id&quot;: product_id,
+        &quot;quantity&quot;: 1
+    })</code></pre></div>
+<p>ده مثال تعليمي فقط، وليس تطبيقًا آمنًا للإنتاج؛ لأن المستخدم يقدر يغيّر قيمة الـ Cookie، ومفيش توقيع أو تشفير أو معالجة لتكرار المنتج.</p>
+<p>في تطبيق حقيقي ممكن نستخدم Cookie موقعة ومشفرة، أو نخزن بيانات غير حساسة فقط عند العميل.</p>
+<p>والأهم: <strong>ماينفعش نثق في بيانات العميل عند تنفيذ عمليات مالية أو تغيير أسعار أو صلاحيات.</strong></p>
+<p>مثلًا سعر المنتج لازم يتحدد ويتحقق منه على السيرفر، مش من قيمة مرسلة داخل الـ Cookie.</p>
+<h2>4. أقرب GoF Pattern</h2>
+<p>هل فيه GoF Pattern مطابق لـ Client Session State؟</p>
+<p><strong>لا يوجد GoF Pattern مطابق مباشرةً.</strong></p>
+<p>لكن فيه تشابه جزئي مع:</p>
+<p><strong>Memento Pattern</strong></p>
+<p>الـ Memento بيحفظ حالة Object بحيث نقدر نسترجعها لاحقًا.</p>
+<p>أما Client Session State فهدفه تخزين حالة المستخدم عند العميل ونقلها بين Requests.</p>
+<p>الفرق في الـ Intent:</p>
+<ul>
+<li>Memento: حفظ واسترجاع حالة Object.</li>
+<li>Client Session State: إدارة حالة المستخدم عبر Requests باستخدام تخزين Client-Side.</li>
+</ul>
+<p>ممكن تستخدم Memento كآلية لحفظ حالة، لكن مش هو نفس النمط.</p>
+<h2>5. علاقته بـ Application Architecture</h2>
+<p>Client Session State مش Application Architecture مستقلة.</p>
+<p>ممكن تستخدمه داخل:</p>
+<ul>
+<li>Layered Architecture.</li>
+<li>Clean Architecture.</li>
+<li>Hexagonal Architecture.</li>
+</ul>
+<p>مثلاً:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Client  &lt;---  HTTP Request + Session Data  &lt;---  Controller
+                                                    |
+                                                    v
+                                               Application
+                                                    |
+                                                    v
+                                                 Domain</code></pre></div>
+<p>الـ Controller يستقبل بيانات الـ Session ويحوّلها إلى بيانات مناسبة للتطبيق.</p>
+<p>لكن مش المفروض الـ Domain يعتمد على تفاصيل الـ Cookie أو HTTP Session.</p>
+<h2>6. علاقته بـ Clean Architecture</h2>
+<p>في Clean Architecture، بيانات الـ Session تعتبر جزءًا من الـ Input القادم من الخارج.</p>
+<p>ممكن يكون عندنا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class CheckoutInput:
+
+    def __init__(self, user_id, cart_items):
+        self.user_id = user_id
+        self.cart_items = cart_items</code></pre></div>
+<p>الـ Controller يقرأ البيانات من الـ Client، ويتحقق من شكلها، وبعدها يمررها للـ Use Case.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Client  &lt;---  Controller  &lt;---  Checkout Use Case</code></pre></div>
+<p>لكن فيه فرق مهم:</p>
+<p>الـ Client Session State مش معناها إننا ننقل Business State بالكامل للعميل.</p>
+<p>مثلًا:</p>
+<ul>
+<li>اختيار اللغة: مناسب للتخزين عند العميل.</li>
+<li>شكل الواجهة: مناسب للتخزين عند العميل.</li>
+<li>محتويات سلة التسوق: ممكن تخزينها عند العميل مع إعادة التحقق على السيرفر.</li>
+<li>رصيد الحساب البنكي: لا، لازم مصدر الحقيقة يكون موثوقًا على السيرفر.</li>
+</ul>
+<h2>7. علاقته بـ DDD</h2>
+<p>DDD بيفرق بين:</p>
+<ul>
+<li>Domain State.</li>
+<li>Application State.</li>
+<li>Presentation State.</li>
+</ul>
+<p>Client Session State غالبًا مناسب للاحتفاظ بجزء من الـ Presentation أو Application State.</p>
+<p>مثلاً:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">User Session
+    |
+    +--- Selected Language
+    |
+    +--- Current Page
+    |
+    +--- UI Preferences
+    |
+    +--- Temporary Workflow Data</code></pre></div>
+<p>لكن لا ينبغي اعتبار البيانات الموجودة عند العميل مصدر الحقيقة للـ Aggregate.</p>
+<p>لو المستخدم أرسل:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">json</span></div><pre class="code-block"><code class="language-json">{
+    &quot;order_total&quot;: 100
+}</code></pre></div>
+<p>مش معنى كده إن الـ Domain يقبل إن إجمالي الطلب هو 100.</p>
+<p>لازم يحسب الإجمالي من البيانات الموثوقة وقواعد العمل.</p>
+<h2>8. علاقته بـ Odoo</h2>
+<p>في Odoo عندنا Session مرتبطة بمستخدم الويب، وبيتم التعامل معها من خلال HTTP Layer.</p>
+<p>لكن لازم نفرّق بين:</p>
+<ul>
+<li>Client Session State: الحالة نفسها مخزنة عند العميل.</li>
+<li>Server Session State: العميل يحتفظ بمعرّف Session، والحالة الفعلية موجودة عند السيرفر.</li>
+</ul>
+<p>في تطبيق Odoo، مجرد إن الـ Browser عنده Cookie فيها Session ID مش معناه إن Odoo بيستخدم Client Session State.</p>
+<p>الـ Session ID مجرد وسيلة للتعرف على الـ Session، ومش هو بيانات الـ Session نفسها.</p>
+<hr>
+<h2>9. المميزات والعيوب</h2>
+<p><strong>المميزات:</strong></p>
+<ul>
+<li>يقلل احتياج السيرفر لتخزين Session لكل مستخدم.</li>
+<li>يسهل التوسع الأفقي (Horizontal Scaling) من ناحية حالة الجلسة.</li>
+<li>لا يحتاج بالضرورة إلى Session Store مشترك بين السيرفرات.</li>
+<li>مناسب للبيانات الصغيرة وغير الحساسة.</li>
+</ul>
+<p><strong>العيوب:</strong></p>
+<ul>
+<li>حجم البيانات محدود.</li>
+<li>العميل ممكن يحاول التلاعب بالبيانات.</li>
+<li>إرسال البيانات المتكررة يزيد حجم الـ Requests.</li>
+<li>التشفير والتوقيع وإدارة المفاتيح يضيفوا تعقيدًا.</li>
+<li>إلغاء Session أو تحديث حالتها فورًا أصعب لو كل البيانات موجودة عند العميل.</li>
+</ul>
+<h2>10. إمتى نستخدم Client Session State؟</h2>
+<p>استخدمه لما تكون البيانات:</p>
+<ul>
+<li>صغيرة.</li>
+<li>مناسبة للتخزين عند العميل.</li>
+<li>لا تحتاج تحكمًا مركزيًا مستمرًا في تحديثها وإلغائها.</li>
+<li>يمكن التحقق منها عند السيرفر قبل تنفيذ أي Business Operation حساسة.</li>
+</ul>
+<hr>
+<p><strong>الخلاصة:</strong></p>
+<p>Client Session State بيحل مشكلة الاحتفاظ بحالة المستخدم عن طريق نقل مسؤولية تخزين الحالة إلى العميل بدل السيرفر.</p>
+<p>لكن ده لا يعني إننا ننقل مسؤولية الـ Business Rules أو مصدر الحقيقة للعميل.</p>
+<hr>
+<h2 class="section-title">النمط التالي: Server Session State</h2>
+<p>هنا هنقلب الفكرة تمامًا.</p>
+<p>بدل ما نخزن حالة المستخدم عند العميل، هنخزنها عند السيرفر، والعميل يحتفظ فقط بمعرّف الـ Session.</p>
+<p>وهنفهم الفرق بين تخزين الحالة في Server Memory وبين استخدام Session Store مشترك، وليه الموضوع ده مهم جدًا في الأنظمة اللي فيها أكثر من Application Server.</p>
+<article class="pattern-card" id="2-server-session-state">
+<h3 class="pattern-title">2. Server Session State</h3>
+<div class="card-body">
+<p>في النمط السابق <strong>Client Session State</strong> كنا بنخزن حالة المستخدم عند العميل نفسه.</p>
+<p>دلوقتي هنستخدم العكس تمامًا:</p>
+<p><strong>هنخزن حالة المستخدم عند السيرفر، والعميل هيحتفظ فقط بمعرّف الـ Session.</strong></p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل عندنا مستخدم دخل نظام ERP وعمل Login.</p>
+<p>بعد تسجيل الدخول، بدأ ينفذ مجموعة عمليات:</p>
+<ul>
+<li>اختار الشركة الحالية.</li>
+<li>اختار اللغة.</li>
+<li>حدد مجموعة فلاتر للتقارير.</li>
+<li>بدأ عملية إنشاء Order.</li>
+<li>اختار منتجات وكميات.</li>
+</ul>
+<p>إحنا محتاجين نحتفظ بالحالة دي بين الـ Requests المختلفة.</p>
+<p>ممكن نخزن كل البيانات عند العميل، لكن ده مش مناسب دائمًا، خصوصًا لو البيانات كبيرة أو حساسة أو محتاجة تحكم مركزي.</p>
+<p>إذن نحتاج مكانًا على السيرفر يحتفظ بحالة كل مستخدم.</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>فكرة <strong>Server Session State</strong> هي إن السيرفر يحتفظ ببيانات الـ Session، بينما العميل يحتفظ بمعرّف يحدد الـ Session الخاصة به.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Client  &lt;---  Session ID  &lt;---  Server</code></pre></div>
+<p>العميل مش محتاج يعرف تفاصيل الحالة المخزنة عند السيرفر.</p>
+<p>كل اللي محتاجه إنه يرسل Session ID مع كل Request.</p>
+<p>والسيرفر يستخدم الـ ID لاسترجاع الحالة.</p>
+<h3>مثال عملي</h3>
+<p>المستخدم عمل Login، والسيرفر أنشأ Session:</p>
+<p><strong>Server Session Store</strong></p>
+<p>Session ID</p>
+<p>abc123</p>
+<hr>
+<p>User ID</p>
+<p>42</p>
+<p>Current Company</p>
+<p>5</p>
+<p>Language</p>
+<p>ar</p>
+<p>Cart</p>
+<p>Product A × 2</p>
+<p>الـ Browser يحتفظ فقط بالـ Session ID.</p>
+<p>وعندما يرسل Request جديدة:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Browser  &lt;---  Request + Session ID  &lt;---  Server</code></pre></div>
+<p>السيرفر يستخرج الـ Session ID، ويبحث عن البيانات المرتبطة به.</p>
+<h3>شكل المعمارية</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Browser  &lt;---  Session ID  &lt;---  Application Server
+                                      |
+                                      v
+                                Session Store
+                                      |
+                                      v
+                                Session Data</code></pre></div>
+<p>لاحظ إن الـ Session Store ممكن يكون داخل ذاكرة السيرفر نفسه، أو خدمة تخزين خارجية.</p>
+<p>وده هيفرق معانا جدًا لما نبدأ نتكلم عن Distributed Systems.</p>
+<h2>3. مثال Python</h2>
+<p>هنستخدم Flask لتوضيح الفكرة.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from flask import Flask, session, jsonify
+
+app = Flask(__name__)
+
+app.secret_key = &quot;development-secret-key&quot;
+
+@app.route(&quot;/login&quot;)
+def login():
+
+    session[&quot;user_id&quot;] = 42
+    session[&quot;company_id&quot;] = 5
+    session[&quot;language&quot;] = &quot;ar&quot;
+
+    return jsonify({
+        &quot;message&quot;: &quot;Logged in&quot;
+    })
+
+@app.route(&quot;/profile&quot;)
+def profile():
+
+    return jsonify({
+        &quot;user_id&quot;: session.get(&quot;user_id&quot;),
+        &quot;company_id&quot;: session.get(&quot;company_id&quot;),
+        &quot;language&quot;: session.get(&quot;language&quot;)
+    })</code></pre></div>
+<p>هنا فيه تفصيلة مهمة جدًا:</p>
+<p><strong>Flask الافتراضي بيستخدم Secure Cookie Session، مش Server-Side Session Store.</strong></p>
+<p>يعني البيانات نفسها بتكون مخزنة داخل Cookie موقعة عند العميل، مش داخل ذاكرة السيرفر.</p>
+<p>إذن المثال السابق يوضح واجهة التعامل مع Session، لكنه ليس تنفيذًا حقيقيًا لـ Server Session State.</p>
+<p>خلينا نعمل تنفيذًا توضيحيًا باستخدام Server-Side Dictionary:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from flask import Flask, request, jsonify
+import uuid
+
+app = Flask(__name__)
+
+sessions = {}
+
+@app.route(&quot;/login&quot;)
+def login():
+
+    session_id = str(uuid.uuid4())
+
+    sessions[session_id] = {
+        &quot;user_id&quot;: 42,
+        &quot;company_id&quot;: 5,
+        &quot;language&quot;: &quot;ar&quot;
+    }
+
+    response = jsonify({
+        &quot;message&quot;: &quot;Logged in&quot;
+    })
+
+    response.set_cookie(
+        &quot;session_id&quot;,
+        session_id,
+        httponly=True,
+        secure=True,
+        samesite=&quot;Lax&quot;
+    )
+
+    return response
+
+@app.route(&quot;/profile&quot;)
+def profile():
+
+    session_id = request.cookies.get(&quot;session_id&quot;)</code></pre></div>
+<p>في المثال ده:</p>
+<ul>
+<li>الـ Dictionary هو Session Store.</li>
+<li>السيرفر هو اللي بيحتفظ بالبيانات.</li>
+<li>العميل بيحتفظ بالـ Session ID.</li>
+<li>كل Request بتستخدم الـ ID للوصول إلى الحالة.</li>
+</ul>
+<p>ده مثال تعليمي فقط؛ Dictionary مش مناسب للإنتاج لأنه بيضيع عند إعادة تشغيل السيرفر، ومش مشترك بين Workers أو Servers، ومفيهوش انتهاء صلاحية أو إدارة آمنة للـ Sessions.</p>
+<hr>
+<h2>4. ماذا يحدث لو عندنا أكثر من Application Server؟</h2>
+<p>هنا تظهر أهمية النمط في الأنظمة الكبيرة.</p>
+<p>تخيل عندنا Application Server عدد 2:</p>
+<ul>
+<li>Server A</li>
+<li>Server B</li>
+</ul>
+<p>والمستخدم سجل الدخول من خلال Server A.</p>
+<p>الـ Session اتخزنت في ذاكرة Server A.</p>
+<p>بعد كده المستخدم بعت Request جديدة، والـ Load Balancer وجّهها إلى Server B.</p>
+<p>المشكلة إن Server B مش عنده Session المستخدم!</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">                         Load Balancer
+                         /            \
+                        v              v
+                  Server A          Server B
+                      |                  |
+                      v                  v
+                Local Sessions      Local Sessions</code></pre></div>
+<p>هنا عندنا أكثر من حل:</p>
+<ol>
+<li>Sticky Sessions: الـ Load Balancer يحاول يوجه المستخدم دائمًا لنفس السيرفر.</li>
+<li>Shared Session Store: كل السيرفرات تستخدم نفس مخزن الـ Sessions.</li>
+<li>Client Session State: تخزين الحالة عند العميل بدل السيرفر، لو طبيعة البيانات تسمح بذلك.</li>
+</ol>
+<p>الحل الشائع في الأنظمة الموزعة هو Shared Session Store، مثل Redis.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">User  &lt;---  Load Balancer  &lt;---  Server A
+                    |
+                    +--- Server B
+                    |
+                    v
+              Shared Redis
+                    |
+                    v
+              Session Data</code></pre></div>
+<p>وبالتالي أي Application Server يقدر يسترجع Session المستخدم.</p>
+<hr>
+<h2>5. أقرب GoF Pattern</h2>
+<p>مفيش GoF Pattern مطابق لـ Server Session State.</p>
+<p>لكن فيه تشابه جزئي مع:</p>
+<p><strong>Registry Pattern</strong></p>
+<p>لأن عندنا مكان مركزي نقدر من خلاله نصل إلى بيانات مرتبطة بمعرّف معين.</p>
+<p>لكن الفرق:</p>
+<ul>
+<li>Registry: آلية للوصول إلى Objects أو Services مسجلة.</li>
+<li>Server Session State: تخزين حالة المستخدم واسترجاعها عبر Requests.</li>
+</ul>
+<p>ممكن تستخدم Registry-like mechanism في تنفيذ Session Store، لكن مش هما نفس النمط.</p>
+<p>كمان فيه تشابه مع <strong>Memento Pattern</strong> من ناحية حفظ واسترجاع الحالة، لكنه مش بديل مباشر.</p>
+<h2>6. علاقته بـ Application Architecture</h2>
+<p>Server Session State مش Architecture مستقلة.</p>
+<p>ممكن نستخدمه في Layered أو Clean أو Hexagonal Architecture.</p>
+<p>مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Browser  &lt;---  HTTP Request + Session ID  &lt;---  Controller
+                                                   |
+                                                   v
+                                              Session Service
+                                                   |
+                                                   v
+                                              Session Store</code></pre></div>
+<p>الـ Controller أو Middleware يستخرج الـ Session ID.</p>
+<p>بعدها Session Service تسترجع الحالة المطلوبة.</p>
+<p>ومن الأفضل إن الـ Domain Layer مايعرفش حاجة عن HTTP Session أو Cookie أو Redis.</p>
+<h2>7. علاقته بـ Clean Architecture</h2>
+<p>في Clean Architecture ممكن نعرّف Port للتعامل مع Session:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from typing import Protocol
+
+class SessionStore(Protocol):
+
+    def get(self, session_id: str):
+        ...
+
+    def save(self, session_id: str, data: dict):
+        ...
+
+    def delete(self, session_id: str):
+        ...</code></pre></div>
+<p>والـ Infrastructure توفر Implementation باستخدام Redis أو Database أو Memory.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Redis Implementation  &lt;---  SessionStore Port  &lt;---  Application Service</code></pre></div>
+<p>الـ Application Service يعتمد على Interface، مش على Redis مباشرة.</p>
+<p>لكن فيه نقطة مهمة:</p>
+<p>مش كل بيانات الـ Session لازم تدخل الـ Use Case.</p>
+<p>مثلًا اللغة الحالية أو إعدادات الواجهة ممكن تتعامل معاها طبقة الـ Presentation.</p>
+<p>أما بيانات مرتبطة بعملية Business طويلة، فممكن تحتاج إدارة مختلفة حسب طبيعة العملية.</p>
+<h2>8. علاقته بـ DDD</h2>
+<p>لازم نفرق بين Session State وDomain State.</p>
+<p>مثلاً:</p>
+<p><strong>Session State:</strong></p>
+<ul>
+<li>المستخدم الحالي.</li>
+<li>اللغة المختارة.</li>
+<li>الشركة الحالية.</li>
+<li>تفضيلات العرض.</li>
+<li>بيانات مؤقتة للتنقل.</li>
+</ul>
+<p><strong>Domain State:</strong></p>
+<ul>
+<li>حالة Order.</li>
+<li>رصيد Account.</li>
+<li>حالة Invoice.</li>
+<li>قواعد تسعير المنتج.</li>
+</ul>
+<p>الـ Session مش المفروض تكون مصدر الحقيقة للـ Domain Objects.</p>
+<p>مثلًا لو المستخدم اختار Company ID في الـ Session، لازم التطبيق يتحقق إن المستخدم عنده صلاحية الوصول للشركة دي.</p>
+<p>وجود القيمة في Session مش معناه إنها موثوقة أو مسموح بها تلقائيًا.</p>
+<hr>
+<h2>9. علاقته بـ Odoo</h2>
+<p>في Odoo عندنا Server-Side Session State بشكل واضح.</p>
+<p>الـ Browser بيحتفظ بـ Session Cookie، والسيرفر يستخدم الـ Session ID للوصول إلى بيانات الـ Session.</p>
+<p>ومن المعلومات اللي ممكن ترتبط بالـ Session:</p>
+<ul>
+<li>User Identity.</li>
+<li>Context.</li>
+<li>Company Information.</li>
+<li>Language.</li>
+<li>Authentication Information.</li>
+</ul>
+<p>لكن لازم نفرق بين الـ Session وبين الـ Database Transaction.</p>
+<p>الـ Session ممكن تستمر عبر Requests كثيرة، بينما كل HTTP Request لها دورة Transaction خاصة بها في Odoo.</p>
+<p>يعني:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Session Lifetime  &lt;---  Multiple HTTP Requests</code></pre></div>
+<p>بينما:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Database Transaction  &lt;---  One Request Lifecycle</code></pre></div>
+<p>وده فرق مهم جدًا، خصوصًا لما نتعامل مع عمليات طويلة أو Background Jobs.</p>
+<hr>
+<h2>10. المميزات والعيوب</h2>
+<p><strong>المميزات:</strong></p>
+<ul>
+<li>السيرفر يتحكم في حالة المستخدم.</li>
+<li>مناسب للبيانات الأكبر نسبيًا من Client-Side Cookies.</li>
+<li>يقدر يلغي Session أو يعدلها من السيرفر.</li>
+<li>البيانات الحساسة مش مضطرة تتخزن داخل العميل.</li>
+<li>ممكن مشاركة الحالة بين عدة Application Servers باستخدام Shared Store.</li>
+</ul>
+<p><strong>العيوب:</strong></p>
+<ul>
+<li>يحتاج مساحة تخزين على السيرفر أو خدمة خارجية.</li>
+<li>كل Request قد تحتاج قراءة Session من المخزن.</li>
+<li>محتاج إدارة Expiration وCleanup.</li>
+<li>محتاج حل لمشكلة مشاركة Sessions بين السيرفرات.</li>
+<li>Session Store نفسه ممكن يصبح نقطة ضغط أو فشل.</li>
+</ul>
+<p>كمان لازم نراعي Session Fixation وSession Hijacking، ونستخدم Session ID عشوائي قوي، وHTTPS، وCookie Security Flags، وتجديد Session ID بعد تسجيل الدخول.</p>
+<hr>
+<h2>11. مقارنة Client وServer Session State</h2>
+<p>المقارنة	Client Session	Server Session</p>
+<p>مكان الحالة	العميل	السيرفر</p>
+<p>ما يرسله العميل	بيانات الحالة	Session ID</p>
+<p>تحكم السيرفر	محدود نسبيًا	أكبر</p>
+<p>حجم البيانات	محدود	أكبر نسبيًا</p>
+<p>إلغاء الحالة	أصعب	أسهل مركزيًا</p>
+<p>مشاركة الحالة بين Servers	غير مطلوبة غالبًا	تحتاج Shared Store أو Sticky Sessions</p>
+<hr>
+<h2 class="section-title">النمط الثالث: Database Session State</h2>
+<p>لسه عندنا نمط أخير في المجموعة.</p>
+<p>السؤال اللي هنبدأ منه:</p>
+<p>إحنا في Server Session State خزّنا الحالة في Memory أو Redis.</p>
+<p>لكن ماذا لو عايزين Session State تكون محفوظة بشكل دائم في Database، وتستمر حتى لو Application Server اتعمله Restart؟</p>
+<p>وده موضوع <strong>Database Session State</strong>.</p>
+<p>هنشوف إيه الفرق الحقيقي بين تخزين Session في Redis وتخزينها في Database، وإمتى نختار كل واحد.</p>
+        
+      <nav class="page-nav" aria-label="تنقل الصفحات"><a href="offline-concurrency-patterns.html">→ Offline Concurrency Patterns</a><span></span></nav>
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const saved = localStorage.getItem('poeaa3-theme');
+    if (saved) root.setAttribute('data-theme', saved);
+    document.getElementById('theme')?.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      if (next === 'dark') root.setAttribute('data-theme', 'dark'); else root.removeAttribute('data-theme');
+      localStorage.setItem('poeaa3-theme', next === 'dark' ? 'dark' : 'light');
+    });
+  </script>
+</body>
+</html>

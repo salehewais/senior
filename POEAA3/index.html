@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>POEAA — المرجع</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="أقسام المرجع">
+      <div class="toc-head">
+        <p class="toc-title"><a href="index.html">POEAA</a></p>
+        <button class="icon-btn" id="theme" type="button" aria-label="تبديل الوضع">☾</button>
+      </div>
+      <ol>
+        <li><a href="index.html" class="active">الرئيسية</a></li><li><a href="separated-interface.html">Separated Interface</a></li><li><a href="base-patterns.html">Base Patterns</a></li><li><a href="domain-logic-patterns.html">Domain Logic Patterns</a></li><li><a href="data-source-architectural-patterns.html">Data Source Architectural Patterns</a></li><li><a href="object-relational-behavioral-patterns.html">Object-Relational Behavioral Patterns</a></li><li><a href="object-relational-structural-patterns.html">Object-Relational Structural Patterns</a></li><li><a href="object-relational-metadata-mapping-patterns.html">Object-Relational Metadata Mapping Patterns</a></li><li><a href="web-presentation-patterns.html">Web Presentation Patterns</a></li><li><a href="distribution-patterns.html">Distribution Patterns</a></li><li><a href="offline-concurrency-patterns.html">Offline Concurrency Patterns</a></li><li><a href="session-state-patterns.html">Session State Patterns</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      
+      <header class="page-header">
+        <h1>مرجع Patterns of Enterprise Application Architecture</h1>
+        <p class="lead">بص انا كنت ببحث الانماط المتشابهة في GOFوالانتربرايز باترمز والباترن دا سالت جيمناي عن Separated Interface قالي الاجابة دي الـ <strong>Separated Interface</strong> هو نمط معماري (Enterprise Pattern) صاغه مارتن فاولر (Martin Fowler) في كتابه الشهير <em>Patterns of Enterprise Application Architecture (PoEAA)</em>. الإجابة القاطعة: <strong>نعم، النمط ده موجود في الـ GoF لكن بمفهوم أوضح وأكثر تجريداً، وهما نمطان أساسيان مرتبطين بيه مباشرة.</strong></p>
+      </header>
+      <p class="note">المحتوى مأخوذ من محادثات مشروع ChatGPT POEAA فقط — بدون إضافة شروح خارج المصدر.</p>
+      <h2>أقسام المرجع</h2>
+      <ul class="hub-list">
+        <li><a href="separated-interface.html"><strong>Separated Interface</strong><span>تخيل إن عندك Application مسؤول عن إدارة المستخدمين، وبيحتاج يحفظ بياناتهم في PostgreSQL.</span></a></li><li><a href="base-patterns.html"><strong>Base Patterns</strong><span>(Integration / Access Pattern)</span></a></li><li><a href="domain-logic-patterns.html"><strong>Domain Logic Patterns</strong><span>قبل ما نبدأ، فيه نقطة مهمة جدًا: المجموعة دي في الكتاب فيها <strong>4 Patterns</strong>، مش 3:</span></a></li><li><a href="data-source-architectural-patterns.html"><strong>Data Source Architectural Patterns</strong><span>المجموعة دي مختلفة عن المجموعات السابقة؛ لأن تركيزها الأساسي مش على تنظيم الـ Business Logic، لكن على <strong>إزاي نمثل مصدر البيانات ونتعامل معاه داخل التطبيق.</strong></span></a></li><li><a href="object-relational-behavioral-patterns.html"><strong>Object-Relational Behavioral Patterns</strong><span>قبل ما نبدأ، خلينا نفهم المجموعة دي بتتكلم عن إيه.</span></a></li><li><a href="object-relational-structural-patterns.html"><strong>Object-Relational Structural Patterns</strong><span>المجموعة دي مختلفة عن المجموعة السابقة.</span></a></li><li><a href="object-relational-metadata-mapping-patterns.html"><strong>Object-Relational Metadata Mapping Patterns</strong><span>نكمل في <strong>Object-Relational Metadata Mapping Patterns</strong>.</span></a></li><li><a href="web-presentation-patterns.html"><strong>Web Presentation Patterns</strong><span>قبل ما نبدأ بالأنماط، محتاجين نفهم المجموعة دي بتعالج إيه.</span></a></li><li><a href="distribution-patterns.html"><strong>Distribution Patterns</strong><span>قبل ما نبدأ، خلينا نفهم الأول المجموعة دي بتعالج مشكلة إيه.</span></a></li><li><a href="offline-concurrency-patterns.html"><strong>Offline Concurrency Patterns</strong><span>قبل ما ندخل في الأنماط، لازم نفهم معنى <strong>Offline Concurrency</strong>.</span></a></li><li><a href="session-state-patterns.html"><strong>Session State Patterns</strong><span>قبل ما نبدأ، لازم نفهم المشكلة اللي المجموعة دي بتحاول تحلها.</span></a></li>
+      </ul>
+    
+      
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const saved = localStorage.getItem('poeaa3-theme');
+    if (saved) root.setAttribute('data-theme', saved);
+    document.getElementById('theme')?.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      if (next === 'dark') root.setAttribute('data-theme', 'dark'); else root.removeAttribute('data-theme');
+      localStorage.setItem('poeaa3-theme', next === 'dark' ? 'dark' : 'light');
+    });
+  </script>
+</body>
+</html>

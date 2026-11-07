@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Object-Relational Metadata Mapping Patterns — POEAA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="أقسام المرجع">
+      <div class="toc-head">
+        <p class="toc-title"><a href="index.html">POEAA</a></p>
+        <button class="icon-btn" id="theme" type="button" aria-label="تبديل الوضع">☾</button>
+      </div>
+      <ol>
+        <li><a href="index.html">الرئيسية</a></li><li><a href="separated-interface.html">Separated Interface</a></li><li><a href="base-patterns.html">Base Patterns</a></li><li><a href="domain-logic-patterns.html">Domain Logic Patterns</a></li><li><a href="data-source-architectural-patterns.html">Data Source Architectural Patterns</a></li><li><a href="object-relational-behavioral-patterns.html">Object-Relational Behavioral Patterns</a></li><li><a href="object-relational-structural-patterns.html">Object-Relational Structural Patterns</a></li><li><a href="object-relational-metadata-mapping-patterns.html" class="active">Object-Relational Metadata Mapping Patterns</a></li><li><a href="web-presentation-patterns.html">Web Presentation Patterns</a></li><li><a href="distribution-patterns.html">Distribution Patterns</a></li><li><a href="offline-concurrency-patterns.html">Offline Concurrency Patterns</a></li><li><a href="session-state-patterns.html">Session State Patterns</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      
+      <header class="page-header">
+        <h1>Object-Relational Metadata Mapping Patterns</h1>
+        <p class="lead">من مصدر ChatGPT POEAA — صفحة قسم واحد.</p>
+      </header>
+      <p>نكمل في <strong>Object-Relational Metadata Mapping Patterns</strong>.</p>
+<p>النمط ده مهم جدًا؛ لأنه هيساعدنا نفهم إزاي الـ ORM بيبني Queries بطريقة منظمة بدل ما نعتمد على SQL Strings مكتوبة يدويًا.</p>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل إن عندك نظام E-commerce، وعايز تعمل Search على المنتجات.</p>
+<p>مرة المستخدم يبحث بالاسم:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">SELECT * FROM products
+WHERE name = &#x27;Laptop&#x27;;</code></pre></div>
+<p>ومرة يبحث بالسعر:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">SELECT * FROM products
+WHERE price &gt; 1000;</code></pre></div>
+<p>ومرة يجمع أكتر من شرط:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">SELECT * FROM products
+WHERE category_id = 5
+AND price &gt; 1000
+AND active = TRUE;</code></pre></div>
+<p>المشكلة إن التطبيق ممكن يحتوي على عشرات أو مئات شروط البحث المختلفة.</p>
+<p>لو فضلنا نكتب SQL Strings لكل حالة، هنواجه مشاكل:</p>
+<ul>
+<li>تكرار SQL Logic.</li>
+<li>صعوبة تركيب شروط البحث بشكل ديناميكي.</li>
+<li>صعوبة إعادة استخدام شروط البحث.</li>
+<li>صعوبة اختبار الاستعلامات.</li>
+<li>زيادة احتمالية SQL Injection لو بنركب Strings بطريقة غير آمنة.</li>
+</ul>
+<p>طيب هل ممكن نمثل الاستعلام نفسه كـ Object؟</p>
+<p>هنا بييجي دور <strong>Query Object</strong>.</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>بدل ما نمثل الاستعلام كنص SQL، بنمثله في شكل Object يحتوي على الشروط والعمليات المطلوبة.</p>
+<p>مثلًا بدل:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">SELECT * FROM products
+WHERE price &gt; 1000
+AND active = TRUE;</code></pre></div>
+<p>نعبر عنه باستخدام Objects:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">query = Query(Product)
+
+query.where(&quot;price&quot;, &quot;&gt;&quot;, 1000)
+query.where(&quot;active&quot;, &quot;=&quot;, True)</code></pre></div>
+<p>وبعد كده الـ Query Object أو الـ Query Engine يحوّل الوصف ده إلى SQL وينفذه.</p>
+<p><strong>تدفق العمل</strong></p>
+<p><strong>Application Code</strong></p>
+<p>يحدد شروط البحث</p>
+<p><strong>Query Object</strong></p>
+<p>يمثل شروط الاستعلام كـ Objects</p>
+<p><strong>SQL Generator / Query Engine</strong></p>
+<p><strong>Database</strong></p>
+<p>الفكرة الأساسية: الاستعلام بقى Data Structure نقدر نبنيها ونعدلها ونركب أجزاء منها.</p>
+<h2>3. مثال عملي باستخدام Python</h2>
+<p>هنبني مثال تعليمي صغير.</p>
+<p>أولًا نحتاج Object يمثل شرطًا واحدًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Condition:
+
+    def __init__(self, field, operator, value):
+        self.field = field
+        self.operator = operator
+        self.value = value</code></pre></div>
+<p>بعد كده Query Object:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Query:
+
+    def __init__(self, table):
+        self.table = table
+        self.conditions = []
+
+    def where(self, field, operator, value):
+        self.conditions.append(
+            Condition(field, operator, value)
+        )
+
+        return self
+
+    def to_sql(self):
+        sql = f&quot;SELECT * FROM {self.table}&quot;
+
+        if self.conditions:
+            sql += &quot; WHERE &quot;
+
+            parts = []
+
+            for condition in self.conditions:
+                parts.append(
+                    f&quot;{condition.field} &quot;
+                    f&quot;{condition.operator} %s&quot;
+                )
+
+            sql += &quot; AND &quot;.join(parts)
+
+        return sql
+
+    def get_params(self):
+        return [
+            condition.value
+            for condition in self.conditions
+        ]</code></pre></div>
+<p>نجرب:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">query = Query(&quot;products&quot;)
+
+query.where(&quot;price&quot;, &quot;&gt;&quot;, 1000)
+query.where(&quot;active&quot;, &quot;=&quot;, True)
+
+print(query.to_sql())
+print(query.get_params())</code></pre></div>
+<p>الناتج:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">SELECT * FROM products
+WHERE price &gt; %s AND active = %s</code></pre></div>
+<p>والـ Parameters:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">[1000, True]</code></pre></div>
+<p>لاحظ إننا فصلنا بين:</p>
+<ul>
+<li>وصف الاستعلام.</li>
+<li>تحويل الاستعلام إلى SQL.</li>
+<li>القيم المستخدمة في الاستعلام.</li>
+</ul>
+<p>وده بيساعدنا نتجنب إدخال قيم المستخدم مباشرة داخل SQL String.</p>
+<p><strong>تنبيه أمني:</strong> المثال للتوضيح فقط؛ أسماء الجداول والأعمدة والـ Operators لازم يتم التحقق منها باستخدام Allowlist، لأن Parameters في SQL بتحمي قيم البيانات، لكنها لا تحمي أسماء الأعمدة والجداول.</p>
+<h2>4. مثال أكثر واقعية: تركيب الشروط</h2>
+<p>ممكن نحتاج نعمل شروط مركبة:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">sql</span></div><pre class="code-block"><code class="language-sql">WHERE price &gt; 1000
+AND (
+    category_id = 5
+    OR category_id = 7
+)</code></pre></div>
+<p>هنا ممكن نستخدم Composite Structure لتمثيل الشروط:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">              AND
+             /   \
+         price&gt;1000 OR
+                    / \
+             category=5 category=7</code></pre></div>
+<p>بالتالي الـ Query Object ممكن يمثل:</p>
+<ul>
+<li>شروط فردية.</li>
+<li>AND / OR.</li>
+<li>Nested Conditions.</li>
+<li>Sorting.</li>
+<li>Pagination.</li>
+<li>Joins.</li>
+</ul>
+<p>وده بيخلّي الاستعلام قابلًا للتركيب بدل ما يكون String ثابت.</p>
+<h2>5. أقرب GoF Pattern</h2>
+<p>هنا عندنا تشابه مهم مع نمطين:</p>
+<h3>Composite</h3>
+<p>كل Condition ممكن تكون Leaf، ومجموعة Conditions ممكن تكون Composite تحتوي شروطًا أخرى.</p>
+<p>مثال:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">           AND
+          /   \
+       Price   OR
+              / \
+          Category Active</code></pre></div>
+<p>الـ Composite بيسمح لنا نتعامل مع الشرط البسيط والشرط المركب من خلال Interface موحد.</p>
+<h3>Interpreter</h3>
+<p>لو عندنا Query Expression Tree، ممكن نفسر الـ Tree ونحوّله إلى SQL.</p>
+<p>لكن لازم نفرّق:</p>
+<ul>
+<li><strong>Query Object:</strong> هدفه تمثيل الاستعلام كـ Object.</li>
+<li><strong>Composite:</strong> تنظيم العناصر في بنية شجرية.</li>
+<li><strong>Interpreter:</strong> تفسير تعبيرات وفق Grammar.</li>
+</ul>
+<p>إذًا Composite وInterpreter ممكن يساعدوا في تنفيذ Query Object، لكن مش بدائل عنه.</p>
+<h2>6. علاقته بـ Application Architecture</h2>
+<p>Query Object مش Application Architecture Pattern؛ هو نمط متعلق بتمثيل الاستعلامات.</p>
+<p>ممكن يظهر داخل Infrastructure Layer أو Data Access Layer.</p>
+<p>مثلًا في Clean Architecture:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Application Use Case
+        |
+        | Search Products
+        ↓
+Repository Interface
+        |
+        ↓
+Infrastructure Repository
+        |
+        ↓
+Query Object
+        |
+        ↓
+Database</code></pre></div>
+<p>لاحظ إن الـ Query Object مش لازم يكون مكشوفًا للـ Domain أو Application.</p>
+<p>ممكن يكون تفصيل داخلي في Infrastructure.</p>
+<p>لكن في بعض الأنظمة ممكن Application Layer تستخدم Query Objects كجزء من Query API، حسب التصميم.</p>
+<h2>7. علاقته بـ DDD</h2>
+<p>في DDD، ممكن تستخدم Query Object لتنفيذ عمليات البحث عن Aggregates أو Read Models.</p>
+<p>لكن فيه نقطة مهمة:</p>
+<p><strong>Query Object مش هو Specification Pattern.</strong></p>
+<p>الفرق:</p>
+<ul>
+<li>Query Object بيمثل الاستعلام المطلوب تنفيذه، وقد يتضمن شروطًا وترتيبًا وPagination.</li>
+<li>Specification بتمثل قاعدة أو معيارًا يمكن تقييمه أو تركيبه وإعادة استخدامه.</li>
+</ul>
+<p>ممكن Specification تتحول إلى Query Object أو SQL Predicate.</p>
+<p>لكن مش كل Query Object هي Specification.</p>
+<h2>8. علاقته بـ Odoo</h2>
+<p>هنا عندنا مثال قريب جدًا في الاستخدام.</p>
+<p>في Odoo:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">products = self.env[&quot;product.product&quot;].search([
+    (&quot;list_price&quot;, &quot;&gt;&quot;, 1000),
+    (&quot;active&quot;, &quot;=&quot;, True),
+])</code></pre></div>
+<p>الـ Domain List بيصف شروط البحث.</p>
+<p>وبعدين Odoo ORM بيحوّل الوصف ده إلى استعلام مناسب لقاعدة البيانات.</p>
+<p>وممكن نستخدم Operators زي:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">[
+    &quot;|&quot;,
+    (&quot;categ_id&quot;, &quot;=&quot;, 5),
+    (&quot;categ_id&quot;, &quot;=&quot;, 7),
+]</code></pre></div>
+<p>لكن لازم نكون دقيقين:</p>
+<ul>
+<li>Odoo Domain هو Declarative Query Expression.</li>
+<li>Query Object في Fowler هو نمط لتمثيل الاستعلام في صورة Object.</li>
+<li>فيه تشابه مفاهيمي قوي بينهما، لكن مش بالضرورة تطابق حرفي في التنفيذ أو التصميم الداخلي.</li>
+</ul>
+<hr>
+<h2>9. إمتى نستخدم Query Object؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>عندك شروط بحث ديناميكية كثيرة.</li>
+<li>محتاج تركب شروط AND وOR.</li>
+<li>محتاج تعيد استخدام أجزاء من الاستعلام.</li>
+<li>عايز تفصل Query Definition عن SQL Generation.</li>
+<li>عندك Query Engine أو ORM محتاج تمثيل موحد للاستعلامات.</li>
+</ul>
+<h2>الخلاصة</h2>
+<p><strong>Query Object</strong></p>
+<p>بيمثل الاستعلام كـ Object بدل SQL String، وبيسمح ببناء الشروط وتركيبها وتعديلها، وبعد كده تحويلها إلى SQL.</p>
+<ul>
+<li>GoF الأقرب: Composite وInterpreter كأدوات تنفيذ، وليس بدائل مباشرة.</li>
+<li>ممكن يكون داخل Infrastructure Layer.</li>
+<li>مختلف عن Specification Pattern.</li>
+<li>Odoo Domains مثال قريب من الفكرة.</li>
+</ul>
+<p><strong>النمط التالي في المجموعة: Repository.</strong></p>
+<p>وده من أهم الأنماط في PoEAA، وهنحتاج نفهم علاقته بـ Data Mapper وDAO وService Layer وDDD؛ لأن فيه خلط شائع جدًا بين المفاهيم دي.</p>
+<article class="pattern-card" id="3-repository">
+<h3 class="pattern-title">3. Repository</h3>
+<div class="card-body">
+<p>وصلنا لواحد من أهم الأنماط في كتاب <strong>Patterns of Enterprise Application Architecture (PoEAA)</strong>، وواحد من أكثر الأنماط اللي بيحصل فيها خلط مع أنماط تانية، خصوصًا:</p>
+<ul>
+<li>Data Mapper</li>
+<li>DAO</li>
+<li>Table Data Gateway</li>
+<li>Service Layer</li>
+<li>Repository في DDD</li>
+</ul>
+<p>خلينا نفهمه من الأساس.</p>
+</div></article>
+<h2>1. المشكلة (Problem)</h2>
+<p>تخيل إن عندنا Domain Model فيه Customer، والتطبيق محتاج ينفذ عمليات زي:</p>
+<ul>
+<li>إضافة Customer.</li>
+<li>البحث عن Customer باستخدام ID.</li>
+<li>البحث عن Customers حسب شروط معينة.</li>
+<li>حذف Customer.</li>
+</ul>
+<p>ممكن نكتب SQL مباشرة داخل الـ Domain أو Application Logic:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class OrderService:
+
+    def create_order(self, customer_id):
+        # SQL query directly here
+        ...</code></pre></div>
+<p>لكن كده بدأنا نخلط بين حاجتين مختلفتين:</p>
+<ol>
+<li>الـ Business Logic: إيه اللي التطبيق محتاج يعمله؟</li>
+<li>الـ Data Access: إزاي نوصل للبيانات ونجيبها؟</li>
+</ol>
+<p>ومع زيادة حجم التطبيق، هتلاقي تفاصيل الـ SQL والـ ORM والـ Mapping منتشرة في أماكن كتير.</p>
+<p><strong>السؤال: هل ممكن نوفر للـ Domain طريقة يتعامل بيها مع البيانات كأنها Collection من Objects، من غير ما يعرف تفاصيل تخزينها؟</strong></p>
+<p>هنا بييجي دور Repository.</p>
+<h2>2. الفكرة والحل (Solution)</h2>
+<p>تعريف Fowler للـ Repository قائم على إنه يعمل وسيط بين Domain Model وData Mapping Layers، ويقدم واجهة تشبه Collection من Domain Objects.</p>
+<p>يعني بدل ما الـ Domain يتعامل مع SQL أو Database Tables، يتعامل مع Object مسؤول عن توفير الـ Domain Objects وتخزينها.</p>
+<p>تخيل إن عندك Collection في الذاكرة:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customers = [
+    Customer(1, &quot;Ahmed&quot;),
+    Customer(2, &quot;Saleh&quot;),
+]</code></pre></div>
+<p>بدل ما التطبيق يحتاج يعرف البيانات دي جاية منين، يتعامل مع Repository بواجهة قريبة من التعامل مع Collection:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customer = customer_repository.get_by_id(1)
+
+customer_repository.add(customer)</code></pre></div>
+<p>الـ Repository هو اللي يتولى تفاصيل الوصول للبيانات.</p>
+<p><strong>الفكرة الأساسية</strong></p>
+<p><strong>Domain / Application</strong></p>
+<p>يتعامل مع Domain Objects</p>
+<p><strong>Repository</strong></p>
+<p>واجهة تشبه Collection</p>
+<p><strong>Data Mapper / Data Access</strong></p>
+<p>يتعامل مع تفاصيل التخزين</p>
+<p><strong>Database</strong></p>
+<p>الفكرة المهمة هنا:</p>
+<p>الـ Repository مش مجرد مكان بنكتب فيه SQL، لكنه بيقدم للـ Domain طريقة للتعامل مع مجموعة من Domain Objects.</p>
+<h2>3. مثال عملي باستخدام Python</h2>
+<p>هنبني مثال بسيط يوضح الفكرة.</p>
+<h3>أولًا: Domain Model</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class Customer:
+
+    def __init__(self, customer_id, name):
+        self.id = customer_id
+        self.name = name
+
+    def change_name(self, new_name):
+        if not new_name:
+            raise ValueError(&quot;Name is required&quot;)
+
+        self.name = new_name</code></pre></div>
+<p>لاحظ إن الـ Customer مش عارف أي حاجة عن Database.</p>
+<h3>ثانيًا: Repository Interface</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">from abc import ABC, abstractmethod
+
+class CustomerRepository(ABC):
+
+    @abstractmethod
+    def get_by_id(self, customer_id):
+        pass
+
+    @abstractmethod
+    def add(self, customer):
+        pass
+
+    @abstractmethod
+    def remove(self, customer):
+        pass</code></pre></div>
+<p>ده العقد اللي الـ Application هيتعامل معاه.</p>
+<h3>ثالثًا: Infrastructure Implementation</h3>
+<p>هنعمل Implementation باستخدام In-Memory Storage للتبسيط:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class InMemoryCustomerRepository(CustomerRepository):
+
+    def __init__(self):
+        self.customers = {}
+
+    def get_by_id(self, customer_id):
+        return self.customers.get(customer_id)
+
+    def add(self, customer):
+        self.customers[customer.id] = customer
+
+    def remove(self, customer):
+        self.customers.pop(customer.id, None)</code></pre></div>
+<p>ممكن بعد كده نعمل Implementation تاني باستخدام PostgreSQL:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class PostgresCustomerRepository(CustomerRepository):
+
+    def __init__(self, connection):
+        self.connection = connection
+
+    def get_by_id(self, customer_id):
+        # Execute SQL and map the result
+        ...
+
+    def add(self, customer):
+        # Persist customer using SQL
+        ...
+
+    def remove(self, customer):
+        # Delete customer using SQL
+        ...</code></pre></div>
+<h3>رابعًا: Application Service</h3>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">class CustomerService:
+
+    def __init__(self, customer_repository):
+        self.customer_repository = customer_repository
+
+    def rename_customer(self, customer_id, new_name):
+        customer = self.customer_repository.get_by_id(
+            customer_id
+        )
+
+        if customer is None:
+            raise ValueError(&quot;Customer not found&quot;)
+
+        customer.change_name(new_name)</code></pre></div>
+<p>التطبيق مش محتاج يعرف هل البيانات جاية من PostgreSQL أو In-Memory Storage.</p>
+<p>نجرب:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">repository = InMemoryCustomerRepository()
+
+customer = Customer(1, &quot;Ahmed&quot;)
+repository.add(customer)
+
+service = CustomerService(repository)
+
+service.rename_customer(1, &quot;Saleh&quot;)
+
+print(customer.name)</code></pre></div>
+<p>الناتج:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Saleh</code></pre></div>
+<p><strong>خد بالك من نقطة مهمة:</strong> المثال استخدم In-Memory Repository لتوضيح الواجهة. في تنفيذ PostgreSQL حقيقي، محتاجين كمان نحدد استراتيجية حفظ التغييرات والـ Transactions، سواء عن طريق save() أو Unit of Work أو آلية أخرى.</p>
+<h2>4. أقرب GoF Pattern</h2>
+<p>هل Repository له GoF Equivalent مباشر؟</p>
+<p><strong>لا، مفيش GoF Pattern بيطابقه بشكل مباشر.</strong></p>
+<p>لكن فيه تشابهات جزئية:</p>
+<h3>Facade</h3>
+<p>الـ Facade بيقدم واجهة مبسطة للتعامل مع Subsystem معقد.</p>
+<p>والـ Repository بيقدم واجهة مبسطة للتعامل مع Data Mapping وData Access.</p>
+<p>لكن الفرق في الـ Intent:</p>
+<ul>
+<li>Facade بيبسط التعامل مع Subsystem.</li>
+<li>Repository بيقدم واجهة تشبه Collection للتعامل مع Domain Objects، ويعزل Domain Model عن تفاصيل Data Mapping.</li>
+</ul>
+<h3>Collection</h3>
+<p>فيه تشابه أقوى مع مفهوم Collection؛ لأن Repository بيخلي التعامل مع البيانات قريب من التعامل مع مجموعة Objects في الذاكرة.</p>
+<p>لكن Collection نفسها مش GoF Design Pattern.</p>
+<p>إذًا مفيش GoF Equivalent مباشر.</p>
+<h2>5. أهم مقارنة: Repository vs Data Mapper</h2>
+<p>دي لازم نفهمها كويس.</p>
+<p><strong>Data Mapper</strong> مسؤول عن تحويل البيانات بين Domain Objects وDatabase Records.</p>
+<p>أما <strong>Repository</strong> فمسؤول عن توفير واجهة للتعامل مع مجموعة Domain Objects.</p>
+<p>خلينا نشوف العلاقة:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Domain Objects  &lt;---  Repository  &lt;---  Data Mapper  &lt;---  Database</code></pre></div>
+<p>مثال:</p>
+<p>لما أطلب:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customer = repository.get_by_id(10)</code></pre></div>
+<p>الـ Repository ممكن يستعين بـ Data Mapper عشان:</p>
+<ol>
+<li>يطلب البيانات من Database.</li>
+<li>يحول الـ Row إلى Customer Object.</li>
+<li>يرجع الـ Customer للتطبيق.</li>
+</ol>
+<p>إذًا:</p>
+<ul>
+<li>Repository يحدد إزاي التطبيق يتعامل مع مجموعة الـ Objects.</li>
+<li>Data Mapper يحدد إزاي الـ Objects تتحول إلى Database Records والعكس.</li>
+</ul>
+<p><strong>ممكن Repository يستخدم Data Mapper داخليًا، لكن مش لازم كل Repository يكون مبني على Data Mapper.</strong></p>
+<h2>6. Repository vs DAO vs Gateway</h2>
+<p>خلينا نفصل التلاتة لأنهم بيتخلطوا كتير.</p>
+<p><strong>Repository</strong></p>
+<p>بيتعامل مع Domain Objects ومجموعاتها.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customer = customer_repository.get_by_id(10)</code></pre></div>
+<hr>
+<p><strong>DAO — Data Access Object</strong></p>
+<p>بيقدم واجهة للوصول للبيانات، وغالبًا بيكون أقرب لتفاصيل الـ Data Source.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">row = customer_dao.fetch_by_id(10)</code></pre></div>
+<hr>
+<p><strong>Table Data Gateway</strong></p>
+<p>Object مسؤول عن عمليات الوصول لجدول معين.</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">rows = customer_gateway.find_by_email(email)</code></pre></div>
+<p>الفرق مش مجرد أسماء، لكن مستوى التجريد والـ Objects اللي كل واحد بيتعامل معاها.</p>
+<p>ومهم تعرف إن DAO مصطلح مستخدم على نطاق واسع، وله تطبيقات مختلفة؛ مش كل DAO لازم يكون Table Data Gateway، ومش كل Repository مجرد DAO باسم مختلف.</p>
+<h2>7. علاقته بـ Application Architecture</h2>
+<p>Repository مش Application Architecture Pattern، لكنه ممكن يكون Component مهم داخل Application Architecture.</p>
+<p>في Clean Architecture مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">       Application Layer
+               |
+               ↓
+       Repository Interface
+               ↑
+               |
+      Infrastructure Layer
+               |
+               ↓
+            Database</code></pre></div>
+<p>خلينا نلاحظ اتجاه الـ Dependency:</p>
+<ul>
+<li>Application تعتمد على Repository Interface.</li>
+<li>Infrastructure تنفذ الـ Interface.</li>
+<li>Infrastructure هي اللي تتعامل مع Database.</li>
+</ul>
+<p>وده تطبيق عملي لمبدأ Dependency Inversion.</p>
+<p>لكن انتبه:</p>
+<p><strong>Repository Pattern مش هو Dependency Inversion Principle.</strong></p>
+<p>الـ DIP مبدأ تصميم، والـ Repository واحد من الأساليب اللي ممكن تساعدنا نطبقه.</p>
+<h2>8. علاقته بـ DDD</h2>
+<p>هنا Repository له أهمية خاصة جدًا.</p>
+<p>في DDD، غالبًا بنعمل Repository لكل Aggregate Root محتاجين نرجعه ونحفظه.</p>
+<p>مثلًا:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">plain text</span></div><pre class="code-block"><code class="language-plain text">Order Aggregate
+    |
+    |-- Order
+    |-- OrderLine
+    |-- OrderAddress</code></pre></div>
+<p>بدل ما نعمل Repository لكل Entity داخل الـ Aggregate، غالبًا بنتعامل مع الـ Aggregate من خلال Repository الخاص بالـ Root:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">order = order_repository.get_by_id(order_id)
+
+order.add_line(product, quantity)
+
+order_repository.save(order)</code></pre></div>
+<p>ليه؟</p>
+<p>لأن الـ Aggregate Root هو نقطة الدخول للتحكم في الـ Aggregate والحفاظ على قواعد الـ Consistency الخاصة به.</p>
+<p>مش معنى كده إن كل Class لازم يكون لها Repository.</p>
+<p>ومش معنى إن عندك Database Table يبقى لازم تعمل Repository ليها.</p>
+<h2>9. علاقته بـ Odoo</h2>
+<p>في Odoo، لما تكتب:</p>
+<div class="code-wrap" dir="ltr"><div class="code-bar"><span class="lang">python</span></div><pre class="code-block"><code class="language-python">customers = self.env[&quot;res.partner&quot;].search([
+    (&quot;customer_rank&quot;, &quot;&gt;&quot;, 0)
+])</code></pre></div>
+<p>أنت بتتعامل مع ORM Model وRecordsets.</p>
+<p>هل ده Repository؟</p>
+<p>فيه تشابه في فكرة توفير واجهة للوصول لمجموعة Records، لكن self.env[&quot;res.partner&quot;] ليس تلقائيًا Fowler Repository بالمعنى الدقيق.</p>
+<p>السبب إن Odoo Model وORM مسؤولان عن مجموعة واسعة من الوظائف، منها:</p>
+<ul>
+<li>تعريف الـ Fields.</li>
+<li>التعامل مع الـ Recordsets.</li>
+<li>البحث والقراءة والكتابة.</li>
+<li>إدارة العلاقات.</li>
+<li>تطبيق الـ Access Rights والـ Record Rules.</li>
+<li>عمليات الـ ORM الأخرى.</li>
+</ul>
+<p>في تطبيق Odoo مخصص، ممكن تعمل Repository abstraction فوق ORM لو عندك سبب معماري واضح، لكن مش لازم تضيف Repository لكل Model لمجرد اتباع DDD أو Clean Architecture.</p>
+<hr>
+<h2>10. إمتى نستخدم Repository؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>عايز تعزل الـ Domain عن تفاصيل Data Access.</li>
+<li>عايز تتعامل مع Domain Objects كأنها Collection.</li>
+<li>عندك Domain Model محتاج استقلال عن Persistence.</li>
+<li>عايز توفر Implementations مختلفة لمصدر البيانات.</li>
+<li>بتستخدم DDD وعايز Repository عند حدود الـ Aggregate Roots.</li>
+</ul>
+<p>لكن تجنبه لو هيكون مجرد طبقة إضافية بتكرر نفس واجهات ORM من غير قيمة حقيقية.</p>
+<h2>الخلاصة النهائية للمجموعة</h2>
+<p><strong>Object-Relational Metadata Mapping Patterns</strong></p>
+<ol>
+<li><strong>Metadata Mapping:</strong> وصف العلاقة بين Objects وDatabase في Metadata.</li>
+<li><strong>Query Object:</strong> تمثيل الاستعلام في صورة Object.</li>
+<li><strong>Repository:</strong> توفير واجهة تشبه Collection للتعامل مع Domain Objects.</li>
+</ol>
+<p>التلاتة بيتعاملوا مع تنظيم عملية الـ Persistence، لكن كل واحد بيحل مشكلة مختلفة.</p>
+<p>وبكده نكون خلصنا مجموعة <strong>Object-Relational Metadata Mapping Patterns</strong>.</p>
+<p>الخطوة المنطقية التالية في فهرس PoEAA هي <strong>Web Presentation Patterns</strong>، ودي مجموعة مختلفة؛ هنبدأ فيها من مشكلة التعامل مع HTTP Requests وResponses وعرض البيانات للمستخدم.</p>
+<p>هنكمل في دول بنفس الاسلوب بس من اليمين للشمال</p>
+<h2>Web Presentation Patterns</h2>
+<p>تمام يا صاحبي 😂 نبدأ مجموعة <strong>Web Presentation Patterns</strong>، وهنحافظ على نفس أسلوبنا، مع ترتيب الرسومات وتدفق العمليات من اليمين للشمال فعلًا.</p>
+        
+      <nav class="page-nav" aria-label="تنقل الصفحات"><a href="object-relational-structural-patterns.html">→ Object-Relational Structural Patterns</a><a href="web-presentation-patterns.html">Web Presentation Patterns ←</a></nav>
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const saved = localStorage.getItem('poeaa3-theme');
+    if (saved) root.setAttribute('data-theme', saved);
+    document.getElementById('theme')?.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      if (next === 'dark') root.setAttribute('data-theme', 'dark'); else root.removeAttribute('data-theme');
+      localStorage.setItem('poeaa3-theme', next === 'dark' ? 'dark' : 'light');
+    });
+  </script>
+</body>
+</html>
