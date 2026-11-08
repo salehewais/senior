@@ -1,0 +1,150 @@
+/* Responsive breakpoints */
+
+@media (max-width: 1100px) {
+  .main-area {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .toc-panel {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --sidebar-w: 0px;
+  }
+
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: var(--header-h);
+    width: min(320px, 88vw);
+    z-index: 120;
+    transform: translateX(-105%);
+    transition: transform var(--duration) var(--ease);
+    box-shadow: var(--shadow-lg);
+  }
+
+  body.sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+
+  .header-brand .subtitle {
+    display: none;
+  }
+
+  .search-wrap {
+    width: min(200px, 28vw);
+  }
+
+  .progress-chip {
+    min-width: 72px;
+  }
+
+  .progress-chip span.pct-label {
+    display: none;
+  }
+
+  .content-wrap {
+    padding: var(--space-5) var(--space-4) var(--space-7);
+  }
+
+  .menu-toggle {
+    display: inline-flex !important;
+  }
+}
+
+@media (min-width: 901px) {
+  .menu-toggle {
+    display: none !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .site-header {
+    padding: 0 var(--space-3);
+    gap: var(--space-2);
+  }
+
+  .header-brand h1 {
+    font-size: 0.9rem;
+  }
+
+  .search-wrap {
+    width: 42px;
+  }
+
+  .search-wrap:focus-within,
+  .search-wrap.expanded {
+    position: absolute;
+    left: var(--space-3);
+    right: var(--space-3);
+    width: auto;
+    z-index: 130;
+  }
+
+  .search-wrap:focus-within input,
+  .search-wrap.expanded input {
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-md);
+  }
+
+  .topic-header {
+    flex-direction: column;
+  }
+
+  .diagram-body {
+    padding: var(--space-3);
+  }
+
+  .arch-relationships-page.visual-extra-page {
+    padding: var(--space-4);
+  }
+
+  .arch-node-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .arch-edge-pair {
+    font-size: 0.84rem;
+  }
+
+  .back-to-top {
+    right: 12px;
+    bottom: 12px;
+  }
+}
+
+@media print {
+  .site-header,
+  .sidebar,
+  .toc-panel,
+  .back-to-top,
+  .sidebar-backdrop,
+  .diagram-actions,
+  .study-nav,
+  .icon-btn,
+  .search-wrap {
+    display: none !important;
+  }
+
+  .app-shell,
+  .main-area {
+    display: block;
+  }
+
+  .content-wrap {
+    max-width: none;
+    padding: 0;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+}
