@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>أنماط معمارية لمصدر البيانات · POEAA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Tajawal:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Cairo:wght@300;400;600;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/reference.css">
+  
+</head>
+<body>
+  <div class="page-fade">
+
+  <header class="group-topbar">
+    <a class="home-link" href="../index.html">المرجع</a>
+    <div class="group-switch"><a href="02-domain-logic-patterns.html">→ أنماط منطق المجال</a><a href="04-object-relational-behavioral.html">أنماط سلوكية للكائنات والعلاقات ←</a></div>
+  </header>
+  <header class="group-hero">
+    <p class="eyebrow">المجموعة 03</p>
+    <h1>أنماط معمارية لمصدر البيانات</h1>
+    <p class="subtitle" dir="ltr">Data Source Architectural Patterns</p>
+  </header>
+  <div class="group-layout">
+    <aside class="toc-wrap">
+      <nav class="toc" aria-label="محتويات الأنماط">
+        <p class="toc-title">الأنماط</p>
+        <ol><li><a href="#table-data-gateway"><span dir="ltr">Table Data Gateway</span></a></li>
+<li><a href="#row-data-gateway"><span dir="ltr">Row Data Gateway</span></a></li>
+<li><a href="#active-record"><span dir="ltr">Active Record</span></a></li>
+<li><a href="#data-mapper"><span dir="ltr">Data Mapper</span></a></li></ol>
+      </nav>
+    </aside>
+    <main class="group-main">
+      <section class="group-map" id="group-map">
+        <h2>خريطة المجموعة</h2>
+        <p>خريطة مجموعة <span dir="ltr">Data Source Architectural Patterns</span> (أنماط معمارية لمصدر البيانات).</p>
+      </section>
+      
+      <article class="pattern" id="table-data-gateway" data-pattern="Table Data Gateway">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Data Source Architectural Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Table Data Gateway</h2>
+        </header>
+        <div class="pattern-body">
+<h2>المشكلة</h2>
+<p>تخيل عندك تطبيق لإدارة الطلبات، وبتستخدم PostgreSQL.</p>
+<p>عندك عمليات مختلفة بتحتاج تتعامل مع جدول orders:</p>
+<ul>
+<li>جلب طلب.</li>
+<li>جلب كل الطلبات.</li>
+<li>إنشاء طلب.</li>
+<li>تعديل طلب.</li>
+<li>حذف طلب.</li>
+</ul>
+<p>ممكن تكتب SQL مباشرة داخل كل Function محتاجة تتعامل مع الجدول:</p>
+<pre class="code" dir="ltr"><code class="language-python">def get_order(order_id):
+    cursor.execute(
+        &quot;SELECT * FROM orders WHERE id = %s&quot;,
+        (order_id,)
+    )
+
+def create_order(data):
+    cursor.execute(
+        &quot;INSERT INTO orders ...&quot;,
+        ...
+    )
+
+def cancel_order(order_id):
+    cursor.execute(
+        &quot;UPDATE orders SET status = ...&quot;,
+        ...
+    )</code></pre>
+<p>مع زيادة التطبيق، هتلاقي SQL متوزع في أماكن مختلفة.</p>
+<p>وده بيؤدي لمشاكل:</p>
+<ol>
+<li>تكرار SQL في أكتر من مكان.</li>
+<li>صعوبة تعديل Schema قاعدة البيانات.</li>
+<li>صعوبة مراجعة وتحسين Queries.</li>
+<li>ارتباط Business Logic بتفاصيل الوصول للبيانات.</li>
+<li>صعوبة إعادة استخدام عمليات الوصول لنفس الجدول.</li>
+</ol>
+<p>إحنا محتاجين مكان مركزي مسؤول عن كل عمليات الوصول لجدول معين.</p>
+<h2>الفكرة والحل</h2>
+<p>تعريف Fowler:</p>
+<p><strong>An object that acts as a gateway to a database table. One instance handles all the rows in the table.</strong></p>
+<p>خلينا نفهم التعريف.</p>
+<p>بننشئ Object واحد مسؤول عن التعامل مع جدول معين، ويحتوي على SQL الخاصة بالجدول ده.</p>
+<p>مثلًا:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">             OrdersTableGateway
+                     |
+          +----------+----------+
+          |          |          |
+        SELECT     INSERT     UPDATE
+          |          |          |
+          +----------+----------+
+                     |
+                  orders
+                   Table</code></pre>
+<p>لاحظ النقطة المهمة:</p>
+<p><strong>One instance handles all the rows.</strong></p>
+<p>يعني عندنا Object واحد مسؤول عن جميع Rows الموجودة في جدول orders.</p>
+<p>مش بنعمل Gateway Object لكل Order.</p>
+<p>وده الفرق اللي هنحتاج نفتكره لما نوصل إلى Row Data Gateway.</p>
+<h2>مثال</h2>
+<p>هنستخدم SQLite عشان المثال يكون قابل للتشغيل من غير إعداد PostgreSQL.</p>
+<p><strong>أولًا: إنشاء الجدول</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">import sqlite3
+
+connection = sqlite3.connect(&quot;:memory:&quot;)
+
+connection.execute(&quot;&quot;&quot;
+    CREATE TABLE orders (
+        id INTEGER PRIMARY KEY,
+        customer_id INTEGER,
+        total REAL,
+        status TEXT
+    )
+&quot;&quot;&quot;)
+
+connection.commit()</code></pre>
+<p><strong>ثانيًا: إنشاء Table Data Gateway</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">class OrdersTableGateway:
+
+    def __init__(self, connection):
+        self.connection = connection
+
+    def find_all(self):
+        cursor = self.connection.execute(&quot;&quot;&quot;
+            SELECT id, customer_id, total, status
+            FROM orders
+        &quot;&quot;&quot;)
+
+        return cursor.fetchall()
+
+    def find_by_id(self, order_id):
+        cursor = self.connection.execute(&quot;&quot;&quot;
+            SELECT id, customer_id, total, status
+            FROM orders
+            WHERE id = ?
+        &quot;&quot;&quot;, (order_id,))
+
+        return cursor.fetchone()
+
+    def insert(self, customer_id, total):
+        cursor = self.connection.execute(&quot;&quot;&quot;
+            INSERT INTO orders (
+                customer_id,
+                total,
+                status
+            )
+            VALUES (?, ?, ?)
+        &quot;&quot;&quot;, (customer_id, total, &quot;draft&quot;))
+
+        self.connection.commit()
+
+        return cursor.lastrowid</code></pre>
+<p><strong>ثالثًا: الاستخدام</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">orders_gateway = OrdersTableGateway(connection)
+
+order_id = orders_gateway.insert(
+    customer_id=10,
+    total=500
+)
+
+order = orders_gateway.find_by_id(order_id)
+
+print(order)
+
+orders_gateway.update_status(
+    order_id,
+    &quot;confirmed&quot;
+)
+
+print(orders_gateway.find_all())</code></pre>
+<h2>4. إيه اللي حققناه؟</h2>
+<p>خلينا نلاحظ المسؤوليات:</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المسؤولية</th><th>مكانها</th></tr>
+<tr><td>كتابة SQL</td><td>OrdersTableGateway</td></tr>
+<tr><td>تنفيذ SELECT</td><td>OrdersTableGateway</td></tr>
+<tr><td>تنفيذ INSERT</td><td>OrdersTableGateway</td></tr>
+<tr><td>تنفيذ UPDATE</td><td>OrdersTableGateway</td></tr>
+<tr><td>تنفيذ DELETE</td><td>OrdersTableGateway</td></tr>
+<tr><td>تحديد قواعد تأكيد الطلب</td><td>ليست مسؤوليته</td></tr>
+</table></div>
+<p>آخر نقطة مهمة جدًا.</p>
+<p>الـ Table Data Gateway مسؤول عن Data Access، مش عن Business Logic.</p>
+<p>يعني مش المفروض نحط فيه قاعدة زي:</p>
+<pre class="code" dir="ltr"><code class="language-python">if order.total &gt; 1000:
+    apply_discount()</code></pre>
+<p>دي مسؤولية Business Logic، مش Data Source Access.</p>
+<h2>أقرب GoF Pattern</h2>
+<p>هنا عندنا تشابه واضح مع:</p>
+<h3>Facade</h3>
+<p><strong>وجه التشابه:</strong></p>
+<p>الاتنين بيقدموا واجهة موحدة تخفي تفاصيل داخلية.</p>
+<p>مثلًا الـ Client بدل ما يتعامل مع SQL وDatabase Connection مباشرة، بيتعامل مع:</p>
+<pre class="code" dir="ltr"><code class="language-python">orders_gateway.find_by_id(10)</code></pre>
+<p><strong>الاختلاف في Intent:</strong></p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>Facade</th><th>Table Data Gateway</th></tr>
+<tr><td>يبسط التعامل مع Subsystem</td><td>يغلف الوصول إلى Database Table</td></tr>
+<tr><td>ممكن يجمع واجهات عدة Objects</td><td>يركز على Table أو View معين</td></tr>
+<tr><td>مش شرط يكون Data Access</td><td>متخصص في Data Access</td></tr>
+</table></div>
+<p>إذًا Table Data Gateway مش Facade، رغم التشابه في شكل الواجهة.</p>
+<h3>Gateway</h3>
+<p>في Base Patterns عندنا Gateway.</p>
+<p>وده فعلًا قريب منه جدًا.</p>
+<p>لكن لازم نفرّق:</p>
+<ul>
+<li>Gateway هو مفهوم أوسع لتغليف الوصول إلى External System أو Resource.</li>
+<li>Table Data Gateway تطبيق متخصص لفكرة Gateway، بيغلف الوصول إلى Database Table.</li>
+</ul>
+<p>وده تشابه في الغرض والبنية، مش GoF Pattern مستقل.</p>
+<h2>علاقته بالعمارة</h2>
+<p>ممكن يظهر في Layered Architecture بالشكل ده:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">Presentation Layer
+        |
+        v
+Business Logic Layer
+        |
+        v
+Table Data Gateway
+        |
+        v
+Database</code></pre>
+<p>وممكن تستخدمه داخل Clean Architecture.</p>
+<p>لكن هنا لازم ننتبه:</p>
+<p>لو الـ Gateway موجود داخل Infrastructure، والـ Application بيعتمد على Interface موجودة في Application، فده بيساعد في تحقيق Dependency Inversion.</p>
+<p>مثلًا:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">Application
+    |
+    v
+IOrderGateway
+    ^
+    |
+Infrastructure
+    |
+    v
+OrdersTableGateway
+    |
+    v
+Database</code></pre>
+<p>الـ OrdersTableGateway هنا هو Implementation، والـ Interface موجودة في الجهة اللي تحتاجها.</p>
+<p>لكن وجود Table Data Gateway وحده لا يعني إنك طبقت Clean Architecture أو Dependency Inversion.</p>
+<h2>7. علاقته بـ DDD</h2>
+<p>هنا الفرق مهم.</p>
+<p>في DDD عندنا Repository.</p>
+<p>ممكن تسأل: هل Table Data Gateway هو Repository؟</p>
+<p><strong>لا، مش نفس الـ Pattern.</strong></p>
+<p>خلينا نقارن:</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>Table Data Gateway</th><th>Repository</th></tr>
+<tr><td>يتعامل مع Database Table</td><td>يتعامل مع Domain Objects</td></tr>
+<tr><td>غالبًا يرجع Records أو Record Sets</td><td>غالبًا يرجع Entities أو Aggregates</td></tr>
+<tr><td>بيعرف تفاصيل الجدول</td><td>يخفي تفاصيل Persistence</td></tr>
+<tr><td>SQL وعمليات الجدول مسؤوليته</td><td>يوفر Collection-like interface للـ Domain</td></tr>
+</table></div>
+<p>مثال:</p>
+<pre class="code" dir="ltr"><code class="language-python">
+## علاقته بأودو
+
+خلينا نربط النمط بشغلك.
+
+في Odoo لما تكتب:
+</code></pre>
+<p>orders = self.env[&quot;sale.order&quot;].search([</p>
+<p>    (&quot;state&quot;, &quot;=&quot;, &quot;sale&quot;)</p>
+<p>])</p>
+<pre class="code" dir="ltr"><code>
+هل ده Table Data Gateway؟
+
+**لا، مش بالمعنى الدقيق.**
+
+لأن Odoo ORM بيقدم Model وRecordsets وDomain Expressions وبيتعامل مع العلاقات والسلوكيات، مش مجرد Gateway مخصص لجدول واحد يعيد Records خام.
+
+كمان Model واحد في Odoo ممكن يتعامل مع أكثر من جدول في حالات الوراثة والتركيب وغيرها.
+
+فمجرد إن عندك Model مربوط بجدول لا يكفي لتصنيفه Table Data Gateway.
+
+---</code></pre>
+        </div>
+      </article>
+      <article class="pattern" id="row-data-gateway" data-pattern="Row Data Gateway">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Data Source Architectural Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Row Data Gateway</h2>
+        </header>
+        <div class="pattern-body">
+<h2>المشكلة</h2>
+<p>في الـ Table Data Gateway كان عندنا Object واحد مسؤول عن جدول كامل.</p>
+<p>لكن تخيل إن عندنا نظام فيه آلاف الطلبات، وكل طلب محتاج نتعامل معاه بشكل مستقل.</p>
+<p>مثلًا:</p>
+<ul>
+<li>جلب طلب معين.</li>
+<li>تعديل حالة طلب معين.</li>
+<li>تغيير قيمة طلب معين.</li>
+<li>حذف طلب معين.</li>
+</ul>
+<p>ممكن نستخدم Table Data Gateway، لكن كل مرة هنحتاج نمرر order_id للـ Gateway عشان يحدد الصف المطلوب.</p>
+<p>هل ممكن يكون عندنا Object يمثل كل Row بشكل مستقل، ويكون مسؤول عن الوصول للبيانات الخاصة بالـ Row دي؟</p>
+<p>هنا بيظهر Row Data Gateway.</p>
+<h2>الفكرة والحل</h2>
+<p><strong>Row Data Gateway</strong> هو Object بيمثل Row واحدة من جدول قاعدة البيانات، وبيوفر واجهة للتعامل مع البيانات الخاصة بالـ Row دي.</p>
+<p>يعني بدل:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">             OrdersTableGateway
+                     |
+          +----------+----------+
+          |          |          |
+        Order 1    Order 2    Order 3</code></pre>
+<p>هنكون عندنا:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">       OrderRowGateway       OrderRowGateway
+              |                     |
+          Row 1                 Row 2
+              |                     |
+           orders                orders
+                  Database</code></pre>
+<p>كل Object مسؤول عن Row واحدة.</p>
+<p>لاحظ إننا هنا بنتكلم عن Data Access، مش بالضرورة Business Logic.</p>
+<h2>مثال</h2>
+<p>هنستخدم نفس جدول الطلبات.</p>
+<p><strong>أولًا: Row Data Gateway</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">class OrderRowGateway:
+
+    def __init__(self, connection, order_id):
+        self.connection = connection
+        self.order_id = order_id
+
+    def load(self):
+        cursor = self.connection.execute(&quot;&quot;&quot;
+            SELECT id, customer_id, total, status
+            FROM orders
+            WHERE id = ?
+        &quot;&quot;&quot;, (self.order_id,))
+
+        row = cursor.fetchone()
+
+        if row is None:
+            raise ValueError(&quot;Order not found&quot;)
+
+        self.customer_id = row[1]
+        self.total = row[2]
+        self.status = row[3]
+
+    def update_status(self, status):
+        self.connection.execute(&quot;&quot;&quot;
+            UPDATE orders
+            SET status = ?
+            WHERE id = ?
+        &quot;&quot;&quot;, (status, self.order_id))
+
+        self.connection.commit()
+
+        self.status = status
+
+    def delete(self):
+        self.connection.execute(&quot;&quot;&quot;
+            DELETE FROM orders</code></pre>
+<p><strong>ثانيًا: الاستخدام</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">order = OrderRowGateway(connection, order_id=1)
+
+order.load()
+
+print(order.total)
+print(order.status)
+
+order.update_status(&quot;confirmed&quot;)</code></pre>
+<p>لاحظ هنا إننا أنشأنا Object لطلب معين.</p>
+<p>والـ Object ده بيتعامل مع Row واحدة فقط.</p>
+<h2>4. الفرق بين Table Data Gateway وRow Data Gateway</h2>
+<p>دي أهم نقطة في النمطين.</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Table Data Gateway</th><th>Row Data Gateway</th></tr>
+<tr><td>وحدة التمثيل</td><td>جدول كامل</td><td>صف واحد</td></tr>
+<tr><td>عدد Objects</td><td>غالبًا Object واحد لكل جدول</td><td>Object لكل Row</td></tr>
+<tr><td>التعامل مع البيانات</td><td>عمليات على مجموعة Rows</td><td>عمليات على Row محددة</td></tr>
+<tr><td>تحديد السجل</td><td>تمرير ID أو شروط البحث</td><td>الـ Object مرتبط بسجل محدد</td></tr>
+<tr><td>المسؤولية</td><td>Data Access</td><td>Data Access</td></tr>
+</table></div>
+<p>خلينا نوضح الفرق في الاستخدام:</p>
+<p><strong>Table Data Gateway:</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">gateway = OrdersTableGateway(connection)
+
+order = gateway.find_by_id(10)
+
+gateway.update_status(10, &quot;confirmed&quot;)</code></pre>
+<p><strong>Row Data Gateway:</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">order = OrderRowGateway(connection, 10)
+
+order.load()
+
+order.update_status(&quot;confirmed&quot;)</code></pre>
+<p>في الأول الـ Gateway هو اللي بيستقبل هوية السجل.</p>
+<p>في الثاني الـ Object نفسه مرتبط بسجل معين.</p>
+<h2>أقرب GoF Pattern</h2>
+<p>مفيش GoF Pattern مكافئ مباشرة لـ Row Data Gateway، لكن فيه تشابهات.</p>
+<h3>Proxy</h3>
+<p><strong>وجه التشابه:</strong></p>
+<p>الـ Row Data Gateway ممكن يمثل نقطة وصول لسجل معين، ويخفي تفاصيل التعامل مع قاعدة البيانات.</p>
+<p>وده قريب من Proxy اللي بيوفر وسيطًا للوصول إلى Object آخر.</p>
+<p><strong>الاختلاف في Intent:</strong></p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>Proxy</th><th>Row Data Gateway</th></tr>
+<tr><td>يتحكم في الوصول إلى Real Subject</td><td>يغلف الوصول إلى Database Row</td></tr>
+<tr><td>ممكن يستخدم Lazy Loading أو Access Control</td><td>يوفر عمليات Data Access لسجل معين</td></tr>
+<tr><td>مش شرط يتعامل مع Database</td><td>متخصص في Database Access</td></tr>
+</table></div>
+<p>إذًا التشابه في فكرة الوساطة وإخفاء التفاصيل، لكن الهدف مختلف.</p>
+<h3>Active Record</h3>
+<p>وده أقرب تشابه عملي، لكنه مش GoF Pattern.</p>
+<p>الاتنين ممكن يكون عندهم Object لكل Row، والاتنين ممكن يوفروا عمليات زي update() و<code dir="ltr">delete()</code>.</p>
+<p>لكن الفرق الحقيقي في مكان الـ Business Logic، وده هنوضحه بالتفصيل بعد شوية.</p>
+<h2>6. الفرق بين Row Data Gateway وActive Record</h2>
+<p>دي نقطة مهمة جدًا، ومش عايزك تخلط بينهم.</p>
+<h3>Row Data Gateway</h3>
+<p>الـ Object مسؤول عن الوصول للبيانات فقط.</p>
+<p>مثلًا:</p>
+<pre class="code" dir="ltr"><code class="language-python">order.update_status(&quot;confirmed&quot;)</code></pre>
+<p>هنا update_status() بتنفذ عملية تحديث في قاعدة البيانات.</p>
+<p>لكن مش بالضرورة تكون هي المسؤولة عن تقرير هل تأكيد الطلب مسموح أم لا.</p>
+<h3>Active Record</h3>
+<p>الـ Object بيجمع بين:</p>
+<ul>
+<li>بيانات السجل.</li>
+<li>Business Logic الخاصة به.</li>
+<li>عمليات Persistence.</li>
+</ul>
+<p>مثلًا:</p>
+<pre class="code" dir="ltr"><code class="language-python">order.confirm()
+order.save()</code></pre>
+<p>هنا confirm() ممكن تحتوي على قواعد المجال، و<code dir="ltr">save()</code> تحفظ البيانات.</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Row Data Gateway</th><th>Active Record</th></tr>
+<tr><td>يمثل Row</td><td>نعم</td><td>نعم</td></tr>
+<tr><td>يحتوي Data Access</td><td>نعم</td><td>نعم</td></tr>
+<tr><td>يحتوي Business Logic</td><td>ليس هدفه الأساسي</td><td>نعم</td></tr>
+<tr><td>يحفظ نفسه</td><td>ممكن يوفر عمليات تحديث</td><td>نعم</td></tr>
+<tr><td>يفصل Domain Logic عن Persistence</td><td>بصورة أكبر</td><td>لا، يدمج المسؤوليتين</td></tr>
+</table></div>
+<p><strong>ملحوظة:</strong> وجود Method اسمها confirm() وحده لا يجعل الـ Object Active Record؛ المهم المسؤوليات والتصميم الفعلي.</p>
+<h2>علاقته بالعمارة</h2>
+<p>ممكن تستخدم Row Data Gateway داخل Layered Architecture:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">Presentation Layer
+        |
+        v
+Business Logic Layer
+        |
+        v
+Row Data Gateway
+        |
+        v
+Database</code></pre>
+<p>وممكن استخدامه داخل Clean Architecture باعتباره جزءًا من Infrastructure.</p>
+<p>لكن الأفضل إن الـ Application أو Domain ما يعتمدوش على تفاصيل PostgreSQL أو SQL مباشرة.</p>
+<p>مثلًا:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">Application
+     |
+     v
+OrderRepository (Interface)
+     ^
+     |
+Infrastructure
+     |
+     v
+OrderRowGateway
+     |
+     v
+Database</code></pre>
+<p>هنا الـ Repository ممكن يستخدم Row Data Gateway داخليًا.</p>
+<h2>8. علاقته بـ DDD</h2>
+<p>في DDD، الـ Row Data Gateway مش بديل عن Repository أو Aggregate.</p>
+<p>خلينا نفصل المسؤوليات:</p>
+<ul>
+<li>Aggregate: يحدد حدود الاتساق وقواعد المجال.</li>
+<li>Repository: يوفر الوصول إلى Aggregates.</li>
+<li>Row Data Gateway: يوفر الوصول إلى Row في قاعدة البيانات.</li>
+</ul>
+<p>ممكن Repository يستخدم Row Data Gateway داخليًا لتحميل البيانات وتحديثها، لكن الـ Domain مش المفروض يعتمد عليه مباشرة.</p>
+<h2>علاقته بأودو</h2>
+<p>في Odoo عندك:</p>
+<pre class="code" dir="ltr"><code class="language-python">order = self.env[&quot;sale.order&quot;].browse(10)</code></pre>
+<p>هنا عندك Recordset بيمثل سجلًا أو مجموعة سجلات.</p>
+<p>هل ده Row Data Gateway؟</p>
+<p><strong>مش بالضرورة، والتصنيف الدقيق إنه Odoo ORM Recordset.</strong></p>
+<p>لأن Odoo Recordset عنده سلوك أوسع من مجرد تغليف Data Access لصف واحد، وبيوفر ORM Operations وBusiness Methods وRecord Cache وغير ذلك.</p>
+<p>حتى لو استخدمت:</p>
+<pre class="code" dir="ltr"><code class="language-python">order = self.env[&quot;sale.order&quot;].browse(10)
+order.write({&quot;state&quot;: &quot;sale&quot;})</code></pre>
+<p>فده مش تطبيق حرفي لـ Row Data Gateway.</p>
+<p>التشابه هنا في مستوى التعامل مع سجل معين، لكن الـ Intent مختلف.</p>
+<hr>
+<h2>10. إمتى أستخدمه؟</h2>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>الحالة</th><th>الاختيار</th></tr>
+<tr><td>عايز Object لكل Row مسؤول عن Data Access</td><td>Row Data Gateway</td></tr>
+<tr><td>عايز Object واحد مسؤول عن جدول كامل</td><td>Table Data Gateway</td></tr>
+<tr><td>عايز Object يجمع Data وBusiness Logic وPersistence</td><td>Active Record</td></tr>
+<tr><td>عايز Domain Objects مستقلة عن Persistence</td><td>Data Mapper</td></tr>
+</table></div>
+<h2>الخلاصة</h2>
+<p><strong>Row Data Gateway</strong> بيعمل Object لكل Row في قاعدة البيانات، والـ Object ده مسؤول عن عمليات الوصول للسجل وتعديله.</p>
+<p>وأهم مقارنة لحد دلوقتي:</p>
+<ul>
+<li>Table Data Gateway: واحد للجدول.</li>
+<li>Row Data Gateway: واحد لكل Row.</li>
+<li>Active Record: واحد لكل Row، لكن بيجمع Data Access وBusiness Logic.</li>
+</ul>
+<hr>
+<p><strong>التالي: Active Record</strong></p>
+<p>وده هيكون مهم جدًا؛ لأنه هنقدر نقارن بينه وبين Odoo ORM، وكمان نفهم ليه Fowler بيعتبره Pattern مختلف عن Row Data Gateway.</p>
+        </div>
+      </article>
+      <article class="pattern" id="active-record" data-pattern="Active Record">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Data Source Architectural Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Active Record</h2>
+        </header>
+        <div class="pattern-body">
+<p>هنكمل في مجموعة <strong>Data Source Architectural Patterns</strong> من كتاب <em>Patterns of Enterprise Application Architecture</em>.</p>
+<p>خلينا نبدأ من أهم نقطة: الـ Active Record بيختلف عن الـ Row Data Gateway في إنه مش مجرد Object مسؤول عن الوصول للداتا؛ ده كمان بيحتوي على الـ Business Logic المرتبطة بالسجل نفسه.</p>
+<h2>المشكلة</h2>
+<p>تخيل عندنا جدول orders في قاعدة البيانات:</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>id</th><th>customer</th><th>total</th><th>status</th></tr>
+<tr><td>1</td><td>Ahmed</td><td>500</td><td>draft</td></tr>
+<tr><td>2</td><td>Mohamed</td><td>800</td><td>confirmed</td></tr>
+</table></div>
+<p>إحنا محتاجين نمثل كل Order في Python Object.</p>
+<p>لكن عندنا مسؤوليتين:</p>
+<ol>
+<li>التعامل مع قاعدة البيانات: تحميل، حفظ، تحديث، حذف.</li>
+<li>تنفيذ قواعد المجال (Business Logic): تأكيد الطلب، حساب الإجمالي، التحقق من إمكانية الإلغاء.</li>
+</ol>
+<p>السؤال: هل نفصل المسؤوليتين في Objects مختلفة، ولا نجمعهم في Object واحد؟</p>
+<p>الـ Active Record اختار إنه يجمعهم.</p>
+<h2>الفكرة والحل</h2>
+<p>حسب تعريف Fowler:</p>
+<p><strong>An object that wraps a row in a database table or view, encapsulates database access, and adds domain logic on that data.</strong></p>
+<p>بمعنى إن كل Object بيمثل Row واحدة، وبيحتوي على:</p>
+<ul>
+<li>بيانات السجل (Data).</li>
+<li>عمليات الوصول لقاعدة البيانات (Persistence Operations).</li>
+<li>منطق المجال المرتبط بالسجل (Domain Logic).</li>
+</ul>
+<p>تصور التركيب بالشكل ده:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">                 ActiveRecord: Order
+                         |
+             +-----------+-----------+
+             |           |           |
+           Data       Persistence   Domain Logic
+             |           |           |
+          order_id      save()     confirm()
+          total         delete()   cancel()
+          status        reload()   calculate_total()
+             |           |           |
+             +-----------+-----------+
+                         |
+                      Database</code></pre>
+<p>يعني الـ Order نفسه يعرف بياناته، ويعرف إزاي يحفظ نفسه، ويعرف ينفذ السلوك المرتبط بيه.</p>
+<h2>مثال</h2>
+<p>هنستخدم SQLite عشان المثال يكون عملي، مع تبسيط بعض التفاصيل لتوضيح الـ Pattern.</p>
+<pre class="code" dir="ltr"><code class="language-python">import sqlite3
+
+class Order:
+    def __init__(self, order_id, customer, total, status):
+        self.id = order_id
+        self.customer = customer
+        self.total = total
+        self.status = status
+
+    @classmethod
+    def find(cls, connection, order_id):
+        cursor = connection.execute(
+            &quot;&quot;&quot;
+            SELECT id, customer, total, status
+            FROM orders
+            WHERE id = ?
+            &quot;&quot;&quot;,
+            (order_id,)
+        )
+
+        row = cursor.fetchone()
+
+        if row is None:
+            return None
+
+        return cls(*row)
+
+    def confirm(self, connection):
+        if self.status != &quot;draft&quot;:
+            raise ValueError(&quot;Only draft orders can be confirmed&quot;)
+
+        if self.total &lt;= 0:
+            raise ValueError(&quot;Order total must be positive&quot;)
+
+        self.status = &quot;confirmed&quot;
+        self.save(connection)</code></pre>
+<p>الاستخدام:</p>
+<pre class="code" dir="ltr"><code class="language-python">connection = sqlite3.connect(&quot;shop.db&quot;)
+
+order = Order.find(connection, 1)
+
+if order:
+    order.confirm(connection)</code></pre>
+<p>خد بالك من السطر ده:</p>
+<pre class="code" dir="ltr"><code class="language-python">order.confirm(connection)</code></pre>
+<p>إحنا بنطلب من الـ Order إنه ينفذ عملية منطقية تخصه، وهو داخليًا بيغير حالته وبيحفظ التغيير في قاعدة البيانات.</p>
+<p>وده جوهر الـ Active Record.</p>
+<p>ملحوظة: المثال تعليمي، وفي التطبيقات الحقيقية محتاجين نهتم بالـ Transactions والـ Concurrency والـ Error Handling وفصل إدارة الاتصال بقاعدة البيانات.</p>
+<h2>4. علاقته بأنماط GoF</h2>
+<p>هنا لازم نكون دقيقين: <strong>مفيش GoF Pattern مكافئ مباشرة للـ Active Record.</strong></p>
+<p>ليه؟</p>
+<p>لأن Active Record بيحل مشكلة مختلفة:</p>
+<ul>
+<li>GoF بيركز على تصميم التعاون بين Objects، وإنشاء Objects، وتنظيم سلوكها.</li>
+<li>Active Record بيركز على تنظيم Domain Data وPersistence في تطبيقات الأعمال.</li>
+</ul>
+<p>ممكن تلاقي تشابهات شكلية:</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>GoF Pattern</th><th>وجه التشابه</th><th>الاختلاف</th></tr>
+<tr><td>Facade</td><td>الـ Active Record بيقدم واجهة للتعامل مع البيانات</td><td>Facade بيبسط واجهة نظام فرعي، مش بالضرورة يمثل Row أو يحتوي Business Logic</td></tr>
+<tr><td>Template Method</td><td>ممكن بعض عمليات الحفظ تستخدم خطوات قابلة للتخصيص</td><td>ده مش تعريف Active Record ولا هدفه</td></tr>
+</table></div>
+<p>إذن مفيش داعي نصنفه تحت GoF لمجرد إننا لقينا تشابه في بعض التفاصيل.</p>
+<h2>5. الفرق بين Active Record وRow Data Gateway</h2>
+<p>دي أهم مقارنة في الموضوع كله.</p>
+<p>الاتنين بيستخدموا Object لكل Row، لكن الاختلاف في المسؤوليات.</p>
+<p><strong>Row Data Gateway</strong></p>
+<h2>OrderRowGateway</h2>
+<pre class="code" dir="ltr"><code class="language-plain text">+-----------------------+
+|   OrderRowGateway     |
++-----------------------+
+| load()                |
+| save()                |
+| update_status()       |
+| delete()              |
++-----------------------+
+           |
+        Database</code></pre>
+<p>مسؤول عن الوصول للداتا فقط. منطق المجال موجود في مكان آخر.</p>
+<hr>
+<p><strong>Active Record</strong></p>
+<h2>Order</h2>
+<pre class="code" dir="ltr"><code class="language-plain text">+-----------------------+
+|        Order          |
++-----------------------+
+| id                    |
+| total                 |
+| status                |
+|-----------------------|
+| save()                |
+| delete()              |
+| confirm()             |
+| cancel()              |
++-----------------------+
+           |
+        Database</code></pre>
+<p>مسؤول عن الوصول للداتا، وكمان منطق المجال المرتبط بالسجل.</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Row Data Gateway</th><th>Active Record</th></tr>
+<tr><td>Object لكل Row</td><td>نعم</td><td>نعم</td></tr>
+<tr><td>يحتوي بيانات السجل</td><td>نعم</td><td>نعم</td></tr>
+<tr><td>يحتوي Persistence Logic</td><td>نعم</td><td>نعم</td></tr>
+<tr><td>يحتوي Domain Logic</td><td>لا، في التصميم المعتاد</td><td>نعم</td></tr>
+<tr><td>يفصل Business Logic عن Data Access</td><td>بدرجة أكبر</td><td>لا، بيجمعهم</td></tr>
+</table></div>
+<h2>الخلاصة</h2>
+<p>الفرق مش في عدد الـ Objects، الفرق في الـ Intent وتوزيع المسؤوليات.</p>
+<h2>علاقته بالعمارة</h2>
+<p>هل ممكن نستخدم Active Record مع Layered Architecture؟</p>
+<p>أيوه.</p>
+<p>في تصميم Layered Architecture ممكن يكون الـ Active Record جزءًا من طبقة الـ Domain أو Business Objects، مع إنه بيتعامل مع قاعدة البيانات بنفسه.</p>
+<pre class="code" dir="ltr"><code class="language-plain text">        Presentation Layer
+                 |
+        Business / Domain Layer
+                 |
+           Active Record
+          /            \
+    Domain Logic     Persistence
+                         |
+                    Database</code></pre>
+<p>لكن لاحظ إننا هنا سمحنا للـ Domain Object إنه يعرف تفاصيل الـ Persistence.</p>
+<p>وده بيخلق نوع من الـ Coupling بين منطق المجال وقاعدة البيانات.</p>
+<h3>طيب مع Clean Architecture؟</h3>
+<p>هنا الموضوع محتاج انتباه.</p>
+<p>الـ Clean Architecture بتشترط إن اتجاه الاعتماد يكون ناحية الداخل:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">Infrastructure  ---&gt;  Application  ---&gt;  Domain</code></pre>
+<p>لو الـ Domain Object بيعتمد على sqlite3 أو ORM معين بشكل مباشر، يبقى عندنا مشكلة مع Dependency Rule.</p>
+<p>لكن مش معنى كده إن Active Record مستحيل يتواجد في نظام بيستخدم Clean Architecture؛ ممكن تستخدمه في طبقة خارجية أو كـ Persistence Model، وتفصل عنه الـ Domain Model الداخلي.</p>
+<p>المهم إنك متخلّيش الـ Domain الداخلي يعتمد على تفاصيل قاعدة البيانات.</p>
+<h2>7. علاقته بـ DDD</h2>
+<p>هل Active Record يتعارض مع DDD؟</p>
+<p><strong>مش بالضرورة.</strong></p>
+<p>ممكن تستخدمه في نظام بيطبق بعض مفاهيم DDD، لكن فيه نقطة مهمة:</p>
+<p>في DDD، خصوصًا لما يكون عندك Domain Model معقد، بنحب نفصل بين:</p>
+<ul>
+<li>Domain Logic.</li>
+<li>Persistence Infrastructure.</li>
+</ul>
+<p>لأننا عايزين الـ Domain Model يعبر عن قواعد المجال، مش عن تفاصيل تخزين البيانات.</p>
+<p>وده بيخلي الـ Active Record أقل ملاءمة غالبًا للـ Domain Models المعقدة.</p>
+<p>لكن في أنظمة أبسط، ممكن يكون اختيار عملي ومناسب.</p>
+<h2>علاقته بأودو</h2>
+<p>خلينا نطبق الكلام على Odoo.</p>
+<p>لما تكتب:</p>
+<pre class="code" dir="ltr"><code class="language-python">order = self.env[&quot;sale.order&quot;].browse(10)
+
+order.action_confirm()</code></pre>
+<p>ممكن تقول إن فيه تشابه واضح مع Active Record:</p>
+<ul>
+<li>عندك Model بيمثل بيانات الطلب.</li>
+<li>عندك ORM مسؤول عن Persistence.</li>
+<li>عندك Business Methods زي action_confirm().</li>
+</ul>
+<p>لكن هل نقدر نقول إن Odoo هو تطبيق مطابق لـ Active Record؟</p>
+<p>مش بالدقة دي.</p>
+<p>Odoo ORM بيقدم مجموعة قدرات أوسع، منها:</p>
+<ul>
+<li>Recordsets ممكن تحتوي على أكثر من سجل.</li>
+<li>العلاقات بين Models.</li>
+<li>Computed Fields.</li>
+<li>Inheritance.</li>
+<li>Prefetching وCaching.</li>
+<li>التحكم في Transactions من خلال الـ Framework.</li>
+</ul>
+<p>إذن نقدر نقول إن فيه <strong>Active Record-like characteristics</strong> في تصميم Odoo Models، لكن اختزاله بالكامل في Active Record مش وصف دقيق.</p>
+<hr>
+<h2>9. إمتى أستخدم Active Record؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>التطبيق بسيط أو متوسط التعقيد.</li>
+<li>الـ Business Logic المرتبطة بالسجل محدودة نسبيًا.</li>
+<li>عايز طريقة مباشرة وسريعة للتعامل مع الداتا.</li>
+<li>مش محتاج فصل صارم بين Domain Model وPersistence.</li>
+</ul>
+<p>فكر في بدائل زي Data Mapper مع Repository لما:</p>
+<ul>
+<li>الـ Domain Logic معقدة.</li>
+<li>محتاج Domain Model مستقل عن ORM.</li>
+<li>عندك قواعد عمل كثيرة ومتشابكة.</li>
+<li>محتاج تختبر منطق المجال بمعزل عن قاعدة البيانات.</li>
+</ul>
+<h2>الخلاصة</h2>
+<p>خلينا نثبت الفرق بين التلاتة اللي شرحناهم:</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>Pattern</th><th>الفكرة الأساسية</th></tr>
+<tr><td>Table Data Gateway</td><td>Object واحد يتعامل مع كل Rows في Table</td></tr>
+<tr><td>Row Data Gateway</td><td>Object لكل Row مسؤول عن Data Access</td></tr>
+<tr><td>Active Record</td><td>Object لكل Row يجمع Data Access وDomain Logic</td></tr>
+</table></div>
+<p><strong>والسؤال اللي عايزك تفكر فيه قبل ما ننتقل للي بعده:</strong></p>
+<p>لو عندنا Order فيه 30 قاعدة Business Logic، وعندنا 15 عملية مختلفة بتتعامل مع الطلب، هل Active Record لسه اختيار مناسب؟ ولا بدأنا نحتاج نفصل الـ Domain Model عن الـ Persistence؟</p>
+<p>النمط التالي في المجموعة هو <strong>Data Mapper</strong>، وده مهم جدًا لأنه بيقدم اتجاهًا مختلفًا تمامًا عن Active Record.</p>
+        </div>
+      </article>
+      <article class="pattern" id="data-mapper" data-pattern="Data Mapper">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Data Source Architectural Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Data Mapper</h2>
+        </header>
+        <div class="pattern-body">
+<p>ندخل دلوقتي على واحد من أهم الـ Patterns في مجموعة <strong>Data Source Architectural Patterns</strong>، وخصوصًا إنه بيقدم عكس الاتجاه اللي شفناه في الـ Active Record.</p>
+<p>خلينا نفهمه بهدوء، لأن الفرق بينه وبين Active Record هو أساس فهم تصميم الـ Persistence في الأنظمة الكبيرة.</p>
+<h2>المشكلة</h2>
+<p>تخيل عندنا نظام تجارة إلكترونية، وفيه Domain Model بالشكل ده:</p>
+<pre class="code" dir="ltr"><code class="language-python">class Order:
+    def __init__(self, order_id, customer, items):
+        self.id = order_id
+        self.customer = customer
+        self.items = items
+
+    def confirm(self):
+        if not self.items:
+            raise ValueError(&quot;Order must contain items&quot;)
+
+        # Business rules</code></pre>
+<p>الـ Order هنا مسؤول عن قواعد المجال (Domain Logic).</p>
+<p>لكن عندنا مشكلة: إزاي نحفظ الـ Order ده في قاعدة البيانات؟</p>
+<p>ممكن نضيف جواه SQL وعمليات save() و<code dir="ltr">load()</code>، زي ما عملنا في Active Record.</p>
+<p>لكن كده الـ Domain Object هيبقى عارف تفاصيل قاعدة البيانات.</p>
+<p>وده يخلق مشاكل:</p>
+<ol>
+<li>تغيير قاعدة البيانات ممكن يأثر على الـ Domain Model.</li>
+<li>الـ Business Logic هتبقى مرتبطة بتفاصيل الـ Persistence.</li>
+<li>اختبار الـ Domain Logic هيبقى أصعب لو محتاج قاعدة بيانات.</li>
+<li>شكل الـ Objects في الـ Domain مش لازم يكون مطابق لشكل الجداول في Database.</li>
+</ol>
+<p>إذن إحنا محتاجين نفصل المسؤوليتين.</p>
+<h2>الفكرة والحل</h2>
+<p>الـ Data Mapper بيعمل فصل بين الـ Domain Objects والـ Database.</p>
+<p>بمعنى:</p>
+<ul>
+<li>الـ Domain Object مسؤول عن بياناته وقواعد المجال.</li>
+<li>الـ Data Mapper مسؤول عن نقل البيانات بين الـ Domain Objects ومصدر البيانات.</li>
+</ul>
+<p>تعريف Fowler:</p>
+<p><strong>A layer of Mappers that moves data between objects and a database while keeping them independent of each other and the mapper itself.</strong></p>
+<p>خلينا نشوف التصور:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">             Application
+                  |
+                  v
+             Domain Model
+                  |
+                Order
+                  |
+          +-------+-------+
+          |               |
+      Domain Logic     Domain Data
+                          |
+                          |  Data Mapper
+                          v
+                  +---------------+
+                  |  OrderMapper  |
+                  +---------------+
+                          |
+                    SQL / Database
+                          |
+                          v
+                       Orders</code></pre>
+<p>خد بالك من النقطة الأساسية:</p>
+<p>الـ Order مش محتاج يعرف إن فيه OrderMapper أصلًا.</p>
+<p>والـ OrderMapper هو اللي يعرف إزاي يحول بيانات الـ Order إلى بيانات قابلة للتخزين، والعكس.</p>
+<h2>مثال</h2>
+<p>هنستخدم نفس مثال الطلبات عشان المقارنة تبقى واضحة.</p>
+<p><strong>أولًا: Domain Model</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">class Order:
+    def __init__(self, order_id, customer, total, status):
+        self.id = order_id
+        self.customer = customer
+        self.total = total
+        self.status = status
+
+    def confirm(self):
+        if self.status != &quot;draft&quot;:
+            raise ValueError(&quot;Only draft orders can be confirmed&quot;)
+
+        if self.total &lt;= 0:
+            raise ValueError(&quot;Order total must be positive&quot;)
+
+        self.status = &quot;confirmed&quot;</code></pre>
+<p>لاحظ إن مفيش أي SQL أو save() أو delete().</p>
+<p>الـ Order مهتم بقواعد المجال فقط.</p>
+<p><strong>ثانيًا: Data Mapper</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">class OrderMapper:
+    def __init__(self, connection):
+        self.connection = connection
+
+    def find_by_id(self, order_id):
+        cursor = self.connection.execute(
+            &quot;&quot;&quot;
+            SELECT id, customer, total, status
+            FROM orders
+            WHERE id = ?
+            &quot;&quot;&quot;,
+            (order_id,)
+        )
+
+        row = cursor.fetchone()
+
+        if row is None:
+            return None
+
+        return Order(
+            order_id=row[0],
+            customer=row[1],
+            total=row[2],
+            status=row[3]
+        )
+
+    def insert(self, order):
+        cursor = self.connection.execute(
+            &quot;&quot;&quot;
+            INSERT INTO orders (customer, total, status)
+            VALUES (?, ?, ?)
+            &quot;&quot;&quot;,
+            (order.customer, order.total, order.status)
+        )
+
+        self.connection.commit()</code></pre>
+<p><strong>ثالثًا: الاستخدام</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">mapper = OrderMapper(connection)
+
+order = mapper.find_by_id(10)
+
+if order:
+    order.confirm()
+    mapper.update(order)</code></pre>
+<p>هنا حصل إيه؟</p>
+<ol>
+<li>الـ Mapper قرأ البيانات من قاعدة البيانات.</li>
+<li>حولها إلى Order Object.</li>
+<li>الـ Order نفذ الـ Business Logic.</li>
+<li>الـ Mapper حفظ التغييرات في قاعدة البيانات.</li>
+</ol>
+<p>كل Object عنده مسؤولية واضحة.</p>
+<p>المثال تعليمي ومبسط؛ في تطبيق حقيقي هنحتاج Transaction Management، ومعالجة التزامن، والتعامل مع العلاقات والـ Identity Mapping وغيرها.</p>
+<h2>4. علاقته بأنماط GoF</h2>
+<p>هنا برضه مفيش GoF Pattern مكافئ مباشرة للـ Data Mapper.</p>
+<p>لكن فيه تشابهات ممكن تظهر في التنفيذ:</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>GoF Pattern</th><th>وجه التشابه</th><th>الاختلاف</th></tr>
+<tr><td>Adapter</td><td>تحويل البيانات من شكل إلى شكل آخر</td><td>Adapter هدفه التوافق بين واجهتين، أما Data Mapper هدفه فصل Domain Objects عن Persistence</td></tr>
+<tr><td>Bridge</td><td>فصل جزأين ممكن يتغيروا بشكل مستقل</td><td>Bridge يفصل Abstraction عن Implementation، بينما Data Mapper يفصل Domain Model عن Data Source</td></tr>
+<tr><td>Strategy</td><td>ممكن تبديل طريقة الـ Mapping</td><td>Strategy نمط لتبديل الخوارزميات، مش لتنظيم Persistence</td></tr>
+</table></div>
+<p><strong>النتيجة:</strong> Data Mapper نمط Enterprise Application Architecture، وليس تطبيقًا مباشرًا لأي GoF Pattern.</p>
+<h2>5. الفرق بين Data Mapper وActive Record</h2>
+<p>دي أهم مقارنة في الدرس.</p>
+<p><strong>Active Record</strong></p>
+<pre class="code" dir="ltr"><code class="language-plain text">+-----------------------+
+|        Order          |
++-----------------------+
+| id                    |
+| total                 |
+| status                |
+|-----------------------|
+| confirm()             |
+| save()                |
+| delete()              |
++-----------------------+
+           |
+        Database</code></pre>
+<p>الـ Object نفسه مسؤول عن الـ Domain Logic والـ Persistence.</p>
+<hr>
+<p><strong>Data Mapper</strong></p>
+<pre class="code" dir="ltr"><code class="language-plain text">+------------------+
+|      Order       |
++------------------+
+| id               |
+| total            |
+| status           |
+|------------------|
+| confirm()        |
++------------------+
+
+        |
+        | Data
+        v
+
++------------------+
+|   OrderMapper    |
++------------------+
+| find_by_id()     |
+| insert()         |
+| update()         |
++------------------+
+        |
+     Database</code></pre>
+<p>الـ Domain Object منفصل عن الـ Persistence Object.</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Active Record</th><th>Data Mapper</th></tr>
+<tr><td>Domain Logic</td><td>داخل الـ Object</td><td>داخل الـ Domain Object</td></tr>
+<tr><td>Persistence Logic</td><td>داخل الـ Object</td><td>داخل Mapper منفصل</td></tr>
+<tr><td>الاعتماد على Database</td><td>أعلى</td><td>أقل</td></tr>
+<tr><td>فصل Domain عن Persistence</td><td>ضعيف نسبيًا</td><td>قوي</td></tr>
+<tr><td>مناسب لـ Domain معقد</td><td>أقل ملاءمة غالبًا</td><td>أكثر ملاءمة غالبًا</td></tr>
+</table></div>
+<p>لاحظ إن Data Mapper مش معناه إن الـ Domain Model لازم يكون معقد، هو فقط بيسمحلك تفصل المسؤوليات حتى لو المجال بسيط.</p>
+<h2>علاقته بالعمارة</h2>
+<h3>مع Layered Architecture</h3>
+<p>الـ Data Mapper غالبًا مكانه في طبقة الـ Data Access أو Infrastructure.</p>
+<pre class="code" dir="ltr"><code class="language-plain text">       Presentation Layer
+                |
+                v
+       Application Layer
+                |
+                v
+         Domain Layer
+                |
+                | Domain Objects
+                v
+        Data Access Layer
+                |
+           Data Mapper
+                |
+                v
+             Database</code></pre>
+<p>الرسم ده توضيحي لتوزيع المسؤوليات، مش شرط يكون اتجاه الاعتماد البرمجي مطابقًا لاتجاه الأسهم.</p>
+<h3>مع Clean Architecture</h3>
+<p>هنا Data Mapper بيكون مناسب جدًا.</p>
+<p>لأننا نقدر نخلي الـ Domain مستقل، ونخلي تفاصيل التخزين في الطبقات الخارجية.</p>
+<pre class="code" dir="ltr"><code class="language-plain text">          Infrastructure
+          +------------+
+          | SQL Mapper |
+          | Repository |
+          +------------+
+                 |
+                 v
+          Application
+          +------------+
+          | Use Cases  |
+          +------------+
+                 |
+                 v
+             Domain
+          +------------+
+          | Order      |
+          | Customer   |
+          +------------+</code></pre>
+<p>والأدق في Clean Architecture إن الـ Domain لا يعتمد على الـ Mapper.</p>
+<p>ممكن الـ Application Layer تعرف Interface للـ Repository، والـ Infrastructure تنفذها باستخدام Data Mapper.</p>
+<h2>7. علاقته بـ DDD</h2>
+<p>هنا العلاقة مهمة جدًا.</p>
+<p>في DDD ممكن يكون عندنا:</p>
+<ul>
+<li>Entity: بيمثل كيان له Identity.</li>
+<li>Value Object: بيمثل قيمة.</li>
+<li>Aggregate: حدود اتساق وقواعد مجال.</li>
+<li>Repository: يوفر واجهة للتعامل مع Aggregates.</li>
+<li>Data Mapper: ينقل البيانات بين Domain Objects ومصدر البيانات.</li>
+</ul>
+<p>تصور العلاقة:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">        Application Service
+                 |
+                 v
+             Repository
+                 |
+                 v
+          Data Mapper
+                 |
+                 v
+              Database
+
+                 ^
+                 |
+             Domain
+              Order</code></pre>
+<p>بس خد بالك من الفرق:</p>
+<p><strong>Repository مش هو Data Mapper.</strong></p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>Repository</th><th>Data Mapper</th></tr>
+<tr><td>يتعامل مع Domain Objects أو Aggregates</td><td>يحول البيانات بين Objects وData Source</td></tr>
+<tr><td>يقدم واجهة تشبه Collection</td><td>مسؤول عن Mapping</td></tr>
+<tr><td>مفهوم مهم في DDD</td><td>نمط في Data Access</td></tr>
+<tr><td>ممكن يستخدم Data Mapper داخليًا</td><td>لا يشترط وجود Repository</td></tr>
+</table></div>
+<p>يعني ممكن يكون عندك:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">OrderRepository
+       |
+       v
+OrderMapper
+       |
+       v
+   Database</code></pre>
+<p>الـ Repository يقول: هاتلي الـ Order رقم 10.</p>
+<p>والـ Mapper يعرف إزاي يقرأ البيانات ويحولها إلى Order Object.</p>
+<h2>علاقته بأودو</h2>
+<p>خلينا نربط الكلام بأودو.</p>
+<p>لما تكتب:</p>
+<pre class="code" dir="ltr"><code class="language-python">order = self.env[&quot;sale.order&quot;].browse(10)
+order.action_confirm()</code></pre>
+<p>أنت بتتعامل مع ORM بيدير عملية تحويل البيانات من وإلى قاعدة البيانات.</p>
+<p>لكن هل Odoo بيطبق Data Mapper Pattern بالشكل التقليدي؟</p>
+<p>مش بالضرورة.</p>
+<p>السبب إن Odoo Models نفسها مرتبطة بالـ ORM، وبتحتوي على Fields وMethods، والـ ORM بيتولى تفاصيل التخزين والتحميل.</p>
+<p>فمش عندنا بالضرورة Domain Object مستقل تمامًا عن Persistence، زي المثال اللي عملناه.</p>
+<p>كمان مش معنى إن ORM بيعمل Mapping بين Python Objects وDatabase Rows إنه تلقائيًا يطبق Fowler&#x27;s Data Mapper Pattern بنفس المعنى المعماري؛ لازم ننظر لتوزيع المسؤوليات وعلاقة الـ Domain بالـ Persistence.</p>
+<hr>
+<h2>9. إمتى أستخدم Data Mapper؟</h2>
+<p>استخدمه لما:</p>
+<ul>
+<li>عندك Domain Logic معقدة.</li>
+<li>عايز تفصل الـ Domain Model عن قاعدة البيانات.</li>
+<li>محتاج تختبر الـ Domain من غير Database.</li>
+<li>شكل الـ Database مختلف عن شكل الـ Domain Objects.</li>
+<li>عندك احتمالية تغيير ORM أو Data Source من غير تغيير الـ Domain.</li>
+</ul>
+<h2>الخلاصة</h2>
+<p>وصلنا لحد هنا لأربع أنماط:</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>Pattern</th><th>المسؤولية الأساسية</th></tr>
+<tr><td>Table Data Gateway</td><td>التعامل مع كل Rows في Table</td></tr>
+<tr><td>Row Data Gateway</td><td>التعامل مع Row محددة</td></tr>
+<tr><td>Active Record</td><td>Data + Persistence + Domain Logic</td></tr>
+<tr><td>Data Mapper</td><td>فصل Domain Objects عن Persistence</td></tr>
+</table></div>
+<p><strong>النقطة اللي عايزك تثبتها:</strong></p>
+<p>الـ Active Record بيقول: الـ Object يعرف يحفظ نفسه.</p>
+<p>الـ Data Mapper بيقول: الـ Object مش محتاج يعرف أي حاجة عن طريقة حفظه.</p>
+<p>والنمط التالي هو <strong>Table Module</strong>؟ لا، ده اتشرح بالفعل في مجموعة Domain Logic. التالي في مجموعة Data Source Architectural Patterns هو <strong>Metadata Mapping</strong>، وهنشوف فيه إزاي نستخدم Metadata لوصف العلاقة بين الـ Objects والجداول بدل كتابة تفاصيل الـ Mapping يدويًا في كل مرة.</p>
+<p>معاك حق 😂 أنا كتبت المحتوى بالعربي، لكن ترتيب العناصر والرسومات والجداول لسه ظاهر بالشكل المعتاد من الشمال لليمين.</p>
+<p>هظبط ده من هنا:</p>
+<ul>
+<li>الشرح العربي يبدأ من اليمين، والمصطلحات الإنجليزية تندمج وسط الكلام.</li>
+<li>الجداول يكون ترتيب أعمدتها من اليمين للشمال.</li>
+<li>الرسومات المعمارية يكون اتجاه تدفقها من اليمين للشمال.</li>
+<li>الأكواد تفضل LTR بطبيعتها، عشان تفضل صحيحة وسهلة القراءة.</li>
+<li>هحافظ على نفس منهج شرح كل Pattern والمقارنة مع GoF وClean Architecture وDDD وOdoo.</li>
+</ul>
+<p><strong>هنكمل من Metadata Mapping، وبنفس مستوى التفصيل، مع مراعاة اتجاه العرض من اليمين للشمال.</strong></p>
+<p>حاضر يا صاحبي 😂 خلينا نعيد شرح <strong>Data Mapper Pattern</strong> من الأول، مع ترتيب الشرح والجداول والرسومات من اليمين للشمال، ونحافظ على نفس المنهج اللي ماشيين عليه.</p>
+        </div>
+      </article>
+    </main>
+  </div>
+  <footer class="site-footer group-footer">
+    <div class="group-switch"><a href="02-domain-logic-patterns.html">→ أنماط منطق المجال</a><a href="../index.html">الفهرس</a><a href="04-object-relational-behavioral.html">أنماط سلوكية للكائنات والعلاقات ←</a></div>
+  </footer>
+
+  </div>
+  <script src="../assets/js/reference.js"></script>
+</body>
+</html>

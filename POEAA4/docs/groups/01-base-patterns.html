@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>الأنماط الأساسية · POEAA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Tajawal:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Cairo:wght@300;400;600;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/reference.css">
+  
+</head>
+<body>
+  <div class="page-fade">
+
+  <header class="group-topbar">
+    <a class="home-link" href="../index.html">المرجع</a>
+    <div class="group-switch"><span></span><a href="02-domain-logic-patterns.html">أنماط منطق المجال ←</a></div>
+  </header>
+  <header class="group-hero">
+    <p class="eyebrow">المجموعة 01</p>
+    <h1>الأنماط الأساسية</h1>
+    <p class="subtitle" dir="ltr">Base Patterns</p>
+  </header>
+  <div class="group-layout">
+    <aside class="toc-wrap">
+      <nav class="toc" aria-label="محتويات الأنماط">
+        <p class="toc-title">الأنماط</p>
+        <ol><li><a href="#gateway"><span dir="ltr">Gateway</span></a></li>
+<li><a href="#mapper"><span dir="ltr">Mapper</span></a></li>
+<li><a href="#layer-supertype"><span dir="ltr">Layer Supertype</span></a></li>
+<li><a href="#separated-interface"><span dir="ltr">Separated Interface</span></a></li>
+<li><a href="#registry"><span dir="ltr">Registry</span></a></li>
+<li><a href="#value-object"><span dir="ltr">Value Object</span></a></li>
+<li><a href="#money"><span dir="ltr">Money</span></a></li>
+<li><a href="#special-case"><span dir="ltr">Special Case</span></a></li>
+<li><a href="#plugin"><span dir="ltr">Plugin</span></a></li>
+<li><a href="#service-stub"><span dir="ltr">Service Stub</span></a></li>
+<li><a href="#record-set"><span dir="ltr">Record Set</span></a></li></ol>
+      </nav>
+    </aside>
+    <main class="group-main">
+      <section class="group-map" id="group-map">
+        <h2>خريطة المجموعة</h2>
+        <h2>مراجعة الأنماط العشرة</h2>
+<p>دلوقتي خلينا نجمع الأنماط اللي شرحناها في جدول واحد، عشان تقدر تراجع وظيفة كل Pattern وأقرب GoF للمقارنة.</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>PoEAA Pattern</th><th>المشكلة الأساسية</th><th>أقرب GoF للمقارنة</th></tr>
+<tr><td>Gateway</td><td>الوصول لنظام خارجي</td><td>Facade / Adapter</td></tr>
+<tr><td>Service Stub</td><td>استبدال Service حقيقية ببديل</td><td>Proxy</td></tr>
+<tr><td>Mapper</td><td>تنظيم التواصل بين Objects مستقلة</td><td>Adapter / Mediator</td></tr>
+<tr><td>Separated Interface</td><td>فصل العقد عن التنفيذ</td><td>Bridge</td></tr>
+<tr><td>Registry</td><td>الوصول إلى Objects مسجلة</td><td>Singleton</td></tr>
+<tr><td>Value Object</td><td>تمثيل قيمة بدون Identity</td><td>Flyweight</td></tr>
+<tr><td>Money</td><td>تمثيل المبالغ والعملات</td><td>Strategy</td></tr>
+<tr><td>Special Case</td><td>تمثيل حالة خاصة بسلوك محدد</td><td>Null Object</td></tr>
+<tr><td>Plugin</td><td>توسيع النظام بإضافات</td><td>Strategy / Abstract Factory</td></tr>
+<tr><td>Record Set</td><td>تمثيل بيانات جدولية في الذاكرة</td><td>Adapter (تشابه عملي فقط)</td></tr>
+<tr><td>Layer Supertype</td><td>مشاركة سلوك داخل Layer</td><td>Template Method</td></tr>
+</table></div>
+<p><strong>ملاحظة مهمة:</strong> الجدول ده بيعرض أقرب أنماط للمقارنة التعليمية، مش بيقول إن كل زوج متكافئ أو إن فيه علاقة اشتقاق مباشرة بينهم.</p>
+<p>ومن وجهة نظري، أهم حاجة تخرج بيها من دراسة الأنماط العشرة مش حفظ أسماء GoF المقابلة؛ لكن القدرة على التمييز بين:</p>
+<ul>
+<li>Pattern بيعالج مشكلة في الوصول إلى الأنظمة الخارجية.</li>
+<li>Pattern بيعالج Dependency Direction.</li>
+<li>Pattern بيعالج Object Modeling.</li>
+<li>Pattern بيعالج Extensibility.</li>
+<li>Pattern بيعالج تنظيم السلوك المشترك.</li>
+</ul>
+<p>وده هيساعدك تفهم إزاي الأنماط دي ممكن تتجمع مع بعض داخل Clean Architecture أو Layered Architecture من غير ما نخلط بين مسؤولياتها.</p>
+      </section>
+      
+      <article class="pattern" id="gateway" data-pattern="Gateway">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Base Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Gateway</h2>
+        </header>
+        <div class="pattern-body">
+<h2>المشكلة</h2>
+<p>تخيل إن عندك تطبيق E-Commerce، وعايز تتعامل مع خدمة دفع خارجية اسمها Payment Provider.</p>
+<p>الخدمة دي بتوفر API، والتعامل معاها محتاج تفاصيل زي:</p>
+<ul>
+<li>HTTP Requests.</li>
+<li>Authentication.</li>
+<li>Headers.</li>
+<li>JSON Serialization.</li>
+<li>Error Handling.</li>
+<li>Response Parsing.</li>
+</ul>
+<p>ممكن تكتب كل التفاصيل دي مباشرة داخل OrderService:</p>
+<pre class="code" dir="ltr"><code class="language-python">class OrderService:
+
+    def pay(self, order):
+        # Authentication
+        # Build HTTP request
+        # Send request
+        # Parse JSON response
+        # Handle provider errors
+        pass</code></pre>
+<p>المشكلة هنا إن OrderService بقى مسؤول عن حاجتين مختلفتين:</p>
+<ol>
+<li>تنفيذ Business Logic الخاصة بالـ Order.</li>
+<li>معرفة تفاصيل التعامل مع Payment Provider.</li>
+</ol>
+<p>وده بيعمل Coupling بين الـ Business Logic والـ External System.</p>
+<p>لو غيرت شركة الدفع، أو الـ API اتغير، هتضطر تعدل في كود التطبيق نفسه.</p>
+<h2>الفكرة والحل</h2>
+<p><strong>Gateway هو Object بيعمل Encapsulation لطريقة الوصول إلى External System أو Resource.</strong></p>
+<p>بمعنى أبسط:</p>
+<p>بدل ما كل جزء في التطبيق يعرف يتعامل مع الخدمة الخارجية، بنعمل Object واحد مسؤول عن التعامل معاها.</p>
+<p><strong>قبل استخدام Gateway</strong></p>
+<p>Order Service</p>
+<p>HTTP + Authentication + JSON + Business Logic</p>
+<p>External Payment API</p>
+<hr>
+<p><strong>بعد استخدام Gateway</strong></p>
+<p>Order Service</p>
+<p>Business Logic فقط</p>
+<p><strong>Payment Gateway</strong></p>
+<p>HTTP + Authentication + JSON + Error Handling</p>
+<p>External Payment API</p>
+<p>لاحظ إن الـ Gateway مش بالضرورة يكون API Gateway بالمعنى المستخدم في Microservices. هنا بنتكلم عن Design Pattern على مستوى الـ Objects.</p>
+<h2>مثال</h2>
+<p>هنفصل التعامل مع مزود الدفع في كلاس مستقل:</p>
+<pre class="code" dir="ltr"><code class="language-python">class PaymentGateway:
+
+    def charge(self, amount, currency):
+        # Authentication
+        # Build HTTP request
+        # Call external API
+        # Parse response
+        return {
+            &quot;success&quot;: True,
+            &quot;transaction_id&quot;: &quot;TX-100&quot;
+        }
+
+class OrderService:
+
+    def __init__(self, payment_gateway):
+        self.payment_gateway = payment_gateway
+
+    def checkout(self, order):
+        result = self.payment_gateway.charge(
+            order.total,
+            order.currency
+        )
+
+        if not result[&quot;success&quot;]:
+            raise Exception(&quot;Payment failed&quot;)
+
+        order.mark_as_paid()</code></pre>
+<p>دلوقتي OrderService مش محتاج يعرف تفاصيل الـ HTTP أو الـ Authentication.</p>
+<p>هو بيتعامل مع واجهة مفهومة بالنسبة له: charge().</p>
+<hr>
+<h2>أقرب GoF Pattern</h2>
+<p>أقرب نمطين للمقارنة هما <strong>Facade وAdapter</strong>، لكن كل واحد فيهم له Intent مختلف.</p>
+<p><strong>1. Facade</strong></p>
+<p>(تشابه في تبسيط الوصول)</p>
+<ul>
+<li>Facade بيوفر واجهة موحدة ومبسطة للتعامل مع Subsystem معقد.</li>
+<li>Gateway بيوفر واجهة للتعامل مع External System أو Resource.</li>
+<li>الاتنين بيخفوا تفاصيل داخلية عن العميل.</li>
+</ul>
+<p><strong>ليه Gateway مش بديل لـ Facade؟</strong></p>
+<p>لأن Facade هدفه الأساسي تبسيط التعامل مع مجموعة من الكلاسات أو Subsystem، بينما Gateway هدفه تغليف نقطة الوصول إلى نظام أو مورد خارجي.</p>
+<p>ممكن Gateway يستخدم Facade داخليًا، وممكن Facade يستخدم Gateway، حسب تصميم النظام.</p>
+<hr>
+<p><strong>2. Adapter</strong></p>
+<p>(تشابه في عزل اختلاف الواجهات)</p>
+<ul>
+<li>Adapter بيحوّل واجهة موجودة إلى واجهة متوقعة من العميل.</li>
+<li>Gateway بيغلف طريقة الوصول إلى نظام خارجي ويقدم واجهة مناسبة للتطبيق.</li>
+</ul>
+<p><strong>ليه Gateway مش بديل لـ Adapter؟</strong></p>
+<p>لأن Adapter عنده مشكلة محددة: عدم توافق واجهتين.</p>
+<p>أما Gateway مش شرط يكون فيه أي عدم توافق أصلًا؛ ممكن يكون مجرد واجهة منظمة للتعامل مع API خارجية.</p>
+<p>ممكن تعمل Gateway ويكون جواه Adapter لو محتاج تكيّف واجهة مزود الدفع مع الواجهة الداخلية.</p>
+<h3>مقارنة سريعة</h3>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Gateway</th><th>Facade</th><th>Adapter</th></tr>
+<tr><td>الهدف الأساسي</td><td>تغليف الوصول لنظام خارجي</td><td>تبسيط Subsystem</td><td>توافق واجهتين</td></tr>
+<tr><td>يخفي تفاصيل</td><td>الاتصال بالنظام الخارجي</td><td>تعقيد Subsystem</td><td>اختلاف الواجهات</td></tr>
+<tr><td>لازم يكون فيه External System؟</td><td>غالبًا نعم</td><td>لا</td><td>لا</td></tr>
+<tr><td>هل ممكن يتداخلوا؟</td><td>نعم</td><td>نعم</td><td>نعم</td></tr>
+</table></div>
+<h2>علاقته بالعمارة</h2>
+<p>Gateway ممكن يظهر في أكثر من Architecture:</p>
+<ul>
+<li><strong>Layered Architecture:</strong> غالبًا داخل Infrastructure أو Data Access Layer.</li>
+<li><strong>Clean Architecture:</strong> ممكن يكون Adapter في الطبقة الخارجية يتعامل مع External API.</li>
+<li><strong>Hexagonal Architecture:</strong> ممكن يمثل Outbound Adapter يتواصل مع نظام خارجي من خلال Port.</li>
+</ul>
+<p>لكن خد بالك: مش كل Gateway لازم يكون Repository، ومش كل Repository يعتبر Gateway. الـ Repository له مسؤولية مختلفة مرتبطة بإخفاء تفاصيل تخزين واسترجاع الـ Domain Objects.</p>
+<hr>
+<h2>الخلاصة</h2>
+<p>Gateway بيحل مشكلة عزل التطبيق عن تفاصيل الوصول إلى نظام خارجي أو Resource.</p>
+<p>أقرب GoF Patterns ليه:</p>
+<ul>
+<li><strong>Facade:</strong> في تبسيط واجهة التعامل.</li>
+<li><strong>Adapter:</strong> في إمكانية تقديم واجهة مناسبة للتطبيق.</li>
+</ul>
+<p>لكنه مش بديل لأي واحد منهم؛ لأن المشكلة الأساسية اللي بيعالجها مختلفة.</p>
+<hr>
+<h2>اختبر فهمك</h2>
+<p><strong>قبل ما ننتقل لـ Service Stub، عايز أتأكد إن فيه نقطة واضحة:</strong></p>
+<p>هل الفرق بين Gateway وFacade وAdapter واضح عندك، خصوصًا إن التشابه في الشكل أو وجود Interface مش معناه إنهم نفس الـ Pattern؟</p>
+        </div>
+      </article>
+      <article class="pattern" id="mapper" data-pattern="Mapper">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Base Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Mapper</h2>
+        </header>
+        <div class="pattern-body">
+<h2>المشكلة</h2>
+<p>تخيل عندك نظامين داخل نفس التطبيق، وكل نظام عنده طريقة مختلفة لتمثيل نفس المعلومة.</p>
+<p>مثلًا، عندك نظام خاص بالعملاء، ونظام خاص بالفواتير.</p>
+<p>نظام العملاء عنده الكائن بالشكل ده:</p>
+<pre class="code" dir="ltr"><code class="language-python">class Customer:
+    def __init__(self, customer_id, full_name, email):
+        self.customer_id = customer_id
+        self.full_name = full_name
+        self.email = email</code></pre>
+<p>ونظام الفواتير عنده تمثيل مختلف:</p>
+<pre class="code" dir="ltr"><code class="language-python">class InvoiceCustomer:
+    def __init__(self, code, name, contact_email):
+        self.code = code
+        self.name = name
+        self.contact_email = contact_email</code></pre>
+<p>الاتنين بيمثلوا العميل، لكن كل واحد عنده Structure مختلف.</p>
+<p>السؤال: هل نخلي كل نظام يعرف تفاصيل النظام التاني؟</p>
+<p>لو عملنا كده، هيحصل Coupling بين النظامين، وأي تغيير في تمثيل أحدهما ممكن يؤثر على الآخر.</p>
+<p>هنا بيظهر دور Mapper.</p>
+<h2>الفكرة والحل</h2>
+<p><strong>Mapper هو Object مسؤول عن إنشاء أو تنظيم التواصل بين Objects مستقلة عن بعضها.</strong></p>
+<p>يعني بدل ما كل Object يعرف تفاصيل الـ Object الآخر، بنحط مسؤولية الربط أو التحويل في Object وسيط.</p>
+<p>في المثال بتاعنا، الـ Mapper يعرف إزاي ينقل المعلومات من Customer إلى InvoiceCustomer.</p>
+<p><strong>بدون Mapper</strong></p>
+<p>Customer System</p>
+<p>Invoice System</p>
+<p>كل نظام محتاج يعرف تفاصيل النظام الآخر.</p>
+<hr>
+<p><strong>باستخدام Mapper</strong></p>
+<p>Customer</p>
+<p><strong>Customer Mapper</strong></p>
+<p>مسؤول عن الربط بين التمثيلين</p>
+<p>InvoiceCustomer</p>
+<h2>مثال</h2>
+<p>هنعمل Mapper مسؤول عن تحويل البيانات بين الكائنين:</p>
+<pre class="code" dir="ltr"><code class="language-python">class CustomerMapper:
+
+    @staticmethod
+    def to_invoice_customer(customer):
+        return InvoiceCustomer(
+            code=customer.customer_id,
+            name=customer.full_name,
+            contact_email=customer.email
+        )</code></pre>
+<p>دلوقتي نقدر نستخدمه بالشكل ده:</p>
+<pre class="code" dir="ltr"><code class="language-python">customer = Customer(
+    customer_id=10,
+    full_name=&quot;Saleh Ewais&quot;,
+    email=&quot;saleh@example.com&quot;
+)
+
+invoice_customer = CustomerMapper.to_invoice_customer(customer)</code></pre>
+<p>النتيجة:</p>
+<pre class="code" dir="ltr"><code class="language-python">InvoiceCustomer(
+    code=10,
+    name=&quot;Saleh Ewais&quot;,
+    contact_email=&quot;saleh@example.com&quot;
+)</code></pre>
+<p>لاحظ إن:</p>
+<ul>
+<li>Customer مش محتاج يعرف أي حاجة عن InvoiceCustomer.</li>
+<li>InvoiceCustomer مش محتاج يعرف أي حاجة عن Customer.</li>
+<li>CustomerMapper هو المسؤول عن الربط بين الاتنين.</li>
+</ul>
+<p><strong>لكن خلي بالك من نقطة مهمة:</strong> تحويل البيانات من Object لآخر هو مثال شائع على استخدام Mapper، لكنه مش التعريف الكامل لنمط Fowler العام.</p>
+<p>Mapper ممكن يكون مسؤولًا عن تنظيم التواصل بين كائنين مستقلين، والتحويل مجرد وسيلة ممكن يستخدمها لتحقيق ده.</p>
+<h2>أقرب GoF Pattern</h2>
+<p>أقرب نمطين للمقارنة هنا هما Adapter و<code dir="ltr">Mediator</code>.</p>
+<p><strong>1. Adapter</strong></p>
+<p>(تشابه قوي)</p>
+<p>الـ Adapter بيحوّل واجهة موجودة إلى واجهة تانية العميل متوقعها.</p>
+<p>مثال:</p>
+<p>عندك كلاس بيقدم:</p>
+<pre class="code" dir="ltr"><code class="language-python">legacy.get_customer_data()</code></pre>
+<p>لكن التطبيق محتاج يتعامل مع:</p>
+<pre class="code" dir="ltr"><code class="language-python">customer_repository.get()</code></pre>
+<p>ممكن تعمل Adapter يربط الواجهتين.</p>
+<p><strong>أوجه التشابه مع Mapper:</strong></p>
+<ul>
+<li>الاتنين ممكن يعزلوا كائنين عن تفاصيل بعض.</li>
+<li>الاتنين ممكن يحولوا شكل البيانات أو طريقة التعامل.</li>
+<li>الاتنين ممكن يكونوا Objects وسيطة بين طرفين.</li>
+</ul>
+<p><strong>ليه Mapper مش بديل لـ Adapter؟</strong></p>
+<p>لأن Adapter مشكلته الأساسية عدم توافق واجهتين (Interface Incompatibility).</p>
+<p>أما Mapper فاهتمامه الأساسي تنظيم التواصل بين Objects مستقلة.</p>
+<p>ممكن Mapper يحوّل البيانات من Object لآخر من غير ما تكون فيه أي مشكلة في توافق الواجهات أصلًا.</p>
+<hr>
+<p><strong>2. Mediator</strong></p>
+<p>(تشابه في تنظيم التواصل)</p>
+<p>الـ Mediator بيقلل الترابط المباشر بين مجموعة من Objects، عن طريق جعلها تتواصل من خلال Object وسيط.</p>
+<p><strong>أوجه التشابه:</strong></p>
+<ul>
+<li>الاتنين ممكن يقللوا الاعتماد المباشر بين الكائنات.</li>
+<li>الاتنين بيستخدموا وسيطًا لتنظيم العلاقة بين الأطراف.</li>
+</ul>
+<p><strong>ليه Mapper مش بديل لـ Mediator؟</strong></p>
+<p>لأن Mediator هدفه تنظيم التفاعل والتواصل بين مجموعة من الكائنات.</p>
+<p>أما Mapper فمش بالضرورة ينظم تفاعلات معقدة؛ ممكن تكون مسؤوليته مجرد إنشاء العلاقة أو نقل البيانات بين Objectين مستقلين.</p>
+<h3>مقارنة سريعة</h3>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Mapper</th><th>Adapter</th><th>Mediator</th></tr>
+<tr><td>المشكلة</td><td>تنظيم التواصل بين Objects مستقلة</td><td>عدم توافق الواجهات</td><td>تعقيد التواصل بين Objects</td></tr>
+<tr><td>التركيز</td><td>الربط بين التمثيلات أو الكائنات</td><td>تحويل Interface</td><td>تنسيق التفاعل</td></tr>
+<tr><td>عدد الأطراف</td><td>غالبًا طرفان</td><td>غالبًا طرفان</td><td>غالبًا عدة أطراف</td></tr>
+<tr><td>الهدف</td><td>استقلال الأطراف</td><td>التوافق</td><td>تقليل الترابط</td></tr>
+</table></div>
+<h2>خامسًا: نقطة مهمة جدًا — Mapper vs Data Mapper</h2>
+<p>هنا لازم نفرّق بين مصطلحين بيتستخدموا أحيانًا كأنهم نفس الحاجة.</p>
+<p><strong>Mapper</strong> هو الـ Base Pattern العام اللي بنتكلم عنه.</p>
+<p>أما <strong>Data Mapper</strong> فهو Pattern متخصص في التعامل بين Objects وقاعدة البيانات.</p>
+<p>مثلًا:</p>
+<p>عندك Domain Object:</p>
+<pre class="code" dir="ltr"><code class="language-python">class Product:
+    def __init__(self, product_id, name, price):
+        self.id = product_id
+        self.name = name
+        self.price = price</code></pre>
+<p>وعندك Database Table:</p>
+<pre class="code" dir="ltr"><code class="language-sql">CREATE TABLE products (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(100),
+    price DECIMAL(10, 2)
+);</code></pre>
+<p>الـ Data Mapper مسؤول عن نقل البيانات بين الـ Domain Objects والـ Database، مع الحفاظ على استقلال الـ Domain عن تفاصيل قاعدة البيانات.</p>
+<p><strong>Domain Object</strong></p>
+<p>Product</p>
+<p><strong>Data Mapper</strong></p>
+<p>Object ↔ Database Mapping</p>
+<p><strong>Database</strong></p>
+<p>Tables / Rows / Columns</p>
+<p>وده مختلف عن Active Record:</p>
+<ul>
+<li>في Data Mapper، منطق الـ Domain والـ Persistence منفصلين.</li>
+<li>في Active Record، الـ Object نفسه بيحتوي على سلوك مرتبط بقراءة وكتابة بياناته.</li>
+</ul>
+<p>وده موضوع مهم جدًا لما نيجي نناقش ORM وخصوصًا Odoo.</p>
+<h2>علاقته بالعمارة</h2>
+<p>Mapper ممكن يظهر في أماكن مختلفة حسب مسؤوليته:</p>
+<ul>
+<li><strong>Clean Architecture:</strong> ممكن تستخدمه لتحويل DTOs إلى Domain Objects أو العكس، أو لتحويل بيانات الأنظمة الخارجية.</li>
+<li><strong>Hexagonal Architecture:</strong> ممكن يظهر داخل Adapter لتحويل البيانات بين Port والـ External System.</li>
+<li><strong>Layered Architecture:</strong> ممكن يستخدم عند الحدود بين Presentation وApplication أو بين Application وPersistence.</li>
+</ul>
+<p>لكن مش معنى كده إن كل تحويل بين Dictionary وObject لازم تعمل له Mapper Class مستقل. ده قرار تصميم يعتمد على تعقيد التحويل ومسؤولياته.</p>
+<h2>الخلاصة</h2>
+<p>Mapper في PoEAA هو Object بينظم التواصل بين Objects مستقلة.</p>
+<p>أقرب GoF Patterns ليه:</p>
+<ul>
+<li><strong>Adapter:</strong> بسبب إمكانية تحويل الواجهات أو التمثيلات.</li>
+<li><strong>Mediator:</strong> بسبب وجود وسيط يقلل الاعتماد المباشر بين الأطراف.</li>
+</ul>
+<p>لكنه مش بديل عن أي واحد فيهم؛ لأن Intent مختلف.</p>
+<p>ومتنساش الفرق بين Mapper العام وData Mapper المتخصص في الربط بين Objects وقاعدة البيانات.</p>
+<hr>
+        </div>
+      </article>
+      <article class="pattern" id="layer-supertype" data-pattern="Layer Supertype">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Base Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Layer Supertype</h2>
+        </header>
+        <div class="pattern-body">
+<p>ده آخر Pattern في قائمتنا، وهنحتاج نفهمه كويس لأن فيه ناس بتخلطه مع فكرة Base Class العامة.</p>
+<h2>المشكلة</h2>
+<p>تخيل عندك Application Layer فيها مجموعة Services:</p>
+<pre class="code" dir="ltr"><code class="language-python">class OrderService:
+    pass
+
+class CustomerService:
+    pass
+
+class InvoiceService:
+    pass</code></pre>
+<p>كل الـ Services دي ممكن تحتاج سلوكيات مشتركة خاصة بالطبقة، زي:</p>
+<ul>
+<li>الوصول إلى بعض الـ Layer-level utilities.</li>
+<li>تنفيذ عمليات مشتركة.</li>
+<li>توفير سلوك موحد للكائنات التابعة للطبقة.</li>
+</ul>
+<p>ممكن تلاقي نفسك بتكرر نفس الكود داخل كل Class.</p>
+<p>مثلاً:</p>
+<pre class="code" dir="ltr"><code class="language-python">class OrderService:
+
+    def log_operation(self, message):
+        print(message)
+
+class CustomerService:
+
+    def log_operation(self, message):
+        print(message)
+
+class InvoiceService:
+
+    def log_operation(self, message):
+        print(message)</code></pre>
+<p>ده تكرار غير ضروري لو السلوك فعلًا مشترك ومناسب لكل الكلاسات دي.</p>
+<p>السؤال: هل ممكن يكون عندنا Superclass واحدة تحتوي على السلوك المشترك الخاص بالـ Layer؟</p>
+<p>هنا بيظهر Layer Supertype.</p>
+<h2>الفكرة والحل</h2>
+<p><strong>Layer Supertype هو Base Class مشتركة للكلاسات الموجودة داخل Layer معينة، بحيث توفر السلوك أو الخصائص المشتركة الخاصة بالطبقة دي.</strong></p>
+<p>لاحظ نقطتين:</p>
+<ol>
+<li>مش Base Class لكل Classes المشروع.</li>
+<li>مش بنعمل Inheritance لمجرد إن عندنا كود متكرر؛ لازم يكون فيه سلوك مشترك منطقي تابع للطبقة.</li>
+</ol>
+<p><strong>Application Layer</strong></p>
+<p><strong>ApplicationServiceBase</strong></p>
+<p>Shared Layer Behavior</p>
+<p><strong>OrderService</strong></p>
+<p><strong>CustomerService</strong></p>
+<p><strong>InvoiceService</strong></p>
+<h2>مثال</h2>
+<p>هنعمل Base Class خاصة بالـ Application Layer.</p>
+<pre class="code" dir="ltr"><code class="language-python">class ApplicationServiceBase:
+
+    def log_operation(self, message):
+        print(f&quot;[APPLICATION] {message}&quot;)</code></pre>
+<p>وبعد كده الـ Services ترث منها:</p>
+<pre class="code" dir="ltr"><code class="language-python">class OrderService(ApplicationServiceBase):
+
+    def create_order(self):
+        self.log_operation(&quot;Creating order&quot;)
+
+class CustomerService(ApplicationServiceBase):
+
+    def create_customer(self):
+        self.log_operation(&quot;Creating customer&quot;)
+
+class InvoiceService(ApplicationServiceBase):
+
+    def create_invoice(self):
+        self.log_operation(&quot;Creating invoice&quot;)</code></pre>
+<p>الاستخدام:</p>
+<pre class="code" dir="ltr"><code class="language-python">order_service = OrderService()
+
+order_service.create_order()</code></pre>
+<p>النتيجة:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">[APPLICATION] Creating order</code></pre>
+<p>دلوقتي السلوك المشترك موجود في مكان واحد، والـ Services بتستخدمه عن طريق Inheritance.</p>
+<p><strong>لكن هل ده معناه إن كل Application Services لازم ترث من ApplicationServiceBase؟</strong></p>
+<p>لأ.</p>
+<p>لو الـ Base Class مش بتقدم سلوك مشترك حقيقي، يبقى وجودها مش مفيد.</p>
+<p>كمان لو السلوك المشترك مش تابع منطقيًا للطبقة، ممكن يكون الأفضل استخدام Composition أو Utility Service مستقلة بدل Inheritance.</p>
+<hr>
+<h2>أقرب GoF Pattern</h2>
+<p>أقرب GoF Patterns للمقارنة هما Template Method و<code dir="ltr">Composite</code> مش بنفس درجة التشابه، لكن Template Method هي المقارنة الأهم.</p>
+<p><strong>1. Template Method</strong></p>
+<p>(تشابه في استخدام Inheritance)</p>
+<p>Template Method بيحدد Skeleton لخوارزمية داخل Base Class، وبيترك بعض الخطوات للـ Subclasses عشان تنفذها.</p>
+<p>مثال:</p>
+<pre class="code" dir="ltr"><code class="language-python">class ReportGenerator:
+
+    def generate(self):
+        self.fetch_data()
+        self.format_data()
+        self.export()
+
+    def fetch_data(self):
+        raise NotImplementedError
+
+    def format_data(self):
+        raise NotImplementedError
+
+    def export(self):
+        raise NotImplementedError</code></pre>
+<p><strong>أوجه التشابه:</strong></p>
+<ul>
+<li>الاتنين ممكن يستخدموا Base Class.</li>
+<li>الاتنين ممكن يشاركوا سلوكًا مشتركًا بين Subclasses.</li>
+<li>الاتنين بيستخدموا Inheritance.</li>
+</ul>
+<p><strong>ليه Layer Supertype مش بديل لـ Template Method؟</strong></p>
+<p>لأن Template Method هدفه تحديد خطوات Algorithm وترتيب تنفيذها.</p>
+<p>أما Layer Supertype هدفه توفير سلوك أو خصائص مشتركة لكلاسات طبقة معينة.</p>
+<p>مش لازم Layer Supertype يحتوي على Algorithm أصلًا.</p>
+<hr>
+<p><strong>2. Composite</strong></p>
+<p>(تشابه محدود جدًا)</p>
+<p>Composite بيستخدم Tree Structure لتمثيل Objects فردية ومجموعات Objects من خلال Interface موحدة.</p>
+<p>ممكن تلاقي Inheritance في تنفيذه، لكن ده مش معناه إنه مشابه وظيفيًا لـ Layer Supertype.</p>
+<p><strong>ليه مش بديل عنه؟</strong></p>
+<p>لأن Composite بيحل مشكلة تمثيل Hierarchical Structures، أما Layer Supertype بيحل مشكلة مشاركة السلوك الخاص بطبقة.</p>
+<h3>مقارنة سريعة</h3>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Layer Supertype</th><th>Template Method</th></tr>
+<tr><td>الهدف</td><td>مشاركة سلوك خاص بالطبقة</td><td>تحديد Skeleton لخوارزمية</td></tr>
+<tr><td>Inheritance</td><td>نعم غالبًا</td><td>نعم</td></tr>
+<tr><td>يحتوي على Algorithm؟</td><td>مش شرط</td><td>نعم</td></tr>
+<tr><td>يحتاج Subclass Overrides؟</td><td>مش شرط</td><td>غالبًا</td></tr>
+<tr><td>نطاق الاستخدام</td><td>Layer</td><td>Behavior / Algorithm</td></tr>
+</table></div>
+<h2>علاقته بالعمارة</h2>
+<p>هنا لازم نفهم إن كل Layer ممكن يكون لها Supertype مختلف.</p>
+<p>مثلاً:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">application/
+    base/
+        application_service_base.py
+
+    services/
+        order_service.py
+        invoice_service.py
+
+domain/
+    base/
+        domain_entity_base.py
+
+    entities/
+        order.py
+        customer.py
+
+infrastructure/
+    base/
+        infrastructure_repository_base.py
+
+    repositories/
+        postgres_order_repository.py</code></pre>
+<p>ده مثال توضيحي، مش قاعدة إن كل Layer لازم يكون عندها Base Class.</p>
+<p>المهم إن السلوك المشترك يكون مرتبطًا فعلًا بمسؤوليات الطبقة.</p>
+<h3>هل Layer Supertype مناسب لـ Clean Architecture؟</h3>
+<p>ممكن جدًا، بشرط إننا نحترم Dependency Rule.</p>
+<p>مثلًا:</p>
+<ul>
+<li>ApplicationServiceBase ممكن تكون داخل Application.</li>
+<li>DomainEntityBase ممكن تكون داخل Domain لو فيه سلوك مشترك حقيقي.</li>
+<li>Infrastructure ممكن يكون لها Base Classes خاصة بيها.</li>
+</ul>
+<p>لكن مينفعش Domain يرث من Infrastructure Base Class؛ لأن ده هيعكس اتجاه الاعتماديات.</p>
+<h2>سادسًا: إمتى أستخدمه وإمتى أتجنبه؟</h2>
+<p><strong>استخدم Layer Supertype لما:</strong></p>
+<ul>
+<li>يكون عندك سلوك مشترك فعلًا بين Classes في نفس الطبقة.</li>
+<li>السلوك ده تابع لمسؤوليات الطبقة.</li>
+<li>الـ Base Class بتقلل التكرار من غير ما تفرض علاقات وراثة غير منطقية.</li>
+</ul>
+<p><strong>تجنبه لما:</strong></p>
+<ul>
+<li>بتعمل Base Class ضخمة لكل المشروع.</li>
+<li>بتجمع وظائف ملهاش علاقة ببعض.</li>
+<li>بتستخدم Inheritance لمجرد مشاركة دوال بسيطة.</li>
+<li>بتخلق Coupling بين Layers مختلفة.</li>
+</ul>
+<h2>الخلاصة</h2>
+<p>Layer Supertype هو Base Class مشتركة للكلاسات داخل Layer محددة، لتوفير السلوك المشترك الخاص بيها.</p>
+<p>أقرب GoF Pattern:</p>
+<ul>
+<li><strong>Template Method:</strong> بسبب استخدام Inheritance ومشاركة السلوك، لكن Template Method هدفه تنظيم Algorithm.</li>
+<li><strong>Composite:</strong> تشابه شكلي محدود بسبب إمكانية استخدام Class Hierarchy، لكن Intent مختلف تمامًا.</li>
+</ul>
+<hr>
+        </div>
+      </article>
+      <article class="pattern" id="separated-interface" data-pattern="Separated Interface">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Base Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Separated Interface</h2>
+        </header>
+        <div class="pattern-body">
+<p>النمط ده مهم جدًا؛ لأنه مرتبط بشكل مباشر بالـ Dependency Management، وهنحتاجه لما نتكلم عن Clean Architecture وHexagonal Architecture.</p>
+<h2>المشكلة</h2>
+<p>تخيل إن عندك Application Layer محتاجة تتعامل مع Database.</p>
+<p>ممكن تكتب الكود بالشكل ده:</p>
+<pre class="code" dir="ltr"><code class="language-python">class PostgresUserRepository:
+
+    def get_by_id(self, user_id):
+        # PostgreSQL query
+        pass
+
+class UserService:
+
+    def __init__(self):
+        self.repository = PostgresUserRepository()
+
+    def get_user(self, user_id):
+        return self.repository.get_by_id(user_id)</code></pre>
+<p>إيه المشكلة هنا؟</p>
+<p>UserService بقت معتمدة مباشرة على PostgresUserRepository.</p>
+<p>وده معناه إن الـ Application Layer عارفة تفاصيل الـ Infrastructure Layer.</p>
+<p>لو قررت تستبدل PostgreSQL بـ MongoDB، أو تستخدم In-Memory Repository للاختبار، هتحتاج تغيّر طريقة بناء الـ Service أو كودها.</p>
+<p>المشكلة الأساسية هنا مش إننا بنستخدم Database.</p>
+<p>المشكلة هي <strong>اتجاه الاعتماديات (Dependency Direction)</strong>.</p>
+<h2>الفكرة والحل</h2>
+<p><strong>Separated Interface هو Pattern بيخلي تعريف الـ Interface موجود في Package منفصل عن Package اللي بيحتوي على Implementation.</strong></p>
+<p>والفكرة المهمة في Fowler هي إن الـ Interface غالبًا بيتحط في الـ Package اللي محتاج يستخدمه، بينما الـ Implementation موجود في Package تاني.</p>
+<p>بدل ما الـ Application تعتمد على Infrastructure، نخلي Infrastructure هي اللي تعتمد على الـ Interface اللي الـ Application عرّفته.</p>
+<p><strong>قبل Separated Interface</strong></p>
+<p><strong>Application</strong></p>
+<p>UserService</p>
+<p><strong>Infrastructure</strong></p>
+<p>PostgresUserRepository</p>
+<hr>
+<p><strong>بعد Separated Interface</strong></p>
+<p><strong>Application</strong></p>
+<p>UserService + UserRepository Interface</p>
+<p><strong>Infrastructure</strong></p>
+<p>PostgresUserRepository implements UserRepository</p>
+<p>الأسهم هنا بتوضح اتجاه اعتماد الكود، مش اتجاه استدعاء الدوال وقت التشغيل.</p>
+<p>لاحظ الفرق:</p>
+<ul>
+<li>الـ Application بتعرّف العقد اللي هي محتاجاه.</li>
+<li>الـ Infrastructure بتنفذ العقد ده.</li>
+<li>الـ Application مش محتاجة تعرف نوع قاعدة البيانات.</li>
+</ul>
+<h2>مثال</h2>
+<h3>1. تعريف الـ Interface داخل Application</h3>
+<pre class="code" dir="ltr"><code class="language-python">from abc import ABC, abstractmethod
+
+class UserRepository(ABC):
+
+    @abstractmethod
+    def get_by_id(self, user_id):
+        pass</code></pre>
+<h3>2. الـ Application Service</h3>
+<pre class="code" dir="ltr"><code class="language-python">class UserService:
+
+    def __init__(self, repository: UserRepository):
+        self.repository = repository
+
+    def get_user(self, user_id):
+        return self.repository.get_by_id(user_id)</code></pre>
+<p>لاحظ إن UserService مش بتعمل new لـ PostgresUserRepository.</p>
+<p>هي بتستقبل أي Object يحقق العقد المطلوب.</p>
+<h3>3. Infrastructure Implementation</h3>
+<pre class="code" dir="ltr"><code class="language-python">class PostgresUserRepository(UserRepository):
+
+    def get_by_id(self, user_id):
+        # PostgreSQL query
+        return {
+            &quot;id&quot;: user_id,
+            &quot;name&quot;: &quot;Saleh&quot;
+        }</code></pre>
+<h3>4. Composition Root</h3>
+<p>مين المسؤول عن توصيل الـ Implementation بالـ Application؟</p>
+<p>الجزء المسؤول عن بناء التطبيق وتركيب مكوناته، وغالبًا بنسميه Composition Root.</p>
+<pre class="code" dir="ltr"><code class="language-python">repository = PostgresUserRepository()
+
+user_service = UserService(repository)
+
+user = user_service.get_user(10)</code></pre>
+<p>كده حققنا الفصل بين الـ Application والـ Infrastructure.</p>
+<h2>أقرب GoF Pattern</h2>
+<p>هنا المقارنة مختلفة شوية؛ لأن مفيش GoF Pattern مطابق له.</p>
+<p>أقرب حاجة للمقارنة هي Bridge، وبعده Strategy.</p>
+<p><strong>1. Bridge</strong></p>
+<p>(تشابه في فصل التجريد عن التنفيذ)</p>
+<p>Bridge هدفه فصل Abstraction عن Implementation بحيث كل واحد يقدر يتغير بشكل مستقل عن التاني.</p>
+<p>مثال كلاسيكي: عندك أنواع مختلفة من Remote Controls، وأنواع مختلفة من Devices.</p>
+<p>بدل ما تعمل Class لكل تركيبة، بتفصل الـ Remote Control عن Device Implementation.</p>
+<p><strong>أوجه التشابه:</strong></p>
+<ul>
+<li>الاتنين بيفصلوا التعامل مع Abstraction عن تفاصيل Implementation.</li>
+<li>الاتنين ممكن يستخدموا Interfaces.</li>
+<li>الاتنين بيقللوا الاعتماد المباشر على Implementations محددة.</li>
+</ul>
+<p><strong>ليه Separated Interface مش بديل لـ Bridge؟</strong></p>
+<p>لأن Bridge بيحل مشكلة تعدد وتطور Hierarchies مستقلة.</p>
+<p>أما Separated Interface فبيركز على مكان تعريف الـ Interface بالنسبة للـ Client والـ Implementation، وبالتالي اتجاه الاعتماديات بين الـ Packages.</p>
+<p>ممكن تستخدم Separated Interface من غير ما يكون عندك Hierarchies متعددة أصلًا.</p>
+<hr>
+<p><strong>2. Strategy</strong></p>
+<p>(تشابه في الاعتماد على Abstraction)</p>
+<p>Strategy بيسمح لك تبدّل بين خوارزميات مختلفة من خلال Interface مشتركة.</p>
+<p>مثال: طرق مختلفة لحساب الخصم.</p>
+<p><strong>ليه مش بديل لـ Separated Interface؟</strong></p>
+<p>لأن Strategy هدفه تبديل Algorithms، بينما Separated Interface هدفه فصل الـ Interface عن الـ Implementation على مستوى تنظيم الاعتماديات.</p>
+<p>ممكن Strategy يستخدم Separated Interface، لكن كل واحد بيحل مشكلة مختلفة.</p>
+<h3>مقارنة سريعة</h3>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Separated Interface</th><th>Bridge</th><th>Strategy</th></tr>
+<tr><td>الهدف</td><td>فصل تعريف العقد عن التنفيذ وتنظيم الاعتماديات</td><td>فصل Hierarchies</td><td>تبديل Algorithms</td></tr>
+<tr><td>المستوى المعتاد</td><td>Packages / Modules</td><td>Objects / Classes</td><td>Objects / Classes</td></tr>
+<tr><td>يحتاج أكثر من Implementation؟</td><td>لا</td><td>غالبًا توجد Variations</td><td>غالبًا توجد Strategies متعددة</td></tr>
+<tr><td>المشكلة الأساسية</td><td>Dependency Direction</td><td>Structural Complexity</td><td>Algorithm Variation</td></tr>
+</table></div>
+<h2>علاقته بالعمارة</h2>
+<p>دي أهم نقطة في النمط.</p>
+<p>لازم نفرّق بين 3 مفاهيم:</p>
+<p><strong>1. Dependency Inversion Principle (DIP)</strong></p>
+<p>ده مبدأ من SOLID بيقول إن High-level Modules وLow-level Modules ما يعتمدوش على بعض بشكل مباشر، لكن يعتمدوا على Abstractions.</p>
+<p><strong>2. Separated Interface</strong></p>
+<p>ده Pattern لتنظيم الكود بحيث الـ Interface تكون في Package منفصل عن الـ Implementation، وغالبًا في Package العميل.</p>
+<p><strong>3. Clean Architecture</strong></p>
+<p>دي Architecture بتعتمد على جعل الاعتماديات البرمجية تتجه للداخل، ناحية الـ Business Rules.</p>
+<p>ممكن نستخدم Separated Interface لتحقيق Dependency Inversion داخل Clean Architecture.</p>
+<p>لكن مش معنى كده إن Separated Interface هو نفسه Clean Architecture أو إنه وحده بيحققها.</p>
+<h2>سادسًا: مثال Folder Structure</h2>
+<pre class="code" dir="ltr"><code class="language-plain text">project/
+│
+├── application/
+│   ├── interfaces/
+│   │   └── user_repository.py
+│   │
+│   └── services/
+│       └── user_service.py
+│
+├── infrastructure/
+│   └── persistence/
+│       └── postgres_user_repository.py
+│
+└── main.py</code></pre>
+<p>الـ Interface موجودة في application، والتنفيذ موجود في infrastructure.</p>
+<p>وده مثال عملي على Separated Interface.</p>
+<h2>الخلاصة</h2>
+<p>Separated Interface بيحل مشكلة اعتماد الـ Client على Package معينة عشان يحصل على Implementation.</p>
+<p>أقرب GoF Pattern ليه هو:</p>
+<ul>
+<li><strong>Bridge:</strong> بسبب الفصل بين Abstraction وImplementation.</li>
+<li><strong>Strategy:</strong> بسبب استخدام Abstraction تسمح بتعدد Implementations.</li>
+</ul>
+<p>لكنه مش بديل عن أي واحد منهم؛ لأن Intent مختلف.</p>
+<hr>
+<p><strong>الترتيب اللي جاي:</strong></p>
+        </div>
+      </article>
+      <article class="pattern" id="registry" data-pattern="Registry">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Base Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Registry</h2>
+        </header>
+        <div class="pattern-body">
+<h2>المشكلة</h2>
+<p>تخيل إن عندك تطبيق E-Commerce، وفيه مجموعة Services محتاجين يوصلوا لبعض.</p>
+<p>مثلًا:</p>
+<ul>
+<li>OrderService</li>
+<li>PaymentService</li>
+<li>EmailService</li>
+<li>InventoryService</li>
+</ul>
+<p>وعندك OrderService محتاجة تستخدم PaymentService.</p>
+<p>ممكن تعمل الآتي:</p>
+<pre class="code" dir="ltr"><code class="language-python">class OrderService:
+
+    def __init__(self):
+        self.payment_service = PaymentService()</code></pre>
+<p>لكن تخيل إن عندك عشرات الكلاسات، وكل واحد محتاج يوصل إلى Services مختلفة.</p>
+<p>ممكن تبدأ تكرر إنشاء الـ Objects في أماكن كتير، أو تمرر Dependencies من خلال عدد كبير من Constructors.</p>
+<p>هنا تظهر مشكلة تانية: إزاي Object يقدر يوصل إلى Object أو Service مشتركة ومعروفة داخل التطبيق؟</p>
+<p><strong>Registry بيقدم حل للمشكلة دي.</strong></p>
+<h2>الفكرة والحل</h2>
+<p><strong>Registry هو Object معروف (Well-known Object) تقدر Objects تانية تستخدمه للوصول إلى Objects أو Services مسجلة عنده.</strong></p>
+<p>بمعنى أبسط:</p>
+<p>تخيل إن عندك دليل مركزي، بتسجل فيه الخدمات، وأي جزء في التطبيق محتاج خدمة معينة يقدر يطلبها من الدليل ده.</p>
+<p><strong>من غير Registry</strong></p>
+<p>OrderService</p>
+<p>ReportService</p>
+<p>PaymentService</p>
+<p>EmailService</p>
+<p>كل جزء ممكن يحتاج طريقة مختلفة للوصول إلى الخدمات.</p>
+<hr>
+<p><strong>باستخدام Registry</strong></p>
+<p>OrderService</p>
+<p>ReportService</p>
+<p>PaymentService</p>
+<p>EmailService</p>
+<p><strong>Registry</strong></p>
+<p>Central lookup point</p>
+<p>الفكرة إن الـ Registry بيكون نقطة معروفة للوصول إلى الخدمات المسجلة.</p>
+<h2>مثال</h2>
+<p>هنعمل Registry بسيط يخزن الخدمات باستخدام أسماء (Keys).</p>
+<h3>1. تعريف Registry</h3>
+<pre class="code" dir="ltr"><code class="language-python">class Registry:
+
+    _services = {}
+
+    @classmethod
+    def register(cls, name, service):
+        cls._services[name] = service
+
+    @classmethod
+    def get(cls, name):
+        if name not in cls._services:
+            raise KeyError(f&quot;Service not found: {name}&quot;)
+
+        return cls._services[name]</code></pre>
+<h3>2. تعريف الخدمات</h3>
+<pre class="code" dir="ltr"><code class="language-python">class PaymentService:
+
+    def charge(self, amount):
+        return f&quot;Charged {amount}&quot;
+
+class EmailService:
+
+    def send(self, email, message):
+        return f&quot;Email sent to {email}&quot;</code></pre>
+<h3>3. تسجيل الخدمات</h3>
+<pre class="code" dir="ltr"><code class="language-python">Registry.register(&quot;payment&quot;, PaymentService())
+Registry.register(&quot;email&quot;, EmailService())</code></pre>
+<h3>4. الوصول للخدمات</h3>
+<pre class="code" dir="ltr"><code class="language-python">payment_service = Registry.get(&quot;payment&quot;)
+
+result = payment_service.charge(500)
+
+print(result)</code></pre>
+<p>النتيجة:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">Charged 500</code></pre>
+<p>لاحظ إن OrderService مش محتاجة تعرف تفاصيل إنشاء PaymentService أو مكان تخزينها.</p>
+<p>هي بتطلبها من Registry.</p>
+<hr>
+<h2>أقرب GoF Pattern</h2>
+<p>أقرب أنماط GoF للمقارنة هنا هي Singleton و<code dir="ltr">Abstract Factory</code>، لكن التشابه مش معناه إنهم نفس النمط.</p>
+<p><strong>1. Singleton</strong></p>
+<p>(تشابه في إتاحة Object معروف مركزيًا)</p>
+<p>Singleton بيضمن وجود Instance واحدة من Class، ويوفر طريقة للوصول إليها.</p>
+<p>ممكن تعمل Registry كـ Singleton عشان كل أجزاء التطبيق تستخدم نفس الـ Registry.</p>
+<p><strong>ليه Registry مش بديل لـ Singleton؟</strong></p>
+<p>لأن Singleton بيحل مشكلة عدد الـ Instances وطريقة الوصول إلى Instance واحدة.</p>
+<p>أما Registry بيحل مشكلة البحث والوصول إلى Objects أو Services مسجلة.</p>
+<p>ممكن Registry يكون Singleton، لكن مش لازم يكون كذلك.</p>
+<p>يعني:</p>
+<ul>
+<li>Singleton يحدد طريقة إنشاء وإتاحة Registry.</li>
+<li>Registry يحدد مسؤولية تسجيل الخدمات والبحث عنها.</li>
+</ul>
+<p>  ---</p>
+<p>  <strong>2. Abstract Factory</strong></p>
+<p>  (تشابه في توفير الوصول إلى Objects)</p>
+<p>Abstract Factory بيقدم Interface لإنشاء عائلات من Objects مترابطة من غير ما العميل يعرف Classes الفعلية.</p>
+<p><strong>ليه Registry مش بديل لـ Abstract Factory؟</strong></p>
+<p>لأن Factory مسؤوليته إنشاء Objects، بينما Registry مسؤوليته الوصول إلى Objects مسجلة بالفعل.</p>
+<p>ممكن Registry يخزن Factory Objects، وممكن Factory يسجل المنتجات اللي بينشئها في Registry، لكن الاتنين مش بيحلوا نفس المشكلة.</p>
+<h3>مقارنة سريعة</h3>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Registry</th><th>Singleton</th><th>Abstract Factory</th></tr>
+<tr><td>الهدف</td><td>البحث عن Objects مسجلة</td><td>ضمان Instance واحدة</td><td>إنشاء عائلات Objects</td></tr>
+<tr><td>المسؤولية</td><td>Lookup</td><td>Lifecycle / Instance</td><td>Object Creation</td></tr>
+<tr><td>هل ينشئ Objects؟</td><td>مش بالضرورة</td><td>نعم، ينشئ Instance الخاصة به</td><td>نعم</td></tr>
+<tr><td>هل يوفر وصولًا مركزيًا؟</td><td>نعم</td><td>إلى Instance واحدة</td><td>من خلال Factory</td></tr>
+</table></div>
+<h2>خامسًا: Registry وعلاقته بـ Service Locator وDependency Injection</h2>
+<p>هنا لازم نقف شوية؛ لأن فيه مفاهيم قريبة جدًا من بعض.</p>
+<h3>1. Registry</h3>
+<p>هو مكان معروف لتسجيل Objects والبحث عنها.</p>
+<h3>2. Service Locator</h3>
+<p>هو أسلوب تصميم بيوفر نقطة مركزية تقدر تطلب منها Services وقت الحاجة.</p>
+<p>مثال:</p>
+<pre class="code" dir="ltr"><code class="language-python">class OrderService:
+
+    def checkout(self, order):
+        payment = Registry.get(&quot;payment&quot;)
+        payment.charge(order.total)</code></pre>
+<p>هنا OrderService بتطلب الـ Dependency بنفسها.</p>
+<p>وده مثال على استخدام Registry بأسلوب قريب من Service Locator.</p>
+<h3>3. Dependency Injection</h3>
+<p>في DI، بدل ما الـ Service تبحث بنفسها عن الـ Dependency، حد خارجي بيوفرها لها.</p>
+<pre class="code" dir="ltr"><code class="language-python">class OrderService:
+
+    def __init__(self, payment_service):
+        self.payment_service = payment_service
+
+    def checkout(self, order):
+        self.payment_service.charge(order.total)</code></pre>
+<p>الفرق الأساسي:</p>
+<p><strong>Service Locator</strong></p>
+<p>OrderService</p>
+<p>تطلب الـ Dependency بنفسها</p>
+<p>Registry / Service Locator</p>
+<hr>
+<p><strong>Dependency Injection</strong></p>
+<p>Composition Root</p>
+<p>مسؤول عن إنشاء وربط Dependencies</p>
+<p>OrderService + PaymentService</p>
+<p>الـ Dependency يتم تمريرها للـ Service</p>
+<p><strong>إيه المشكلة في Service Locator؟</strong></p>
+<p>إن الـ Dependencies بتكون مخفية داخل الكود.</p>
+<p>لو بصيت على Constructor بتاع OrderService مش هتعرف إنه محتاج PaymentService.</p>
+<p>وده بيصعّب فهم Dependencies واختبارها مقارنةً بالـ Constructor Injection.</p>
+<p>علشان كده، في تصميمات كتير بتفضل Dependency Injection على Service Locator.</p>
+<p>لكن ده مش معناه إن Registry أو Service Locator غلط دائمًا؛ استخدامهم بيعتمد على طبيعة النظام.</p>
+<h2>علاقته بالعمارة</h2>
+<p>ممكن تلاقي Registry في تطبيقات مختلفة:</p>
+<ul>
+<li><strong>Layered Architecture:</strong> ممكن تستخدمه للوصول إلى Services مشتركة.</li>
+<li><strong>Clean Architecture:</strong> ممكن يظهر في Composition أو Infrastructure، لكن خلي بالك من استخدامه داخل الـ Domain أو Application لو هيخفي Dependencies ويكسر اتجاه الاعتماديات.</li>
+<li><strong>Plugin Architecture:</strong> ممكن تستخدم Registry لتسجيل Plugins ثم البحث عنها بالاسم أو النوع.</li>
+</ul>
+<p>ومهم جدًا: وجود Registry مش معناه إنك محتاج تحط كل Services التطبيق فيه. أحيانًا ده بيحول النظام إلى Global Service Locator ضخم.</p>
+<h2>الخلاصة</h2>
+<p>Registry بيحل مشكلة الوصول إلى Objects أو Services مسجلة في نقطة مركزية معروفة.</p>
+<p>أقرب GoF Patterns ليه:</p>
+<ul>
+<li><strong>Singleton:</strong> بسبب فكرة الوصول المركزي إلى Object واحد، لكنه مش مسؤول عن تسجيل الخدمات.</li>
+<li><strong>Abstract Factory:</strong> بسبب إتاحة الوصول إلى Objects، لكنه مسؤول عن إنشائها مش البحث عنها.</li>
+</ul>
+<p>والفرق المهم اللي لازم تفتكره:</p>
+<p><strong>Registry = Lookup</strong></p>
+<p><strong>Factory = Creation</strong></p>
+<p><strong>Singleton = Single Instance</strong></p>
+<p><strong>Dependency Injection = Supplying Dependencies</strong></p>
+<hr>
+        </div>
+      </article>
+      <article class="pattern" id="value-object" data-pattern="Value Object">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Base Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Value Object</h2>
+        </header>
+        <div class="pattern-body">
+<p>النمط ده من أهم الأنماط اللي هنقابلها في DDD، لكن خلينا نفهم تعريفه الأول بعيدًا عن DDD.</p>
+<h2>المشكلة</h2>
+<p>تخيل عندك نظام لإدارة العملاء.</p>
+<p>وعندك عميلين:</p>
+<pre class="code" dir="ltr"><code class="language-python">customer_1 = {
+    &quot;name&quot;: &quot;Ahmed&quot;,
+    &quot;city&quot;: &quot;Cairo&quot;,
+    &quot;street&quot;: &quot;Nasr City&quot;
+}
+
+customer_2 = {
+    &quot;name&quot;: &quot;Ahmed&quot;,
+    &quot;city&quot;: &quot;Cairo&quot;,
+    &quot;street&quot;: &quot;Nasr City&quot;
+}</code></pre>
+<p>هل العميل الأول هو نفسه العميل الثاني؟</p>
+<p>مش بالضرورة. ممكن يكونوا شخصين مختلفين تمامًا، حتى لو بياناتهم متطابقة.</p>
+<p>لكن خلينا نغير المثال.</p>
+<p>عندك عنوانين:</p>
+<pre class="code" dir="ltr"><code class="language-python">address_1 = {
+    &quot;city&quot;: &quot;Cairo&quot;,
+    &quot;street&quot;: &quot;Nasr City&quot;
+}
+
+address_2 = {
+    &quot;city&quot;: &quot;Cairo&quot;,
+    &quot;street&quot;: &quot;Nasr City&quot;
+}</code></pre>
+<p>هل العنوان الأول يساوي العنوان الثاني؟</p>
+<p>من ناحية القيمة، أيوه.</p>
+<p>إحنا مش مهتمين إذا كان address_1 هو نفس الـ Object الموجود في الذاكرة بتاع address_2.</p>
+<p>إحنا مهتمين إن القيم اللي جواهم متساوية.</p>
+<p>وهنا تظهر فكرة Value Object.</p>
+<h2>الفكرة والحل</h2>
+<p><strong>Value Object هو Object بتتحدد مساواته (Equality) بناءً على قيم خصائصه، مش بناءً على هويته (Identity).</strong></p>
+<p>بمعنى:</p>
+<ul>
+<li>Entity: مهم مين هو الـ Object.</li>
+<li>Value Object: المهم إيه القيم اللي بيمثلها.</li>
+</ul>
+<p><strong>Entity</strong></p>
+<p><strong>Customer A</strong></p>
+<p>ID = 101</p>
+<p>Name = Ahmed</p>
+<p><strong>Customer B</strong></p>
+<p>ID = 102</p>
+<p>Name = Ahmed</p>
+<p>(مش متساويين)</p>
+<p>رغم إن الاسم واحد، لكن الهوية مختلفة.</p>
+<hr>
+<p><strong>Value Object</strong></p>
+<p>City = Cairo</p>
+<p>Street = Nasr City</p>
+<p>City = Cairo</p>
+<p>Street = Nasr City</p>
+<p>(متساويين بالقيمة)</p>
+<p>لأن الخصائص اللي بتحدد القيمة متطابقة.</p>
+<h2>مثال</h2>
+<p>هنعمل Address كـ Value Object.</p>
+<pre class="code" dir="ltr"><code class="language-python">from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class Address:
+    city: str
+    street: str</code></pre>
+<p>دلوقتي:</p>
+<pre class="code" dir="ltr"><code class="language-python">address_1 = Address(
+    city=&quot;Cairo&quot;,
+    street=&quot;Nasr City&quot;
+)
+
+address_2 = Address(
+    city=&quot;Cairo&quot;,
+    street=&quot;Nasr City&quot;
+)
+
+print(address_1 == address_2)</code></pre>
+<p>النتيجة:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">True</code></pre>
+<p>ليه؟</p>
+<p>لأن dataclass بتوفر Equality بناءً على قيم الحقول افتراضيًا.</p>
+<p>وكمان استخدمنا:</p>
+<pre class="code" dir="ltr"><code class="language-python">frozen=True</code></pre>
+<p>وده بيخلي الـ Object Immutable، بمعنى إنك مش هتقدر تغير قيمه بعد إنشائه.</p>
+<p>مثلًا:</p>
+<pre class="code" dir="ltr"><code class="language-python">address_1.city = &quot;Alexandria&quot;</code></pre>
+<p>هيؤدي إلى FrozenInstanceError.</p>
+<h3>هل كل Value Object لازم يكون Immutable؟</h3>
+<p>مش ده التعريف الأساسي.</p>
+<p>التعريف الأساسي هو إن المساواة بتتحدد بالقيمة مش بالهوية.</p>
+<p>لكن Immutability ممارسة قوية جدًا مع Value Objects؛ لأنها بتخلي سلوكها أكثر وضوحًا وتقلل المشاكل الناتجة عن تغيير القيم بعد إنشاء الكائن.</p>
+<h2>أقرب GoF Pattern</h2>
+<p>هنا فيه تشابه مهم مع Flyweight، لكن لازم نفرّق بينهم.</p>
+<p><strong>1. Flyweight</strong></p>
+<p>(تشابه في مشاركة القيم)</p>
+<p>Flyweight هدفه تقليل استهلاك الذاكرة عن طريق مشاركة Objects متشابهة في بياناتها بين عدد كبير من المستخدمين.</p>
+<p>مثال: لعبة فيها آلاف الأشجار، بدل ما تخزن نفس بيانات شكل الشجرة آلاف المرات، تشارك بيانات الشكل.</p>
+<p><strong>أوجه التشابه:</strong></p>
+<ul>
+<li>الاتنين ممكن يعتمدوا على بيانات ثابتة أو غير قابلة للتغيير.</li>
+<li>الاتنين ممكن يستفيدوا من مشاركة Objects متساوية في القيمة.</li>
+</ul>
+<p><strong>ليه Value Object مش بديل لـ Flyweight؟</strong></p>
+<p>لأن Value Object بيحدد طريقة تمثيل القيمة والمساواة.</p>
+<p>أما Flyweight بيحل مشكلة استهلاك الذاكرة عن طريق مشاركة الحالة المشتركة.</p>
+<p>ممكن تستخدم Value Objects داخل Flyweight، لكن مش كل Value Object هو Flyweight.</p>
+<hr>
+<p><strong>2. Prototype</strong></p>
+<p>(تشابه محدود)</p>
+<p>Prototype هدفه إنشاء Objects جديدة عن طريق نسخ Object موجود.</p>
+<p>ممكن تنسخ Value Object لإنشاء قيمة جديدة قريبة من قيمة سابقة.</p>
+<p>لكن Prototype مش مسؤول عن تحديد معنى المساواة بين Objects.</p>
+<h3>مقارنة سريعة</h3>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Value Object</th><th>Flyweight</th></tr>
+<tr><td>الهدف</td><td>تمثيل قيمة</td><td>تقليل استهلاك الذاكرة</td></tr>
+<tr><td>المساواة</td><td>بالقيمة</td><td>مش هي الهدف الأساسي</td></tr>
+<tr><td>المشاركة</td><td>ممكنة</td><td>أساسية في الفكرة</td></tr>
+<tr><td>Immutability</td><td>شائعة جدًا</td><td>الحالة المشتركة غالبًا ثابتة</td></tr>
+</table></div>
+<h2>خامسًا: علاقته بـ DDD</h2>
+<p>في DDD، الـ Value Object يعتبر مفهومًا أساسيًا في Tactical Design.</p>
+<p>مثلًا، ممكن يكون عندك:</p>
+<ul>
+<li>Address</li>
+<li>Money</li>
+<li>DateRange</li>
+<li>Quantity</li>
+<li>Percentage</li>
+</ul>
+<p>بدل ما تمثل كل حاجة بمجموعة Primitive Values متفرقة، بتجمع القيم المرتبطة ببعض داخل Object له معنى وقواعد واضحة.</p>
+<p>وده بيساعدك تمنع حالات غير صحيحة.</p>
+<p>مثلاً، Percentage ممكن يضمن إن القيمة بين 0 و100، و<code dir="ltr">Money</code> يضمن وجود عملة مع المبلغ.</p>
+<p>لكن خلي بالك: Value Object مش مقتصر على DDD؛ ده مفهوم أوسع موجود في تصميم الـ Object-Oriented Software.</p>
+<h2>الخلاصة</h2>
+<p>Value Object هو Object المساواة فيه بالقيمة، مش بالهوية.</p>
+<p>أقرب GoF Pattern للمقارنة:</p>
+<ul>
+<li><strong>Flyweight:</strong> بسبب إمكانية مشاركة Objects المتساوية، لكن Flyweight هدفه الأساسي تحسين استهلاك الذاكرة.</li>
+<li><strong>Prototype:</strong> بسبب إمكانية نسخ Objects، لكن Prototype هدفه الإنشاء بالنسخ.</li>
+</ul>
+<p>والنقطة الأساسية:</p>
+<p><strong>Entity = Identity</strong></p>
+<p><strong>Value Object = Value</strong></p>
+<hr>
+<p>التالي عندنا <strong>Money</strong>، وده في الحقيقة مثال متخصص ومهم جدًا على Value Object، وهنشوف ليه تم فصله كنمط مستقل بدل ما نعتبره مجرد Decimal وخلاص.</p>
+<p>تمام يا صاحبي. هنكمل بنفس ترتيب الشرح، مع الحفاظ على اتجاه القراءة من اليمين للشمال، وفصل الأكواد والمصطلحات الإنجليزية عن النص العربي.</p>
+        </div>
+      </article>
+      <article class="pattern" id="money" data-pattern="Money">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Base Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Money</h2>
+        </header>
+        <div class="pattern-body">
+<h2>المشكلة</h2>
+<p>تخيل إنك بتبني نظام محاسبي، وعندك منتج سعره 100 جنيه.</p>
+<p>ممكن تمثّل السعر باستخدام float:</p>
+<pre class="code" dir="ltr"><code class="language-python">price = 100.50</code></pre>
+<p>للوهلة الأولى مفيش مشكلة، لكن فيه مشكلتين أساسيتين:</p>
+<p><strong>المشكلة الأولى: دقة العمليات الحسابية.</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">print(0.1 + 0.2)</code></pre>
+<p>النتيجة:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">0.30000000000000004</code></pre>
+<p>وده بسبب طريقة تمثيل الأرقام العشرية باستخدام Floating Point.</p>
+<p><strong>المشكلة الثانية: العملة.</strong></p>
+<p>هل الرقم 100 معناه:</p>
+<ul>
+<li>100 EGP؟</li>
+<li>100 USD؟</li>
+<li>100 EUR؟</li>
+</ul>
+<p>الرقم لوحده مش كفاية لتمثيل مبلغ مالي.</p>
+<p>كمان هل ينفع تجمع 100 جنيه مع 100 دولار؟</p>
+<p>طبعًا مش من غير تحويل للعملة.</p>
+<p>إذن المشكلة مش مجرد تمثيل رقم، إحنا محتاجين نمثل مفهوم مالي له قواعد خاصة.</p>
+<h2>الفكرة والحل</h2>
+<p><strong>Money هو Value Object متخصص لتمثيل مبلغ مالي مع العملة الخاصة به، وتوفير العمليات الحسابية المناسبة له.</strong></p>
+<p>يعني بدل ما نمثل المبلغ كرقم فقط، نمثله كـ Object يحتوي على:</p>
+<ul>
+<li>Amount: قيمة المبلغ.</li>
+<li>Currency: العملة.</li>
+<li>Arithmetic Rules: قواعد العمليات الحسابية.</li>
+<li>Rounding Rules: قواعد التقريب عند الحاجة.</li>
+</ul>
+<p><strong>Money Object</strong></p>
+<h1>100.50 EGP</h1>
+<hr>
+<p>Amount <strong>100.50</strong></p>
+<p>Currency <strong>EGP</strong></p>
+<p>Type <strong>Value Object</strong></p>
+<h2>مثال</h2>
+<p>هنستخدم Decimal بدل float عشان نتعامل مع القيم المالية بدقة عشرية مناسبة.</p>
+<h3>1. إنشاء Money Object</h3>
+<pre class="code" dir="ltr"><code class="language-python">from dataclasses import dataclass
+from decimal import Decimal
+
+@dataclass(frozen=True)
+class Money:
+
+    amount: Decimal
+    currency: str
+
+    def __post_init__(self):
+        if not self.currency:
+            raise ValueError(&quot;Currency is required&quot;)
+
+        if not isinstance(self.amount, Decimal):
+            raise TypeError(&quot;Amount must be Decimal&quot;)</code></pre>
+<h3>2. تنفيذ عمليات الجمع</h3>
+<pre class="code" dir="ltr"><code class="language-python">@dataclass(frozen=True)
+class Money:
+
+    amount: Decimal
+    currency: str
+
+    def __post_init__(self):
+        if not self.currency:
+            raise ValueError(&quot;Currency is required&quot;)
+
+        if not isinstance(self.amount, Decimal):
+            raise TypeError(&quot;Amount must be Decimal&quot;)
+
+    def __add__(self, other):
+
+        if self.currency != other.currency:
+            raise ValueError(&quot;Cannot add different currencies&quot;)
+
+        return Money(
+            amount=self.amount + other.amount,
+            currency=self.currency
+        )</code></pre>
+<p>الاستخدام:</p>
+<pre class="code" dir="ltr"><code class="language-python">price_1 = Money(Decimal(&quot;100.50&quot;), &quot;EGP&quot;)
+price_2 = Money(Decimal(&quot;50.25&quot;), &quot;EGP&quot;)
+
+total = price_1 + price_2
+
+print(total)</code></pre>
+<p>النتيجة:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">Money(amount=Decimal(&#x27;150.75&#x27;), currency=&#x27;EGP&#x27;)</code></pre>
+<p>لكن لو حاولت تعمل:</p>
+<pre class="code" dir="ltr"><code class="language-python">price_1 = Money(Decimal(&quot;100&quot;), &quot;EGP&quot;)
+price_2 = Money(Decimal(&quot;100&quot;), &quot;USD&quot;)
+
+total = price_1 + price_2</code></pre>
+<p>هيحصل Exception.</p>
+<p>وده سلوك مقصود؛ لأن جمع عملتين مختلفتين من غير Currency Conversion مش عملية مالية صحيحة.</p>
+<h3>3. تنفيذ عملية الضرب</h3>
+<p>ممكن نحتاج نضرب مبلغ مالي في كمية:</p>
+<pre class="code" dir="ltr"><code class="language-python">def __mul__(self, quantity):
+
+    return Money(
+        amount=self.amount * Decimal(str(quantity)),
+        currency=self.currency
+    )</code></pre>
+<p>مثلًا:</p>
+<pre class="code" dir="ltr"><code class="language-python">unit_price = Money(Decimal(&quot;25.50&quot;), &quot;EGP&quot;)
+
+total = unit_price * 4</code></pre>
+<p>النتيجة:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">102.00 EGP</code></pre>
+<p>ملاحظة: ده مثال تعليمي. تطبيق Money حقيقي محتاج كمان سياسات واضحة للـ Rounding، ودقة العملة، والضرب والقسمة والتوزيع.</p>
+<hr>
+<h2>أقرب GoF Pattern</h2>
+<p>هنا لازم نكون دقيقين: مفيش GoF Pattern مطابق لـ Money.</p>
+<p>أقرب مقارنة مفيدة هي Strategy و<code dir="ltr">Flyweight</code>، لكن التشابه جزئي.</p>
+<p><strong>1. Strategy</strong></p>
+<p>(تشابه في إمكانية تغيير قواعد الحساب)</p>
+<p>Strategy بيسمح بتبديل Algorithm أو Policy من غير تغيير الكلاس اللي بيستخدمها.</p>
+<p>ممكن تستخدم Strategy مع Money لاختيار سياسات مختلفة للتقريب أو تحويل العملات.</p>
+<p>مثال:</p>
+<ul>
+<li>Banker&#x27;s Rounding.</li>
+<li>Half Up Rounding.</li>
+<li>Currency Conversion Strategy.</li>
+</ul>
+<p><strong>ليه Money مش بديل لـ Strategy؟</strong></p>
+<p>لأن Money بيمثل قيمة مالية، بينما Strategy بتمثل خوارزمية أو سلوك قابل للاستبدال.</p>
+<p>ممكن Money يستخدم Strategy داخليًا، لكن مش لازم.</p>
+<hr>
+<p><strong>2. Flyweight</strong></p>
+<p>(تشابه محدود)</p>
+<p>ممكن تشارك بيانات العملة الثابتة، زي اسم العملة وعدد الخانات العشرية، بين عدد كبير من Money Objects.</p>
+<p>لكن ده مش الهدف الأساسي من Money.</p>
+<p><strong>ليه Money مش بديل لـ Flyweight؟</strong></p>
+<p>Money هدفه صحة تمثيل العمليات المالية، بينما Flyweight هدفه تقليل استهلاك الذاكرة.</p>
+<h3>مقارنة سريعة</h3>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Money</th><th>Strategy</th><th>Flyweight</th></tr>
+<tr><td>الهدف</td><td>تمثيل المبالغ المالية</td><td>تبديل الخوارزميات</td><td>مشاركة الحالة لتوفير الذاكرة</td></tr>
+<tr><td>يمثل قيمة؟</td><td>نعم</td><td>لا</td><td>لا، هو أسلوب مشاركة</td></tr>
+<tr><td>يحتوي على قواعد مالية؟</td><td>نعم</td><td>ممكن يوفرها</td><td>لا</td></tr>
+<tr><td>GoF Pattern؟</td><td>لا</td><td>نعم</td><td>نعم</td></tr>
+</table></div>
+<h2>خامسًا: علاقته بـ DDD</h2>
+<p>Money من أشهر أمثلة Value Objects في DDD.</p>
+<p>مثلًا، في نظام محاسبي:</p>
+<pre class="code" dir="ltr"><code class="language-python">class Invoice:
+
+    def __init__(self, total):
+        self.total = total</code></pre>
+<p>بدل ما total يكون مجرد Decimal، ممكن يكون Money.</p>
+<p>وبالتالي الـ Invoice مش محتاجة تعيد تنفيذ قواعد العملة والجمع في كل مكان.</p>
+<p>كمان فيه نقطة مهمة:</p>
+<p><strong>Currency Conversion مش مجرد قسمة أو ضرب.</strong></p>
+<p>لازم تحدد:</p>
+<ul>
+<li>Exchange Rate.</li>
+<li>مصدر سعر الصرف.</li>
+<li>تاريخ سعر الصرف.</li>
+<li>سياسة التقريب.</li>
+<li>العملة المستهدفة.</li>
+</ul>
+<p>وده مهم جدًا في الأنظمة المحاسبية والمالية.</p>
+<h2>علاقته بالعمارة</h2>
+<p>Money ممكن يظهر في أي طبقة بتتعامل مع المبالغ المالية، لكن الأفضل إن قواعده الأساسية تكون في الـ Domain Model لو المبلغ جزء من Business Domain.</p>
+<p>مثلاً:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">domain/
+    value_objects/
+        money.py
+        currency.py
+
+    entities/
+        invoice.py
+        order.py</code></pre>
+<p>وبالتالي الـ Domain نفسه يقدر يضمن صحة العمليات المالية من غير ما يعتمد على Database أو Framework.</p>
+<h2>الخلاصة</h2>
+<p>Money هو Value Object متخصص في تمثيل المبالغ المالية والعملات وقواعد التعامل معاها.</p>
+<p>مفيش GoF Pattern مطابق ليه.</p>
+<p>أقرب المقارنات:</p>
+<ul>
+<li><strong>Strategy:</strong> ممكن تستخدمه لتبديل سياسات التقريب والتحويل.</li>
+<li><strong>Flyweight:</strong> ممكن تستخدمه لمشاركة بيانات العملات الثابتة.</li>
+</ul>
+<p>لكن Money مش بديل لأي واحد فيهم.</p>
+<hr>
+        </div>
+      </article>
+      <article class="pattern" id="special-case" data-pattern="Special Case">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Base Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Special Case</h2>
+        </header>
+        <div class="pattern-body">
+<h2>المشكلة</h2>
+<p>تخيل عندك تطبيق لإدارة العملاء.</p>
+<p>وعندك كود بالشكل ده:</p>
+<pre class="code" dir="ltr"><code class="language-python">def get_customer_name(customer):
+
+    if customer is None:
+        return &quot;Unknown Customer&quot;
+
+    return customer.name</code></pre>
+<p>المشكلة إنك ممكن تلاقي نفس الشرط بيتكرر في أماكن كتير:</p>
+<pre class="code" dir="ltr"><code class="language-python">if customer is None:
+    ...</code></pre>
+<p>وفي مكان تاني:</p>
+<pre class="code" dir="ltr"><code class="language-python">if customer is None:
+    ...</code></pre>
+<p>وفي مكان ثالث:</p>
+<pre class="code" dir="ltr"><code class="language-python">if customer is None:
+    ...</code></pre>
+<p>كل مرة بيكون عندك Conditional Logic للتعامل مع حالة معينة.</p>
+<p>ومع زيادة الحالات، الكود بيبقى مليان شروط.</p>
+<p>السؤال هنا:</p>
+<p>هل ممكن نمثل الحالة الخاصة نفسها كـ Object له سلوك مناسب بدل ما ننشر شروط التعامل معاها في كل مكان؟</p>
+<p>هنا بيظهر Special Case.</p>
+<h2>الفكرة والحل</h2>
+<p><strong>Special Case هو Pattern بنعمل فيه Object يمثل حالة معينة، ويوفر السلوك المناسب للحالة دي بدل ما نخلي كل Client يتعامل معاها باستخدام شروط متكررة.</strong></p>
+<p>مثلاً:</p>
+<ul>
+<li>عميل غير معروف.</li>
+<li>مستخدم Guest.</li>
+<li>منتج غير متاح.</li>
+<li>حساب افتراضي.</li>
+</ul>
+<p>بدل ما كل جزء في التطبيق يسأل هل الحالة موجودة أو لأ، ممكن يتعامل مع Object يمثل الحالة الخاصة.</p>
+<p><strong>بدون Special Case</strong></p>
+<p>Client</p>
+<p>if customer is None</p>
+<p>كل Client محتاج يعرف ويتعامل مع الحالة الخاصة.</p>
+<hr>
+<p><strong>باستخدام Special Case</strong></p>
+<p>Client</p>
+<p><strong>Special Case Object</strong></p>
+<p>سلوك محدد للحالة الخاصة</p>
+<h2>مثال</h2>
+<p>عندنا Customer عادي:</p>
+<pre class="code" dir="ltr"><code class="language-python">class Customer:
+
+    def __init__(self, name):
+        self.name = name
+
+    def get_discount(self):
+        return 10
+
+    def get_display_name(self):
+        return self.name</code></pre>
+<p>هنعمل Special Case يمثل العميل غير المعروف:</p>
+<pre class="code" dir="ltr"><code class="language-python">class UnknownCustomer:
+
+    def __init__(self):
+        self.name = &quot;Unknown Customer&quot;
+
+    def get_discount(self):
+        return 0
+
+    def get_display_name(self):
+        return self.name</code></pre>
+<p>دلوقتي نقدر نستخدم الاثنين من خلال نفس العمليات:</p>
+<pre class="code" dir="ltr"><code class="language-python">def print_customer_info(customer):
+
+    print(customer.get_display_name())
+    print(customer.get_discount())</code></pre>
+<p>الاستخدام:</p>
+<pre class="code" dir="ltr"><code class="language-python">customer = UnknownCustomer()
+
+print_customer_info(customer)</code></pre>
+<p>النتيجة:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">Unknown Customer
+0</code></pre>
+<p>لاحظ إننا مش محتاجين نكتب:</p>
+<pre class="code" dir="ltr"><code class="language-python">if customer is None:</code></pre>
+<p>داخل print_customer_info.</p>
+<p>الـ Special Case نفسه بيوفر السلوك المناسب.</p>
+<p>لكن فيه شرط مهم: لازم الحالة الخاصة تكون حالة مقبولة في الـ Business Domain.</p>
+<p>لو العميل مطلوب إجباريًا لإنشاء فاتورة قانونية مثلًا، مينفعش نستبدل غيابه بـ UnknownCustomer ونتجاهل المشكلة. هنا لازم نرفض العملية أو نرفع Exception حسب قواعد النظام.</p>
+<hr>
+<h2>أقرب GoF Pattern</h2>
+<p>أقرب GoF Pattern ليه هو Null Object، وده تشابه مهم جدًا.</p>
+<p><strong>1. Null Object</strong></p>
+<p>(أقرب نمط للمقارنة)</p>
+<p>Null Object بيقدم Object له سلوك محدد بدل استخدام None أو null.</p>
+<p>مثال:</p>
+<p>بدل ما ترجع None لو مفيش Logger، ممكن ترجع NullLogger عنده log() لكن لا ينفذ أي شيء.</p>
+<p><strong>أوجه التشابه:</strong></p>
+<ul>
+<li>الاتنين بيستبدلوا التعامل المباشر مع حالة خاصة بـ Object.</li>
+<li>الاتنين ممكن يقللوا Conditional Logic.</li>
+<li>الاتنين بيخلوا العميل يتعامل مع واجهة متوقعة.</li>
+</ul>
+<p><strong>ليه Special Case مش بديل لـ Null Object؟</strong></p>
+<p>لأن Null Object يعتبر حالة متخصصة من فكرة Special Case.</p>
+<p>لكن Special Case أوسع؛ مش لازم يكون بديلًا عن None.</p>
+<p>ممكن يكون Object يمثل مستخدم Guest بصلاحيات محددة، أو منتج غير متاح بسلوك معين.</p>
+<hr>
+<p><strong>2. State</strong></p>
+<p>(تشابه في تمثيل سلوك حسب الحالة)</p>
+<p>State Pattern بيغير سلوك Object حسب حالته الداخلية عن طريق State Objects.</p>
+<p><strong>ليه Special Case مش بديل لـ State؟</strong></p>
+<p>لأن State هدفه تنظيم انتقالات وسلوك حالات Object خلال دورة حياته.</p>
+<p>أما Special Case هدفه تمثيل حالة استثنائية أو خاصة وتوفير السلوك المناسب لها.</p>
+<p>ممكن تستخدم State لتمثيل حالات كيان، وتستخدم Special Case لحالة معينة من الحالات دي، لكن كل واحد له Intent مختلف.</p>
+<h3>مقارنة سريعة</h3>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Special Case</th><th>Null Object</th><th>State</th></tr>
+<tr><td>الهدف</td><td>تمثيل حالة خاصة بسلوك محدد</td><td>استبدال null بسلوك آمن</td><td>تغيير السلوك حسب الحالة</td></tr>
+<tr><td>يحتاج None؟</td><td>لا</td><td>غالبًا مرتبط بفكرة غيابه</td><td>لا</td></tr>
+<tr><td>يدعم State Transitions؟</td><td>مش بالضرورة</td><td>مش الهدف</td><td>نعم</td></tr>
+<tr><td>النطاق</td><td>أوسع</td><td>حالة متخصصة</td><td>دورة حياة Object</td></tr>
+</table></div>
+<h2>خامسًا: علاقته بالـ DDD</h2>
+<p>في DDD، Special Case ممكن يظهر عند تمثيل حالات خاصة لها معنى في الـ Domain.</p>
+<p>مثلاً:</p>
+<ul>
+<li>GuestUser</li>
+<li>UnknownCustomer</li>
+<li>UnavailableProduct</li>
+</ul>
+<p>لكن لازم نكون حذرين: مش كل حالة Missing Data تتحول إلى Special Case.</p>
+<p>فيه فرق بين:</p>
+<ul>
+<li>حالة خاصة مقبولة في الـ Business.</li>
+<li>بيانات ناقصة تمثل خطأ.</li>
+<li>حالة غير متوقعة تستدعي Exception.</li>
+</ul>
+<p>مثال: عدم وجود صورة للمنتج ممكن يكون حالة مقبولة، لكن عدم وجود سعر لمنتج مطلوب بيعه ممكن يكون خطأ في البيانات.</p>
+<h2>علاقته بالعمارة</h2>
+<p>ممكن تستخدم Special Case داخل الـ Domain Model أو Application Model، حسب طبيعة الحالة.</p>
+<p>مثلاً:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">domain/
+    customers/
+        customer.py
+        unknown_customer.py
+
+    products/
+        product.py
+        unavailable_product.py</code></pre>
+<p>الفكرة إن السلوك الخاص يفضل قريبًا من المفهوم اللي بيمثله، بدل نشر الشروط في كل طبقات النظام.</p>
+<h2>الخلاصة</h2>
+<p>Special Case بيحل مشكلة انتشار الشروط الخاصة بحالات معينة، عن طريق تمثيل الحالة نفسها كـ Object له سلوك مناسب.</p>
+<p>أقرب GoF Pattern:</p>
+<ul>
+<li><strong>Null Object:</strong> لأنه حالة متخصصة من Special Case.</li>
+<li><strong>State:</strong> بسبب إمكانية تمثيل سلوك مختلف حسب الحالة.</li>
+</ul>
+<p>لكن Special Case أوسع من Null Object، ومش بديل عن State.</p>
+<hr>
+<p>التالي عندنا <strong>Plugin</strong>، وده مهم جدًا لفهم Extensibility وإزاي نخلي النظام قابل لإضافة Implementations جديدة من غير ما نعدّل في قلب التطبيق كل مرة.</p>
+<p>نكمل بنفس المنهج، وهنحافظ على اتجاه النص العربي من اليمين للشمال، مع فصل الأكواد والمصطلحات الإنجليزية.</p>
+        </div>
+      </article>
+      <article class="pattern" id="plugin" data-pattern="Plugin">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Base Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Plugin</h2>
+        </header>
+        <div class="pattern-body">
+<h2>المشكلة</h2>
+<p>تخيل إنك بتبني E-Commerce System، وعندك أكتر من Payment Provider:</p>
+<ul>
+<li>Paymob</li>
+<li>Stripe</li>
+<li>PayPal</li>
+</ul>
+<p>ممكن تبدأ تكتب الكود بالشكل ده:</p>
+<pre class="code" dir="ltr"><code class="language-python">class PaymentService:
+
+    def pay(self, provider, amount):
+
+        if provider == &quot;stripe&quot;:
+            # Stripe implementation
+            pass
+
+        elif provider == &quot;paypal&quot;:
+            # PayPal implementation
+            pass
+
+        elif provider == &quot;paymob&quot;:
+            # Paymob implementation
+            pass</code></pre>
+<p>المشكلة إن كل ما تضيف Payment Provider جديد، هتحتاج تعدّل في PaymentService.</p>
+<p>ومع زيادة عدد الـ Providers، الكلاس هيكبر ويصبح مرتبطًا بتفاصيل كل Implementation.</p>
+<p>السؤال:</p>
+<p>هل ممكن أضيف Payment Provider جديد من غير ما أعدل في الكود الأساسي المسؤول عن الدفع؟</p>
+<p>هنا بيظهر دور Plugin.</p>
+<h2>الفكرة والحل</h2>
+<p><strong>Plugin هو Pattern بيسمح بربط Implementations بالنظام وقت Configuration بدل ما تكون مرتبطة به بشكل ثابت وقت كتابة الكود أو Compile Time.</strong></p>
+<p>بمعنى أبسط:</p>
+<p>النظام الأساسي بيحدد Contract أو Interface.</p>
+<p>وأي Implementation جديدة تقدر تلتزم بالـ Contract ده، وبعد كده يتم اختيارها وتوصيلها بالنظام عن طريق Configuration أو Registration أو Loading Mechanism.</p>
+<p><strong>Plugin Architecture</strong></p>
+<p><strong>Core Application</strong></p>
+<p>يعرف الـ Contract فقط</p>
+<p><strong>Plugin Interface</strong></p>
+<p>Payment Provider Contract</p>
+<p><strong>Stripe</strong></p>
+<p>Plugin</p>
+<p><strong>PayPal</strong></p>
+<p>Plugin</p>
+<p><strong>Paymob</strong></p>
+<p>Plugin</p>
+<p>الفكرة الأساسية إن الـ Core Application مش محتاجة تعرف تفاصيل كل Plugin.</p>
+<p>هي محتاجة تعرف الـ Contract اللي كل Plugin لازم يلتزم بيه.</p>
+<h2>مثال</h2>
+<p>هنعمل مثال بسيط لنظام Payment قابل لإضافة Providers جديدة.</p>
+<h3>1. تعريف الـ Contract</h3>
+<pre class="code" dir="ltr"><code class="language-python">from abc import ABC, abstractmethod
+
+class PaymentPlugin(ABC):
+
+    @abstractmethod
+    def pay(self, amount):
+        pass</code></pre>
+<h3>2. إنشاء Plugins مختلفة</h3>
+<pre class="code" dir="ltr"><code class="language-python">class StripePlugin(PaymentPlugin):
+
+    def pay(self, amount):
+        return f&quot;Stripe charged {amount}&quot;
+
+class PaymobPlugin(PaymentPlugin):
+
+    def pay(self, amount):
+        return f&quot;Paymob charged {amount}&quot;</code></pre>
+<p>كل Plugin عنده Implementation مختلفة، لكن الاتنين ملتزمين بنفس الـ Contract.</p>
+<h3>3. الـ Core Application</h3>
+<pre class="code" dir="ltr"><code class="language-python">class CheckoutService:
+
+    def __init__(self, payment_plugin):
+        self.payment_plugin = payment_plugin
+
+    def checkout(self, amount):
+        return self.payment_plugin.pay(amount)</code></pre>
+<p>لاحظ إن CheckoutService مش عارفة أي حاجة عن Stripe أو Paymob.</p>
+<p>هي بتتعامل مع PaymentPlugin.</p>
+<h3>4. اختيار الـ Plugin أثناء Configuration</h3>
+<pre class="code" dir="ltr"><code class="language-python">def configure_payment(provider):
+
+    plugins = {
+        &quot;stripe&quot;: StripePlugin,
+        &quot;paymob&quot;: PaymobPlugin,
+    }
+
+    plugin_class = plugins.get(provider)
+
+    if plugin_class is None:
+        raise ValueError(&quot;Unsupported payment provider&quot;)
+
+    return plugin_class()</code></pre>
+<p>الاستخدام:</p>
+<pre class="code" dir="ltr"><code class="language-python">payment_plugin = configure_payment(&quot;paymob&quot;)
+
+checkout = CheckoutService(payment_plugin)
+
+result = checkout.checkout(500)</code></pre>
+<p>النتيجة:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">Paymob charged 500</code></pre>
+<p>لو عايز تضيف Provider جديد، بتضيف Plugin جديد وتربطه في Configuration.</p>
+<p>مش محتاج تعدّل CheckoutService.</p>
+<p>ده مثال مبسط على Plugin Selection. الـ Plugin System الحقيقي ممكن يحتاج Dynamic Loading وMetadata وVersion Compatibility وSecurity Validation.</p>
+<hr>
+<h2>أقرب GoF Pattern</h2>
+<p>أقرب GoF Patterns للمقارنة هما Strategy و<code dir="ltr">Abstract Factory</code>، لكن لازم نفصل بينهم كويس.</p>
+<p><strong>1. Strategy</strong></p>
+<p>(تشابه قوي في تعدد Implementations)</p>
+<p>Strategy بيسمح لك بتبديل Algorithms مختلفة من خلال Interface مشتركة.</p>
+<p>مثال: عندك أكثر من طريقة لحساب Shipping Cost.</p>
+<pre class="code" dir="ltr"><code class="language-python">class ShippingStrategy:
+    def calculate(self, weight):
+        pass</code></pre>
+<p><strong>أوجه التشابه:</strong></p>
+<ul>
+<li>الاتنين ممكن يعتمدوا على Interface مشتركة.</li>
+<li>الاتنين بيسمحوا بوجود Implementations متعددة.</li>
+<li>الاتنين بيفصلوا الـ Client عن تفاصيل التنفيذ.</li>
+</ul>
+<p><strong>ليه Plugin مش بديل لـ Strategy؟</strong></p>
+<p>لأن Strategy هدفه تبديل Algorithm أو سلوك داخل التطبيق.</p>
+<p>أما Plugin هدفه توسيع النظام بإضافة Implementations قابلة للربط وقت Configuration أو Loading.</p>
+<p>بمعنى إن Strategy ممكن تكون جزءًا من Plugin، لكن Plugin عنده مفهوم أوسع متعلق بامتداد النظام.</p>
+<hr>
+<p><strong>2. Abstract Factory</strong></p>
+<p>(تشابه في فصل إنشاء Implementations)</p>
+<p>Abstract Factory بيوفر Interface لإنشاء مجموعة من Objects مترابطة.</p>
+<p>ممكن Plugin يحتوي على Factory لإنشاء المكونات الخاصة به.</p>
+<p><strong>ليه Plugin مش بديل لـ Abstract Factory؟</strong></p>
+<p>لأن Factory مسؤوليته إنشاء Objects.</p>
+<p>أما Plugin مسؤوليته إضافة Implementation أو Extension للنظام.</p>
+<p>ممكن Plugin يستخدم Abstract Factory داخله، لكن وجود Factory لوحده مش معناه إن عندك Plugin Architecture.</p>
+<hr>
+<p><strong>3. Factory Method</strong></p>
+<p>(تشابه في اختيار التنفيذ)</p>
+<p>Factory Method بيسمح للـ Subclasses بتحديد نوع الـ Object اللي هيتم إنشاؤه.</p>
+<p>Plugin ممكن يحتاج Factory Method لإنشاء مكوناته.</p>
+<p>لكن Factory Method مش مسؤول عن تحميل Extensions أو اكتشافها أو تسجيلها.</p>
+<h3>مقارنة سريعة</h3>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Plugin</th><th>Strategy</th><th>Abstract Factory</th></tr>
+<tr><td>الهدف</td><td>توسيع النظام</td><td>تبديل Algorithm</td><td>إنشاء عائلات Objects</td></tr>
+<tr><td>إضافة مكونات جديدة</td><td>نعم</td><td>إضافة Strategy</td><td>إضافة Factory</td></tr>
+<tr><td>Configuration</td><td>جزء شائع من الفكرة</td><td>ممكن</td><td>ممكن</td></tr>
+<tr><td>Dynamic Loading</td><td>ممكن</td><td>مش هدفه</td><td>مش هدفه</td></tr>
+<tr><td>نطاق الاستخدام</td><td>Extensibility</td><td>Behavior</td><td>Object Creation</td></tr>
+</table></div>
+<h2>علاقته بالعمارة</h2>
+<p>هنا Plugin بيظهر بشكل واضح في Plugin Architecture.</p>
+<p>تخيل نظامًا فيه Core ثابت، وحوله Extensions قابلة للإضافة.</p>
+<p>أمثلة:</p>
+<ul>
+<li>نظام يدعم Payment Providers متعددة.</li>
+<li>نظام يدعم Export Formats مختلفة.</li>
+<li>نظام يدعم Authentication Providers مختلفة.</li>
+<li>نظام يدعم Integrations مع أنظمة خارجية.</li>
+</ul>
+<p>ممكن كمان تستخدم Plugin مع:</p>
+<p><strong>Clean Architecture</strong></p>
+<p>تعرّف Abstraction داخل الجزء الداخلي، وتوفر Implementations في الخارج، ويتم اختيارها عند Composition Root.</p>
+<p><strong>Hexagonal Architecture</strong></p>
+<p>تقدر تعتبر كل Plugin عبارة عن Adapter إضافي يحقق Port معينًا.</p>
+<p>لكن مش كل Adapter هو Plugin؛ لأن Adapter ممكن يكون جزءًا ثابتًا من التطبيق، من غير أي آلية لتسجيل أو تحميل Extensions.</p>
+<h2>سادسًا: الفرق بين Plugin وStrategy وSeparated Interface</h2>
+<p>دي مقارنة مهمة لأن التلاتة ممكن يظهروا مع بعض في نفس التصميم.</p>
+<ul>
+<li>Separated Interface: بيفصل مكان تعريف العقد عن مكان تنفيذها.</li>
+<li>Strategy: بيوفر سلوكيات أو Algorithms بديلة.</li>
+<li>Plugin: بيسمح بإضافة Implementations للنظام وربطها وقت Configuration.</li>
+</ul>
+<p>ممكن تعمل Plugin Architecture باستخدام Separated Interface وStrategy مع بعض.</p>
+<p>وده مش معناه إنهم نفس النمط.</p>
+<h2>الخلاصة</h2>
+<p>Plugin بيحل مشكلة توسيع النظام بإضافة Implementations جديدة من غير ربط الـ Core بكل Implementation بشكل مباشر.</p>
+<p>أقرب GoF Patterns:</p>
+<ul>
+<li><strong>Strategy:</strong> بسبب تعدد Implementations القابلة للاختيار.</li>
+<li><strong>Abstract Factory:</strong> بسبب إمكانية استخدام Factories لإنشاء مكونات الـ Plugin.</li>
+<li><strong>Factory Method:</strong> بسبب إمكانية استخدامه في إنشاء الـ Objects.</li>
+</ul>
+<p>لكن ولا واحد منهم بديل عن Plugin؛ لأن Plugin بيتعامل مع Extensibility على مستوى النظام.</p>
+<hr>
+        </div>
+      </article>
+      <article class="pattern" id="service-stub" data-pattern="Service Stub">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Base Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Service Stub</h2>
+        </header>
+        <div class="pattern-body">
+<p>خلينا نبدأ بالمشكلة، وبعدها هنشوف علاقته بـ GoF؛ لأن فيه تشابه مهم جدًا بينه وبين Proxy.</p>
+<h2>المشكلة</h2>
+<p>تخيل إن عندك تطبيق E-Commerce، وفيه جزء مسؤول عن حساب تكلفة الشحن.</p>
+<p>أنت بتتعامل مع شركة شحن خارجية عندها API بالشكل ده:</p>
+<pre class="code" dir="ltr"><code class="language-python">class ShippingService:
+
+    def calculate_shipping(self, address, weight):
+        # HTTP request to external shipping provider
+        # Authentication
+        # Wait for response
+        # Parse response
+        pass</code></pre>
+<p>وعندك OrderService بيعتمد على الخدمة دي:</p>
+<pre class="code" dir="ltr"><code class="language-python">class OrderService:
+
+    def __init__(self, shipping_service):
+        self.shipping_service = shipping_service
+
+    def checkout(self, order):
+        shipping_cost = self.shipping_service.calculate_shipping(
+            order.address,
+            order.weight
+        )
+
+        return order.total + shipping_cost</code></pre>
+<p>دلوقتي أنت عايز تختبر OrderService.</p>
+<p>هتواجهك مشاكل:</p>
+<ol>
+<li>لازم خدمة الشحن الخارجية تكون شغالة.</li>
+<li>لازم يكون عندك اتصال بالإنترنت.</li>
+<li>ممكن الـ API تكون بطيئة.</li>
+<li>ممكن الشركة تحاسبك على كل Request.</li>
+<li>ممكن الخدمة ترجع Errors بشكل غير متوقع.</li>
+<li>مش هتقدر تتحكم بسهولة في الـ Responses اللي بترجع أثناء الاختبار.</li>
+</ol>
+<p><strong>السؤال هنا: هل لازم أتعامل مع خدمة الشحن الحقيقية كل مرة عشان أختبر الـ OrderService؟</strong></p>
+<p>لأ.</p>
+<p>وهنا بيظهر دور Service Stub.</p>
+<h2>الفكرة والحل</h2>
+<p><strong>Service Stub هو بديل محلي (Local Substitute) بيحاكي سلوك Service حقيقية، بحيث تقدر تتعامل معاه بدل ما تتصل بالخدمة الحقيقية.</strong></p>
+<p>بمعنى أبسط:</p>
+<p>بدل ما الاختبار يتصل بشركة الشحن الحقيقية، هنعمل Implementation بديلة ترجع لنا نتائج متحكم فيها.</p>
+<p><strong>بدون Service Stub</strong></p>
+<p>OrderService</p>
+<p>Real Shipping Service</p>
+<p>(Network dependency)</p>
+<p>External Shipping API</p>
+<hr>
+<p><strong>باستخدام Service Stub</strong></p>
+<p>OrderService</p>
+<p><strong>Shipping Service Stub</strong></p>
+<p>(Local substitute)</p>
+<p>Controlled responses</p>
+<p>مفيش اتصال بالشركة الخارجية أثناء الاختبار</p>
+<p>لاحظ إن الـ Stub مش بيغير الـ Business Logic بتاعة OrderService.</p>
+<p>هو بيغير الـ Dependency اللي بنحقنها فيه.</p>
+<h2>مثال</h2>
+<p>هنبدأ بتعريف Interface مشترك للخدمة الحقيقية والـ Stub.</p>
+<pre class="code" dir="ltr"><code class="language-python">from abc import ABC, abstractmethod
+
+class ShippingService(ABC):
+
+    @abstractmethod
+    def calculate_shipping(self, address, weight):
+        pass</code></pre>
+<h3>1. Real Implementation</h3>
+<pre class="code" dir="ltr"><code class="language-python">class RealShippingService(ShippingService):
+
+    def calculate_shipping(self, address, weight):
+        # Call external shipping API
+        return 100</code></pre>
+<h3>2. Stub Implementation</h3>
+<pre class="code" dir="ltr"><code class="language-python">class ShippingServiceStub(ShippingService):
+
+    def calculate_shipping(self, address, weight):
+        return 20</code></pre>
+<h3>3. OrderService</h3>
+<pre class="code" dir="ltr"><code class="language-python">class OrderService:
+
+    def __init__(self, shipping_service):
+        self.shipping_service = shipping_service
+
+    def checkout(self, order):
+        shipping_cost = self.shipping_service.calculate_shipping(
+            order.address,
+            order.weight
+        )
+
+        return order.total + shipping_cost</code></pre>
+<h3>4. استخدام الـ Stub في الاختبار</h3>
+<pre class="code" dir="ltr"><code class="language-python">class Order:
+    def __init__(self, address, weight, total):
+        self.address = address
+        self.weight = weight
+        self.total = total
+
+stub = ShippingServiceStub()
+
+order_service = OrderService(stub)
+
+order = Order(
+    address=&quot;Cairo&quot;,
+    weight=5,
+    total=500
+)
+
+result = order_service.checkout(order)
+
+assert result == 520</code></pre>
+<p>إيه اللي حصل؟</p>
+<ul>
+<li>OrderService مش عارف إذا كان بيتعامل مع Real Service أو Stub.</li>
+<li>الـ Stub رجّع 20 بدل ما يتصل بشركة الشحن.</li>
+<li>قدرنا نختبر الـ Business Logic من غير External Dependency.</li>
+</ul>
+<h3>نقطة مهمة: هل الـ Stub لازم يرجع قيمة ثابتة؟</h3>
+<p>لأ. ممكن تتحكم في سلوكه حسب السيناريو اللي عايز تختبره.</p>
+<p>مثلاً:</p>
+<pre class="code" dir="ltr"><code class="language-python">class ShippingServiceStub(ShippingService):
+
+    def __init__(self, shipping_cost):
+        self.shipping_cost = shipping_cost
+
+    def calculate_shipping(self, address, weight):
+        return self.shipping_cost</code></pre>
+<p>وبالتالي:</p>
+<pre class="code" dir="ltr"><code class="language-python">cheap_shipping = ShippingServiceStub(20)
+expensive_shipping = ShippingServiceStub(100)</code></pre>
+<p>تقدر تختبر سيناريوهات مختلفة من غير ما تغير OrderService.</p>
+<hr>
+<h2>أقرب GoF Pattern</h2>
+<p>هنا عندنا مقارنة مهمة مع <strong>Proxy</strong>.</p>
+<p><strong>1. Proxy</strong></p>
+<p>(أقرب GoF Pattern للمقارنة)</p>
+<p>الـ Proxy هو Object بيقف كوسيط بين Client وReal Object، وبيتحكم في الوصول إليه.</p>
+<p>مثلًا:</p>
+<ul>
+<li>Remote Proxy: يمثل Object موجود في مكان بعيد.</li>
+<li>Virtual Proxy: يؤجل إنشاء Object مكلف.</li>
+<li>Protection Proxy: يتحكم في صلاحيات الوصول.</li>
+</ul>
+<p><strong>أوجه التشابه:</strong></p>
+<ul>
+<li>الاتنين ممكن يقدموا Object بنفس الواجهة اللي العميل متوقعها.</li>
+<li>الاتنين ممكن يخفوا تفاصيل التعامل مع خدمة أو Object آخر.</li>
+<li>العميل ممكن يتعامل معاهم من غير ما يعرف تفاصيل التنفيذ الداخلية.</li>
+</ul>
+<p><strong>ليه Service Stub مش بديل لـ Proxy؟</strong></p>
+<p>لأن الـ Proxy غالبًا بيكون وسيطًا للوصول إلى Real Object، بينما الـ Service Stub بيستبدل الخدمة الحقيقية بسلوك بديل متحكم فيه.</p>
+<p>بمعنى:</p>
+<ul>
+<li>Proxy: ممكن يمرر الطلب للخدمة الحقيقية.</li>
+<li>Stub: ممكن يرجع Response محدد من غير ما يتصل بالخدمة الحقيقية أصلًا.</li>
+</ul>
+<p>  ---</p>
+<p>  <strong>2. Null Object</strong></p>
+<p>  (تشابه محدود في فكرة البديل)</p>
+<p>Null Object بيوفر Object له سلوك محدد بدل التعامل مع None أو null.</p>
+<p>Service Stub ممكن يرجع نتائج تمثل حالات معينة، لكن هدفه محاكاة خدمة حقيقية، مش توفير سلوك افتراضي لحالة غياب Object.</p>
+<p><strong>ليه مش بديل عنه؟</strong></p>
+<p>لأن Null Object بيعالج مشكلة التعامل مع غياب قيمة أو كائن، أما Stub بيعالج مشكلة الاعتماد على خدمة خارجية أثناء الاختبار أو التطوير.</p>
+<h3>مقارنة سريعة</h3>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>المقارنة</th><th>Service Stub</th><th>Proxy</th></tr>
+<tr><td>الهدف</td><td>محاكاة Service</td><td>التحكم في الوصول إلى Object</td></tr>
+<tr><td>هل يتصل بالـ Real Service؟</td><td>مش بالضرورة، وغالبًا لا</td><td>ممكن، حسب نوعه</td></tr>
+<tr><td>الاستخدام الشائع</td><td>Testing / Development</td><td>Access Control / Remote Access / Lazy Loading</td></tr>
+<tr><td>هل يمثل بديلًا حقيقيًا؟</td><td>نعم، أثناء الاستخدام المحدد</td><td>غالبًا وسيط للوصول</td></tr>
+</table></div>
+<p><strong>ملحوظة:</strong> Service Stub مش GoF Pattern، ومفيش نمط GoF مطابق ليه تمامًا.</p>
+<hr>
+<h2>خامسًا: نفرّق بين Stub وMock وFake</h2>
+<p>دي نقطة مهمة لأن المصطلحات دي بتظهر كتير في Testing.</p>
+<p>كلهم ممكن يكونوا أنواعًا من Test Doubles، لكن مش نفس الحاجة.</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>النوع</th><th>وظيفته</th></tr>
+<tr><td>Stub</td><td>بيرجع Responses محددة مسبقًا</td></tr>
+<tr><td>Mock</td><td>بيتيح التحقق من تفاعلات واستدعاءات متوقعة</td></tr>
+<tr><td>Fake</td><td>Implementation بديلة شغالة، لكنها أبسط من الحقيقية</td></tr>
+</table></div>
+<p>مثال سريع:</p>
+<ul>
+<li>Stub: تكلفة الشحن دائمًا 20.</li>
+<li>Mock: أتأكد إن calculate_shipping() اتندهت مرة واحدة.</li>
+<li>Fake: نظام شحن بسيط بيحسب التكلفة بناءً على الوزن، من غير الاتصال بالشركة الحقيقية.</li>
+</ul>
+<p>المصطلحات دي أحيانًا بيختلف استخدامها بين مكتبات ومراجع الاختبار، لكن التمييز ده مفيد عمليًا.</p>
+<hr>
+<h2>علاقته بالعمارة</h2>
+<p>Service Stub مش Architecture Pattern، لكنه ممكن يساعدك في اختبار أي Architecture تقريبًا.</p>
+<ul>
+<li><strong>Layered Architecture:</strong> تستبدل External Service في الاختبارات.</li>
+<li><strong>Clean Architecture:</strong> تستبدل الـ Outbound Adapter الحقيقي ببديل للاختبارات.</li>
+<li><strong>Hexagonal Architecture:</strong> تقدم Adapter بديلًا للـ Port بدل الاتصال بالنظام الخارجي.</li>
+</ul>
+<p>مثلاً في Clean Architecture:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">application/
+    checkout_service.py
+    ports/
+        shipping_service.py
+
+infrastructure/
+    shipping/
+        real_shipping_service.py
+
+tests/
+    stubs/
+        shipping_service_stub.py
+    test_checkout.py</code></pre>
+<p>الـ Stub هنا بيحقق نفس العقد (Contract) اللي الـ Application بيعتمد عليه.</p>
+<h2>الخلاصة</h2>
+<p>Service Stub هدفه إنك تقدر تتعامل مع Service بديلة بدل الخدمة الحقيقية، خصوصًا لما تكون الخدمة الخارجية غير متاحة أو غير مناسبة للاختبار.</p>
+<p>أقرب GoF Pattern للمقارنة هو:</p>
+<ul>
+<li><strong>Proxy:</strong> لأن الاتنين ممكن يقدموا نفس الواجهة للـ Client ويخفوا تفاصيل التعامل.</li>
+<li>لكن Proxy هدفه التحكم في الوصول إلى Real Object، بينما Stub هدفه تقديم سلوك بديل متحكم فيه.</li>
+</ul>
+<hr>
+        </div>
+      </article>
+      <article class="pattern" id="record-set" data-pattern="Record Set">
+        <header class="pattern-header">
+          <p class="pattern-kicker">PoEAA · Base Patterns</p>
+          <h2 class="pattern-title" dir="ltr">Record Set</h2>
+        </header>
+        <div class="pattern-body">
+<h2>المشكلة</h2>
+<p>تخيل إن عندك Application بيتعامل مع قاعدة بيانات، وبيحتاج يعرض مجموعة من العملاء.</p>
+<p>قاعدة البيانات بترجع نتيجة بالشكل ده:</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>ID</th><th>Name</th><th>Email</th></tr>
+<tr><td>1</td><td>Ahmed</td><td>ahmed@test.com</td></tr>
+<tr><td>2</td><td>Ali</td><td>ali@test.com</td></tr>
+<tr><td>3</td><td>Omar</td><td>omar@test.com</td></tr>
+</table></div>
+<p>المشكلة إن نتيجة الاستعلام ممكن تكون مرتبطة بتفاصيل خاصة بالـ Database Driver أو طريقة الوصول للبيانات.</p>
+<p>مثلًا:</p>
+<ul>
+<li>Database Driver بيرجع Result Object معين.</li>
+<li>كل Driver ممكن يكون له API مختلفة.</li>
+<li>الـ Application محتاج يتعامل مع البيانات ويقرأ الصفوف والأعمدة.</li>
+<li>مش عايزين منطق التطبيق يرتبط بتفاصيل الـ Database Result الأصلي.</li>
+</ul>
+<p>إحنا محتاجين تمثيل موحد للبيانات الجدولية داخل الذاكرة.</p>
+<h2>الفكرة والحل</h2>
+<p><strong>Record Set</strong> هو Object بيمثل مجموعة من البيانات في شكل جدول داخل الذاكرة (In-Memory Tabular Data).</p>
+<p>بمعنى إنه بيحتوي على:</p>
+<ul>
+<li>Columns: أسماء الأعمدة.</li>
+<li>Rows: الصفوف.</li>
+<li>Values: القيم الموجودة في كل خلية.</li>
+</ul>
+<p>والـ Application يقدر يتعامل مع الـ Record Set بدون ما يحتاج يعرف تفاصيل الـ Database Driver اللي جاب البيانات.</p>
+<h2>مثال</h2>
+<p>خلينا نبني مثال بسيط.</p>
+<p><strong>أولًا: Record Set</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">class RecordSet:
+    def __init__(self, columns, rows):
+        self.columns = columns
+        self.rows = rows
+
+    def get_value(self, row_index, column_name):
+        column_index = self.columns.index(column_name)
+        return self.rows[row_index][column_index]
+
+    def get_rows(self):
+        return [
+            dict(zip(self.columns, row))
+            for row in self.rows
+        ]</code></pre>
+<p><strong>ثانيًا: البيانات</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">columns = [&quot;id&quot;, &quot;name&quot;, &quot;email&quot;]
+
+rows = [
+    (1, &quot;Ahmed&quot;, &quot;ahmed@test.com&quot;),
+    (2, &quot;Ali&quot;, &quot;ali@test.com&quot;),
+    (3, &quot;Omar&quot;, &quot;omar@test.com&quot;),
+]
+
+record_set = RecordSet(columns, rows)</code></pre>
+<p><strong>ثالثًا: الاستخدام</strong></p>
+<pre class="code" dir="ltr"><code class="language-python">print(record_set.get_value(0, &quot;name&quot;))
+
+print(record_set.get_rows())</code></pre>
+<p>النتيجة:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">Ahmed
+
+[
+    {
+        &#x27;id&#x27;: 1,
+        &#x27;name&#x27;: &#x27;Ahmed&#x27;,
+        &#x27;email&#x27;: &#x27;ahmed@test.com&#x27;
+    },
+    ...
+]</code></pre>
+<p>لاحظ إن الـ Application بيتعامل مع واجهة موحدة، ومش محتاج يعرف البيانات جت من PostgreSQL ولا SQL Server ولا أي مصدر آخر.</p>
+<h2>أقرب GoF Pattern</h2>
+<p>هنا لازم نفرّق بين التشابه في الشكل والتشابه في الهدف.</p>
+<h3>أقرب تشابه: Adapter</h3>
+<p><strong>وجه التشابه:</strong></p>
+<p>الاتنين ممكن يخلّوا التعامل مع مصدر بيانات أو واجهة مختلفة أسهل بالنسبة للـ Client.</p>
+<p><strong>الاختلاف في Intent:</strong></p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>Adapter</th><th>Record Set</th></tr>
+<tr><td>يحل مشكلة عدم توافق واجهتين</td><td>يمثل البيانات في شكل جدولي داخل الذاكرة</td></tr>
+<tr><td>يركز على Interface Compatibility</td><td>يركز على Tabular Data Representation</td></tr>
+<tr><td>ممكن يحول واجهة إلى واجهة أخرى</td><td>ممكن يكون هو نفسه شكل البيانات الموحد</td></tr>
+</table></div>
+<p>إذًا Record Set مش نوع من Adapter، ومش بديل عنه.</p>
+<p>ممكن تستخدم Adapter عشان تحول نتيجة Database Driver إلى Record Set.</p>
+<p>وده معناه إن الاتنين ممكن يشتغلوا مع بعض.</p>
+<h2>علاقته بالعمارة</h2>
+<p>Record Set مش Architecture Pattern، لكنه Data Representation Pattern.</p>
+<p>ممكن يظهر في:</p>
+<ul>
+<li>Data Access Layer.</li>
+<li>Integration بين أنظمة مختلفة.</li>
+<li>Reporting Systems.</li>
+<li>التطبيقات اللي بتتعامل مع نتائج استعلامات متعددة.</li>
+</ul>
+<p><strong>مثال معماري:</strong></p>
+<pre class="code" dir="ltr"><code class="language-plain text">Application
+    |
+    v
+Data Access Layer
+    |
+    v
+Database Adapter
+    |
+    v
+Database Driver
+    |
+    v
+Database</code></pre>
+<p>الـ Database Adapter ممكن يحول نتيجة الاستعلام إلى Record Set، وبعدها الـ Application يتعامل مع التمثيل الموحد.</p>
+<h2>علاقته بالعمارة</h2>
+<p>ممكن تستخدم Record Set في Clean Architecture، لكن مكانه يعتمد على طبيعة استخدامه.</p>
+<p>مثلًا:</p>
+<pre class="code" dir="ltr"><code class="language-plain text">Presentation
+     |
+Application
+     |
+Infrastructure
+     |
+Database</code></pre>
+<p>لو Record Set مجرد تمثيل لنتائج استعلامات خاصة بالـ Infrastructure، فمن الطبيعي يكون استخدامه داخل Infrastructure.</p>
+<p>لكن لو استخدمته كـ Contract بين Application وInfrastructure، لازم تفكر هل ده مناسب فعلًا، ولا الأفضل إن الـ Application يستقبل DTOs أو Domain Objects.</p>
+<p><strong>مهم:</strong> مش كل البيانات الجدولية لازم تتحول إلى Record Set، ومش معنى وجوده إننا نستخدمه بدل Domain Entities.</p>
+<hr>
+<h2>7. الفرق بين Record Set و Data Mapper و Active Record</h2>
+<p>دي نقطة مهمة جدًا عشان الأسماء قريبة من بعض:</p>
+<div class="table-wrap" dir="rtl"><table>
+<tr><th>Pattern</th><th>مسؤوليته</th></tr>
+<tr><td>Record Set</td><td>تمثيل مجموعة بيانات في شكل جدولي داخل الذاكرة</td></tr>
+<tr><td>Data Mapper</td><td>نقل البيانات بين Domain Objects وقاعدة البيانات</td></tr>
+<tr><td>Active Record</td><td>الـ Object نفسه يحتوي بياناته وسلوك الـ Persistence</td></tr>
+</table></div>
+<p>يعني التلاتة مش بدائل لبعض.</p>
+<hr>
+<h2>الخلاصة</h2>
+<p>Record Set بيحل مشكلة تمثيل نتائج البيانات الجدولية داخل الذاكرة بشكل موحد.</p>
+<p>وأقرب GoF ليه من ناحية التشابه العملي هو Adapter، لكن مفيش GoF Pattern مكافئ له بشكل مباشر؛ لأن الهدف الأساسي مختلف.</p>
+<p>وبكده اكتملت معانا قائمة الـ 11 Base Patterns في PoEAA.</p>
+<p>طبعًا يا هندسة 😂</p>
+<p>هننتقل دلوقتي إلى مجموعة <strong>Domain Logic Patterns</strong> في كتاب:</p>
+<p><em>Patterns of Enterprise Application Architecture — Martin Fowler</em></p>
+<p>وهنحافظ على نفس المنهج اللي اتفقنا عليه:</p>
+<ol>
+<li>المشكلة التي يعالجها الـ Pattern.</li>
+<li>الفكرة والحل.</li>
+<li>مثال عملي باستخدام Python.</li>
+<li>أقرب GoF Pattern، ووجه التشابه والاختلاف في الـ Intent.</li>
+<li>علاقته بالـ Application Architecture.</li>
+<li>علاقته بـ Clean Architecture وDDD لما يكون فيه ارتباط حقيقي.</li>
+</ol>
+<p>وهنشرح كل Pattern لوحده، من غير ما نخلط بينه وبين الأنماط القريبة منه. والشرح بالعربي من اليمين للشمال، والأكواد في مقاطع مستقلة.</p>
+        </div>
+      </article>
+    </main>
+  </div>
+  <footer class="site-footer group-footer">
+    <div class="group-switch"><span></span><a href="../index.html">الفهرس</a><a href="02-domain-logic-patterns.html">أنماط منطق المجال ←</a></div>
+  </footer>
+
+  </div>
+  <script src="../assets/js/reference.js"></script>
+</body>
+</html>
