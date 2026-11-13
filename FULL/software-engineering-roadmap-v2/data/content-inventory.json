@@ -1,0 +1,663 @@
+{
+  "total_lines": 1290,
+  "total_chars": 31384,
+  "heading_count": 112,
+  "headings_by_level": {
+    "1": 15,
+    "2": 68,
+    "3": 22,
+    "4": 7
+  },
+  "blockquote_count": 7,
+  "list_item_count": 801,
+  "hr_count": 14,
+  "h1_titles": [
+    "Software Engineering Master Roadmap",
+    "Roadmap Overview",
+    "01 — Problem Solving & Data Structures & Algorithms (DSA)",
+    "02 — DBMS & Data Management",
+    "03 — Object-Oriented Design (OOD)",
+    "04 — Application Architecture",
+    "05 — Presentation Architecture",
+    "06 — Patterns of Enterprise Application Architecture (PoEAA)",
+    "07 — Domain-Driven Design (DDD)",
+    "08 — Concurrency Patterns",
+    "09 — Enterprise Integration Patterns (EIP)",
+    "10 — System Design",
+    "Supporting Foundations",
+    "Cross-Topic Relationships & Study Notes",
+    "Recommended Study Strategy"
+  ],
+  "h2_titles": [
+    "A structured roadmap for Backend Engineering and Senior Software Engineering",
+    "Phase 1 — Engineering Foundations",
+    "Phase 2 — Software Design & Architecture",
+    "Phase 3 — Concurrency & Integration",
+    "Phase 4 — Distributed Systems & System Architecture",
+    "Supporting Foundations (study alongside the roadmap)",
+    "1.1 Complexity Analysis",
+    "1.2 Fundamental Data Structures",
+    "1.3 Advanced Data Structures",
+    "1.4 Core Problem-Solving Patterns & Techniques",
+    "1.5 Recursion Roadmap & Problem Tracker",
+    "2.1 Core Concepts & Architecture",
+    "2.2 Relational Database Design",
+    "2.3 Transactions & Concurrency Control",
+    "2.4 Storage, Indexing & Query Performance",
+    "2.5 Distributed Databases & Scaling",
+    "2.6 Database Types & Engines",
+    "3.1 OOP Fundamentals",
+    "3.2 Object Relationships",
+    "3.3 Design Principles",
+    "3.4 GoF Design Patterns",
+    "3.5 UML & Object Modeling",
+    "4.1 Architectural Styles",
+    "4.2 Architectural Patterns",
+    "4.3 Core Concepts & Principles",
+    "4.4 Application Organization",
+    "4.5 Integration Architecture",
+    "5.1 Core Architectural Patterns",
+    "5.2 Advanced & Mobile-Specific Patterns",
+    "5.3 Modern Frontend & Component Architectures",
+    "5.4 State Management & Reactive Patterns",
+    "5.5 Core Concepts & Mechanisms",
+    "6.1 Domain Logic Patterns (4)",
+    "6.2 Data Source Architectural Patterns (4)",
+    "6.3 Object-Relational Behavioral Patterns (3)",
+    "6.4 Object-Relational Structural Patterns",
+    "6.5 Object-Relational Metadata Mapping Patterns (3)",
+    "6.6 Web Presentation Patterns (7)",
+    "6.7 Distribution Patterns (2)",
+    "6.8 Offline Concurrency Patterns (4)",
+    "6.9 Session State Patterns (3)",
+    "6.10 Base Patterns (11)",
+    "7.1 Strategic DDD",
+    "7.2 Tactical DDD",
+    "7.3 DDD Implementation & Modeling Concepts",
+    "10.1 System Design Fundamentals",
+    "10.2 Networking & Communication",
+    "10.3 Data Storage (Databases)",
+    "10.4 Caching",
+    "10.5 Scalability Patterns",
+    "10.6 Distributed Systems Concepts",
+    "10.7 Messaging & Async Processing",
+    "10.8 Microservices Architecture",
+    "10.9 Security",
+    "10.10 High Availability & Reliability",
+    "10.11 Observability & Monitoring",
+    "10.12 Design Patterns (System Level)",
+    "10.13 Data Processing",
+    "10.14 Cloud & Infrastructure",
+    "10.15 Common System Design Interview Problems",
+    "A. Software Engineering Practices",
+    "B. Operating Systems Fundamentals",
+    "C. Computer Networking Fundamentals",
+    "OOD vs PoEAA vs DDD",
+    "Application Architecture vs Presentation Architecture",
+    "Concurrency vs EIP",
+    "EIP vs System Design",
+    "Suggested Practical Project"
+  ],
+  "all_headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "text": "Software Engineering Master Roadmap"
+    },
+    {
+      "line": 2,
+      "level": 2,
+      "text": "A structured roadmap for Backend Engineering and Senior Software Engineering"
+    },
+    {
+      "line": 8,
+      "level": 1,
+      "text": "Roadmap Overview"
+    },
+    {
+      "line": 10,
+      "level": 2,
+      "text": "Phase 1 — Engineering Foundations"
+    },
+    {
+      "line": 15,
+      "level": 2,
+      "text": "Phase 2 — Software Design & Architecture"
+    },
+    {
+      "line": 21,
+      "level": 2,
+      "text": "Phase 3 — Concurrency & Integration"
+    },
+    {
+      "line": 25,
+      "level": 2,
+      "text": "Phase 4 — Distributed Systems & System Architecture"
+    },
+    {
+      "line": 28,
+      "level": 2,
+      "text": "Supporting Foundations (study alongside the roadmap)"
+    },
+    {
+      "line": 37,
+      "level": 1,
+      "text": "01 — Problem Solving & Data Structures & Algorithms (DSA)"
+    },
+    {
+      "line": 39,
+      "level": 2,
+      "text": "1.1 Complexity Analysis"
+    },
+    {
+      "line": 44,
+      "level": 2,
+      "text": "1.2 Fundamental Data Structures"
+    },
+    {
+      "line": 58,
+      "level": 2,
+      "text": "1.3 Advanced Data Structures"
+    },
+    {
+      "line": 72,
+      "level": 2,
+      "text": "1.4 Core Problem-Solving Patterns & Techniques"
+    },
+    {
+      "line": 103,
+      "level": 2,
+      "text": "1.5 Recursion Roadmap & Problem Tracker"
+    },
+    {
+      "line": 105,
+      "level": 3,
+      "text": "A. Recursion (العودية)"
+    },
+    {
+      "line": 107,
+      "level": 4,
+      "text": "Common Problems"
+    },
+    {
+      "line": 119,
+      "level": 4,
+      "text": "Training Path"
+    },
+    {
+      "line": 131,
+      "level": 3,
+      "text": "B. Trees (الأشجار)"
+    },
+    {
+      "line": 133,
+      "level": 4,
+      "text": "Common Problems"
+    },
+    {
+      "line": 145,
+      "level": 3,
+      "text": "C. Backtracking (التراجع)"
+    },
+    {
+      "line": 147,
+      "level": 4,
+      "text": "Core Problems"
+    },
+    {
+      "line": 159,
+      "level": 4,
+      "text": "Additional Problems"
+    },
+    {
+      "line": 171,
+      "level": 3,
+      "text": "D. Dynamic Programming (البرمجة الديناميكية)"
+    },
+    {
+      "line": 173,
+      "level": 4,
+      "text": "Common Problems"
+    },
+    {
+      "line": 185,
+      "level": 3,
+      "text": "E. Graphs (الرسوم البيانية)"
+    },
+    {
+      "line": 187,
+      "level": 4,
+      "text": "Common Problems"
+    },
+    {
+      "line": 201,
+      "level": 1,
+      "text": "02 — DBMS & Data Management"
+    },
+    {
+      "line": 203,
+      "level": 2,
+      "text": "2.1 Core Concepts & Architecture"
+    },
+    {
+      "line": 216,
+      "level": 2,
+      "text": "2.2 Relational Database Design"
+    },
+    {
+      "line": 236,
+      "level": 2,
+      "text": "2.3 Transactions & Concurrency Control"
+    },
+    {
+      "line": 260,
+      "level": 2,
+      "text": "2.4 Storage, Indexing & Query Performance"
+    },
+    {
+      "line": 275,
+      "level": 2,
+      "text": "2.5 Distributed Databases & Scaling"
+    },
+    {
+      "line": 290,
+      "level": 2,
+      "text": "2.6 Database Types & Engines"
+    },
+    {
+      "line": 292,
+      "level": 3,
+      "text": "Relational Databases (SQL)"
+    },
+    {
+      "line": 299,
+      "level": 3,
+      "text": "Non-Relational Databases (NoSQL)"
+    },
+    {
+      "line": 321,
+      "level": 1,
+      "text": "03 — Object-Oriented Design (OOD)"
+    },
+    {
+      "line": 323,
+      "level": 2,
+      "text": "3.1 OOP Fundamentals"
+    },
+    {
+      "line": 346,
+      "level": 2,
+      "text": "3.2 Object Relationships"
+    },
+    {
+      "line": 354,
+      "level": 2,
+      "text": "3.3 Design Principles"
+    },
+    {
+      "line": 356,
+      "level": 3,
+      "text": "SOLID Principles"
+    },
+    {
+      "line": 363,
+      "level": 3,
+      "text": "General Principles"
+    },
+    {
+      "line": 376,
+      "level": 2,
+      "text": "3.4 GoF Design Patterns"
+    },
+    {
+      "line": 378,
+      "level": 3,
+      "text": "Creational Patterns (5)"
+    },
+    {
+      "line": 385,
+      "level": 3,
+      "text": "Structural Patterns (7)"
+    },
+    {
+      "line": 394,
+      "level": 3,
+      "text": "Behavioral Patterns (11)"
+    },
+    {
+      "line": 407,
+      "level": 2,
+      "text": "3.5 UML & Object Modeling"
+    },
+    {
+      "line": 417,
+      "level": 1,
+      "text": "04 — Application Architecture"
+    },
+    {
+      "line": 419,
+      "level": 2,
+      "text": "4.1 Architectural Styles"
+    },
+    {
+      "line": 431,
+      "level": 2,
+      "text": "4.2 Architectural Patterns"
+    },
+    {
+      "line": 439,
+      "level": 2,
+      "text": "4.3 Core Concepts & Principles"
+    },
+    {
+      "line": 458,
+      "level": 2,
+      "text": "4.4 Application Organization"
+    },
+    {
+      "line": 467,
+      "level": 2,
+      "text": "4.5 Integration Architecture"
+    },
+    {
+      "line": 479,
+      "level": 1,
+      "text": "05 — Presentation Architecture"
+    },
+    {
+      "line": 481,
+      "level": 2,
+      "text": "5.1 Core Architectural Patterns"
+    },
+    {
+      "line": 486,
+      "level": 2,
+      "text": "5.2 Advanced & Mobile-Specific Patterns"
+    },
+    {
+      "line": 490,
+      "level": 2,
+      "text": "5.3 Modern Frontend & Component Architectures"
+    },
+    {
+      "line": 504,
+      "level": 2,
+      "text": "5.4 State Management & Reactive Patterns"
+    },
+    {
+      "line": 516,
+      "level": 2,
+      "text": "5.5 Core Concepts & Mechanisms"
+    },
+    {
+      "line": 529,
+      "level": 1,
+      "text": "06 — Patterns of Enterprise Application Architecture (PoEAA)"
+    },
+    {
+      "line": 533,
+      "level": 2,
+      "text": "6.1 Domain Logic Patterns (4)"
+    },
+    {
+      "line": 539,
+      "level": 2,
+      "text": "6.2 Data Source Architectural Patterns (4)"
+    },
+    {
+      "line": 545,
+      "level": 2,
+      "text": "6.3 Object-Relational Behavioral Patterns (3)"
+    },
+    {
+      "line": 550,
+      "level": 2,
+      "text": "6.4 Object-Relational Structural Patterns"
+    },
+    {
+      "line": 562,
+      "level": 2,
+      "text": "6.5 Object-Relational Metadata Mapping Patterns (3)"
+    },
+    {
+      "line": 567,
+      "level": 2,
+      "text": "6.6 Web Presentation Patterns (7)"
+    },
+    {
+      "line": 576,
+      "level": 2,
+      "text": "6.7 Distribution Patterns (2)"
+    },
+    {
+      "line": 580,
+      "level": 2,
+      "text": "6.8 Offline Concurrency Patterns (4)"
+    },
+    {
+      "line": 586,
+      "level": 2,
+      "text": "6.9 Session State Patterns (3)"
+    },
+    {
+      "line": 591,
+      "level": 2,
+      "text": "6.10 Base Patterns (11)"
+    },
+    {
+      "line": 606,
+      "level": 1,
+      "text": "07 — Domain-Driven Design (DDD)"
+    },
+    {
+      "line": 608,
+      "level": 2,
+      "text": "7.1 Strategic DDD"
+    },
+    {
+      "line": 610,
+      "level": 3,
+      "text": "Domain Understanding"
+    },
+    {
+      "line": 618,
+      "level": 3,
+      "text": "Model Boundaries"
+    },
+    {
+      "line": 622,
+      "level": 3,
+      "text": "Context Mapping Patterns"
+    },
+    {
+      "line": 633,
+      "level": 2,
+      "text": "7.2 Tactical DDD"
+    },
+    {
+      "line": 644,
+      "level": 2,
+      "text": "7.3 DDD Implementation & Modeling Concepts"
+    },
+    {
+      "line": 658,
+      "level": 1,
+      "text": "08 — Concurrency Patterns"
+    },
+    {
+      "line": 778,
+      "level": 1,
+      "text": "09 — Enterprise Integration Patterns (EIP)"
+    },
+    {
+      "line": 878,
+      "level": 3,
+      "text": "Event-Driven Integration"
+    },
+    {
+      "line": 886,
+      "level": 3,
+      "text": "Distributed Workflow & Coordination"
+    },
+    {
+      "line": 894,
+      "level": 3,
+      "text": "Observability & Operations"
+    },
+    {
+      "line": 921,
+      "level": 1,
+      "text": "10 — System Design"
+    },
+    {
+      "line": 923,
+      "level": 2,
+      "text": "10.1 System Design Fundamentals"
+    },
+    {
+      "line": 944,
+      "level": 2,
+      "text": "10.2 Networking & Communication"
+    },
+    {
+      "line": 966,
+      "level": 2,
+      "text": "10.3 Data Storage (Databases)"
+    },
+    {
+      "line": 968,
+      "level": 3,
+      "text": "Relational Databases"
+    },
+    {
+      "line": 977,
+      "level": 3,
+      "text": "NoSQL Databases"
+    },
+    {
+      "line": 983,
+      "level": 3,
+      "text": "CAP Theorem"
+    },
+    {
+      "line": 988,
+      "level": 3,
+      "text": "Database Design"
+    },
+    {
+      "line": 997,
+      "level": 2,
+      "text": "10.4 Caching"
+    },
+    {
+      "line": 1015,
+      "level": 2,
+      "text": "10.5 Scalability Patterns"
+    },
+    {
+      "line": 1029,
+      "level": 2,
+      "text": "10.6 Distributed Systems Concepts"
+    },
+    {
+      "line": 1048,
+      "level": 2,
+      "text": "10.7 Messaging & Async Processing"
+    },
+    {
+      "line": 1064,
+      "level": 2,
+      "text": "10.8 Microservices Architecture"
+    },
+    {
+      "line": 1083,
+      "level": 2,
+      "text": "10.9 Security"
+    },
+    {
+      "line": 1099,
+      "level": 2,
+      "text": "10.10 High Availability & Reliability"
+    },
+    {
+      "line": 1114,
+      "level": 2,
+      "text": "10.11 Observability & Monitoring"
+    },
+    {
+      "line": 1126,
+      "level": 2,
+      "text": "10.12 Design Patterns (System Level)"
+    },
+    {
+      "line": 1139,
+      "level": 2,
+      "text": "10.13 Data Processing"
+    },
+    {
+      "line": 1150,
+      "level": 2,
+      "text": "10.14 Cloud & Infrastructure"
+    },
+    {
+      "line": 1161,
+      "level": 2,
+      "text": "10.15 Common System Design Interview Problems"
+    },
+    {
+      "line": 1181,
+      "level": 1,
+      "text": "Supporting Foundations"
+    },
+    {
+      "line": 1185,
+      "level": 2,
+      "text": "A. Software Engineering Practices"
+    },
+    {
+      "line": 1206,
+      "level": 2,
+      "text": "B. Operating Systems Fundamentals"
+    },
+    {
+      "line": 1222,
+      "level": 2,
+      "text": "C. Computer Networking Fundamentals"
+    },
+    {
+      "line": 1239,
+      "level": 1,
+      "text": "Cross-Topic Relationships & Study Notes"
+    },
+    {
+      "line": 1241,
+      "level": 2,
+      "text": "OOD vs PoEAA vs DDD"
+    },
+    {
+      "line": 1247,
+      "level": 2,
+      "text": "Application Architecture vs Presentation Architecture"
+    },
+    {
+      "line": 1252,
+      "level": 2,
+      "text": "Concurrency vs EIP"
+    },
+    {
+      "line": 1257,
+      "level": 2,
+      "text": "EIP vs System Design"
+    },
+    {
+      "line": 1261,
+      "level": 2,
+      "text": "Suggested Practical Project"
+    },
+    {
+      "line": 1276,
+      "level": 1,
+      "text": "Recommended Study Strategy"
+    }
+  ]
+}
