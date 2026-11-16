@@ -1,4 +1,4 @@
-import type { TraceEvent } from "./types";
+import type { LoopFrame, TraceEvent } from "./types";
 
 export type CallList = "stack" | "all";
 
@@ -7,6 +7,7 @@ export type CallRow = {
   name: string;
   param: string;
   vars: string;
+  loops: LoopFrame[] | null;
   returned: boolean;
   error: boolean;
   returnValue: string | null;
@@ -22,6 +23,7 @@ type Frame = {
   exprs: string[];
   values: Record<string, string>;
   vars: [string, string][];
+  loops: LoopFrame[] | null;
   returned: boolean;
   error: boolean;
   returnValue: string | null;
@@ -40,6 +42,11 @@ function applyLocals(frame: Frame, locals: Record<string, string>) {
     if (!params.has(name)) vars.push([name, value]);
   }
   frame.vars = vars;
+}
+
+function applyLoops(frame: Frame, loops: LoopFrame[] | null | undefined) {
+  if (loops === undefined) return;
+  frame.loops = loops;
 }
 
 function paramText(frame: Frame): string {
@@ -75,6 +82,7 @@ export function buildCallRows(events: TraceEvent[], cursor: number, list: CallLi
         exprs: event.argExprs,
         values: { ...event.params },
         vars: [],
+        loops: event.loops ?? null,
         returned: false,
         error: false,
         returnValue: null,
@@ -86,21 +94,31 @@ export function buildCallRows(events: TraceEvent[], cursor: number, list: CallLi
       stack.push(event.id);
       if (event.parent != null) {
         const parent = frames.get(event.parent);
-        if (parent) applyLocals(parent, event.callerLocals);
+        if (parent) {
+          applyLocals(parent, event.callerLocals);
+          applyLoops(parent, event.callerLoops);
+        }
       }
     } else if (event.type === "line") {
       const frame = frames.get(event.id);
-      if (frame) applyLocals(frame, event.locals);
+      if (frame) {
+        applyLocals(frame, event.locals);
+        applyLoops(frame, event.loops);
+      }
     } else {
       const frame = frames.get(event.id);
       if (frame) {
         applyLocals(frame, event.locals);
+        applyLoops(frame, event.loops);
         frame.returned = true;
         frame.error = event.error;
         frame.returnValue = event.value;
         if (frame.parent != null) {
           const parent = frames.get(frame.parent);
-          if (parent) applyLocals(parent, event.callerLocals);
+          if (parent) {
+            applyLocals(parent, event.callerLocals);
+            applyLoops(parent, event.callerLoops);
+          }
         }
       }
       stack = stack.filter((id) => id !== event.id);
@@ -118,6 +136,7 @@ export function buildCallRows(events: TraceEvent[], cursor: number, list: CallLi
       name: frame.name,
       param: paramText(frame),
       vars: varsText(frame),
+      loops: frame.loops,
       returned: frame.returned,
       error: frame.error,
       returnValue: frame.returnValue,

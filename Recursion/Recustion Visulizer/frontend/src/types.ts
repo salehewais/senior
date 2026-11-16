@@ -6,6 +6,15 @@ export type Example = {
   call: string;
 };
 
+export type LoopFrame = {
+  kind: "for" | "while";
+  start: string | null;
+  end: string | null;
+  index: string | null;
+  condition: string | null;
+  conditionValue?: string | null;
+};
+
 export type CallEvent = {
   type: "call";
   id: number;
@@ -18,6 +27,8 @@ export type CallEvent = {
   argExprs: string[];
   locals: Record<string, string>;
   callerLocals: Record<string, string>;
+  loops?: LoopFrame[] | null;
+  callerLoops?: LoopFrame[] | null;
 };
 
 export type ReturnEvent = {
@@ -28,6 +39,8 @@ export type ReturnEvent = {
   line?: number;
   locals: Record<string, string>;
   callerLocals: Record<string, string>;
+  loops?: LoopFrame[] | null;
+  callerLoops?: LoopFrame[] | null;
 };
 
 export type LineEvent = {
@@ -36,6 +49,7 @@ export type LineEvent = {
   line: number;
   locals: Record<string, string>;
   changed: string[];
+  loops?: LoopFrame[] | null;
 };
 
 export type TraceEvent = CallEvent | ReturnEvent | LineEvent;

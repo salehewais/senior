@@ -21,24 +21,69 @@ def _ex(example_id: str, title: str, call: str, source: str) -> dict[str, str]:
 
 EXAMPLES = [
     _ex(
-        "subsets",
-        "Subsets",
+        "subsets-v1",
+        "Subsets v1 — For Loop",
         "subsets(nums)",
         _source('''
         def subsets(nums):
-            """Every subset, by taking or skipping each number."""
+            """Every subset by choosing from candidates (Choose → Explore → Undo)."""
             out = []
 
-            def choose(i, path):
-                if i == len(nums):
+            def backtrack(start, path):
+                out.append(path[:])
+                for i in range(start, len(nums)):
+                    path.append(nums[i])
+                    backtrack(i + 1, path)
+                    path.pop()
+
+            backtrack(0, [])
+            return out
+
+
+        nums = [1, 2, 3]
+        '''),
+    ),
+    _ex(
+        "subsets-v2",
+        "Subsets v2 — Include / Exclude",
+        "subsets(nums)",
+        _source('''
+        def subsets(nums):
+            """Every subset by taking or skipping each number."""
+            out = []
+
+            def backtrack(index, path):
+                if index == len(nums):
                     out.append(path[:])
                     return
-                path.append(nums[i])
-                choose(i + 1, path)
+                # Include
+                path.append(nums[index])
+                backtrack(index + 1, path)
                 path.pop()
-                choose(i + 1, path)
+                # Exclude
+                backtrack(index + 1, path)
 
-            choose(0, [])
+            backtrack(0, [])
+            return out
+
+
+        nums = [1, 2, 3]
+        '''),
+    ),
+    _ex(
+        "subsets-v3",
+        "Subsets v3 — Iterative Stack",
+        "subsets(nums)",
+        _source('''
+        def subsets(nums):
+            """Same for-loop search as v1, but with an explicit stack."""
+            out = []
+            stack = [(0, [])]
+            while stack:
+                start, path = stack.pop()
+                out.append(path)
+                for i in range(len(nums) - 1, start - 1, -1):
+                    stack.append((i + 1, path + [nums[i]]))
             return out
 
 

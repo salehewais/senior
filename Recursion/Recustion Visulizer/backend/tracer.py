@@ -337,7 +337,9 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
     result: Any = None
     last_lines: dict[int, int] = {}
     last_locals: dict[int, dict[str, str]] = {}
+    last_loops: dict[int, list[dict[str, Any]] | None] = {}
     arg_index = _ArgIndex(source, call)
+    loop_index = _build_loop_index(source)
 
     def tracer(frame: types.FrameType, event: str, arg: object):  # noqa: ANN202
         nonlocal next_id, call_count, line_count, truncated
@@ -365,10 +367,14 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
                 params = _entry_params(fr)
                 frame_locals = _snapshot_locals(fr)
                 caller_locals = _caller_snapshot(fr)
+                frame_loops = _loop_snapshot(fr, loop_index)
+                caller_loops = _caller_loop_snapshot(fr, loop_index)
                 open_ids.append(node_id)
                 last_locals[node_id] = frame_locals
+                last_loops[node_id] = frame_loops
                 if parent is not None:
                     last_locals[parent] = caller_locals
+                    last_loops[parent] = caller_loops
                 call_event: dict[str, Any] = {
                     "type": "call",
                     "id": node_id,
@@ -380,6 +386,8 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
                     "argExprs": arg_index.exprs_for(fr),
                     "locals": frame_locals,
                     "callerLocals": caller_locals,
+                    "loops": frame_loops,
+                    "callerLoops": caller_loops,
                 }
                 if debug:
                     call_event["line"] = fr.f_lineno
@@ -405,6 +413,8 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
                     changed = [name for name, text in snapshot.items() if previous.get(name) != text]
                     state["locals"] = snapshot
                     last_locals[node_id] = snapshot
+                    frame_loops = _loop_snapshot(fr, loop_index)
+                    last_loops[node_id] = frame_loops
                     _emit(
                         {
                             "type": "event",
@@ -414,6 +424,7 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
                                 "line": lineno,
                                 "locals": snapshot,
                                 "changed": changed,
+                                "loops": frame_loops,
                             },
                         }
                     )
@@ -424,10 +435,14 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
                 failed = bool(state["raising"])
                 frame_locals = _snapshot_locals(fr)
                 caller_locals = _caller_snapshot(fr)
+                frame_loops = _loop_snapshot(fr, loop_index)
+                caller_loops = _caller_loop_snapshot(fr, loop_index)
                 last_locals[node_id] = frame_locals
+                last_loops[node_id] = frame_loops
                 parent = open_ids[-1] if open_ids else None
                 if parent is not None:
                     last_locals[parent] = caller_locals
+                    last_loops[parent] = caller_loops
                 return_event: dict[str, Any] = {
                     "type": "return",
                     "id": node_id,
@@ -435,6 +450,8 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
                     "error": failed,
                     "locals": frame_locals,
                     "callerLocals": caller_locals,
+                    "loops": frame_loops,
+                    "callerLoops": caller_loops,
                 }
                 if debug:
                     return_event["line"] = fr.f_lineno
@@ -480,6 +497,8 @@ def _execute(source: str, call: str, max_calls: int, debug: bool = False, max_li
                 "error": True,
                 "locals": last_locals.get(node_id, {}),
                 "callerLocals": last_locals.get(parent, {}) if parent is not None else {},
+                "loops": last_loops.get(node_id),
+                "callerLoops": last_loops.get(parent) if parent is not None else None,
             }
             if debug and node_id in last_lines:
                 return_event["line"] = last_lines[node_id]
@@ -694,6 +713,396 @@ def _caller_snapshot(frame: types.FrameType) -> dict[str, str]:
     if caller.f_code.co_name == "<module>":
         return {}
     return _snapshot_locals(caller)
+
+
+def _caller_loop_snapshot(
+    frame: types.FrameType, loop_index: dict[int, list[dict[str, Any]]]
+) -> list[dict[str, Any]] | None:
+    caller = frame.f_back
+    if caller is None or getattr(caller.f_code, "co_filename", None) != "<user>":
+        return None
+    if caller.f_code.co_name == "<module>":
+        return None
+    return _loop_snapshot(caller, loop_index)
+
+
+def _build_loop_index(source: str) -> dict[int, list[dict[str, Any]]]:
+    """Map each function's co_firstlineno to the loops in its body."""
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return {}
+
+    index: dict[int, list[dict[str, Any]]] = {}
+
+    def collect(body: list[ast.stmt]) -> list[dict[str, Any]]:
+        loops: list[dict[str, Any]] = []
+        for stmt in body:
+            if isinstance(stmt, ast.For):
+                loops.append(_for_loop_info(stmt))
+                loops.extend(collect(stmt.body))
+                loops.extend(collect(stmt.orelse))
+            elif isinstance(stmt, ast.While):
+                loops.append(_while_loop_info(stmt, source))
+                loops.extend(collect(stmt.body))
+                loops.extend(collect(stmt.orelse))
+            elif isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                continue
+            else:
+                for child_body in _compound_bodies(stmt):
+                    loops.extend(collect(child_body))
+        return loops
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            index[node.lineno] = collect(node.body)
+    return index
+
+
+def _compound_bodies(stmt: ast.stmt) -> list[list[ast.stmt]]:
+    bodies: list[list[ast.stmt]] = []
+    if isinstance(stmt, ast.If):
+        bodies.append(stmt.body)
+        bodies.append(stmt.orelse)
+    elif isinstance(stmt, (ast.With, ast.AsyncWith)):
+        bodies.append(stmt.body)
+    elif isinstance(stmt, ast.Try):
+        bodies.append(stmt.body)
+        for handler in stmt.handlers:
+            bodies.append(handler.body)
+        bodies.append(stmt.orelse)
+        bodies.append(stmt.finalbody)
+    elif isinstance(stmt, ast.Match):
+        for case in stmt.cases:
+            bodies.append(case.body)
+    return bodies
+
+
+def _for_loop_info(node: ast.For) -> dict[str, Any]:
+    target = node.target.id if isinstance(node.target, ast.Name) else None
+    start_expr: dict[str, Any] | None = None
+    end_expr: dict[str, Any] | None = None
+    if isinstance(node.iter, ast.Call) and isinstance(node.iter.func, ast.Name) and node.iter.func.id == "range":
+        args = node.iter.args
+        if len(args) == 1:
+            start_expr = {"kind": "const", "value": 0}
+            end_expr = _bound_expr(args[0])
+        elif len(args) >= 2:
+            start_expr = _bound_expr(args[0])
+            end_expr = _bound_expr(args[1])
+    return {
+        "kind": "for",
+        "start_line": node.lineno,
+        "end_line": node.end_lineno if node.end_lineno is not None else node.lineno,
+        "target": target,
+        "start_expr": start_expr,
+        "end_expr": end_expr,
+        "condition": None,
+    }
+
+
+def _while_loop_info(node: ast.While, source: str) -> dict[str, Any]:
+    condition = ast.get_source_segment(source, node.test)
+    if condition is None:
+        try:
+            condition = ast.unparse(node.test)
+        except Exception:
+            condition = None
+    return {
+        "kind": "while",
+        "start_line": node.lineno,
+        "end_line": node.end_lineno if node.end_lineno is not None else node.lineno,
+        "target": None,
+        "start_expr": None,
+        "end_expr": None,
+        "condition": condition,
+        "condition_expr": _condition_expr(node.test),
+    }
+
+
+_MISSING = object()
+
+_BOUND_BINOPS = {
+    ast.Add: "Add",
+    ast.Sub: "Sub",
+    ast.Mult: "Mult",
+    ast.FloorDiv: "FloorDiv",
+    ast.Mod: "Mod",
+}
+
+_BOUND_UNARY = {
+    ast.UAdd: "UAdd",
+    ast.USub: "USub",
+}
+
+_CONDITION_UNARY = {
+    **_BOUND_UNARY,
+    ast.Not: "Not",
+}
+
+_COMPARE_OPS = {
+    ast.Eq: "Eq",
+    ast.NotEq: "NotEq",
+    ast.Lt: "Lt",
+    ast.LtE: "LtE",
+    ast.Gt: "Gt",
+    ast.GtE: "GtE",
+    ast.Is: "Is",
+    ast.IsNot: "IsNot",
+    ast.In: "In",
+    ast.NotIn: "NotIn",
+}
+
+_EVAL_BINOPS = {
+    "Add": lambda a, b: a + b,
+    "Sub": lambda a, b: a - b,
+    "Mult": lambda a, b: a * b,
+    "FloorDiv": lambda a, b: a // b,
+    "Mod": lambda a, b: a % b,
+}
+
+_EVAL_UNARY = {
+    "UAdd": lambda a: +a,
+    "USub": lambda a: -a,
+    "Not": lambda a: not a,
+}
+
+_EVAL_COMPARE = {
+    "Eq": lambda a, b: a == b,
+    "NotEq": lambda a, b: a != b,
+    "Lt": lambda a, b: a < b,
+    "LtE": lambda a, b: a <= b,
+    "Gt": lambda a, b: a > b,
+    "GtE": lambda a, b: a >= b,
+    "Is": lambda a, b: a is b,
+    "IsNot": lambda a, b: a is not b,
+    "In": lambda a, b: a in b,
+    "NotIn": lambda a, b: a not in b,
+}
+
+
+def _bound_expr(node: ast.AST) -> dict[str, Any] | None:
+    """Serialize a safe arithmetic bound expression, or None if unsupported."""
+    if isinstance(node, ast.Constant):
+        return {"kind": "const", "value": node.value}
+    if isinstance(node, ast.Name):
+        return {"kind": "name", "name": node.id}
+    if (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "len"
+        and len(node.args) == 1
+        and isinstance(node.args[0], ast.Name)
+    ):
+        return {"kind": "len", "name": node.args[0].id}
+    if isinstance(node, ast.UnaryOp):
+        op = _BOUND_UNARY.get(type(node.op))
+        if op is None:
+            return None
+        operand = _bound_expr(node.operand)
+        if operand is None:
+            return None
+        return {"kind": "unary", "op": op, "operand": operand}
+    if isinstance(node, ast.BinOp):
+        op = _BOUND_BINOPS.get(type(node.op))
+        if op is None:
+            return None
+        left = _bound_expr(node.left)
+        right = _bound_expr(node.right)
+        if left is None or right is None:
+            return None
+        return {"kind": "binop", "op": op, "left": left, "right": right}
+    return None
+
+
+def _condition_expr(node: ast.AST) -> dict[str, Any] | None:
+    """Serialize a safe while-test expression, or None if unsupported."""
+    base = _bound_expr(node)
+    if base is not None:
+        return base
+    if isinstance(node, ast.UnaryOp):
+        op = _CONDITION_UNARY.get(type(node.op))
+        if op is None:
+            return None
+        operand = _condition_expr(node.operand)
+        if operand is None:
+            return None
+        return {"kind": "unary", "op": op, "operand": operand}
+    if isinstance(node, ast.BoolOp):
+        if isinstance(node.op, ast.And):
+            op_name = "And"
+        elif isinstance(node.op, ast.Or):
+            op_name = "Or"
+        else:
+            return None
+        values: list[dict[str, Any]] = []
+        for value in node.values:
+            tree = _condition_expr(value)
+            if tree is None:
+                return None
+            values.append(tree)
+        return {"kind": "boolop", "op": op_name, "values": values}
+    if isinstance(node, ast.Compare):
+        left = _condition_expr(node.left)
+        if left is None:
+            return None
+        ops: list[str] = []
+        comparators: list[dict[str, Any]] = []
+        for op_node, comparator in zip(node.ops, node.comparators):
+            op_name = _COMPARE_OPS.get(type(op_node))
+            if op_name is None:
+                return None
+            tree = _condition_expr(comparator)
+            if tree is None:
+                return None
+            ops.append(op_name)
+            comparators.append(tree)
+        return {"kind": "compare", "left": left, "ops": ops, "comparators": comparators}
+    return None
+
+
+def _eval_expr(expr: dict[str, Any] | None, loc: dict[str, Any]) -> object:
+    """Evaluate a serialized expression against locals, or return _MISSING."""
+    if expr is None:
+        return _MISSING
+    kind = expr.get("kind")
+    try:
+        if kind == "const":
+            return expr.get("value")
+        if kind == "name":
+            name = expr.get("name")
+            if isinstance(name, str) and name in loc:
+                return loc[name]
+            return _MISSING
+        if kind == "len":
+            name = expr.get("name")
+            if isinstance(name, str) and name in loc:
+                return len(loc[name])
+            return _MISSING
+        if kind == "unary":
+            op = expr.get("op")
+            fn = _EVAL_UNARY.get(op) if isinstance(op, str) else None
+            if fn is None:
+                return _MISSING
+            operand = _eval_expr(expr.get("operand"), loc)
+            if operand is _MISSING:
+                return _MISSING
+            return fn(operand)
+        if kind == "binop":
+            op = expr.get("op")
+            fn = _EVAL_BINOPS.get(op) if isinstance(op, str) else None
+            if fn is None:
+                return _MISSING
+            left = _eval_expr(expr.get("left"), loc)
+            right = _eval_expr(expr.get("right"), loc)
+            if left is _MISSING or right is _MISSING:
+                return _MISSING
+            return fn(left, right)
+        if kind == "boolop":
+            values = expr.get("values")
+            if not isinstance(values, list) or not values:
+                return _MISSING
+            op = expr.get("op")
+            if op == "And":
+                result: object = True
+                for value in values:
+                    result = _eval_expr(value, loc)
+                    if result is _MISSING:
+                        return _MISSING
+                    if not result:
+                        return result
+                return result
+            if op == "Or":
+                result = False
+                for value in values:
+                    result = _eval_expr(value, loc)
+                    if result is _MISSING:
+                        return _MISSING
+                    if result:
+                        return result
+                return result
+            return _MISSING
+        if kind == "compare":
+            left = _eval_expr(expr.get("left"), loc)
+            if left is _MISSING:
+                return _MISSING
+            ops = expr.get("ops")
+            comparators = expr.get("comparators")
+            if not isinstance(ops, list) or not isinstance(comparators, list):
+                return _MISSING
+            if len(ops) != len(comparators) or not ops:
+                return _MISSING
+            current = left
+            for op_name, comparator_expr in zip(ops, comparators):
+                fn = _EVAL_COMPARE.get(op_name) if isinstance(op_name, str) else None
+                if fn is None:
+                    return _MISSING
+                right = _eval_expr(comparator_expr, loc)
+                if right is _MISSING:
+                    return _MISSING
+                if not fn(current, right):
+                    return False
+                current = right
+            return True
+    except Exception:
+        return _MISSING
+    return _MISSING
+
+
+def _resolve_bound(expr: dict[str, Any] | None, loc: dict[str, Any]) -> str | None:
+    value = _eval_expr(expr, loc)
+    if value is _MISSING:
+        return None
+    return _safe_repr(value)
+
+
+def _loop_snapshot(
+    frame: types.FrameType, loop_index: dict[int, list[dict[str, Any]]]
+) -> list[dict[str, Any]] | None:
+    loops = loop_index.get(frame.f_code.co_firstlineno)
+    if not loops:
+        return None
+    lineno = frame.f_lineno
+    containing = [loop for loop in loops if loop["start_line"] <= lineno <= loop["end_line"]]
+    if not containing:
+        return None
+    # Outer → inner: larger span first, then earlier start_line.
+    containing.sort(
+        key=lambda loop: (-(loop["end_line"] - loop["start_line"]), loop["start_line"]),
+    )
+    loc = frame.f_locals
+    frames: list[dict[str, Any]] = []
+    for loop in containing:
+        if loop["kind"] == "for":
+            index: str | None = None
+            target = loop.get("target")
+            if isinstance(target, str) and target in loc:
+                index = _safe_repr(loc[target])
+            frames.append(
+                {
+                    "kind": "for",
+                    "start": _resolve_bound(loop["start_expr"], loc),
+                    "end": _resolve_bound(loop["end_expr"], loc),
+                    "index": index,
+                    "condition": None,
+                }
+            )
+        else:
+            condition_value: str | None = None
+            value = _eval_expr(loop.get("condition_expr"), loc)
+            if value is not _MISSING:
+                condition_value = _safe_repr(value)
+            frames.append(
+                {
+                    "kind": "while",
+                    "start": None,
+                    "end": None,
+                    "index": None,
+                    "condition": loop.get("condition"),
+                    "conditionValue": condition_value,
+                }
+            )
+    return frames
 
 
 def _snapshot_locals(frame: types.FrameType) -> dict[str, str]:
