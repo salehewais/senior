@@ -778,23 +778,97 @@ def _compound_bodies(stmt: ast.stmt) -> list[list[ast.stmt]]:
     return bodies
 
 
+def _for_bound_names(target: ast.AST) -> list[str]:
+    """Names bound by a for-loop target, in source order."""
+    names: list[str] = []
+
+    def walk(node: ast.AST) -> None:
+        if isinstance(node, ast.Name):
+            names.append(node.id)
+        elif isinstance(node, (ast.Tuple, ast.List)):
+            for elt in node.elts:
+                walk(elt)
+        elif isinstance(node, ast.Starred):
+            walk(node.value)
+
+    walk(target)
+    return names
+
+
+def _call_name(node: ast.AST) -> str | None:
+    if isinstance(node, ast.Name):
+        return node.id
+    return None
+
+
+def _enumerate_start(call: ast.Call) -> dict[str, Any] | None:
+    """Start index for enumerate(iterable) or enumerate(iterable, start)."""
+    if len(call.args) >= 2:
+        return _bound_expr(call.args[1])
+    for keyword in call.keywords:
+        if keyword.arg == "start":
+            return _bound_expr(keyword.value)
+    return {"kind": "const", "value": 0}
+
+
+def _len_bound(node: ast.AST) -> dict[str, Any] | None:
+    """len(expr) when expr is a local name we can resolve."""
+    if isinstance(node, ast.Name):
+        return {"kind": "len", "name": node.id}
+    return None
+
+
+def _add_bounds(
+    left: dict[str, Any] | None, right: dict[str, Any] | None
+) -> dict[str, Any] | None:
+    if left is None or right is None:
+        return None
+    if left == {"kind": "const", "value": 0}:
+        return right
+    return {"kind": "binop", "op": "Add", "left": left, "right": right}
+
+
 def _for_loop_info(node: ast.For) -> dict[str, Any]:
-    target = node.target.id if isinstance(node.target, ast.Name) else None
+    bound_names = _for_bound_names(node.target)
+    target: str | None = None
+    value_targets: list[str] = []
     start_expr: dict[str, Any] | None = None
     end_expr: dict[str, Any] | None = None
-    if isinstance(node.iter, ast.Call) and isinstance(node.iter.func, ast.Name) and node.iter.func.id == "range":
-        args = node.iter.args
+
+    iter_node = node.iter
+    if isinstance(iter_node, ast.Call) and _call_name(iter_node.func) == "range":
+        # for i in range(...) — classic indexed loop
+        if bound_names:
+            target = bound_names[0]
+            value_targets = bound_names[1:]
+        args = iter_node.args
         if len(args) == 1:
             start_expr = {"kind": "const", "value": 0}
             end_expr = _bound_expr(args[0])
         elif len(args) >= 2:
             start_expr = _bound_expr(args[0])
             end_expr = _bound_expr(args[1])
+    elif isinstance(iter_node, ast.Call) and _call_name(iter_node.func) == "enumerate":
+        # for i, x in enumerate(xs[, start]) — first name is the index
+        if bound_names:
+            target = bound_names[0]
+            value_targets = bound_names[1:]
+        start_expr = _enumerate_start(iter_node)
+        if iter_node.args:
+            end_expr = _add_bounds(start_expr, _len_bound(iter_node.args[0]))
+    else:
+        # for x in xs / for a, b in pairs — no numeric index in locals
+        value_targets = bound_names
+        if isinstance(iter_node, ast.Name):
+            start_expr = {"kind": "const", "value": 0}
+            end_expr = _len_bound(iter_node)
+
     return {
         "kind": "for",
         "start_line": node.lineno,
         "end_line": node.end_lineno if node.end_lineno is not None else node.lineno,
         "target": target,
+        "value_targets": value_targets,
         "start_expr": start_expr,
         "end_expr": end_expr,
         "condition": None,
@@ -1056,6 +1130,27 @@ def _resolve_bound(expr: dict[str, Any] | None, loc: dict[str, Any]) -> str | No
     return _safe_repr(value)
 
 
+def _resolve_loop_index(loop: dict[str, Any], loc: dict[str, Any]) -> str | None:
+    target = loop.get("target")
+    if isinstance(target, str) and target in loc:
+        return _safe_repr(loc[target])
+    return None
+
+
+def _resolve_loop_value(loop: dict[str, Any], loc: dict[str, Any]) -> str | None:
+    """Current non-index loop bindings, e.g. ``num`` in ``for i, num in enumerate``."""
+    names = loop.get("value_targets") or []
+    if not isinstance(names, list) or not names:
+        return None
+    parts: list[str] = []
+    for name in names:
+        if isinstance(name, str) and name in loc:
+            parts.append(
+                f"{name}={_safe_repr(loc[name])}" if len(names) > 1 else _safe_repr(loc[name])
+            )
+    return ", ".join(parts) if parts else None
+
+
 def _loop_snapshot(
     frame: types.FrameType, loop_index: dict[int, list[dict[str, Any]]]
 ) -> list[dict[str, Any]] | None:
@@ -1074,16 +1169,15 @@ def _loop_snapshot(
     frames: list[dict[str, Any]] = []
     for loop in containing:
         if loop["kind"] == "for":
-            index: str | None = None
-            target = loop.get("target")
-            if isinstance(target, str) and target in loc:
-                index = _safe_repr(loc[target])
+            index = _resolve_loop_index(loop, loc)
+            value = _resolve_loop_value(loop, loc)
             frames.append(
                 {
                     "kind": "for",
                     "start": _resolve_bound(loop["start_expr"], loc),
                     "end": _resolve_bound(loop["end_expr"], loc),
                     "index": index,
+                    "value": value,
                     "condition": None,
                 }
             )
@@ -1098,6 +1192,7 @@ def _loop_snapshot(
                     "start": None,
                     "end": None,
                     "index": None,
+                    "value": None,
                     "condition": loop.get("condition"),
                     "conditionValue": condition_value,
                 }

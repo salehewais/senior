@@ -133,6 +133,12 @@ export default function LoopPanel({ open, loops, onClose }: Props) {
                     <dt>Index</dt>
                     <dd>{frame.index ?? "—"}</dd>
                   </div>
+                  {frame.value != null ? (
+                    <div>
+                      <dt>Value</dt>
+                      <dd>{frame.value}</dd>
+                    </div>
+                  ) : null}
                 </dl>
               ) : (
                 <dl className="loop-panel-fields">

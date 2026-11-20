@@ -11,6 +11,7 @@ export type LoopFrame = {
   start: string | null;
   end: string | null;
   index: string | null;
+  value?: string | null;
   condition: string | null;
   conditionValue?: string | null;
 };
