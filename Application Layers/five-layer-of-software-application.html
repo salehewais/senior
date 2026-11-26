@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Five layer of software application</title>
+  <style>
+    :root {
+      --bg: #f7f7f5;
+      --surface: #ffffff;
+      --text: #1a1a1a;
+      --muted: #5c5c5c;
+      --border: #e5e5e0;
+      --accent: #0a7ea4;
+      --code-bg: #f0f0eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    header {
+      margin-bottom: 2rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .meta {
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin: 0 0 0.75rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      line-height: 1.25;
+      margin: 0 0 0.5rem;
+      font-weight: 700;
+    }
+
+    .source {
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .source a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .source a:hover {
+      text-decoration: underline;
+    }
+
+    .hero {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin: 0 0 2rem;
+      display: block;
+      background: var(--surface);
+    }
+
+    article h2 {
+      font-size: 1.35rem;
+      margin: 2rem 0 0.75rem;
+      line-height: 1.3;
+    }
+
+    article h3 {
+      font-size: 1.05rem;
+      margin: 1.25rem 0 0.4rem;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    p {
+      margin: 0 0 1rem;
+    }
+
+    ul {
+      margin: 0 0 1rem;
+      padding-left: 1.35rem;
+    }
+
+    li {
+      margin-bottom: 0.35rem;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9em;
+      background: var(--code-bg);
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+
+      .page {
+        max-width: none;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <p class="meta">Omor Faruk · May 23, 2025</p>
+      <h1>Five layer of software application</h1>
+      <p class="source">
+        Saved from
+        <a href="https://dev.to/theonlineaid/five-layer-of-software-application-hh8">dev.to</a>
+        · ad-free offline copy
+      </p>
+    </header>
+
+    <img
+      class="hero"
+      src="https://media2.dev.to/dynamic/image/width=1000,height=500,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fj3lndq9yqhpfplytd7f9.jpeg"
+      alt="Five layer of software application"
+    />
+
+    <article>
+      <p>
+        In software development, a well-structured application architecture is
+        essential for building scalable, maintainable, and testable systems. One
+        of the most widely used architectural patterns is the 5-layer
+        architecture, which separates the application into logical layers, each
+        with a specific responsibility. Let’s dive into each layer and
+        understand its role in the system.
+      </p>
+
+      <h2>1. Presentation Layer (UI Layer)</h2>
+
+      <h3>Purpose:</h3>
+      <p>
+        The Presentation Layer is the topmost layer that users interact with
+        directly. It displays data to the user and sends user commands to the
+        application.
+      </p>
+
+      <h3>Responsibilities:</h3>
+      <ul>
+        <li>Render the user interface</li>
+        <li>Collect user input</li>
+        <li>Display feedback from the system</li>
+      </ul>
+
+      <h3>Technologies:</h3>
+      <ul>
+        <li>Web: HTML, CSS, JavaScript, React, Angular, Vue</li>
+        <li>Mobile: Flutter, React Native, SwiftUI</li>
+      </ul>
+
+      <h3>Example:</h3>
+      <p>
+        A login form that captures a username and password and submits it to the
+        application.
+      </p>
+
+      <h2>2. Application Layer (Service Layer)</h2>
+
+      <h3>Purpose:</h3>
+      <p>
+        This layer acts as a bridge between the presentation and business logic
+        layers. It handles the flow of data, controls user sessions, and manages
+        requests from the UI.
+      </p>
+
+      <h3>Responsibilities:</h3>
+      <ul>
+        <li>Process requests from the UI</li>
+        <li>Call appropriate business logic services</li>
+        <li>Format responses for the UI</li>
+      </ul>
+
+      <h3>Technologies:</h3>
+      <ul>
+        <li>Node.js/Express controllers</li>
+        <li>Django views</li>
+        <li>Spring Boot controllers</li>
+      </ul>
+
+      <h3>Example:</h3>
+      <p>
+        A <code>LoginController</code> that receives login credentials, verifies
+        them via the business logic, and returns a response.
+      </p>
+
+      <h2>3. Business Logic Layer (Domain Layer)</h2>
+
+      <h3>Purpose:</h3>
+      <p>
+        This is the core of the application. It contains the domain rules,
+        workflows, and logic that define how the application behaves.
+      </p>
+
+      <h3>Responsibilities:</h3>
+      <ul>
+        <li>Perform calculations and data transformations</li>
+        <li>Enforce business rules and policies</li>
+        <li>Coordinate tasks and processes</li>
+      </ul>
+
+      <h3>Technologies:</h3>
+      <ul>
+        <li>Plain Python/Java/Go classes</li>
+        <li>
+          Services or Use Cases (e.g., <code>UserService</code>,
+          <code>OrderManager</code>)
+        </li>
+      </ul>
+
+      <h3>Example:</h3>
+      <p>
+        A <code>UserService</code> class that validates a user’s login
+        credentials and issues a token.
+      </p>
+
+      <h2>4. Data Access Layer (Persistence Layer)</h2>
+
+      <h3>Purpose:</h3>
+      <p>
+        This layer handles communication with the database. It abstracts away
+        the details of data persistence.
+      </p>
+
+      <h3>Responsibilities:</h3>
+      <ul>
+        <li>Query the database</li>
+        <li>Perform inserts, updates, and deletes</li>
+        <li>Map data between domain objects and database records</li>
+      </ul>
+
+      <h3>Technologies:</h3>
+      <ul>
+        <li>Object Relational Mappers (ORMs): SQLAlchemy, Django ORM, GORM</li>
+        <li>Query builders: Knex.js, Prisma</li>
+        <li>Direct SQL queries</li>
+      </ul>
+
+      <h3>Example:</h3>
+      <p>
+        A <code>UserRepository</code> class that finds a user by email and
+        returns a domain object.
+      </p>
+
+      <h2>5. Database Layer</h2>
+
+      <h3>Purpose:</h3>
+      <p>
+        This is the lowest layer, where data is stored and managed. It’s
+        responsible for durability and persistence.
+      </p>
+
+      <h3>Responsibilities:</h3>
+      <ul>
+        <li>Store application data</li>
+        <li>Ensure data integrity and security</li>
+        <li>Provide access to data for querying</li>
+      </ul>
+
+      <h3>Technologies:</h3>
+      <ul>
+        <li>Relational: PostgreSQL, MySQL, SQLite</li>
+        <li>NoSQL: MongoDB, Redis</li>
+      </ul>
+
+      <h3>Example:</h3>
+      <p>
+        A <code>users</code> table containing fields like
+        <code>id</code>, <code>email</code>, <code>password_hash</code>,
+        <code>created_at</code>.
+      </p>
+
+      <h2>Benefits of the 5-Layer Architecture</h2>
+      <ul>
+        <li>
+          <strong>Separation of Concerns:</strong> Each layer has a distinct
+          role, making the system easier to understand and modify.
+        </li>
+        <li>
+          <strong>Scalability:</strong> Each layer can be scaled independently
+          based on the application’s needs.
+        </li>
+        <li>
+          <strong>Testability:</strong> Unit tests can target individual layers
+          without depending on others.
+        </li>
+        <li>
+          <strong>Maintainability:</strong> Updates and bug fixes are easier
+          since logic is compartmentalized.
+        </li>
+      </ul>
+
+      <h2>Conclusion</h2>
+      <p>
+        The 5-layer architecture is a proven method to build robust applications
+        by organizing your code into manageable sections. Whether you're
+        developing a small app or a large enterprise system, adopting this
+        architecture ensures your software is maintainable, scalable, and easy
+        to test.
+      </p>
+    </article>
+  </div>
+</body>
+</html>
