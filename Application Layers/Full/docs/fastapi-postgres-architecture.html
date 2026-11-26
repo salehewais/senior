@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FastAPI + PostgreSQL + SQLAlchemy — Clean Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f1419;
+      --bg-elevated: #1a222c;
+      --bg-code: #12181f;
+      --surface: #243040;
+      --border: #2e3d4f;
+      --text: #e8eef4;
+      --text-muted: #8b9cb0;
+      --accent: #3d9cf0;
+      --accent-soft: rgba(61, 156, 240, 0.12);
+      --green: #3ecf8e;
+      --orange: #f0a03d;
+      --radius: 10px;
+      --font: "IBM Plex Sans Arabic", sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+      --max: 820px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background:
+        radial-gradient(ellipse 80% 50% at 100% 0%, rgba(61, 156, 240, 0.08), transparent 50%),
+        radial-gradient(ellipse 60% 40% at 0% 100%, rgba(62, 207, 142, 0.05), transparent 45%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 1.05rem;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header .eyebrow {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 4vw, 2.1rem);
+      font-weight: 700;
+      line-height: 1.35;
+      margin-bottom: 0.85rem;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 38em;
+    }
+
+    .roles {
+      display: grid;
+      gap: 0.75rem;
+      margin: 1.75rem 0 0;
+    }
+
+    .role {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 1rem;
+      align-items: start;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.9rem 1.1rem;
+    }
+
+    @media (max-width: 560px) {
+      .role { grid-template-columns: 1fr; gap: 0.25rem; }
+    }
+
+    .role strong {
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .role span { color: var(--text-muted); font-size: 0.95rem; }
+
+    nav.toc {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.4rem;
+      margin-bottom: 2.5rem;
+    }
+
+    nav.toc h2 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      text-transform: none;
+    }
+
+    nav.toc ol {
+      list-style: none;
+      counter-reset: toc;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    nav.toc li { counter-increment: toc; }
+
+    nav.toc a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.95rem;
+      display: flex;
+      gap: 0.6rem;
+      padding: 0.3rem 0;
+      transition: color 0.15s;
+    }
+
+    nav.toc a::before {
+      content: counter(toc);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      min-width: 1.2em;
+    }
+
+    nav.toc a:hover { color: var(--accent); }
+
+    section {
+      margin-bottom: 2.75rem;
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.65rem;
+      color: var(--text);
+    }
+
+    h3 code {
+      font-family: var(--mono);
+      font-size: 0.95em;
+      color: var(--green);
+      background: var(--bg-code);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    p { margin-bottom: 0.9rem; color: var(--text); }
+
+    .muted { color: var(--text-muted); }
+
+    ul, ol {
+      margin: 0.5rem 0 1rem 1.25rem;
+    }
+
+    li { margin-bottom: 0.35rem; }
+
+    code:not(pre code) {
+      font-family: var(--mono);
+      font-size: 0.88em;
+      color: var(--orange);
+      background: var(--bg-code);
+      padding: 0.12rem 0.4rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      direction: ltr;
+      unicode-bidi: embed;
+    }
+
+    .tree, pre {
+      direction: ltr;
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.55;
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+      overflow-x: auto;
+      margin: 0.85rem 0 1.25rem;
+      color: #c8d4e0;
+    }
+
+    .tree {
+      color: var(--text-muted);
+      white-space: pre;
+    }
+
+    .tree .dir { color: var(--accent); }
+    .tree .file { color: var(--green); }
+
+    pre code {
+      font-family: inherit;
+      font-size: inherit;
+      background: none;
+      border: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    .note {
+      background: var(--accent-soft);
+      border: 1px solid rgba(61, 156, 240, 0.35);
+      border-radius: var(--radius);
+      padding: 1rem 1.15rem;
+      margin: 1rem 0 1.25rem;
+      font-size: 0.98rem;
+    }
+
+    .note strong { color: var(--accent); }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin: 1rem 0 1.5rem;
+      direction: ltr;
+      justify-content: flex-start;
+    }
+
+    .flow .step {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.55rem 0.85rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--green);
+    }
+
+    .flow .arrow {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .mapper-flow {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin: 1rem 0;
+      direction: ltr;
+      color: var(--text-muted);
+    }
+
+    .mapper-flow span { color: var(--accent); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 1.5rem;
+      font-size: 0.95rem;
+      background: var(--bg-elevated);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--surface);
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    td code {
+      white-space: nowrap;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .summary {
+      background: linear-gradient(135deg, var(--bg-elevated), var(--surface));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.35rem 1.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .summary p { margin-bottom: 0; }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    /* syntax-ish highlights */
+    .kw { color: #c792ea; }
+    .fn { color: #82aaff; }
+    .str { color: #c3e88d; }
+    .cm { color: #546e7a; }
+    .cls { color: #ffcb6b; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="eyebrow">Clean Architecture · Example</div>
+      <h1>FastAPI + PostgreSQL + SQLAlchemy<br />إنشاء User</h1>
+      <p>
+        هنستخدم نفس البنية بالضبط، وهنعمل مثال لإنشاء User، بحيث نفهم دور كل ملف وعلاقته بالملفات التانية.
+      </p>
+
+      <div class="roles">
+        <div class="role">
+          <strong>Persistence</strong>
+          <span>مسؤول عن تنفيذ عمليات الحفظ والاسترجاع.</span>
+        </div>
+        <div class="role">
+          <strong>Data Access</strong>
+          <span>مسؤول عن التعامل التقني مع قاعدة البيانات والـ ORM.</span>
+        </div>
+        <div class="role">
+          <strong>Mapper</strong>
+          <span>مسؤول عن التحويل بين Domain Entity و SQLAlchemy Model.</span>
+        </div>
+      </div>
+    </header>
+
+    <nav class="toc" aria-label="فهرس المحتوى">
+      <h2>المحتويات</h2>
+      <ol>
+        <li><a href="#structure">Project Structure</a></li>
+        <li><a href="#domain">Domain Layer</a></li>
+        <li><a href="#application">Application Layer</a></li>
+        <li><a href="#infrastructure">Infrastructure Layer</a></li>
+        <li><a href="#presentation">Presentation Layer — FastAPI</a></li>
+        <li><a href="#main">نقطة تشغيل التطبيق</a></li>
+        <li><a href="#flow">نفهم العلاقة بين الملفات</a></li>
+      </ol>
+    </nav>
+
+    <!-- 1. Structure -->
+    <section id="structure">
+      <h2>1. Project Structure</h2>
+      <div class="tree"><span class="dir">src/</span>
+│
+├── <span class="dir">presentation/</span>
+│   └── <span class="dir">api/</span>
+│       └── <span class="file">user_controller.py</span>
+│
+├── <span class="dir">application/</span>
+│   ├── <span class="dir">interfaces/</span>
+│   │   └── <span class="file">user_repository.py</span>
+│   │
+│   └── <span class="dir">use_cases/</span>
+│       └── <span class="file">create_user.py</span>
+│
+├── <span class="dir">domain/</span>
+│   └── <span class="dir">entities/</span>
+│       └── <span class="file">user.py</span>
+│
+└── <span class="dir">infrastructure/</span>
+    │
+    ├── <span class="dir">persistence/</span>
+    │   ├── <span class="dir">repositories/</span>
+    │   │   └── <span class="file">postgres_user_repository.py</span>
+    │   │
+    │   └── <span class="dir">mappers/</span>
+    │       └── <span class="file">user_mapper.py</span>
+    │
+    └── <span class="dir">data_access/</span>
+        ├── <span class="file">database.py</span>
+        └── <span class="file">models.py</span></div>
+    </section>
+
+    <!-- 2. Domain -->
+    <section id="domain">
+      <h2>2. Domain Layer</h2>
+      <h3><code>domain/entities/user.py</code></h3>
+      <p>ده الـ Entity الأساسي بتاعنا.</p>
+      <p class="muted">مش هيعرف أي حاجة عن PostgreSQL أو SQLAlchemy.</p>
+<pre><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+<span class="kw">from</span> uuid <span class="kw">import</span> UUID, uuid4
+
+
+<span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="cls">User</span>:
+    id: UUID
+    name: str
+    email: str
+
+    <span class="kw">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">create</span>(cls, name: str, email: str):
+        <span class="kw">return</span> cls(
+            id=uuid4(),
+            name=name,
+            email=email
+        )</code></pre>
+    </section>
+
+    <!-- 3. Application -->
+    <section id="application">
+      <h2>3. Application Layer</h2>
+
+      <h3>أولًا: <code>application/interfaces/user_repository.py</code></h3>
+      <p>ده الـ Repository Interface.</p>
+      <p class="muted">الـ Application بتقول إنها محتاجة Repository يقدر يحفظ User، لكنها مش بتحدد إزاي.</p>
+<pre><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+<span class="kw">from</span> domain.entities.user <span class="kw">import</span> User
+
+
+<span class="kw">class</span> <span class="cls">UserRepository</span>(ABC):
+    <span class="kw">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">save</span>(self, user: User) -&gt; None:
+        <span class="kw">pass</span></code></pre>
+
+      <h3>ثانيًا: <code>application/use_cases/create_user.py</code></h3>
+      <p>ده الـ Use Case المسؤول عن إنشاء المستخدم.</p>
+<pre><code><span class="kw">from</span> domain.entities.user <span class="kw">import</span> User
+<span class="kw">from</span> application.interfaces.user_repository <span class="kw">import</span> UserRepository
+
+
+<span class="kw">class</span> <span class="cls">CreateUser</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, user_repository: UserRepository):
+        self.user_repository = user_repository
+
+    <span class="kw">def</span> <span class="fn">execute</span>(self, name: str, email: str) -&gt; User:
+        user = User.create(name, email)
+        self.user_repository.save(user)
+        <span class="kw">return</span> user</code></pre>
+      <div class="note">
+        <strong>لاحظ:</strong> <code>CreateUser</code> بيتعامل مع Interface، مش مع PostgreSQL Repository مباشرة.
+      </div>
+    </section>
+
+    <!-- 4. Infrastructure -->
+    <section id="infrastructure">
+      <h2>4. Infrastructure Layer</h2>
+      <p>هنا بقى هنقسم Infrastructure إلى Persistence و Data Access زي ما طلبت.</p>
+
+      <h3>أولًا: Data Access</h3>
+      <h3><code>infrastructure/data_access/database.py</code></h3>
+      <p>مسؤول عن إعداد الاتصال بقاعدة البيانات وإنشاء SQLAlchemy Session.</p>
+<pre><code><span class="kw">from</span> sqlalchemy <span class="kw">import</span> create_engine
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> sessionmaker, declarative_base
+
+DATABASE_URL = (
+    <span class="str">"postgresql+psycopg://postgres:password@localhost:5432/mydb"</span>
+)
+
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(
+    bind=engine,
+    autoflush=<span class="kw">False</span>,
+    autocommit=<span class="kw">False</span>
+)
+Base = declarative_base()</code></pre>
+      <ul>
+        <li><code>engine</code>: مسؤول عن الاتصال بقاعدة البيانات.</li>
+        <li><code>SessionLocal</code>: مصنع لإنشاء Sessions.</li>
+        <li><code>Base</code>: الأساس اللي هتورث منه SQLAlchemy Models.</li>
+      </ul>
+
+      <h3><code>infrastructure/data_access/models.py</code></h3>
+      <p>هنا بنعرّف شكل الجدول باستخدام SQLAlchemy.</p>
+<pre><code><span class="kw">from</span> sqlalchemy <span class="kw">import</span> Column, String
+<span class="kw">from</span> sqlalchemy.dialects.postgresql <span class="kw">import</span> UUID
+<span class="kw">from</span> infrastructure.data_access.database <span class="kw">import</span> Base
+
+
+<span class="kw">class</span> <span class="cls">UserModel</span>(Base):
+    __tablename__ = <span class="str">"users"</span>
+
+    id = Column(UUID(as_uuid=<span class="kw">True</span>), primary_key=<span class="kw">True</span>)
+    name = Column(String(100), nullable=<span class="kw">False</span>)
+    email = Column(String(255), unique=<span class="kw">True</span>, nullable=<span class="kw">False</span>)</code></pre>
+      <div class="note">
+        <strong>خلي بالك:</strong> <code>UserModel</code> مش هو نفسه <code>User</code> الموجود في Domain.
+        الأول بيمثل شكل البيانات في قاعدة البيانات، والتاني بيمثل الـ Business Entity.
+      </div>
+
+      <h3>ثانيًا: Persistence — Mapper</h3>
+      <h3><code>infrastructure/persistence/mappers/user_mapper.py</code></h3>
+      <p>وظيفته تحويل البيانات بين الـ Domain والـ Database Model.</p>
+<pre><code><span class="kw">from</span> domain.entities.user <span class="kw">import</span> User
+<span class="kw">from</span> infrastructure.data_access.models <span class="kw">import</span> UserModel
+
+
+<span class="kw">class</span> <span class="cls">UserMapper</span>:
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">to_model</span>(user: User) -&gt; UserModel:
+        <span class="kw">return</span> UserModel(
+            id=user.id,
+            name=user.name,
+            email=user.email
+        )
+
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">to_entity</span>(model: UserModel) -&gt; User:
+        <span class="kw">return</span> User(
+            id=model.id,
+            name=model.name,
+            email=model.email
+        )</code></pre>
+      <div class="mapper-flow">
+        User Entity &nbsp;<span>&lt;---</span>&nbsp; User Mapper &nbsp;<span>&lt;---</span>&nbsp; UserModel
+      </div>
+      <p class="muted">الـ Mapper هو اللي بيمنع الـ Domain Entity من الارتباط بشكل جدول قاعدة البيانات.</p>
+
+      <h3>ثالثًا: Persistence — Repository Implementation</h3>
+      <h3><code>infrastructure/persistence/repositories/postgres_user_repository.py</code></h3>
+      <p>هنا هننفذ الـ Interface اللي عرفناها في Application.</p>
+<pre><code><span class="kw">from</span> domain.entities.user <span class="kw">import</span> User
+<span class="kw">from</span> application.interfaces.user_repository <span class="kw">import</span> UserRepository
+<span class="kw">from</span> infrastructure.data_access.models <span class="kw">import</span> UserModel
+<span class="kw">from</span> infrastructure.persistence.mappers.user_mapper <span class="kw">import</span> UserMapper
+
+
+<span class="kw">class</span> <span class="cls">PostgresUserRepository</span>(UserRepository):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, session):
+        self.session = session
+
+    <span class="kw">def</span> <span class="fn">save</span>(self, user: User) -&gt; None:
+        user_model = UserMapper.to_model(user)
+        self.session.add(user_model)
+        self.session.commit()</code></pre>
+      <p>لاحظ المسؤوليات:</p>
+      <ol>
+        <li>استقبل Domain Entity.</li>
+        <li>استخدم Mapper لتحويلها إلى SQLAlchemy Model.</li>
+        <li>استخدم Session لحفظ البيانات.</li>
+        <li>نفذ Commit.</li>
+      </ol>
+      <p class="muted">إذن الـ Repository مش مسؤول عن تعريف الاتصال بقاعدة البيانات؛ هو بيستخدم Session جاهزة تم تمريرها إليه.</p>
+    </section>
+
+    <!-- 5. Presentation -->
+    <section id="presentation">
+      <h2>5. Presentation Layer — FastAPI</h2>
+      <h3><code>presentation/api/user_controller.py</code></h3>
+      <p>ده الـ Controller اللي هيستقبل HTTP Request.</p>
+<pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter, Depends
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> Session
+
+<span class="kw">from</span> infrastructure.data_access.database <span class="kw">import</span> SessionLocal
+<span class="kw">from</span> infrastructure.persistence.repositories.postgres_user_repository <span class="kw">import</span> (
+    PostgresUserRepository
+)
+<span class="kw">from</span> application.use_cases.create_user <span class="kw">import</span> CreateUser
+
+router = APIRouter()
+
+
+<span class="kw">class</span> <span class="cls">CreateUserRequest</span>(BaseModel):
+    name: str
+    email: str
+
+
+<span class="kw">def</span> <span class="fn">get_db</span>():
+    db = SessionLocal()
+    <span class="kw">try</span>:
+        <span class="kw">yield</span> db
+    <span class="kw">finally</span>:
+        db.close()
+
+
+<span class="kw">@router.post</span>(<span class="str">"/users"</span>)
+<span class="kw">def</span> <span class="fn">create_user</span>(
+    request: CreateUserRequest,
+    db: Session = Depends(get_db)
+):
+    repository = PostgresUserRepository(db)
+    use_case = CreateUser(repository)
+    user = use_case.execute(request.name, request.email)
+    <span class="kw">return</span> {
+        <span class="str">"id"</span>: str(user.id),
+        <span class="str">"name"</span>: user.name,
+        <span class="str">"email"</span>: user.email,
+    }</code></pre>
+    </section>
+
+    <!-- 6. Main -->
+    <section id="main">
+      <h2>6. نقطة تشغيل التطبيق</h2>
+      <p>هنضيف ملف <code>main.py</code> في جذر <code>src</code> لتشغيل FastAPI.</p>
+<pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+<span class="kw">from</span> presentation.api.user_controller <span class="kw">import</span> router
+
+app = FastAPI()
+app.include_router(router)</code></pre>
+      <p>وثبّت المكتبات:</p>
+<pre><code>pip install fastapi uvicorn sqlalchemy "psycopg[binary]"</code></pre>
+      <p>شغّل التطبيق:</p>
+<pre><code>uvicorn main:app --reload</code></pre>
+      <p class="muted">وتأكد إن قاعدة البيانات موجودة وإن بيانات الاتصال صحيحة.</p>
+    </section>
+
+    <!-- 7. Flow -->
+    <section id="flow">
+      <h2>7. نفهم العلاقة بين الملفات</h2>
+      <p>دي أهم نقطة في المثال كله.</p>
+
+      <h3>وقت تنفيذ Request</h3>
+      <div class="flow">
+        <span class="step">user_controller.py</span>
+        <span class="arrow">→</span>
+        <span class="step">create_user.py</span>
+        <span class="arrow">→</span>
+        <span class="step">user.py</span>
+        <span class="arrow">→</span>
+        <span class="step">user_repository.py</span>
+        <span class="arrow">→</span>
+        <span class="step">postgres_user_repository.py</span>
+        <span class="arrow">→</span>
+        <span class="step">user_mapper.py</span>
+        <span class="arrow">→</span>
+        <span class="step">models.py + database.py</span>
+        <span class="arrow">→</span>
+        <span class="step">PostgreSQL</span>
+      </div>
+      <ul>
+        <li><code>user_controller.py</code> — استقبال HTTP Request</li>
+        <li><code>create_user.py</code> — تنفيذ Use Case</li>
+        <li><code>user.py</code> — إنشاء Domain Entity</li>
+        <li><code>user_repository.py</code> — Repository Interface</li>
+        <li><code>postgres_user_repository.py</code> — تنفيذ الحفظ</li>
+        <li><code>user_mapper.py</code> — Domain Entity إلى ORM Model</li>
+        <li><code>models.py</code> + <code>database.py</code> — SQLAlchemy Model و Session</li>
+        <li><strong>PostgreSQL</strong> — التخزين النهائي</li>
+      </ul>
+
+      <h3>الفرق بين Persistence و Data Access في المثال</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>الملف</th>
+            <th>المسؤولية</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>postgres_user_repository.py</code></td>
+            <td>تنفيذ عمليات الـ Repository</td>
+          </tr>
+          <tr>
+            <td><code>user_mapper.py</code></td>
+            <td>تحويل Entity إلى ORM Model والعكس</td>
+          </tr>
+          <tr>
+            <td><code>database.py</code></td>
+            <td>إعداد الاتصال والـ Sessions</td>
+          </tr>
+          <tr>
+            <td><code>models.py</code></td>
+            <td>تعريف شكل جداول قاعدة البيانات</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <strong>ملحوظة معمارية مهمة:</strong>
+        التقسيم ده اختيار تنظيمي مناسب للمثال، مش قاعدة إلزامية في Clean Architecture.
+        كمان المثال مبسط؛ في مشروع حقيقي ممكن نفصل Transaction Management عن Repository،
+        ونتعامل مع أخطاء الـ Database وعمليات الـ Commit/Rollback بشكل مركزي.
+      </div>
+
+      <div class="summary">
+        <p>
+          <strong>الخلاصة:</strong>
+          الـ Application بتحدد هي محتاجة إيه، والـ Infrastructure بتحدد هتنفذ الاحتياج ده إزاي،
+          والـ FastAPI Controller بيربط الـ HTTP Request بالـ Use Case.
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      FastAPI · PostgreSQL · SQLAlchemy — Clean Architecture Example
+    </footer>
+  </div>
+</body>
+</html>
