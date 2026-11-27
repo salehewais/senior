@@ -4,6 +4,7 @@ import CallStack from "./components/CallStack";
 import EditorPane from "./components/EditorPane";
 import PlaybackBar from "./components/PlaybackBar";
 import TreeView from "./components/TreeView";
+import { loadLastProblem, saveLastProblem } from "./lastProblemMemory";
 import type { Example, TraceEvent } from "./types";
 
 type Mode = "visualize" | "debug";
@@ -37,11 +38,12 @@ export default function App() {
       .then((items) => {
         if (cancelled) return;
         setExamples(items);
-        const first = items[0];
-        if (first) {
-          setExampleId(first.id);
-          setSource(first.source);
-          setCall(first.call);
+        const savedId = loadLastProblem()?.exampleId;
+        const selected = (savedId && items.find((item) => item.id === savedId)) || items[0];
+        if (selected) {
+          setExampleId(selected.id);
+          setSource(selected.source);
+          setCall(selected.call);
         }
       })
       .catch(() => {
@@ -140,6 +142,7 @@ export default function App() {
     setSource(example.source);
     setCall(example.call);
     setPlaying(false);
+    saveLastProblem(id);
   }
 
   return (

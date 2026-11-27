@@ -49,6 +49,10 @@ export default function LoopPanel({ open, loops, onClose }: Props) {
 
   function onDragPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return;
+    // Close (and other controls) live in the drag header — don't steal their clicks.
+    if ((event.target as Element).closest("button, a, input, textarea, select, [role='button']")) {
+      return;
+    }
     event.preventDefault();
     const handle = event.currentTarget;
     const startX = event.clientX;
@@ -108,7 +112,13 @@ export default function LoopPanel({ open, loops, onClose }: Props) {
     >
       <div className="loop-panel-head" onPointerDown={onDragPointerDown}>
         <span className="loop-panel-title">Loops</span>
-        <button type="button" className="loop-panel-close" onClick={onClose} aria-label="Close loops panel">
+        <button
+          type="button"
+          className="loop-panel-close"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={onClose}
+          aria-label="Close loops panel"
+        >
           ×
         </button>
       </div>

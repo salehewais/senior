@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Longest Repeating Character Replacement — Visualizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1a2332;
+      --text-muted: #5c6b7f;
+      --text-soft: #8b99ab;
+      --border: #dde3ec;
+      --accent: #2563eb;
+      --accent-soft: #dbeafe;
+      --green: #059669;
+      --green-soft: #d1fae5;
+      --amber: #d97706;
+      --amber-soft: #fef3c7;
+      --lime: #65a30d;
+      --lime-soft: #ecfccb;
+      --red: #dc2626;
+      --red-soft: #fee2e2;
+      --radius: 8px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+      --cell: 34px;
+      --gap: 4px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1419;
+        --surface: #1a222d;
+        --surface-2: #242d3a;
+        --text: #e8edf4;
+        --text-muted: #9aa8bc;
+        --text-soft: #6b7a8f;
+        --border: #2e3a4a;
+        --accent: #60a5fa;
+        --accent-soft: #1e3a5f;
+        --green: #34d399;
+        --green-soft: #064e3b;
+        --amber: #fbbf24;
+        --amber-soft: #451a03;
+        --lime: #a3e635;
+        --lime-soft: #1a2e05;
+        --red: #f87171;
+        --red-soft: #450a0a;
+      }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .dashboard {
+      height: 100vh;
+      height: 100dvh;
+      max-height: 100dvh;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      grid-template-columns: 1fr minmax(220px, 28%);
+      gap: 6px;
+      padding: 8px 10px;
+      overflow: hidden;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 6px 8px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* ── Row 1: top bar (full width) ── */
+    .topbar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      padding: 5px 8px;
+    }
+
+    .topbar h1 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      white-space: nowrap;
+      margin-right: 4px;
+    }
+
+    .topbar .tagline {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      flex: 1;
+      min-width: 120px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .topbar .tagline a { color: var(--accent); }
+
+    .controls-inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .controls-inline label {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .controls-inline input[type="text"] {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      width: 7.5rem;
+      padding: 3px 6px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    .controls-inline input[type="range"] {
+      width: 4.5rem;
+      accent-color: var(--accent);
+    }
+
+    .k-val {
+      font-family: var(--mono);
+      font-weight: 600;
+      font-size: 0.8rem;
+      min-width: 1ch;
+    }
+
+    .presets {
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap;
+    }
+
+    .preset-btn {
+      font-size: 0.58rem;
+      padding: 2px 5px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: var(--mono);
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn {
+      font-family: var(--font);
+      font-size: 0.68rem;
+      font-weight: 500;
+      padding: 3px 7px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .btn:hover { border-color: var(--accent); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.is-playing { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+    .btn-stop-active { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+
+    .delay-control {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.62rem;
+      color: var(--text-muted);
+    }
+
+    .delay-control input[type="range"] {
+      width: 4.5rem;
+      accent-color: var(--accent);
+    }
+
+    .delay-val {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      min-width: 3.2rem;
+      color: var(--text);
+    }
+
+    /* ── Row 2: stats (full width) ── */
+    .stats-bar {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      padding: 4px 6px;
+    }
+
+    .stat {
+      background: var(--surface-2);
+      border-radius: 5px;
+      padding: 3px 6px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.58rem;
+      color: var(--text-soft);
+    }
+
+    .stat-value {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    /* ── Row 3 left: visualization ── */
+    .viz-panel {
+      grid-column: 1;
+      grid-row: 3;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+    }
+
+    .leg {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+    }
+
+    .leg-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      border: 1px solid transparent;
+    }
+
+    .leg-window { background: var(--accent-soft); border-color: var(--accent); }
+    .leg-dom { background: var(--green-soft); border-color: var(--green); }
+    .leg-rep { background: var(--amber-soft); border-color: var(--amber); }
+    .leg-best { background: var(--lime-soft); border-color: var(--lime); outline: 1px dashed var(--lime); }
+
+    .viz-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .char-track { display: inline-flex; flex-direction: column; }
+
+    .pointer-row {
+      display: flex;
+      gap: var(--gap);
+      height: 18px;
+      align-items: flex-end;
+    }
+
+    .pointer-cell {
+      width: var(--cell);
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .pointer-tag {
+      font-size: 0.5rem;
+      font-weight: 600;
+      font-family: var(--mono);
+      padding: 0 2px;
+      border-radius: 2px;
+      line-height: 1.1;
+    }
+
+    .pointer-cell.active-left .pointer-tag { background: var(--accent-soft); color: var(--accent); }
+    .pointer-cell.active-right .pointer-tag { background: var(--amber-soft); color: var(--amber); }
+
+    .char-row { display: flex; gap: var(--gap); }
+
+    .char-box {
+      width: var(--cell);
+      height: 36px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 0.9rem;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      position: relative;
+    }
+
+    .char-box .idx {
+      position: absolute;
+      top: 1px;
+      right: 3px;
+      font-size: 0.48rem;
+      color: var(--text-soft);
+    }
+
+    .char-box.in-window { background: var(--accent-soft); border-color: var(--accent); }
+    .char-box.dominant { background: var(--green-soft); border-color: var(--green); }
+    .char-box.to-replace { background: var(--amber-soft); border-color: var(--amber); }
+    .char-box.max-window { border-style: dashed; border-color: var(--lime); box-shadow: inset 0 0 0 1.5px var(--lime); }
+
+    .window-bracket {
+      display: flex;
+      gap: var(--gap);
+      height: 4px;
+      margin-top: 3px;
+    }
+
+    .bracket-cell {
+      width: var(--cell);
+      position: relative;
+    }
+
+    .bracket-cell.in-range::after {
+      content: "";
+      position: absolute;
+      left: 1px;
+      right: 1px;
+      top: 0;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 1px;
+    }
+
+    .bracket-label {
+      font-size: 0.58rem;
+      color: var(--accent);
+      font-family: var(--mono);
+      margin-top: 2px;
+      text-align: center;
+    }
+
+    /* ── Row 3 right: formula + counts ── */
+    .side-panel {
+      grid-column: 2;
+      grid-row: 3;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .side-section-title {
+      font-size: 0.58rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-soft);
+    }
+
+    .freq-table {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      min-height: 22px;
+      align-content: flex-start;
+    }
+
+    .freq-pill {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 1px 6px;
+      font-size: 0.68rem;
+    }
+
+    .freq-pill .char { font-family: var(--mono); font-weight: 600; }
+    .freq-pill.dominant-pill { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+    .freq-empty { font-size: 0.65rem; color: var(--text-soft); font-style: italic; }
+
+    .formula-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .formula-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 3px 5px;
+    }
+
+    .formula-piece {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--surface-2);
+      border-radius: 4px;
+      padding: 3px 6px;
+      min-width: 3rem;
+    }
+
+    .formula-piece .label { font-size: 0.52rem; color: var(--text-soft); }
+    .formula-piece .val { font-family: var(--mono); font-size: 0.95rem; font-weight: 500; }
+
+    .formula-op { font-family: var(--mono); font-size: 0.85rem; color: var(--text-muted); }
+
+    .formula-result {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1.5px solid var(--border);
+    }
+
+    .formula-result.valid { background: var(--green-soft); border-color: var(--green); }
+    .formula-result.invalid { background: var(--red-soft); border-color: var(--red); }
+    .formula-result .label { font-size: 0.52rem; color: var(--text-soft); }
+    .formula-result .val { font-family: var(--mono); font-size: 0.8rem; font-weight: 600; }
+
+    .compare-k {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .compare-k span { font-family: var(--mono); font-weight: 500; color: var(--text); }
+
+    .key-idea {
+      font-size: 0.58rem;
+      color: var(--text-soft);
+      padding: 4px 5px;
+      background: var(--surface-2);
+      border-radius: 4px;
+      border-left: 2px solid var(--accent);
+      line-height: 1.25;
+    }
+
+    .key-idea code {
+      font-family: var(--mono);
+      font-size: 0.55rem;
+    }
+
+    /* ── Row 4: footer (full width) ── */
+    .footer {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 5px 8px;
+    }
+
+    .transport {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .progress-wrap {
+      flex: 1;
+      min-width: 80px;
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: var(--surface-2);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+      transition: width 0.2s;
+    }
+
+    .progress-info {
+      font-size: 0.58rem;
+      color: var(--text-soft);
+      margin-top: 1px;
+    }
+
+    .kbd-hint {
+      font-size: 0.55rem;
+      color: var(--text-soft);
+      margin-left: 4px;
+    }
+
+    kbd {
+      font-family: var(--mono);
+      font-size: 0.52rem;
+      padding: 0 2px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      background: var(--surface-2);
+    }
+
+    .narration {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+      max-height: 2.7em;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .narration b, .narration strong { color: var(--text); font-weight: 600; }
+
+    .narration .window-str {
+      font-family: var(--mono);
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 0 3px;
+      border-radius: 2px;
+    }
+
+    @media (max-width: 700px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto 1fr auto;
+      }
+      .viz-panel { grid-column: 1; grid-row: 4; }
+      .side-panel { grid-column: 1; grid-row: 3; max-height: 28vh; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Top bar -->
+    <header class="panel topbar">
+      <h1>Longest Repeating Char Replacement</h1>
+      <p class="tagline">Brute-force (try every start). <a href="character_replacement_sliding_window_visualizer.html">O(n) sliding window →</a></p>
+      <div class="controls-inline">
+        <label>String <input type="text" id="str-input" value="AABABBA" maxlength="20" autocomplete="off"></label>
+        <label>k <input type="range" id="k-input" min="0" max="8" value="1"> <span class="k-val" id="kVal">1</span></label>
+        <button type="button" class="btn" id="btn-reset">Reset</button>
+      </div>
+      <div class="presets" id="presets"></div>
+    </header>
+
+    <!-- Stats -->
+    <div class="panel stats-bar">
+      <div class="stat"><div class="stat-label">Left (i)</div><div class="stat-value" id="s-i">—</div></div>
+      <div class="stat"><div class="stat-label">Right</div><div class="stat-value" id="s-r">—</div></div>
+      <div class="stat"><div class="stat-label">Replacements</div><div class="stat-value" id="s-ctc">—</div></div>
+      <div class="stat"><div class="stat-label">Best length</div><div class="stat-value" id="s-best">0</div></div>
+    </div>
+
+    <!-- Main viz (left) -->
+    <section class="panel viz-panel" aria-label="String visualization">
+      <div class="legend">
+        <div class="leg"><div class="leg-swatch leg-window"></div> Window</div>
+        <div class="leg"><div class="leg-swatch leg-dom"></div> Keep</div>
+        <div class="leg"><div class="leg-swatch leg-rep"></div> Change</div>
+        <div class="leg"><div class="leg-swatch leg-best"></div> Best</div>
+      </div>
+      <div class="viz-area">
+        <div class="char-track">
+          <div class="pointer-row" id="pointer-row"></div>
+          <div class="char-row" id="char-row"></div>
+          <div class="window-bracket" id="window-bracket"></div>
+          <div class="bracket-label" id="bracket-label"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Side panel (right) -->
+    <aside class="panel side-panel" aria-label="Counts and formula">
+      <div>
+        <div class="side-section-title">Counts in window</div>
+        <div class="freq-table" id="freq-table"></div>
+      </div>
+      <div class="formula-block">
+        <div class="side-section-title">Validity check</div>
+        <div class="formula-flow">
+          <div class="formula-piece">
+            <span class="label">Length</span>
+            <span class="val" id="f-wlen">—</span>
+          </div>
+          <span class="formula-op">−</span>
+          <div class="formula-piece">
+            <span class="label">Max freq</span>
+            <span class="val" id="f-mf">—</span>
+          </div>
+          <span class="formula-op">=</span>
+          <div class="formula-result" id="f-result">
+            <span class="label">Need</span>
+            <span class="val" id="f-ctc">—</span>
+          </div>
+        </div>
+        <p class="compare-k">
+          <span id="f-ctc2">—</span> ≤ k=<span id="f-k">1</span> → <span id="f-verdict">—</span>
+        </p>
+      </div>
+      <p class="key-idea">
+        <strong>Key:</strong> change only non-dominant letters.
+        If <code>len − maxCount &gt; k</code>, move <strong>i</strong> right.
+      </p>
+    </aside>
+
+    <!-- Footer -->
+    <footer class="panel footer">
+      <div class="transport">
+        <button type="button" class="btn" id="btn-back">←</button>
+        <button type="button" class="btn btn-primary" id="btn-next">Next →</button>
+        <button type="button" class="btn" id="btn-play" aria-pressed="false">Play</button>
+        <button type="button" class="btn" id="btn-stop">Stop</button>
+        <label class="delay-control" title="Delay between steps (milliseconds)">
+          Delay
+          <input type="range" id="delay-input" min="150" max="2500" step="50" value="700">
+          <span class="delay-val" id="delay-val">700 ms</span>
+        </label>
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+          <div class="progress-info" id="prog-info">Step 0 of 0</div>
+        </div>
+        <span class="kbd-hint"><kbd>→</kbd><kbd>←</kbd><kbd>Space</kbd></span>
+      </div>
+      <div class="narration" id="desc"></div>
+    </footer>
+  </div>
+
+  <script>
+    const PRESETS = [
+      { label: "AABABBA", s: "AABABBA", k: 1 },
+      { label: "ABAB", s: "ABAB", k: 2 },
+      { label: "AAAA", s: "AAAA", k: 0 },
+      { label: "ABBB", s: "ABBB", k: 1 },
+    ];
+
+    let steps = [], stepIdx = 0;
+    let isPlaying = false;
+    let playTimeoutId = null;
+
+    const btnPlay = document.getElementById("btn-play");
+    const btnStop = document.getElementById("btn-stop");
+    const delayInput = document.getElementById("delay-input");
+    const delayVal = document.getElementById("delay-val");
+
+    function getDelayMs() {
+      return parseInt(delayInput.value, 10) || 700;
+    }
+
+    function updateDelayLabel() {
+      delayVal.textContent = getDelayMs() + " ms";
+    }
+
+    function updatePlayUi() {
+      btnPlay.textContent = isPlaying ? "Pause" : "Play";
+      btnPlay.classList.toggle("is-playing", isPlaying);
+      btnPlay.setAttribute("aria-pressed", isPlaying ? "true" : "false");
+      btnStop.classList.toggle("btn-stop-active", isPlaying);
+    }
+
+    function stopAuto() {
+      isPlaying = false;
+      if (playTimeoutId !== null) {
+        clearTimeout(playTimeoutId);
+        playTimeoutId = null;
+      }
+      updatePlayUi();
+    }
+
+    function scheduleNextTick() {
+      if (!isPlaying) return;
+      playTimeoutId = setTimeout(() => {
+        playTimeoutId = null;
+        if (!isPlaying) return;
+        if (stepIdx < steps.length) {
+          stepFwd();
+          scheduleNextTick();
+        } else {
+          stopAuto();
+        }
+      }, getDelayMs());
+    }
+
+    function autoPlay() {
+      if (isPlaying) {
+        stopAuto();
+        return;
+      }
+      isPlaying = true;
+      updatePlayUi();
+      if (stepIdx >= steps.length) stepIdx = 0;
+      scheduleNextTick();
+    }
+
+    function upperOnly(s) {
+      return s.toUpperCase().replace(/[^A-Z]/g, "");
+    }
+
+    function computeSteps(s, k) {
+      const n = s.length, out = [];
+      let maxLen = 0, bestI = -1, bestR = -1;
+      for (let i = 0; i < n; i++) {
+        const counts = {};
+        let max_freq = 0;
+        for (let right = i; right < n; right++) {
+          counts[s[right]] = (counts[s[right]] || 0) + 1;
+          max_freq = Math.max(max_freq, counts[s[right]]);
+          const wlen = right - i + 1;
+          const ctc = wlen - max_freq;
+          const valid = ctc <= k;
+          if (valid && wlen > maxLen) {
+            maxLen = wlen;
+            bestI = i;
+            bestR = right;
+          }
+          out.push({
+            i, right, counts: { ...counts }, max_freq, wlen, ctc, valid, maxLen,
+            bestI, bestR,
+            dominant: Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0],
+          });
+          if (!valid) break;
+        }
+      }
+      return out;
+    }
+
+    function rebuild() {
+      stopAuto();
+      const raw = document.getElementById("str-input").value;
+      const s = upperOnly(raw) || "AABABBA";
+      document.getElementById("str-input").value = s;
+      const k = parseInt(document.getElementById("k-input").value, 10);
+      document.getElementById("kVal").textContent = k;
+      document.getElementById("f-k").textContent = k;
+      steps = computeSteps(s, k);
+      stepIdx = 0;
+      render(s, k);
+    }
+
+    function render(s, k) {
+      if (!s) s = document.getElementById("str-input").value;
+      if (k === undefined) k = parseInt(document.getElementById("k-input").value, 10);
+      const step = steps[stepIdx] || null;
+      const n = s.length;
+
+      const ptrRow = document.getElementById("pointer-row");
+      ptrRow.innerHTML = "";
+      for (let ci = 0; ci < n; ci++) {
+        const cell = document.createElement("div");
+        cell.className = "pointer-cell";
+        let tag = "";
+        if (step && ci === step.i) {
+          cell.classList.add("active-left");
+          tag = '<span class="pointer-tag">i</span>';
+        }
+        if (step && ci === step.right) {
+          cell.classList.add("active-right");
+          tag += '<span class="pointer-tag">R</span>';
+        }
+        cell.innerHTML = tag;
+        ptrRow.appendChild(cell);
+      }
+
+      const row = document.getElementById("char-row");
+      row.innerHTML = "";
+      for (let ci = 0; ci < n; ci++) {
+        const d = document.createElement("div");
+        d.className = "char-box";
+        if (step) {
+          const inWin = ci >= step.i && ci <= step.right;
+          const isDom = inWin && s[ci] === step.dominant;
+          const isRep = inWin && s[ci] !== step.dominant;
+          const inBest = step.bestI >= 0 && ci >= step.bestI && ci <= step.bestR;
+          if (isDom) d.className = "char-box dominant";
+          else if (isRep) d.className = "char-box to-replace";
+          else if (inWin) d.className = "char-box in-window";
+          if (inBest && !inWin) d.classList.add("max-window");
+        }
+        d.innerHTML = `<span class="idx">${ci}</span>${s[ci]}`;
+        row.appendChild(d);
+      }
+
+      const bracket = document.getElementById("window-bracket");
+      bracket.innerHTML = "";
+      for (let ci = 0; ci < n; ci++) {
+        const bc = document.createElement("div");
+        bc.className = "bracket-cell" + (step && ci >= step.i && ci <= step.right ? " in-range" : "");
+        bracket.appendChild(bc);
+      }
+      const bracketLabel = document.getElementById("bracket-label");
+      bracketLabel.textContent = step
+        ? `s[${step.i}…${step.right}] = "${s.slice(step.i, step.right + 1)}"`
+        : "";
+
+      document.getElementById("s-i").textContent = step ? step.i : "—";
+      document.getElementById("s-r").textContent = step ? step.right : "—";
+      document.getElementById("s-ctc").textContent = step ? step.ctc : "—";
+      document.getElementById("s-best").textContent = step ? step.maxLen : "0";
+
+      const ft = document.getElementById("freq-table");
+      ft.innerHTML = "";
+      if (step && Object.keys(step.counts).length) {
+        Object.entries(step.counts)
+          .sort((a, b) => b[1] - a[1])
+          .forEach(([ch, cnt]) => {
+            const p = document.createElement("div");
+            p.className = "freq-pill" + (ch === step.dominant ? " dominant-pill" : "");
+            p.innerHTML = `<span class="char">${ch}</span>×${cnt}${ch === step.dominant ? "★" : ""}`;
+            ft.appendChild(p);
+          });
+      } else {
+        ft.innerHTML = '<span class="freq-empty">Next →</span>';
+      }
+
+      const resultEl = document.getElementById("f-result");
+      if (step) {
+        document.getElementById("f-wlen").textContent = step.wlen;
+        document.getElementById("f-mf").textContent = step.max_freq;
+        document.getElementById("f-ctc").textContent = step.ctc;
+        document.getElementById("f-ctc2").textContent = step.ctc;
+        resultEl.className = "formula-result " + (step.valid ? "valid" : "invalid");
+        document.getElementById("f-verdict").textContent = step.valid
+          ? `valid, best=${step.maxLen}`
+          : "invalid, move i";
+      } else {
+        document.getElementById("f-wlen").textContent = "—";
+        document.getElementById("f-mf").textContent = "—";
+        document.getElementById("f-ctc").textContent = "—";
+        document.getElementById("f-ctc2").textContent = "—";
+        document.getElementById("f-verdict").textContent = "—";
+        resultEl.className = "formula-result";
+      }
+
+      const desc = document.getElementById("desc");
+      if (step) {
+        const slice = s.slice(step.i, step.right + 1);
+        desc.innerHTML = step.valid
+          ? `Window "<span class="window-str">${slice}</span>" i=${step.i} R=${step.right}: keep <b>${step.dominant}</b> (×${step.max_freq}), change ${step.ctc} — best length <b>${step.maxLen}</b>.`
+          : `"<span class="window-str">${slice}</span>" needs ${step.ctc} changes > k=${k} — stop and advance i.`;
+      } else {
+        desc.innerHTML = "Press <b>Next →</b> — blue=window, green=keep, amber=change, dashed=best so far.";
+      }
+
+      const total = steps.length;
+      const pct = total ? Math.round((stepIdx / total) * 100) : 0;
+      document.getElementById("progress-fill").style.width = pct + "%";
+      document.getElementById("prog-info").textContent =
+        stepIdx === 0 && total > 0 ? `${total} steps` : `${stepIdx}/${total}`;
+    }
+
+    function stepFwd() { if (stepIdx < steps.length) { stepIdx++; render(); } }
+    function stepBack() {
+      stopAuto();
+      if (stepIdx > 0) { stepIdx--; render(); }
+    }
+    function togglePlay() { autoPlay(); }
+
+    const presetsEl = document.getElementById("presets");
+    PRESETS.forEach(({ label, s, k }) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "preset-btn";
+      b.textContent = label;
+      b.title = `k=${k}`;
+      b.addEventListener("click", () => {
+        document.getElementById("str-input").value = s;
+        document.getElementById("k-input").value = k;
+        rebuild();
+      });
+      presetsEl.appendChild(b);
+    });
+
+    document.getElementById("str-input").addEventListener("input", rebuild);
+    document.getElementById("k-input").addEventListener("input", () => {
+      document.getElementById("kVal").textContent = document.getElementById("k-input").value;
+      rebuild();
+    });
+    document.getElementById("btn-reset").addEventListener("click", rebuild);
+    document.getElementById("btn-next").addEventListener("click", () => { stopAuto(); stepFwd(); });
+    document.getElementById("btn-back").addEventListener("click", stepBack);
+    btnPlay.addEventListener("click", autoPlay);
+    btnStop.addEventListener("click", (e) => {
+      e.preventDefault();
+      stopAuto();
+    });
+
+    delayInput.addEventListener("input", () => {
+      updateDelayLabel();
+      if (isPlaying) {
+        if (playTimeoutId !== null) clearTimeout(playTimeoutId);
+        scheduleNextTick();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.target.matches("input, textarea, select")) return;
+      if (e.key === "ArrowRight") { e.preventDefault(); stopAuto(); stepFwd(); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); stepBack(); }
+      if (e.key === " ") { e.preventDefault(); togglePlay(); }
+      if (e.key === "Escape") { e.preventDefault(); stopAuto(); }
+    });
+
+    updateDelayLabel();
+    updatePlayUi();
+    rebuild();
+  </script>
+</body>
+</html>

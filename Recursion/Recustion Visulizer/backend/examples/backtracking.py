@@ -180,8 +180,8 @@ EXAMPLES = [
         '''),
     ),
     _ex(
-        "combination-sum",
-        "Combination Sum",
+        "combination-sum-v1",
+        "Combination Sum v1 — For Loop",
         "combinationSum(candidates, target)",
         _source('''
         def combinationSum(candidates, target):
@@ -201,6 +201,101 @@ EXAMPLES = [
 
             choose(0, target, [])
             return out
+
+
+        candidates = [2, 3, 6, 7]
+        target = 7
+        '''),
+    ),
+    _ex(
+        "combination-sum-v2",
+        "Combination Sum v2 — Include / Exclude",
+        "combinationSum(candidates, target)",
+        _source('''
+        def combinationSum(candidates, target):
+            """Combinations that add up to target by taking or skipping each number."""
+            result = []
+            path = []
+
+            def backtrack(start, remaining):
+                if remaining == 0:
+                    result.append(path[:])
+                    return
+                if start == len(candidates) or remaining < 0:
+                    return
+
+                # Include (reuse allowed: stay at start)
+                path.append(candidates[start])
+                backtrack(start, remaining - candidates[start])
+                path.pop()
+
+                # Exclude
+                backtrack(start + 1, remaining)
+
+            backtrack(0, target)
+            return result
+
+
+        candidates = [2, 3, 6, 7]
+        target = 7
+        '''),
+    ),
+    _ex(
+        "combination-sum-v3",
+        "Combination Sum v3 — Iterative Stack",
+        "combinationSum(candidates, target)",
+        _source('''
+        def combinationSum(candidates, target):
+            """Combinations that add up to target using an explicit stack."""
+            candidates = sorted(candidates)
+            result = []
+            stack = [(0, [], target)]
+
+            while stack:
+                start, path, remaining = stack.pop()
+
+                if remaining == 0:
+                    result.append(path[:])
+                    continue
+
+                for i in range(len(candidates) - 1, start - 1, -1):
+                    cand = candidates[i]
+                    if cand > remaining:
+                        continue
+                    path.append(cand)
+                    stack.append((i, path[:], remaining - cand))
+                    path.pop()
+
+            return result
+
+
+        candidates = [2, 3, 6, 7]
+        target = 7
+        '''),
+    ),
+    _ex(
+        "combination-sum-v4",
+        "Combination Sum v4 — Iterative Index Stack",
+        "combinationSum(candidates, target)",
+        _source('''
+        def combinationSum(candidates, target):
+            """Combinations that add up to target using an index + path stack."""
+            result = []
+            stack = [[0, []]]
+
+            while stack:
+                index, path = stack.pop()
+                if index >= len(candidates):
+                    continue
+                if sum(path) == target:
+                    result.append(path[:])
+                    continue
+                if sum(path) > target:
+                    continue
+                for i in range(index, len(candidates)):
+                    stack.append([i, path + [candidates[i]]])
+
+            return result
 
 
         candidates = [2, 3, 6, 7]
