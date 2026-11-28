@@ -1,6 +1,10 @@
 # FastAPI + PostgreSQL + SQLAlchemy
 
-Clean Architecture example: create a User via `POST /users`.
+Clean Architecture + Domain Model example: create a User via `POST /users`.
+
+- Domain validates name/email and owns `change_email` behavior
+- Application orchestrates uniqueness checks via the repository
+- Duplicate email → **409**; invalid name/email → **422**
 
 ## Docs
 
@@ -11,7 +15,7 @@ Open the Arabic walkthrough:
 ## Setup
 
 1. Create a PostgreSQL database (default name in code: `mydb`).
-2. Update the connection string in `src/infrastructure/data_access/database.py` if needed:
+2. Default connection string (overridable with `DATABASE_URL`):
 
 ```
 postgresql+psycopg://postgres:password@localhost:5432/mydb
@@ -40,15 +44,15 @@ uvicorn main:app --reload
 ```bash
 curl -X POST http://127.0.0.1:8000/users \
   -H "Content-Type: application/json" \
-  -d '{"name": "Saleh", "email": "saleh@example.com"}'
+  -d '{"name": "Ahmed", "email": "ahmed@example.com"}'
 ```
 
 ## Layers
 
 | Layer | Role |
 | --- | --- |
-| Presentation | FastAPI controller |
-| Application | Use cases + repository interface |
-| Domain | Entities |
+| Presentation | FastAPI controller, HTTP status mapping |
+| Application | Use cases + repository interface (`find_by_email`, `DuplicateEmailError`) |
+| Domain | Entity rules (`normalize_email`, `create`, `change_email`) |
 | Infrastructure / Persistence | Repository + mapper |
 | Infrastructure / Data Access | SQLAlchemy engine, session, models |

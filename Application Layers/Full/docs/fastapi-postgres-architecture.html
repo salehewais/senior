@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>FastAPI + PostgreSQL + SQLAlchemy — Clean Architecture</title>
+  <title>FastAPI + PostgreSQL + SQLAlchemy — Clean Architecture + Domain Model</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -288,6 +288,22 @@
 
     .mapper-flow span { color: var(--accent); }
 
+    .deps-flow {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+      margin: 1rem 0;
+      direction: ltr;
+      text-align: center;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+
+    .deps-flow span { color: var(--accent); }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -337,7 +353,6 @@
       text-align: center;
     }
 
-    /* syntax-ish highlights */
     .kw { color: #c792ea; }
     .fn { color: #82aaff; }
     .str { color: #c3e88d; }
@@ -348,24 +363,30 @@
 <body>
   <div class="wrap">
     <header>
-      <div class="eyebrow">Clean Architecture · Example</div>
-      <h1>FastAPI + PostgreSQL + SQLAlchemy<br />إنشاء User</h1>
+      <div class="eyebrow">Clean Architecture · Domain Model</div>
+      <h1>FastAPI + PostgreSQL + SQLAlchemy<br />إنشاء User بفصل Domain و Application</h1>
       <p>
-        هنستخدم نفس البنية بالضبط، وهنعمل مثال لإنشاء User، بحيث نفهم دور كل ملف وعلاقته بالملفات التانية.
+        المثال السابق كان فيه خلط بين Domain Logic و Application Logic، وكمان كان ناقصه تعريف
+        <code>find_by_email</code> في الـ Repository Interface. هنا نعيد المثال كاملًا بشكل متسق مع
+        Clean Architecture + Domain Model.
       </p>
 
       <div class="roles">
         <div class="role">
-          <strong>Persistence</strong>
-          <span>مسؤول عن تنفيذ عمليات الحفظ والاسترجاع.</span>
+          <strong>Domain</strong>
+          <span>قواعد الـ Business وسلوك الـ User.</span>
         </div>
         <div class="role">
-          <strong>Data Access</strong>
-          <span>مسؤول عن التعامل التقني مع قاعدة البيانات والـ ORM.</span>
+          <strong>Application</strong>
+          <span>تنسيق الـ Use Case والتعامل مع الـ Repository Interface.</span>
         </div>
         <div class="role">
-          <strong>Mapper</strong>
-          <span>مسؤول عن التحويل بين Domain Entity و SQLAlchemy Model.</span>
+          <strong>Infrastructure</strong>
+          <span>PostgreSQL وSQLAlchemy والـ Mapping.</span>
+        </div>
+        <div class="role">
+          <strong>Presentation</strong>
+          <span>FastAPI واستقبال HTTP Requests.</span>
         </div>
       </div>
     </header>
@@ -373,20 +394,37 @@
     <nav class="toc" aria-label="فهرس المحتوى">
       <h2>المحتويات</h2>
       <ol>
-        <li><a href="#structure">Project Structure</a></li>
+        <li><a href="#structure">شكل المشروع النهائي</a></li>
         <li><a href="#domain">Domain Layer</a></li>
         <li><a href="#application">Application Layer</a></li>
         <li><a href="#infrastructure">Infrastructure Layer</a></li>
         <li><a href="#presentation">Presentation Layer — FastAPI</a></li>
-        <li><a href="#main">نقطة تشغيل التطبيق</a></li>
-        <li><a href="#flow">نفهم العلاقة بين الملفات</a></li>
+        <li><a href="#main">Main — تشغيل التطبيق</a></li>
+        <li><a href="#models-fix">تصحيح models.py</a></li>
+        <li><a href="#run">تشغيل المشروع</a></li>
+        <li><a href="#responsibilities">توزيع المسؤوليات</a></li>
+        <li><a href="#deps">اتجاه الاعتماد بين الطبقات</a></li>
       </ol>
     </nav>
 
+    <section id="scenario">
+      <h2>السيناريو</h2>
+      <ul>
+        <li>إنشاء مستخدم جديد.</li>
+        <li>الاسم والإيميل لازم يكونوا صالحين.</li>
+        <li>مينفعش يكون فيه مستخدم تاني بنفس الإيميل.</li>
+        <li>المستخدم يقدر يغير إيميله، بشرط يكون صالحًا.</li>
+        <li>التخزين باستخدام PostgreSQL وSQLAlchemy.</li>
+      </ul>
+    </section>
+
     <!-- 1. Structure -->
     <section id="structure">
-      <h2>1. Project Structure</h2>
+      <h2>1. شكل المشروع النهائي</h2>
+      <p>هنحافظ على نفس البنية، ونضيف <code>main.py</code> فقط كنقطة تشغيل للتطبيق:</p>
       <div class="tree"><span class="dir">src/</span>
+│
+├── <span class="file">main.py</span>
 │
 ├── <span class="dir">presentation/</span>
 │   └── <span class="dir">api/</span>
@@ -420,10 +458,9 @@
     <!-- 2. Domain -->
     <section id="domain">
       <h2>2. Domain Layer</h2>
+      <p>هنا هنحط الـ Business Rules والسلوك الخاص بالـ User.</p>
       <h3><code>domain/entities/user.py</code></h3>
-      <p>ده الـ Entity الأساسي بتاعنا.</p>
-      <p class="muted">مش هيعرف أي حاجة عن PostgreSQL أو SQLAlchemy.</p>
-<pre><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+      <pre><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
 <span class="kw">from</span> uuid <span class="kw">import</span> UUID, uuid4
 
 
@@ -433,35 +470,78 @@
     name: str
     email: str
 
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">normalize_email</span>(email: str) -&gt; str:
+        <span class="kw">return</span> email.strip().lower()
+
     <span class="kw">@classmethod</span>
     <span class="kw">def</span> <span class="fn">create</span>(cls, name: str, email: str):
+        name = name.strip()
+        email = cls.normalize_email(email)
+
+        <span class="kw">if</span> <span class="kw">not</span> name:
+            <span class="kw">raise</span> ValueError(<span class="str">"Name is required"</span>)
+
+        <span class="kw">if</span> <span class="str">"@"</span> <span class="kw">not in</span> email:
+            <span class="kw">raise</span> ValueError(<span class="str">"Invalid email"</span>)
+
         <span class="kw">return</span> cls(
             id=uuid4(),
             name=name,
-            email=email
-        )</code></pre>
+            email=email,
+        )
+
+    <span class="kw">def</span> <span class="fn">change_email</span>(self, new_email: str):
+        new_email = self.normalize_email(new_email)
+
+        <span class="kw">if</span> <span class="kw">not</span> new_email <span class="kw">or</span> <span class="str">"@"</span> <span class="kw">not in</span> new_email:
+            <span class="kw">raise</span> ValueError(<span class="str">"Invalid email"</span>)
+
+        self.email = new_email</code></pre>
+
+      <div class="note">
+        <strong>ليه ده Domain Model؟</strong>
+        لأن <code>User</code> مش مجرد Data Structure بتحتوي على <code>id</code> و<code>name</code> و<code>email</code>.
+        هي كمان مسؤولة عن سلوكها وقواعدها: إنشاء User صالح، تطبيع الإيميل، وتغيير الإيميل مع التحقق من صلاحيته.
+        لاحظ إننا مش بنستخدم هنا FastAPI أو SQLAlchemy أو PostgreSQL.
+      </div>
     </section>
 
     <!-- 3. Application -->
     <section id="application">
       <h2>3. Application Layer</h2>
 
-      <h3>أولًا: <code>application/interfaces/user_repository.py</code></h3>
-      <p>ده الـ Repository Interface.</p>
-      <p class="muted">الـ Application بتقول إنها محتاجة Repository يقدر يحفظ User، لكنها مش بتحدد إزاي.</p>
-<pre><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+      <h3>أولًا: Repository Interface — <code>user_repository.py</code></h3>
+      <pre><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
 <span class="kw">from</span> domain.entities.user <span class="kw">import</span> User
+
+
+<span class="kw">class</span> <span class="cls">DuplicateEmailError</span>(Exception):
+    <span class="kw">pass</span>
 
 
 <span class="kw">class</span> <span class="cls">UserRepository</span>(ABC):
     <span class="kw">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">find_by_email</span>(self, email: str) -&gt; User | None:
+        <span class="kw">pass</span>
+
+    <span class="kw">@abstractmethod</span>
     <span class="kw">def</span> <span class="fn">save</span>(self, user: User) -&gt; None:
         <span class="kw">pass</span></code></pre>
 
-      <h3>ثانيًا: <code>application/use_cases/create_user.py</code></h3>
-      <p>ده الـ Use Case المسؤول عن إنشاء المستخدم.</p>
-<pre><code><span class="kw">from</span> domain.entities.user <span class="kw">import</span> User
-<span class="kw">from</span> application.interfaces.user_repository <span class="kw">import</span> UserRepository
+      <p>ليه أضفنا <code>find_by_email</code>؟ لأن الـ Use Case محتاج يعرف هل الإيميل مستخدم بالفعل أم لا.</p>
+      <p>
+        وليه عرفنا <code>DuplicateEmailError</code> هنا؟ ده استثناء ضمن العقد اللي الـ Repository بيقدمه للـ Application،
+        بحيث الـ Application متضطرش تعرف تفاصيل أخطاء PostgreSQL.
+      </p>
+
+      <h3>ثانيًا: Create User Use Case — <code>create_user.py</code></h3>
+      <pre><code><span class="kw">from</span> domain.entities.user <span class="kw">import</span> User
+<span class="kw">from</span> application.interfaces.user_repository <span class="kw">import</span> (
+    UserRepository,
+    DuplicateEmailError,
+)
 
 
 <span class="kw">class</span> <span class="cls">CreateUser</span>:
@@ -469,64 +549,112 @@
         self.user_repository = user_repository
 
     <span class="kw">def</span> <span class="fn">execute</span>(self, name: str, email: str) -&gt; User:
-        user = User.create(name, email)
+        normalized_email = User.normalize_email(email)
+
+        existing_user = self.user_repository.find_by_email(
+            normalized_email
+        )
+
+        <span class="kw">if</span> existing_user:
+            <span class="kw">raise</span> DuplicateEmailError(<span class="str">"Email already exists"</span>)
+
+        user = User.create(
+            name=name,
+            email=normalized_email,
+        )
+
         self.user_repository.save(user)
         <span class="kw">return</span> user</code></pre>
+
+      <p>هنا بنلاحظ الفصل المهم:</p>
+      <ul>
+        <li><code>User.create()</code> مسؤول عن قواعد إنشاء المستخدم.</li>
+        <li><code>CreateUser.execute()</code> مسؤول عن تنسيق عملية الإنشاء.</li>
+        <li><code>UserRepository</code> مسؤول عن توفير عمليات الوصول للمستخدمين من خلال abstraction.</li>
+      </ul>
+
       <div class="note">
-        <strong>لاحظ:</strong> <code>CreateUser</code> بيتعامل مع Interface، مش مع PostgreSQL Repository مباشرة.
+        <strong>ليه فحصنا تكرار الإيميل في Application؟</strong>
+        لأن التحقق هنا محتاج Repository عشان نعرف هل فيه User آخر بنفس الإيميل.
+        دي مش خاصية يقدر User واحد يقررها بمفرده.
       </div>
     </section>
 
     <!-- 4. Infrastructure -->
     <section id="infrastructure">
       <h2>4. Infrastructure Layer</h2>
-      <p>هنا بقى هنقسم Infrastructure إلى Persistence و Data Access زي ما طلبت.</p>
+      <p>هنبدأ بـ Data Access وبعدها Persistence.</p>
 
-      <h3>أولًا: Data Access</h3>
-      <h3><code>infrastructure/data_access/database.py</code></h3>
-      <p>مسؤول عن إعداد الاتصال بقاعدة البيانات وإنشاء SQLAlchemy Session.</p>
-<pre><code><span class="kw">from</span> sqlalchemy <span class="kw">import</span> create_engine
-<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> sessionmaker, declarative_base
+      <h3>أولًا: Data Access — <code>database.py</code></h3>
+      <pre><code><span class="kw">import</span> os
 
-DATABASE_URL = (
-    <span class="str">"postgresql+psycopg://postgres:password@localhost:5432/mydb"</span>
+<span class="kw">from</span> sqlalchemy <span class="kw">import</span> create_engine
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> sessionmaker, DeclarativeBase
+
+DATABASE_URL = os.getenv(
+    <span class="str">"DATABASE_URL"</span>,
+    <span class="str">"postgresql+psycopg://postgres:password@localhost:5432/mydb"</span>,
 )
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(
     bind=engine,
     autoflush=<span class="kw">False</span>,
-    autocommit=<span class="kw">False</span>
+    expire_on_commit=<span class="kw">False</span>,
 )
-Base = declarative_base()</code></pre>
+
+
+<span class="kw">class</span> <span class="cls">Base</span>(DeclarativeBase):
+    <span class="kw">pass</span></code></pre>
+
+      <p>المسؤوليات:</p>
       <ul>
-        <li><code>engine</code>: مسؤول عن الاتصال بقاعدة البيانات.</li>
-        <li><code>SessionLocal</code>: مصنع لإنشاء Sessions.</li>
-        <li><code>Base</code>: الأساس اللي هتورث منه SQLAlchemy Models.</li>
+        <li><code>engine</code>: إعداد الاتصال بقاعدة البيانات.</li>
+        <li><code>SessionLocal</code>: إنشاء SQLAlchemy Sessions.</li>
+        <li><code>Base</code>: الأساس الذي سترث منه الـ ORM Models.</li>
       </ul>
 
-      <h3><code>infrastructure/data_access/models.py</code></h3>
-      <p>هنا بنعرّف شكل الجدول باستخدام SQLAlchemy.</p>
-<pre><code><span class="kw">from</span> sqlalchemy <span class="kw">import</span> Column, String
-<span class="kw">from</span> sqlalchemy.dialects.postgresql <span class="kw">import</span> UUID
+      <h3><code>models.py</code></h3>
+      <pre><code><span class="kw">from</span> uuid <span class="kw">import</span> UUID
+
+<span class="kw">from</span> sqlalchemy <span class="kw">import</span> String, UniqueConstraint, Uuid
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> Mapped, mapped_column
+
 <span class="kw">from</span> infrastructure.data_access.database <span class="kw">import</span> Base
 
 
 <span class="kw">class</span> <span class="cls">UserModel</span>(Base):
     __tablename__ = <span class="str">"users"</span>
+    __table_args__ = (
+        UniqueConstraint(
+            <span class="str">"email"</span>,
+            name=<span class="str">"uq_users_email"</span>,
+        ),
+    )
 
-    id = Column(UUID(as_uuid=<span class="kw">True</span>), primary_key=<span class="kw">True</span>)
-    name = Column(String(100), nullable=<span class="kw">False</span>)
-    email = Column(String(255), unique=<span class="kw">True</span>, nullable=<span class="kw">False</span>)</code></pre>
-      <div class="note">
-        <strong>خلي بالك:</strong> <code>UserModel</code> مش هو نفسه <code>User</code> الموجود في Domain.
-        الأول بيمثل شكل البيانات في قاعدة البيانات، والتاني بيمثل الـ Business Entity.
-      </div>
+    id: Mapped[UUID] = mapped_column(
+        Uuid,
+        primary_key=<span class="kw">True</span>,
+    )
+    name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=<span class="kw">False</span>,
+    )
+    email: Mapped[str] = mapped_column(
+        String(255),
+        nullable=<span class="kw">False</span>,
+    )</code></pre>
 
-      <h3>ثانيًا: Persistence — Mapper</h3>
-      <h3><code>infrastructure/persistence/mappers/user_mapper.py</code></h3>
-      <p>وظيفته تحويل البيانات بين الـ Domain والـ Database Model.</p>
-<pre><code><span class="kw">from</span> domain.entities.user <span class="kw">import</span> User
+      <p>ده تمثيل جدول <code>users</code> في PostgreSQL باستخدام SQLAlchemy.</p>
+      <p>خلي بالك من الفرق:</p>
+      <ul>
+        <li><code>User</code>: Domain Entity.</li>
+        <li><code>UserModel</code>: Database ORM Model.</li>
+      </ul>
+      <p>مش نفس الـ Class ومش نفس المسؤولية.</p>
+
+      <h3>ثانيًا: Persistence — Mapper — <code>user_mapper.py</code></h3>
+      <pre><code><span class="kw">from</span> domain.entities.user <span class="kw">import</span> User
 <span class="kw">from</span> infrastructure.data_access.models <span class="kw">import</span> UserModel
 
 
@@ -536,7 +664,7 @@ Base = declarative_base()</code></pre>
         <span class="kw">return</span> UserModel(
             id=user.id,
             name=user.name,
-            email=user.email
+            email=user.email,
         )
 
     <span class="kw">@staticmethod</span>
@@ -544,59 +672,91 @@ Base = declarative_base()</code></pre>
         <span class="kw">return</span> User(
             id=model.id,
             name=model.name,
-            email=model.email
+            email=model.email,
         )</code></pre>
-      <div class="mapper-flow">
-        User Entity &nbsp;<span>&lt;---</span>&nbsp; User Mapper &nbsp;<span>&lt;---</span>&nbsp; UserModel
-      </div>
-      <p class="muted">الـ Mapper هو اللي بيمنع الـ Domain Entity من الارتباط بشكل جدول قاعدة البيانات.</p>
 
-      <h3>ثالثًا: Persistence — Repository Implementation</h3>
-      <h3><code>infrastructure/persistence/repositories/postgres_user_repository.py</code></h3>
-      <p>هنا هننفذ الـ Interface اللي عرفناها في Application.</p>
-<pre><code><span class="kw">from</span> domain.entities.user <span class="kw">import</span> User
-<span class="kw">from</span> application.interfaces.user_repository <span class="kw">import</span> UserRepository
+      <p>الـ Mapper مسؤول عن التحويل بين الشكلين:</p>
+      <div class="mapper-flow">
+        Domain Entity <span>&lt;---</span> Mapper <span>&lt;---</span> ORM Model
+      </div>
+
+      <h3>ثالثًا: Persistence — Repository — <code>postgres_user_repository.py</code></h3>
+      <pre><code><span class="kw">from</span> sqlalchemy <span class="kw">import</span> select
+<span class="kw">from</span> sqlalchemy.exc <span class="kw">import</span> IntegrityError
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> Session
+
+<span class="kw">from</span> domain.entities.user <span class="kw">import</span> User
+<span class="kw">from</span> application.interfaces.user_repository <span class="kw">import</span> (
+    UserRepository,
+    DuplicateEmailError,
+)
 <span class="kw">from</span> infrastructure.data_access.models <span class="kw">import</span> UserModel
 <span class="kw">from</span> infrastructure.persistence.mappers.user_mapper <span class="kw">import</span> UserMapper
 
 
 <span class="kw">class</span> <span class="cls">PostgresUserRepository</span>(UserRepository):
-    <span class="kw">def</span> <span class="fn">__init__</span>(self, session):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, session: Session):
         self.session = session
 
+    <span class="kw">def</span> <span class="fn">find_by_email</span>(self, email: str) -&gt; User | None:
+        statement = select(UserModel).where(
+            UserModel.email == email
+        )
+        model = self.session.scalar(statement)
+
+        <span class="kw">if</span> model <span class="kw">is</span> None:
+            <span class="kw">return</span> None
+
+        <span class="kw">return</span> UserMapper.to_entity(model)
+
     <span class="kw">def</span> <span class="fn">save</span>(self, user: User) -&gt; None:
-        user_model = UserMapper.to_model(user)
-        self.session.add(user_model)
-        self.session.commit()</code></pre>
-      <p>لاحظ المسؤوليات:</p>
+        <span class="kw">try</span>:
+            user_model = UserMapper.to_model(user)
+            self.session.add(user_model)
+            self.session.commit()
+        <span class="kw">except</span> IntegrityError:
+            self.session.rollback()
+            <span class="kw">raise</span> DuplicateEmailError(<span class="str">"Email already exists"</span>)</code></pre>
+
+      <p>لاحظ إن الـ Repository هنا بيجمع بين:</p>
       <ol>
-        <li>استقبل Domain Entity.</li>
-        <li>استخدم Mapper لتحويلها إلى SQLAlchemy Model.</li>
-        <li>استخدم Session لحفظ البيانات.</li>
-        <li>نفذ Commit.</li>
+        <li>تنفيذ الـ Repository Interface.</li>
+        <li>استخدام Mapper.</li>
+        <li>استخدام SQLAlchemy Session.</li>
+        <li>التعامل مع عملية الحفظ.</li>
       </ol>
-      <p class="muted">إذن الـ Repository مش مسؤول عن تعريف الاتصال بقاعدة البيانات؛ هو بيستخدم Session جاهزة تم تمريرها إليه.</p>
+
+      <div class="note">
+        كمان فيه حماية من حالة الـ Race Condition: ممكن طلبين يحاولوا إنشاء نفس الإيميل في نفس اللحظة،
+        وبالتالي فحص الـ Application وحده مش كفاية. الـ Unique Constraint في قاعدة البيانات هو الحماية النهائية.
+      </div>
     </section>
 
     <!-- 5. Presentation -->
     <section id="presentation">
       <h2>5. Presentation Layer — FastAPI</h2>
       <h3><code>presentation/api/user_controller.py</code></h3>
-      <p>ده الـ Controller اللي هيستقبل HTTP Request.</p>
-<pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter, Depends
+      <pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter, Depends, HTTPException
 <span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
 <span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> Session
 
 <span class="kw">from</span> infrastructure.data_access.database <span class="kw">import</span> SessionLocal
 <span class="kw">from</span> infrastructure.persistence.repositories.postgres_user_repository <span class="kw">import</span> (
-    PostgresUserRepository
+    PostgresUserRepository,
 )
 <span class="kw">from</span> application.use_cases.create_user <span class="kw">import</span> CreateUser
+<span class="kw">from</span> application.interfaces.user_repository <span class="kw">import</span> DuplicateEmailError
 
 router = APIRouter()
 
 
 <span class="kw">class</span> <span class="cls">CreateUserRequest</span>(BaseModel):
+    name: str
+    email: str
+
+
+<span class="kw">class</span> <span class="cls">UserResponse</span>(BaseModel):
+    id: str
     name: str
     email: str
 
@@ -609,117 +769,188 @@ router = APIRouter()
         db.close()
 
 
-<span class="kw">@router.post</span>(<span class="str">"/users"</span>)
+<span class="kw">@router.post</span>(<span class="str">"/users"</span>, response_model=UserResponse)
 <span class="kw">def</span> <span class="fn">create_user</span>(
     request: CreateUserRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     repository = PostgresUserRepository(db)
     use_case = CreateUser(repository)
-    user = use_case.execute(request.name, request.email)
-    <span class="kw">return</span> {
-        <span class="str">"id"</span>: str(user.id),
-        <span class="str">"name"</span>: user.name,
-        <span class="str">"email"</span>: user.email,
-    }</code></pre>
+
+    <span class="kw">try</span>:
+        user = use_case.execute(request.name, request.email)
+    <span class="kw">except</span> DuplicateEmailError <span class="kw">as</span> exc:
+        <span class="kw">raise</span> HTTPException(status_code=409, detail=str(exc))
+    <span class="kw">except</span> ValueError <span class="kw">as</span> exc:
+        <span class="kw">raise</span> HTTPException(status_code=422, detail=str(exc))
+
+    <span class="kw">return</span> UserResponse(
+        id=str(user.id),
+        name=user.name,
+        email=user.email,
+    )</code></pre>
     </section>
 
     <!-- 6. Main -->
     <section id="main">
-      <h2>6. نقطة تشغيل التطبيق</h2>
-      <p>هنضيف ملف <code>main.py</code> في جذر <code>src</code> لتشغيل FastAPI.</p>
-<pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
-<span class="kw">from</span> presentation.api.user_controller <span class="kw">import</span> router
+      <h2>6. Main — تشغيل التطبيق</h2>
+      <h3><code>src/main.py</code></h3>
+      <pre><code><span class="kw">from</span> contextlib <span class="kw">import</span> asynccontextmanager
 
-app = FastAPI()
+<span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+
+<span class="kw">from</span> presentation.api.user_controller <span class="kw">import</span> router
+<span class="kw">from</span> infrastructure.data_access.database <span class="kw">import</span> Base, engine
+<span class="cm"># Import model so SQLAlchemy registers its table</span>
+<span class="kw">from</span> infrastructure.data_access.models <span class="kw">import</span> UserModel
+
+
+<span class="kw">@asynccontextmanager</span>
+<span class="kw">async def</span> <span class="fn">lifespan</span>(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    <span class="kw">yield</span>
+
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(router)</code></pre>
-      <p>وثبّت المكتبات:</p>
-<pre><code>pip install fastapi uvicorn sqlalchemy "psycopg[binary]"</code></pre>
-      <p>شغّل التطبيق:</p>
-<pre><code>uvicorn main:app --reload</code></pre>
-      <p class="muted">وتأكد إن قاعدة البيانات موجودة وإن بيانات الاتصال صحيحة.</p>
+
+      <div class="note">
+        <code>create_all</code> هنا للتجربة التعليمية فقط. في مشروع حقيقي استخدم Alembic لإدارة Database Migrations.
+      </div>
     </section>
 
-    <!-- 7. Flow -->
-    <section id="flow">
-      <h2>7. نفهم العلاقة بين الملفات</h2>
-      <p>دي أهم نقطة في المثال كله.</p>
+    <!-- 7. models fix note -->
+    <section id="models-fix">
+      <h2>7. تصحيح صغير في ملف models.py</h2>
+      <p>للدقة في الـ Type Hints، استخدم <code>UUID</code> بدل <code>object</code> في تعريف الـ ID:</p>
+      <pre><code><span class="kw">from</span> uuid <span class="kw">import</span> UUID
 
-      <h3>وقت تنفيذ Request</h3>
-      <div class="flow">
-        <span class="step">user_controller.py</span>
-        <span class="arrow">→</span>
-        <span class="step">create_user.py</span>
-        <span class="arrow">→</span>
-        <span class="step">user.py</span>
-        <span class="arrow">→</span>
-        <span class="step">user_repository.py</span>
-        <span class="arrow">→</span>
-        <span class="step">postgres_user_repository.py</span>
-        <span class="arrow">→</span>
-        <span class="step">user_mapper.py</span>
-        <span class="arrow">→</span>
-        <span class="step">models.py + database.py</span>
-        <span class="arrow">→</span>
-        <span class="step">PostgreSQL</span>
-      </div>
+id: Mapped[UUID] = mapped_column(
+    Uuid,
+    primary_key=<span class="kw">True</span>,
+)</code></pre>
+      <p class="muted">الكود في القسم 4 يستخدم هذا التصحيح بالفعل.</p>
+    </section>
+
+    <!-- 8. Run -->
+    <section id="run">
+      <h2>8. تشغيل المشروع</h2>
+      <p>من داخل مجلد <code>src</code>:</p>
+      <pre><code>pip install fastapi uvicorn sqlalchemy "psycopg[binary]"
+
+uvicorn main:app --reload</code></pre>
+      <p>وتأكد إن PostgreSQL شغال، وإن قاعدة البيانات <code>mydb</code> موجودة.</p>
+      <p>افتح: <code>http://127.0.0.1:8000/docs</code></p>
+      <p>وجرّب <strong>POST /users</strong>:</p>
+      <pre><code>{
+  "name": "Ahmed",
+  "email": "ahmed@example.com"
+}</code></pre>
+      <p><strong>النتيجة المتوقعة:</strong></p>
+      <pre><code>{
+  "id": "generated-uuid",
+  "name": "Ahmed",
+  "email": "ahmed@example.com"
+}</code></pre>
       <ul>
-        <li><code>user_controller.py</code> — استقبال HTTP Request</li>
-        <li><code>create_user.py</code> — تنفيذ Use Case</li>
-        <li><code>user.py</code> — إنشاء Domain Entity</li>
-        <li><code>user_repository.py</code> — Repository Interface</li>
-        <li><code>postgres_user_repository.py</code> — تنفيذ الحفظ</li>
-        <li><code>user_mapper.py</code> — Domain Entity إلى ORM Model</li>
-        <li><code>models.py</code> + <code>database.py</code> — SQLAlchemy Model و Session</li>
-        <li><strong>PostgreSQL</strong> — التخزين النهائي</li>
+        <li>لو الإيميل موجود: <code>409 Conflict</code>.</li>
+        <li>لو الاسم فارغ أو الإيميل غير صالح: <code>422 Unprocessable Entity</code>.</li>
       </ul>
+    </section>
 
-      <h3>الفرق بين Persistence و Data Access في المثال</h3>
+    <!-- 9. Responsibilities -->
+    <section id="responsibilities">
+      <h2>9. نراجع توزيع المسؤوليات</h2>
+      <p>دي أهم نقطة في المثال:</p>
       <table>
         <thead>
           <tr>
             <th>الملف</th>
-            <th>المسؤولية</th>
+            <th>مسؤوليته</th>
           </tr>
         </thead>
         <tbody>
           <tr>
+            <td><code>user.py</code></td>
+            <td>Domain Entity وقواعد الـ User</td>
+          </tr>
+          <tr>
+            <td><code>create_user.py</code></td>
+            <td>تنسيق عملية إنشاء User</td>
+          </tr>
+          <tr>
+            <td><code>user_repository.py</code></td>
+            <td>Repository Contract</td>
+          </tr>
+          <tr>
             <td><code>postgres_user_repository.py</code></td>
-            <td>تنفيذ عمليات الـ Repository</td>
+            <td>تنفيذ عمليات Repository باستخدام PostgreSQL</td>
           </tr>
           <tr>
             <td><code>user_mapper.py</code></td>
-            <td>تحويل Entity إلى ORM Model والعكس</td>
+            <td>التحويل بين Domain وORM</td>
+          </tr>
+          <tr>
+            <td><code>models.py</code></td>
+            <td>تعريف Database Tables</td>
           </tr>
           <tr>
             <td><code>database.py</code></td>
             <td>إعداد الاتصال والـ Sessions</td>
           </tr>
           <tr>
-            <td><code>models.py</code></td>
-            <td>تعريف شكل جداول قاعدة البيانات</td>
+            <td><code>user_controller.py</code></td>
+            <td>استقبال HTTP Request وإرجاع HTTP Response</td>
           </tr>
         </tbody>
       </table>
+    </section>
+
+    <!-- 10. Dependencies -->
+    <section id="deps">
+      <h2>10. اتجاه الاعتماد بين الطبقات</h2>
+      <div class="deps-flow">
+        <span>Infrastructure</span> → <span>Application</span> → <span>Domain</span>
+      </div>
+      <ul>
+        <li>Infrastructure تعتمد على Application لتنفيذ الـ Repository Interface.</li>
+        <li>Application تعتمد على Domain لاستخدام الـ Entities وقواعدها.</li>
+        <li>Domain لا تعتمد على أي طبقة خارجية.</li>
+      </ul>
+
+      <p>أما وقت تنفيذ الطلب، فالتدفق بيكون:</p>
+      <div class="flow">
+        <span class="step">HTTP Request</span>
+        <span class="arrow">→</span>
+        <span class="step">Controller</span>
+        <span class="arrow">→</span>
+        <span class="step">CreateUser</span>
+        <span class="arrow">→</span>
+        <span class="step">User Domain</span>
+        <span class="arrow">→</span>
+        <span class="step">UserRepository</span>
+        <span class="arrow">→</span>
+        <span class="step">PostgreSQL</span>
+      </div>
+      <p class="muted">الأسهم هنا بتوضح تدفق التنفيذ، مش اتجاه الـ Dependency.</p>
 
       <div class="note">
-        <strong>ملحوظة معمارية مهمة:</strong>
-        التقسيم ده اختيار تنظيمي مناسب للمثال، مش قاعدة إلزامية في Clean Architecture.
-        كمان المثال مبسط؛ في مشروع حقيقي ممكن نفصل Transaction Management عن Repository،
-        ونتعامل مع أخطاء الـ Database وعمليات الـ Commit/Rollback بشكل مركزي.
+        <strong>ملاحظة مهمة:</strong>
+        المثال الحالي بيطبق Domain Model بشكل مبسط، وليس DDD كاملًا.
+        و<code>change_email()</code> موجودة في الـ Domain لتوضيح السلوك، لكننا لم ننشئ Use Case لتغيير الإيميل
+        أو Repository method لتحديثه؛ لأن السيناريو الحالي مقتصر على إنشاء المستخدم.
       </div>
 
       <div class="summary">
         <p>
-          <strong>الخلاصة:</strong>
-          الـ Application بتحدد هي محتاجة إيه، والـ Infrastructure بتحدد هتنفذ الاحتياج ده إزاي،
-          والـ FastAPI Controller بيربط الـ HTTP Request بالـ Use Case.
+          كده الفصل بقى واضح: الـ Domain يملك قواعد الـ Business، والـ Application تنسق تنفيذها،
+          والـ Infrastructure تنفذ التفاصيل التقنية.
         </p>
       </div>
     </section>
 
     <footer>
-      FastAPI · PostgreSQL · SQLAlchemy — Clean Architecture Example
+      Clean Architecture + Domain Model · FastAPI · PostgreSQL · SQLAlchemy
     </footer>
   </div>
 </body>
