@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_athir_integration_log_list" model="ir.ui.view">
+        <field name="name">athir.integration.log.list</field>
+        <field name="model">athir.integration.log</field>
+        <field name="arch" type="xml">
+            <list create="0">
+                <field name="create_date"/>
+                <field name="operation"/>
+                <field name="status"/>
+                <field name="external_id"/>
+                <field name="error_code"/>
+                <field name="company_id"/>
+                <field name="move_id"/>
+                <field name="correlation_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_athir_integration_log_form" model="ir.ui.view">
+        <field name="name">athir.integration.log.form</field>
+        <field name="model">athir.integration.log</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="operation"/>
+                            <field name="status"/>
+                            <field name="external_id"/>
+                            <field name="correlation_id"/>
+                            <field name="payload_hash"/>
+                        </group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="move_id"/>
+                            <field name="credential_id"/>
+                            <field name="error_code"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="error_message"/>
+                        <field name="raw_payload" groups="bh_athir_integration.group_athir_manager"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_athir_integration_log" model="ir.actions.act_window">
+        <field name="name">Integration Logs</field>
+        <field name="res_model">athir.integration.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

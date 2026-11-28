@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_athir" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.athir</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='account']" position="inside">
+                <block title="Athir Integration" name="athir_settings">
+                    <setting string="Financial Tolerance"
+                             help="Absolute amount tolerance when comparing Athir totals to Odoo.">
+                        <field name="athir_financial_tolerance"/>
+                    </setting>
+                    <setting string="Allow Default Company Fallback"
+                             help="If organization mapping is missing, use the current company. Disabled by default.">
+                        <field name="athir_allow_company_fallback"/>
+                    </setting>
+                    <setting string="Store Raw Payloads"
+                             help="Off by default. Raw payloads may contain patient data.">
+                        <field name="athir_store_raw_payload"/>
+                    </setting>
+                    <setting string="Auto-Post (future)"
+                             help="Reserved. v1 always creates draft invoices.">
+                        <field name="athir_auto_post"/>
+                    </setting>
+                    <setting string="Register Payments (future)"
+                             help="Reserved. v1 only stores payment traces.">
+                        <field name="athir_register_payments"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

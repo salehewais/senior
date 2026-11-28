@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form_athir" model="ir.ui.view">
+        <field name="name">account.move.form.athir</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='other_info']" position="after">
+                <page string="Athir" name="athir_info" invisible="not athir_invoice_id">
+                    <group>
+                        <group>
+                            <field name="athir_invoice_id" readonly="1"/>
+                            <field name="athir_bill_type" readonly="1"/>
+                            <field name="athir_source_system" readonly="1"/>
+                            <field name="athir_payload_hash" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="athir_organization_external_id" readonly="1"/>
+                            <field name="athir_organization_name" readonly="1"/>
+                            <field name="athir_branch_external_id" readonly="1"/>
+                            <field name="athir_branch_name" readonly="1"/>
+                            <field name="athir_clinic_external_id" readonly="1"/>
+                            <field name="athir_clinic_name" readonly="1"/>
+                            <field name="athir_cashier_external_id" readonly="1"/>
+                            <field name="athir_cashier_name" readonly="1"/>
+                            <field name="athir_customer_external_id" readonly="1"/>
+                            <field name="athir_customer_mrn" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="athir_payment_trace_ids" readonly="1">
+                        <list>
+                            <field name="pay_method_external_id"/>
+                            <field name="amount"/>
+                            <field name="payment_method_id"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

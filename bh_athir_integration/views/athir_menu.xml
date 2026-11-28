@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_athir_root"
+              name="Athir"
+              web_icon="bh_athir_integration,static/description/icon.png"
+              sequence="85"
+              groups="bh_athir_integration.group_athir_user"/>
+
+    <menuitem id="menu_athir_configuration"
+              name="Configuration"
+              parent="menu_athir_root"
+              sequence="90"
+              groups="bh_athir_integration.group_athir_manager"/>
+
+    <menuitem id="menu_athir_credentials"
+              name="API Credentials"
+              parent="menu_athir_configuration"
+              action="action_athir_api_credential"
+              sequence="10"/>
+
+    <menuitem id="menu_athir_mappings"
+              name="External Mappings"
+              parent="menu_athir_configuration"
+              action="action_athir_external_mapping"
+              sequence="20"/>
+
+    <menuitem id="menu_athir_logs"
+              name="Integration Logs"
+              parent="menu_athir_root"
+              action="action_athir_integration_log"
+              sequence="20"/>
+
+    <menuitem id="menu_athir_processed"
+              name="Processed Documents"
+              parent="menu_athir_root"
+              action="action_athir_processed_document"
+              sequence="30"/>
+</odoo>

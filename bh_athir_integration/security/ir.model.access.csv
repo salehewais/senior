@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_athir_api_credential_user,athir.api.credential user,model_athir_api_credential,group_athir_user,1,0,0,0
+access_athir_api_credential_manager,athir.api.credential manager,model_athir_api_credential,group_athir_manager,1,1,1,1
+access_athir_external_mapping_user,athir.external.mapping user,model_athir_external_mapping,group_athir_user,1,0,0,0
+access_athir_external_mapping_manager,athir.external.mapping manager,model_athir_external_mapping,group_athir_manager,1,1,1,1
+access_athir_processed_document_user,athir.processed.document user,model_athir_processed_document,group_athir_user,1,0,0,0
+access_athir_processed_document_manager,athir.processed.document manager,model_athir_processed_document,group_athir_manager,1,1,1,1
+access_athir_integration_log_user,athir.integration.log user,model_athir_integration_log,group_athir_user,1,0,0,0
+access_athir_integration_log_manager,athir.integration.log manager,model_athir_integration_log,group_athir_manager,1,1,1,1
+access_athir_invoice_payment_trace_user,athir.invoice.payment.trace user,model_athir_invoice_payment_trace,group_athir_user,1,0,0,0
+access_athir_invoice_payment_trace_manager,athir.invoice.payment.trace manager,model_athir_invoice_payment_trace,group_athir_manager,1,1,1,1

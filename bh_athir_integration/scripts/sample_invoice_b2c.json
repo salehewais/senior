@@ -1,0 +1,35 @@
+{
+  "invoice_id": "ATH-INV-FLAT-1001",
+  "bill_type": "B2C",
+  "organization": "ORG-1",
+  "branch_id": "BR-1",
+  "branch_name": "Main Branch",
+  "clinic_id": "CL-1",
+  "clinic_name": "Dental",
+  "cashier_id": "CA-1",
+  "cashier_name": "Cashier One",
+  "mrn": "MRN-100",
+  "total_amount": 115.0,
+  "services": [
+    {
+      "service_id": "SVC-1",
+      "service_name": "Consultation",
+      "service_group_id": "SG-1",
+      "service_group_name": "OPD",
+      "doctor_id": "DOC-1",
+      "doctor_name": "Dr Smith",
+      "price": 100.0,
+      "discount_amount": 0.0,
+      "net_price": 100.0,
+      "tax_code_id": "TAX-15",
+      "insurance_net_without_vat": 0.0,
+      "insurance_vat_amount": 0.0,
+      "cash_net_without_vat": 100.0,
+      "cash_vat_amount": 15.0,
+      "transaction_created_at": "2026-01-15T10:00:00"
+    }
+  ],
+  "pay_methods": [
+    {"pay_method_id": "CASH", "amount": 115.0}
+  ]
+}
